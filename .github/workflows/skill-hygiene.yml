@@ -1,14 +1,17 @@
-name: Skill hygiene (flags + phase refs)
+name: Skill hygiene (flags + phase refs + slop rules)
 
-# Two repo-wide hygiene lints from the 2026-06-10 skill-design review:
+# Repo-wide hygiene lints from the 2026-06-10 skill-design review (+ later additions):
 #   - tools/lint-flags-vs-hints.sh  — argument-hint <-> body flag-doc sync
 #   - tools/lint-phase-refs.sh      — every "Phase <N>" reference resolves to a real heading
+#   - tools/lint-slop-rules.sh      — every slop-engine skillGuideline is present in the
+#                                     generated prevention floor (design-slop-rules.md);
+#                                     fails loudly on registry↔floor drift (epic 260624-3jp)
 #
-# NOTE: both lints are EXPECTED RED until the design-review P1/P2 campaign
-# (branch refactor/skill-design-p1p2) fully merges — they were introduced with
-# known baseline violations (flags: 40, phase-refs: 37 at creation) that
-# Waves 2–3 of that campaign burn down. A failing run on main before that
-# merge is intended, not a regression.
+# NOTE: the flags + phase-refs lints are EXPECTED RED until the design-review P1/P2
+# campaign (branch refactor/skill-design-p1p2) fully merges — they were introduced
+# with known baseline violations (flags: 40, phase-refs: 37 at creation) that
+# Waves 2–3 of that campaign burn down. A failing run on main before that merge is
+# intended, not a regression. lint-slop-rules ships GREEN (floor generated in sync).
 
 on:
   pull_request:
@@ -16,6 +19,10 @@ on:
       - 'plugins/*/skills/**/*.md'
       - 'tools/lint-flags-vs-hints.sh'
       - 'tools/lint-phase-refs.sh'
+      - 'tools/lint-slop-rules.sh'
+      - 'tools/tests/lint-slop-rules.test.sh'
+      - 'plugins/pmos-toolkit/skills/_shared/slop-engine/registry.mjs'
+      - 'plugins/pmos-toolkit/skills/_shared/slop-engine/design-slop-rules.md'
 
 jobs:
   hygiene:
@@ -26,3 +33,7 @@ jobs:
         run: bash tools/lint-flags-vs-hints.sh
       - name: Run lint-phase-refs
         run: bash tools/lint-phase-refs.sh
+      - name: Run lint-slop-rules
+        run: bash tools/lint-slop-rules.sh
+      - name: Test lint-slop-rules (in-sync passes, drift fails)
+        run: bash tools/tests/lint-slop-rules.test.sh
