@@ -130,8 +130,10 @@ if (gates) {
   has(gates, "anti-pattern", "copy-gates anti-pattern avoid-list");
 }
 
-// ===== D7 — this story creates NO SKILL.md =====
-ok(!fs.existsSync(path.join(SKILL_DIR, "SKILL.md")), "no SKILL.md under landing-page/ (Story B owns it)");
+// ===== D7 — Story B (pe2) owns SKILL.md; in the shipped tree it must be present =====
+// During the dqg-only build window this asserted ABSENCE; once Story B ships SKILL.md the
+// long-lived invariant inverts — the substrate and its consumer skill ship together.
+ok(fs.existsSync(path.join(SKILL_DIR, "SKILL.md")), "SKILL.md present under landing-page/ (Story B owns it)");
 
 // ---- report ----
 if (failures.length === 0) {

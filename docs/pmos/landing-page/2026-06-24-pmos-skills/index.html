@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="landing-page">
+<meta name="description" content="pmos-skills is a Claude Code plugin marketplace that gives you a gated, versioned product-delivery pipeline — requirements, spec, plan, execute, verify, release — plus learning and utility kits. MIT-licensed, 5 plugins, 50+ skills.">
+<title>pmos-skills — turn Claude Code into a product-delivery OS</title>
+<style>
+  /* === style: dark-developer-tool (bound from reference/style-tokens.json — AA-safe) === */
+  :root{
+    --bg:#0d1117; --fg:#e6edf3; --accent:#3fb950; --accent-fg:#06240d; --muted:#9da7b3;
+    --surface:#161b22; --surface-2:#21262d; --border:#30363d;
+    --font-display:'Inter',-apple-system,system-ui,sans-serif;
+    --font-body:'Inter',-apple-system,system-ui,sans-serif;
+    --font-mono:ui-monospace,'SF Mono','JetBrains Mono',Menlo,monospace;
+    --scale-base:16px; --scale-ratio:1.2; --weight-display:700; --weight-body:400;
+    --space-unit:8px; --section-pad:5rem; --radius:8px;
+    --shadow:0 0 0 1px rgba(255,255,255,.04), 0 8px 24px rgba(0,0,0,.5);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--fg);
+    font-family:var(--font-body); font-size:var(--scale-base); font-weight:var(--weight-body);
+    line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-family:var(--font-display); font-weight:var(--weight-display); line-height:1.15; margin:0 0 .5em}
+  h1{font-size:clamp(2.2rem,5vw,3.4rem); letter-spacing:-.02em}
+  h2{font-size:clamp(1.6rem,3vw,2.2rem); letter-spacing:-.01em}
+  h3{font-size:1.15rem}
+  p{margin:0 0 1rem; color:var(--fg)}
+  .muted{color:var(--muted)}
+  a{color:var(--accent); text-decoration:none}
+  code,kbd{font-family:var(--font-mono); font-size:.92em}
+  .wrap{max-width:1080px; margin:0 auto; padding:0 calc(var(--space-unit)*3)}
+  section{padding:var(--section-pad) 0}
+  .eyebrow{font-family:var(--font-mono); font-size:.8rem; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); margin-bottom:.75rem}
+  /* CTA — the single isolated primary action (von Restorff) */
+  .cta{
+    display:inline-block; background:var(--accent); color:var(--accent-fg); font-weight:700;
+    padding:calc(var(--space-unit)*1.5) calc(var(--space-unit)*3); border-radius:var(--radius);
+    font-size:1.05rem; border:0; cursor:pointer; transition:transform .08s ease, filter .12s ease;
+  }
+  .cta:hover{filter:brightness(1.08); transform:translateY(-1px)}
+  .cta:focus-visible,.cta-ghost:focus-visible,.nav-cta:focus-visible,a:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:var(--radius)}
+  @media(prefers-reduced-motion:reduce){*{transition:none !important; scroll-behavior:auto !important}}
+  .cta-ghost{display:inline-block; color:var(--fg); border:1px solid var(--border); border-radius:var(--radius);
+    padding:calc(var(--space-unit)*1.5) calc(var(--space-unit)*3); font-weight:500; margin-left:.75rem}
+  /* navbar */
+  header.nav{position:sticky; top:0; z-index:10; background:rgba(13,17,23,.85); backdrop-filter:blur(8px); border-bottom:1px solid var(--border)}
+  .nav .wrap{display:flex; align-items:center; justify-content:space-between; height:60px}
+  .brand{font-family:var(--font-display); font-weight:700; font-size:1.05rem; color:var(--fg)}
+  .brand .dot{color:var(--accent)}
+  .nav-cta{background:var(--accent); color:var(--accent-fg); font-weight:700; padding:.5rem 1rem; border-radius:var(--radius); font-size:.9rem}
+  /* hero */
+  .hero{padding-top:calc(var(--section-pad) - 1rem)}
+  .hero-grid{display:grid; grid-template-columns:1fr 1fr; gap:calc(var(--space-unit)*5); align-items:center}
+  .hero .sub{font-size:1.15rem; color:var(--muted); max-width:34ch; margin-bottom:1.5rem}
+  .trust{margin-top:1.25rem; font-size:.85rem; color:var(--muted); font-family:var(--font-mono)}
+  /* terminal demo frame (product in action) */
+  .term{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden}
+  .term .bar{display:flex; gap:8px; padding:10px 14px; background:var(--surface-2); border-bottom:1px solid var(--border)}
+  .term .bar i{width:11px; height:11px; border-radius:50%; display:block; background:var(--border)}
+  .term .bar i:nth-child(1){background:#f85149}.term .bar i:nth-child(2){background:#d29922}.term .bar i:nth-child(3){background:var(--accent)}
+  .term pre{margin:0; padding:18px; font-family:var(--font-mono); font-size:.86rem; line-height:1.7; overflow-x:auto; color:var(--fg)}
+  .term .c{color:var(--accent)} .term .m{color:var(--muted)} .term .k{color:#79c0ff}
+  /* adoption strip */
+  .strip{background:var(--surface); border-top:1px solid var(--border); border-bottom:1px solid var(--border)}
+  .strip .wrap{display:flex; align-items:center; gap:2rem; flex-wrap:wrap; justify-content:center; padding-top:1.5rem; padding-bottom:1.5rem}
+  .placeholder{border:1px dashed var(--border); border-radius:var(--radius); color:var(--muted); font-family:var(--font-mono); font-size:.8rem; padding:.6rem 1rem; background:transparent}
+  /* steps */
+  .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:calc(var(--space-unit)*3); counter-reset:s}
+  .step{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1.5rem}
+  .step::before{counter-increment:s; content:"0" counter(s); font-family:var(--font-mono); color:var(--accent); font-weight:700; font-size:1.1rem; display:block; margin-bottom:.5rem}
+  /* bento — the 5 plugins (features as objection-handling) */
+  .bento{display:grid; grid-template-columns:repeat(6,1fr); gap:calc(var(--space-unit)*2)}
+  .card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1.5rem; transition:border-color .12s ease}
+  .card:hover{border-color:var(--accent)}
+  .card .tag{font-family:var(--font-mono); font-size:.72rem; color:var(--accent); text-transform:uppercase; letter-spacing:.06em}
+  .card .cmds{font-family:var(--font-mono); font-size:.8rem; color:var(--muted); margin-top:.5rem; word-break:break-word}
+  .card.lg{grid-column:span 6} .card.md{grid-column:span 3} .card.sm{grid-column:span 2}
+  @media(min-width:721px){.card.lg{grid-column:span 6}}
+  /* proof */
+  .proof{display:grid; grid-template-columns:repeat(3,1fr); gap:calc(var(--space-unit)*3); text-align:center}
+  .proof .n{font-family:var(--font-display); font-weight:700; font-size:2.4rem; color:var(--accent)}
+  /* faq */
+  details{border:1px solid var(--border); border-radius:var(--radius); padding:1rem 1.25rem; margin-bottom:.75rem; background:var(--surface)}
+  details summary{cursor:pointer; font-weight:600; font-family:var(--font-display)}
+  details[open] summary{margin-bottom:.75rem}
+  /* final cta */
+  .final{text-align:center; background:var(--surface); border:1px solid var(--border); border-radius:calc(var(--radius)*1.5); padding:calc(var(--section-pad)*.8) 1.5rem; box-shadow:var(--shadow)}
+  .install{font-family:var(--font-mono); background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); padding:.9rem 1.1rem; display:inline-block; margin:1.25rem 0; color:var(--fg); font-size:.9rem}
+  footer{border-top:1px solid var(--border); color:var(--muted); font-size:.85rem; padding:2.5rem 0}
+  footer .wrap{display:flex; justify-content:space-between; flex-wrap:wrap; gap:1rem}
+  @media(max-width:720px){
+    .hero-grid{grid-template-columns:1fr} .steps{grid-template-columns:1fr}
+    .bento{grid-template-columns:repeat(2,1fr)} .card.lg,.card.md,.card.sm{grid-column:span 2}
+    .proof{grid-template-columns:1fr; gap:2rem} .cta-ghost{margin-left:0; margin-top:.75rem}
+  }
+</style>
+</head>
+<body>
+<!-- pmos-comments:start -->
+<script id="pmos-comments" type="application/json">[]</script>
+<!-- pmos-comments:end -->
+
+<header class="nav">
+  <div class="wrap">
+    <span class="brand">pmos<span class="dot">·</span>skills</span>
+    <a class="nav-cta" href="#install">Install</a>
+  </div>
+</header>
+
+<!-- HERO — archetype B (outcome + live demo); single isolated CTA -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow">Claude Code plugin marketplace</div>
+      <h1>Turn Claude Code into a product-delivery OS.</h1>
+      <p class="sub">Install one marketplace and get a versioned pipeline — requirements → spec → plan →
+        execute → verify → release — plus learning and utility skills. Every skill is gated, not guessed.</p>
+      <a class="cta" href="#install">Install the marketplace</a>
+      <a class="cta-ghost" href="https://github.com/maneesh-dhabria/pmos-skills">View source</a>
+      <div class="trust">MIT-licensed · 5 plugins · 50+ skills · plain Markdown</div>
+    </div>
+    <div class="term" aria-label="Live demo of a pmos-skills pipeline run">
+      <div class="bar"><i></i><i></i><i></i></div>
+<pre><span class="m"># one command drives the whole SDLC</span>
+<span class="c">&gt;</span> /feature-sdlc <span class="k">"add CSV export to the report view"</span>
+
+<span class="m">✓ requirements   spec   plan</span>
+<span class="m">✓ execute        verify (skill-eval: 24/24)</span>
+<span class="c">→</span> shipped: <span class="k">feat/report-csv</span>  <span class="m">— release-ready</span>
+
+<span class="c">&gt;</span> /primer <span class="k">"retrieval-augmented generation"</span>
+<span class="m">✓ verified sources · audience-shaped · offline HTML</span></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ADOPTION STRIP — real proof only; placeholder where a logo wall would go (D6) -->
+<div class="strip">
+  <div class="wrap">
+    <span class="muted" style="font-family:var(--font-mono); font-size:.85rem">Built and dogfooded on itself —</span>
+    <span class="placeholder">logo wall: adopter logos — placeholder (no fabricated logos)</span>
+    <span class="muted" style="font-family:var(--font-mono); font-size:.85rem">every release ships through <code>/complete-dev</code>.</span>
+  </div>
+</div>
+
+<!-- PROBLEM (light — dev-tool) -->
+<section>
+  <div class="wrap" style="max-width:760px">
+    <div class="eyebrow">The problem</div>
+    <h2>Great prompts don't compound.</h2>
+    <p class="muted">You re-explain your process to the agent on every task. Quality drifts. There's no
+      gate between "looks done" and "is done", and nothing carries forward to the next feature. A clever
+      one-off prompt is not a repeatable pipeline.</p>
+  </div>
+</section>
+
+<!-- SOLUTION / HOW IT WORKS -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">How it works</div>
+    <h2>A pipeline, not a pile of prompts.</h2>
+    <p class="muted" style="max-width:60ch">Each stage is a skill with its own gate. The output of one is
+      the input to the next, and the contract is enforced — so the agent runs the same disciplined process
+      every time.</p>
+    <div class="steps" style="margin-top:2rem">
+      <div class="step"><h3>Shape &amp; spec</h3><p class="muted">Turn an idea into requirements and a
+        reviewed spec — with grilling and creativity passes built in.</p></div>
+      <div class="step"><h3>Plan &amp; execute</h3><p class="muted">Decompose into tasks, then build —
+        worktree-isolated, test-driven, resumable.</p></div>
+      <div class="step"><h3>Verify &amp; ship</h3><p class="muted">Binary skill-eval, hygiene lints, and a
+        release train that bumps, tags, and pushes.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES AS OBJECTION-HANDLING — the 5 plugins, bento -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Five kits, one marketplace</div>
+    <h2>Install only what you need.</h2>
+    <p class="muted" style="max-width:60ch">Each plugin versions independently — adopt the delivery
+      pipeline today, add the learning or manager kits when you want them.</p>
+    <div class="bento" style="margin-top:2rem">
+      <div class="card lg">
+        <span class="tag">pmos-toolkit · ship a feature</span>
+        <h3>The delivery pipeline</h3>
+        <p class="muted">Idea to release: requirements, spec, plan, execute, verify, complete-dev — plus
+          authoring, diagram, wireframes, prototype, and grill skills.</p>
+        <div class="cmds">/feature-sdlc · /requirements · /spec · /plan · /execute · /verify · /complete-dev</div>
+      </div>
+      <div class="card md">
+        <span class="tag">pmos-learnkit · learn a topic</span>
+        <h3>Verified-source teaching</h3>
+        <p class="muted">Audience-shaped primers and ramp-up docs generated on demand from sources you can audit.</p>
+        <div class="cmds">/primer · /learn-list · /magazine</div>
+      </div>
+      <div class="card md">
+        <span class="tag">pmos-utilities · maintain my env</span>
+        <h3>Keep your setup healthy</h3>
+        <p class="muted">Standalone diagnostics, cleanup, retros, and format conversion that aren't part of the pipeline.</p>
+        <div class="cmds">/mac-health · /reflect · /converter</div>
+      </div>
+      <div class="card sm">
+        <span class="tag">pmos-gamekit · play</span>
+        <h3>Casual browser games</h3>
+        <p class="muted">Self-contained HTML, zero-dependency local server.</p>
+        <div class="cmds">/solitaire · /flappy-bird · /2048 · /sudoku</div>
+      </div>
+      <div class="card sm">
+        <span class="tag">pmos-managerkit · manage</span>
+        <h3>Manager work</h3>
+        <p class="muted">Grounded interview scorecards + per-interviewer coaching notes.</p>
+        <div class="cmds">/interview-feedback</div>
+      </div>
+      <div class="card sm">
+        <span class="tag">open by design</span>
+        <h3>Plain Markdown, MIT</h3>
+        <p class="muted">Skills are readable files you can fork, not a black box.</p>
+        <div class="cmds">github.com/maneesh-dhabria/pmos-skills</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROOF — real counts only -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Where it stands</div>
+    <div class="proof">
+      <div><div class="n">5</div><p class="muted">plugins, each on its own semver track</p></div>
+      <div><div class="n">50+</div><p class="muted">gated skills shipped in-repo</p></div>
+      <div><div class="n">100%</div><p class="muted">of releases run through the verify + release train</p></div>
+    </div>
+    <p class="muted" style="text-align:center; margin-top:1.5rem; font-size:.85rem">Counts reflect this
+      repository; testimonials and adopter logos are intentionally left as placeholders rather than invented.</p>
+  </div>
+</section>
+
+<!-- FAQ / OBJECTIONS -->
+<section>
+  <div class="wrap" style="max-width:760px">
+    <div class="eyebrow">Is this for me?</div>
+    <h2>Objections, handled.</h2>
+    <details><summary>Am I locked into one vendor?</summary><p class="muted">No. Skills are plain Markdown
+      under an MIT license, installed over the standard Claude Code marketplace mechanism. Fork any skill.</p></details>
+    <details><summary>Will it bloat my setup?</summary><p class="muted">Each plugin versions independently —
+      install just the delivery pipeline, or add the learning, utility, manager, and game kits as you need them.</p></details>
+    <details><summary>Is the "process" real, or just prompts?</summary><p class="muted">Real. Every skill
+      passes a binary skill-eval rubric, hygiene lints, and a non-interactive contract before it can ship —
+      enforced in CI, not by vibes.</p></details>
+    <details><summary>How do I get updates?</summary><p class="muted">Updates flow through the marketplace;
+      reinstall or update from the same source and your skills move to the latest gated release.</p></details>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section id="install">
+  <div class="wrap">
+    <div class="final">
+      <div class="eyebrow">Get started</div>
+      <h2>Install the marketplace.</h2>
+      <p class="muted">Add it in Claude Code, then call any skill from the prompt.</p>
+      <div class="install">/plugin marketplace add maneesh-dhabria/pmos-skills</div>
+      <div><a class="cta" href="https://github.com/maneesh-dhabria/pmos-skills">Install the marketplace</a></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>pmos<span style="color:var(--accent)">·</span>skills — a Claude Code plugin marketplace.</span>
+    <span class="muted">MIT-licensed · built with /landing-page (dogfood)</span>
+  </div>
+</footer>
+</body>
+</html>
