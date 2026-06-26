@@ -4,7 +4,8 @@ id: 260624-kkw
 kind: epic
 title: "/artifact-critique — opinionated, axis-by-axis product-doc critique skill (10-axis verdict scorecard + quote-grounded deep-dives + ranked weakest-claims) on a shared _shared/critique-rubric/ substrate"
 type: feature
-status: defined
+status: released
+released: v2.92.0
 priority: should
 labels: [pmos-toolkit, artifact-critique, critique-rubric, product-docs, new-skill]
 route: skill

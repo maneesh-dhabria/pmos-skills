@@ -10,10 +10,11 @@ route: skill
 dependencies: [260624-fbd]
 plugin: pmos-toolkit
 status: done
+released: v2.92.0
 feature_folder: docs/pmos/features/2026-06-24_artifact-critique/
 plan_doc: docs/pmos/features/2026-06-24_artifact-critique/stories/260624-aa8/03_plan.md
 tasks: docs/pmos/features/2026-06-24_artifact-critique/stories/260624-aa8/tasks.yaml
-worktree: .claude/worktrees/feat-260624-aa8
+worktree:
 claimed_by: build:6681ff46-e6d7-4cb7-854d-4ca3ea2b44ff
 driver_holder: build:6681ff46-e6d7-4cb7-854d-4ca3ea2b44ff
 labels: [pmos-toolkit, artifact-critique, new-skill]
