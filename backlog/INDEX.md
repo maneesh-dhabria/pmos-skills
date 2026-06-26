@@ -1,8 +1,8 @@
 # Backlog
 
-Last regenerated: 2026-06-26 (define 260626-a8a — /mytasks web UI enhancements epic defined; stories 260626-71x + 260626-tf4 + 260626-j9v planned)
+Last regenerated: 2026-06-26 (define 260626-8pa — trackers index-merge-tax epic defined; stories 260626-psr + 260626-3d4 + 260626-5cq + 260626-nq0 planned)
 
-143 items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
+148 items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
 ## Epics
 | id | status | route | plugin | stories (done/total) | title |
@@ -59,6 +59,7 @@ Last regenerated: 2026-06-26 (define 260626-a8a — /mytasks web UI enhancements
 | 260625-sm0 | released | skill | pmos-toolkit | 1/1 | "/backlog grooming false-positive — AC detection requires checkbox markers, so numbered/dash ACs read as ungroomed" |
 | 260626-4sm | defined | skill | pmos-utilities | 0/1 | "/to-notion-doc — convert md/html/txt → a faithful Notion page via the Notion MCP (heading/style prefs, image-upload ladder, table-fidelity, chunked write, create-or-update, verification)" |
 | 260626-804 | defined | skill | pmos-toolkit | 0/2 | "slop-engine proof-of-execution — /design-crit + /verify must prove the deterministic slop lane ran, never claim graceful degradation by assertion" |
+| 260626-8pa | defined | skill | pmos-toolkit | 0/4 | "Get derivable status off the merge path across the three trackers (/backlog, /mytasks, /people) + harden tracker-crudl.md" |
 | 260626-a8a | defined | skill | pmos-toolkit | 0/3 | "/mytasks web UI enhancements — inline-everything overhaul (sidebar projects/labels/people, inline edit + @/#/+ autocomplete, nested subtasks, type/recur/checkin controls, LNO badge redesign) + /mytasks import" |
 
 ## must
@@ -147,6 +148,10 @@ Last regenerated: 2026-06-26 (define 260626-a8a — /mytasks web UI enhancements
 | 260626-71x | story | enhancement | planned | 260626-a8a | "/mytasks foundation — server/API + data layer: /api/people CRUD, projects/labels registry + /api/meta union, /api/tasks subtask-children support" | docs/pmos/features/2026-06-26_mytasks-web-enhancements/02_design.html | docs/pmos/features/2026-06-26_mytasks-web-enhancements/stories/260626-71x/03_plan.html |  |
 | 260626-tf4 | story | enhancement | planned | 260626-a8a | "/mytasks web UI overhaul — inline everything: sidebar projects/labels/people CRUD, inline title edit + @/#/+ autocomplete, nested collapsed subtasks, LNO badge redesign, type/recur/checkin/datepicker controls" | docs/pmos/features/2026-06-26_mytasks-web-enhancements/02_design.html | docs/pmos/features/2026-06-26_mytasks-web-enhancements/stories/260626-tf4/03_plan.html |  |
 | 260626-j9v | story | enhancement | planned | 260626-a8a | "/mytasks import — paste a text outline, parse (indentation/markers + AI fallback) into projects/tasks/subtasks/labels, confirm the tree, then write items" | docs/pmos/features/2026-06-26_mytasks-web-enhancements/02_design.html | docs/pmos/features/2026-06-26_mytasks-web-enhancements/stories/260626-j9v/03_plan.html |  |
+| 260626-psr | story | tech-debt | planned | 260626-8pa | "/backlog — delete committed INDEX, web-default render-on-read + tracker-crudl.md §5/§6 rewrite + feature-sdlc define-merge edit" |  | docs/pmos/features/2026-06-26_trackers-index-merge-tax/stories/260626-psr/03_plan.html |  |
+| 260626-3d4 | story | tech-debt | planned | 260626-8pa | "/mytasks — delete committed INDEX, regenerateIndex→renderIndex (no write), web-default + inline fallback, migration moved to load-time normalization" |  | docs/pmos/features/2026-06-26_trackers-index-merge-tax/stories/260626-3d4/03_plan.html |  |
+| 260626-5cq | story | tech-debt | planned | 260626-8pa | "/people — delete committed INDEX, retire rebuild-index from add/set/refine + Phase 8, inline derived render" |  | docs/pmos/features/2026-06-26_trackers-index-merge-tax/stories/260626-5cq/03_plan.html |  |
+| 260626-nq0 | story | feature | planned | 260626-8pa | "/people — NEW zero-dep web viewer (serve-web.mjs + viewer.html), derives from person files per request, web-default + inline fallback" |  | docs/pmos/features/2026-06-26_trackers-index-merge-tax/stories/260626-nq0/03_plan.html |  |
 
 ## could
 
