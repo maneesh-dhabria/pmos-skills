@@ -1,0 +1,157 @@
+schema_version: 1
+story: 260626-tf4
+epic: 260626-a8a
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+execution_mode: inline
+# Web UI overhaul (inline everything). Skill location: plugins/pmos-toolkit/skills/mytasks/scripts/webapp/
+# {app.js, app.css, index.html}. Consumes the foundation endpoints from 260626-71x (dependency): /api/people,
+# /api/projects, /api/labels, /api/meta union, /api/tasks?include_children=1. Zero new dependencies — native
+# browser elements only (I4); every task mutation keeps expected_version (I3). Decisions D1 (type stays the
+# 6-value enum, made editable in the UI) and D2 (LNO badge: green L / blue N / nothing for overhead). See
+# design §6 (the seed-ask → design table). NO release-prereq tasks here — /complete-dev is the sole writer.
+tasks:
+  - id: T1
+    title: "Study: design §6, current webapp app.js/app.css/index.html, the 260626-71x endpoints in serve.js"
+    ac: [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]
+    deps: []
+    parallel: false
+    detail: >
+      Read ../../02_design.html §6 (seed-ask → design table) + §4 invariants + §5 endpoints. Read the current
+      scripts/webapp/app.js end-to-end (state shape, renderSidebar, renderList, taskRow, openDetail/detail
+      pane, fieldRow, patch/body helpers, quick-add, refresh/freshness), app.css (.lno-flag, .row-check,
+      .task-row, .field-row, sidebar classes), index.html (layout: #sidebar, #smart-views, #projects,
+      #labels, #list-pane, #task-list, #quick-add, #detail-pane). Read serve.js to confirm the EXACT shapes
+      returned by the new endpoints from 260626-71x (GET /api/people, /api/meta union, POST /api/projects,
+      /api/labels, PATCH /api/people/:handle, /api/tasks?include_children=1) — this story depends on them.
+      Read skill-patterns.md §A-§L. Plan the DOM/JS deltas per AC; NO edits yet.
+    verify: >
+      The current app.js render/detail/quick-add structure and the CSS class names are mapped; the exact JSON
+      shapes of the new endpoints confirmed from serve.js; a per-AC change plan (which function/CSS/markup
+      each AC touches) written down.
+
+  - id: T2
+    title: "A6/A7 — LNO badge redesign (green L / blue N / none) + bigger checkbox + strikethrough on complete"
+    ac: [A6, A7]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Replace the .lno-flag grey square in taskRow + app.css with a bordered-circle letter badge: leverage →
+      green "L", neutral → blue "N", overhead → render nothing (omit the badge element). Keep click-to-cycle
+      (leverage→neutral→overhead→leverage) via the existing cycleImportance/patch path. Add a small legend
+      (e.g. a header hint or tooltip) explaining L/N. Enlarge .row-check (the completion checkbox) to a
+      clearly larger, easier hit-target. Add a .done/strikethrough style so a completed task's title renders
+      struck through (the complete action already exists; this is styling + applying the class on completed
+      rows / after completeTask).
+    verify: >
+      Rows show green-L for leverage, blue-N for neutral, nothing for overhead; clicking cycles importance
+      and the badge updates; the checkbox is visibly larger; completing a task strikes through its title.
+      Manually confirm in a browser against a fixture ~/.pmos.
+
+  - id: T3
+    title: "A8/A9 — nested collapsed subtasks under their parent + parent shown in the toolbar for a subtask"
+    ac: [A8, A9]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Switch the list fetch to /api/tasks?include_children=1. In renderList, group children (task.parent set)
+      under their parent row instead of rendering them as separate top-level rows; render a collapse/expand
+      chevron with a count ("▸ N subtasks") that is COLLAPSED by default and toggles the child block. Keep the
+      inline "+ Add subtask" capability. Preserve drag-reorder for top-level rows. In openDetail, when the
+      opened task has a parent, show the parent at the top of the toolbar (parent title + an affordance that
+      opens the parent's detail). A task whose parent is not in the current set still nests if returned by
+      include_children; a top-level task is unaffected.
+    verify: >
+      Subtasks appear nested under their parent, collapsed by default, expandable via the chevron, and NOT as
+      separate rows; adding a subtask inline still works; opening a subtask's toolbar shows its parent with a
+      working open-parent link.
+
+  - id: T4
+    title: "A3/A5 — inline title editing + pencil→toolbar + '+ Add task' below the list"
+    ac: [A3, A5]
+    deps: [T1]
+    parallel: true
+    detail: >
+      In taskRow, make the title text click into an inline editable field (input/contenteditable) that saves
+      on blur/Enter via patch(id, {title}, version) and cancels on Esc; clicking elsewhere on the row (or a
+      dedicated pencil icon) opens the detail/edit toolbar (openDetail) — i.e. default text click = inline
+      edit, pencil = toolbar. Keep the row checkbox + badge click handlers working (stopPropagation). Add a
+      persistent "+ Add task" control rendered BELOW the last task row in #list-pane (in addition to the
+      existing #quick-add bar) that inline-creates a task in the current view, presetting project (when the
+      view is a project) or label (when a label view) on the new task.
+    verify: >
+      Clicking a title edits it inline and saves on blur/Enter (Esc cancels); the pencil opens the toolbar;
+      checkbox/badge still work; a "+ Add task" row sits below the list and creates a task in the active
+      view with the right project/label preset.
+
+  - id: T5
+    title: "A4 — @/#/+ autocomplete dropdowns in inline edit + quick-add"
+    ac: [A4]
+    deps: [T4]
+    parallel: false
+    detail: >
+      Add a token-triggered autocomplete: while typing in an inline title editor OR the quick-add input,
+      detect a trailing token starting with @ (people, from GET /api/people), # (projects, from /api/meta),
+      or + (labels, from /api/meta) and show a small dropdown of matches filtered by the typed prefix.
+      Keyboard navigable (↑/↓ move, Enter selects, Esc closes); selecting replaces the partial token with the
+      chosen handle/slug. Reuse a single cached fetch of people/meta (refresh on focus). Native, zero-dep
+      (a positioned div list; no library). Ensure it composes with the inline-edit save and the quick-add
+      submit (quick-add already parses @/#/+ server-side via parseQuickAdd — the dropdown only assists typing).
+    verify: >
+      Typing @ / # / + in inline edit and quick-add shows the right dropdown (people / projects / labels);
+      ↑/↓/Enter/Esc work; selection inserts the token; quick-add still parses the resulting text correctly.
+
+  - id: T6
+    title: "A10/A11/A12 — check-in with a note + type dropdown + recurrence control in the toolbar"
+    ac: [A10, A11, A12]
+    deps: [T1]
+    parallel: true
+    detail: >
+      In openDetail: (A10) replace the bare "Check in" button with a small note input + submit that POSTs
+      {expected_version, note} to /api/tasks/:id/checkin and re-renders the check-in log. (A11) Add a type
+      control — a <select> of the 6 enum values from schema.md (execution/follow-up/reminder/idea/read/call)
+      — saved via patch(id, {type}, version). (A12) Add a recurrence control: a preset <select>
+      (none/daily/weekly/biweekly/monthly) plus a free text field for "every N days|weeks|months" / "every
+      <weekday>"; on save, patch(id, {recur}, version) and surface the server's grammar-validation error
+      (the existing recur validation in serve.js) via the toast if rejected.
+    verify: >
+      Check-in posts with a typed note and the log updates; the type dropdown shows all 6 values and saves;
+      the recurrence control sets a valid rule and shows the server's error on an invalid one.
+
+  - id: T7
+    title: "A1/A2/A13 — sidebar inline-add projects+labels, People nav section (CRUD), and toolbar field upgrades"
+    ac: [A1, A2, A13]
+    deps: [T1]
+    parallel: true
+    detail: >
+      Sidebar (index.html + app.js renderSidebar): (A1) add "+ Add project" under #projects and "+ Add label"
+      under #labels that turn into inline inputs (no dialog) → POST /api/projects / /api/labels → refresh meta
+      → new entry appears + selected. (A2) Add a "People" sidebar section that lists GET /api/people, with
+      "+ Add person" (inline → POST /api/people) and click-to-edit a person inline (name + optional fields →
+      PATCH /api/people/:handle). (A13) Toolbar field upgrades in openDetail: Project becomes a <select> of
+      /api/meta projects ("Inbox" = clear); Due & Start become <input type=date> datepickers; People becomes
+      a multi-select / dropdown sourced from GET /api/people (storing handles), replacing the comma free-text.
+    verify: >
+      Projects/labels can be created inline from the sidebar with no dialog and appear immediately; the People
+      section lists/creates/edits people inline; in the toolbar Project is a dropdown, Due/Start are
+      datepickers, and People is a people-sourced dropdown — all saving via the existing patch path.
+
+  - id: T8
+    title: "Verify: skill-eval [D]+[J], 4 lints + audit, full Playwright dogfood of every AC, console error-free"
+    ac: [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]
+    deps: [T2, T3, T5, T6, T7]
+    parallel: false
+    detail: >
+      Run feature-sdlc/tools/skill-eval-check.sh --target claude-code on the mytasks skill dir; run the four
+      hygiene lints green. Confirm zero new dependencies. Load-bearing Playwright dogfood against a live
+      `/mytasks web` (scratch HOME/.pmos seeded with a few tasks incl. a parent+subtasks): create a project,
+      a label, and a person from the sidebar; inline-edit a title; trigger @/#/+ dropdowns; use "+ Add task"
+      below the list; verify green-L / blue-N badges + cycle + nothing-for-overhead; confirm a bigger checkbox
+      + strikethrough on complete; expand/collapse subtasks (not separate rows); open a subtask → parent
+      shown; check-in with a note; change type; set recurrence; confirm Project dropdown + Due/Start
+      datepickers + People dropdown. Capture screenshots; assert console error-free.
+    verify: >
+      skill-eval [D] exits 0 (or only pre-existing residuals on untouched lines); [J] passes; 4 lints + audit
+      green; the Playwright run demonstrates every AC (A1-A13) with screenshots and a clean console; no
+      regression to smart views / drag-reorder / 409 reload banner / quick-add.

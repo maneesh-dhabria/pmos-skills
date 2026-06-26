@@ -1,0 +1,138 @@
+schema_version: 1
+story: 260626-j9v
+epic: 260626-a8a
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+execution_mode: inline
+# /mytasks import — paste a text outline, parse it into projects/tasks/subtasks/labels, confirm, write.
+# Skill location: plugins/pmos-toolkit/skills/mytasks/. Agent-driven (design §7, I5): the SKILL.md instructs
+# the model to parse (structure-first + AI fallback, D3) and confirm before writing; writes reuse lib.js
+# (serialize/slugify/regenerateIndex) + backlog/scripts/mint-id.mjs and the registry from 260626-71x
+# (dependency). NO new task fields (I2). Touches SKILL.md (#routing + #import phase + argument-hint),
+# inference-heuristics.md (cite the shared token rules), output-formats.md (import report), tests/ (parser
+# fixtures). NO release-prereq tasks here — /complete-dev is the sole writer at epic release.
+tasks:
+  - id: T1
+    title: "Study: design §7, SKILL.md routing + quick-capture token rules + inference-heuristics, output-formats, /people find, tests harness"
+    ac: [A1, A2, A3, A4, A5, A6, A7]
+    deps: []
+    parallel: false
+    detail: >
+      Read ../../02_design.html §7 (the 5-step import flow) + I5. Read plugins/pmos-toolkit/skills/mytasks/
+      SKILL.md: the #routing table (where to add the `import` verb), #quick-capture step 3 (the @/#/+ and
+      date strip order — import reuses these token rules), #rich-capture (subtask via parent), the
+      mint-id.mjs invocation, and lib.js write path. Read inference-heuristics.md (date/person/#project/+label
+      rules) and output-formats.md (report templates style to mirror). Read the /people find contract (people
+      token resolution). Read tests/ (run.mjs harness + scenarios.md) to learn where parser fixtures live and
+      how to assert. Read skill-patterns.md §A-§L (esp. §I: import is a VERB not a flag; the confirm prompt
+      needs a (Recommended) option or a defer-only tag; §H gates). NO edits.
+    verify: >
+      The #routing insertion point + the existing token-strip rules to reuse are captured; the mint-id +
+      lib.js write path understood; output-formats report style + tests fixture location identified; the §I
+      verb/flag + (Recommended)/defer-only requirement for the confirm prompt understood.
+
+  - id: T2
+    title: "A1/A2/A3 — add the #import phase: routing + structure-first parse spec + AI fallback rule"
+    ac: [A1, A2, A3]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Add `import` to the SKILL.md #routing table and author a new "#import" phase. Specify the parse
+      algorithm (D3): take the pasted text inline (prompt for it if absent and interactive). Structure-first,
+      in order — a leading line that is a bare `#project` (or "Project: X") opens a project container;
+      indentation / nesting depth assigns a line as a subtask of the nearest shallower line; bullet/checkbox
+      markers (`-`, `*`, `- [ ]`) mark task lines; `+label` and `@handle` tokens and trailing
+      natural-language dates set fields (reuse the #quick-capture step-3 strip rules — cite, do not restate,
+      §K). State the AI-fallback rule explicitly: lines/relationships not resolvable by structure are
+      inferred by the model, but STRUCTURE ALWAYS WINS on conflict. Document it concretely with a worked
+      example outline.
+    verify: >
+      `import` routes to #import; the phase documents the structure-first order + the exact tokens it reuses
+      (citing #quick-capture) + the AI-fallback rule with structure-wins-on-conflict; a worked example shows
+      the parsed tree.
+
+  - id: T3
+    title: "A4 — confirm-before-write gate (printed tree + AskUserQuestion for ambiguities; non-interactive contract)"
+    ac: [A4]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Specify the confirmation step: present the parsed tree as an indented preview (project → task →
+      subtask, showing inferred labels/people/dates) AND resolve genuine ambiguities with AskUserQuestion,
+      each carrying a (Recommended) option (e.g. "'Q3 launch' — project or task? [Project (Recommended) /
+      Task]"). Nothing is written until confirmed. Wire the canonical non-interactive contract: under
+      --non-interactive the classifier AUTO-PICKs the (Recommended) reading and records deferred ambiguities
+      as open questions (no blocking prompt) — keep the inline non-interactive block byte-identical. Mark the
+      confirm prompt appropriately for the audit (a (Recommended) option, or a defer-only tag if free-form).
+    verify: >
+      The confirm gate prints the tree and uses AskUserQuestion with (Recommended) options; nothing writes
+      pre-confirm; the --non-interactive path AUTO-PICKs + records open questions; the non-interactive block
+      is unchanged; audit-recommended passes for the new prompt.
+
+  - id: T4
+    title: "A5/A6 — write items (mint ids, parent/project/labels/people/due) + registry + INDEX regen + report"
+    ac: [A5, A6]
+    deps: [T2]
+    parallel: true
+    detail: >
+      Specify the write step: for each task/subtask mint a <YYMMDD>-<rand3> id (mint-id.mjs), set parent for
+      subtasks, apply project/labels/people/due from the parse, write item files via the lib.js atomic
+      serialize, register any new project/label through the registry (260626-71x addRegistryEntry), and
+      regenerate INDEX.md ONCE at the end. People tokens resolve via /people find — unresolved tokens are
+      flagged in the report, never invented. Specify the report (mirror output-formats.md): every created
+      task/subtask with id + project + inferred fields, the new projects/labels created, and any unresolved
+      @handle with the fix command.
+    verify: >
+      The write step mints ids, sets parent/project/labels/people/due, registers new containers, regenerates
+      INDEX once, and never invents people; the report lists created items + new containers + unresolved
+      handles. Cited dependency on 260626-71x's registry is explicit.
+
+  - id: T5
+    title: "A1 — argument-hint + non-interactive accuracy"
+    ac: [A1]
+    deps: [T2]
+    parallel: true
+    detail: >
+      Update the SKILL.md frontmatter argument-hint to include the `import` verb (e.g. `import [<text>]`).
+      Confirm import is presented as a verb (§I), not a flag. Ensure the #import phase honors the mode
+      resolved by the non-interactive block (interactive → confirm prompt; non-interactive → AUTO-PICK +
+      open questions). Keep the block byte-identical.
+    verify: >
+      argument-hint includes `import`; lint-flags-vs-hints + lint-phase-refs pass; import is a verb; the
+      non-interactive block is byte-identical.
+
+  - id: T6
+    title: "A7 — parser fixtures in tests/"
+    ac: [A7]
+    deps: [T2, T4]
+    parallel: false
+    detail: >
+      Add parser fixtures/scenarios under tests/ covering: a pure-indentation outline (depth → subtask); a
+      marker-based list (`-`/`* `/`- [ ]`); explicit `#project` / `+label` / `@handle` tokens + trailing
+      dates; a messy/mixed input requiring AI inference; and the structure-wins-on-conflict case (a token
+      that contradicts indentation). Each fixture asserts the resulting tree (projects/tasks/subtasks/labels/
+      people/dates). Keep existing tests green. (If the parse is purely agent-instruction with no extractable
+      JS function, encode the fixtures as documented expected-tree scenarios in scenarios.md plus any
+      helper-level unit if a small pure tokenizer is factored out.)
+    verify: >
+      Fixtures cover indentation, markers, tokens, inferred, and structure-wins cases with asserted trees;
+      existing tests stay green.
+
+  - id: T7
+    title: "Verify: skill-eval [D]+[J], 4 lints + audit, load-bearing dogfood (real import + non-interactive path)"
+    ac: [A1, A2, A3, A4, A5, A6, A7]
+    deps: [T3, T5, T6]
+    parallel: false
+    detail: >
+      Run feature-sdlc/tools/skill-eval-check.sh --target claude-code on the mytasks skill dir; run the four
+      hygiene lints + audit green (import hinted; #import anchor + cross-refs resolve; the confirm prompt
+      classified). Load-bearing dogfood: against a scratch HOME/.pmos, run /mytasks import on a real
+      multi-project outline (with indentation, a #project header, +labels, @handles, dates, and a messy
+      line); show the printed tree, confirm, then show the created item files + the regenerated INDEX match
+      the confirmed tree. Then show the --non-interactive path records an ambiguity as an open question
+      instead of blocking.
+    verify: >
+      skill-eval [D] exits 0 (or only pre-existing residuals on untouched lines); [J] passes; 4 lints + audit
+      green; tests green; dogfood shows a real outline imported (files + INDEX match the confirmed tree) and
+      the non-interactive path defers ambiguities to open questions.

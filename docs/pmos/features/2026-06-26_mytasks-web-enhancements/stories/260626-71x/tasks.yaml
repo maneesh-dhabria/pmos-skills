@@ -1,0 +1,150 @@
+schema_version: 1
+story: 260626-71x
+epic: 260626-a8a
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+execution_mode: inline
+# Foundation: server/API + data layer for the /mytasks web overhaul. Skill location:
+# plugins/pmos-toolkit/skills/mytasks/. Touches scripts/serve.js, scripts/lib.js, tests/run.mjs,
+# SKILL.md (#web endpoint docs), schema.md (registry.json doc). NO task-file schema change (design §2,
+# I2) — the only new on-disk artifact is ~/.pmos/tasks/registry.json (D5). People are read/written
+# against the shared ~/.pmos/people/ store (D6). Zero new dependencies (I4); writes atomic + stateless
+# re-read (I1); task mutations keep expected_version (I3). See design §4 (architecture), §5 (endpoints).
+# NO release-prereq tasks here (version bump, changelog, README row, manifest sync, learnings-header) —
+# /complete-dev (Loop 3) is the sole writer at epic release.
+tasks:
+  - id: T1
+    title: "Study: design doc §4/§5, serve.js routes + lib.js helpers, /people schema + lookup, tests/run.mjs harness, skill-patterns"
+    ac: [A1, A2, A3, A4, A5, A6, A7, A8]
+    deps: []
+    parallel: false
+    detail: >
+      Read ../../02_design.html §4 (registry D5, people D6, invariants I1-I5) and §5 (endpoint table). Read
+      plugins/pmos-toolkit/skills/mytasks/scripts/serve.js end-to-end: the handleApi router (GET /api/meta,
+      GET /api/tasks + filters, POST /api/tasks, /reorder, the /api/tasks/:id(/checkin|complete|drop)
+      matcher), localOrigin/sendJson/readBody helpers, itemJson, validateAll, newItemFm, mintId, and the
+      static server. Read scripts/lib.js: parse/serialize frontmatter (parseScalarOrList, LIST_FIELDS),
+      writeItemAtomic, readItem, loadAllItems, findItemFile, regenerateIndex, slugify, itemsDir,
+      isoToday, versionOf. Read plugins/pmos-toolkit/skills/people/schema.md (record shape: handle, name,
+      optional designation/role/team/email/aliases) and lookup.md (kebab handle-derivation rule). Read
+      tests/run.mjs to learn the test harness conventions (how it spins fixtures, asserts JSON, the temp
+      ~/.pmos pattern). Read feature-sdlc/reference/skill-patterns.md §A-§L. Fix exact insertion points in
+      serve.js (where new routes slot before the 404) and lib.js (new people/registry helpers). NO edits.
+    verify: >
+      serve.js router structure + the exact route-insertion point captured; lib.js helpers to reuse
+      (frontmatter round-trip, atomic write, regenerateIndex, slugify) identified; the /people record shape
+      + handle-derivation rule captured from source (not memory); tests/run.mjs harness conventions
+      understood; §A-§L acceptance criteria located.
+
+  - id: T2
+    title: "A4/A5 — projects/labels registry (registry.json) + POST /api/projects, POST /api/labels, /api/meta union"
+    ac: [A4, A5]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Add registry helpers to lib.js (or a small registry.js): readRegistry(tasksDir) → {projects:[],
+      labels:[]} (missing file → empty, never throw); addRegistryEntry(tasksDir, kind, name) → slug-normalize
+      via slugify, dedupe, atomic-write ~/.pmos/tasks/registry.json, return the updated list. In serve.js add
+      POST /api/projects {name} and POST /api/labels {name} (mutating → localOrigin guard) that call
+      addRegistryEntry and return {projects} / {labels}; a name already present (registry OR derived) is a
+      no-op 200. Change GET /api/meta to return the UNION of registry entries and the values derived from
+      task frontmatter (existing project/label scan), each sorted + deduped. Empty/missing name → 400.
+    verify: >
+      registry.json is created on first add and round-trips; POST /api/projects + /api/labels add+dedupe and
+      return the list; an existing name is a no-op success; /api/meta returns registry ∪ derived (an empty
+      registry-only project appears AND a task-only project still appears). Manually: add an empty project,
+      delete all tasks referencing an old project, confirm the registry-backed one survives in /api/meta.
+
+  - id: T3
+    title: "A1/A2/A3 — /api/people GET (list) + POST (create, handle-derive) + PATCH (edit), with /people INDEX regen"
+    ac: [A1, A2, A3]
+    deps: [T1]
+    parallel: true
+    detail: >
+      Add people helpers reusing lib.js frontmatter round-trip but pointed at ~/.pmos/people/: listPeople()
+      → [{handle,name}] sorted by name (glob *.md excluding INDEX.md; missing dir → []); deriveHandle(name)
+      per the /people lookup.md kebab rule; writePerson / readPerson via the atomic helper; regenPeopleIndex()
+      writing ~/.pmos/people/INDEX.md in the /people schema.md INDEX format (name asc). In serve.js add the
+      routes: GET /api/people → {people:[...]}; POST /api/people {name, handle?, designation?, role?, team?,
+      email?, aliases?} → derive handle when absent, 400 on missing name, 409 (with existing record) on dup
+      handle, else create + regen INDEX + 201; PATCH /api/people/:handle {fields} → 404 unknown, else update
+      editable fields + bump updated: + regen INDEX + 200. Records MUST be byte-shape-compatible with
+      /people (same frontmatter key order / list rendering) so a web-created record is editable from /people.
+    verify: >
+      GET returns sorted {handle,name}; POST derives a kebab handle from name, rejects missing name (400) and
+      dup handle (409), writes a valid record + regenerates people INDEX; PATCH edits an existing record and
+      404s an unknown handle. Round-trip: a record written by POST parses cleanly through the /people
+      frontmatter reader (shape-compatible), and a /people-created record lists via GET /api/people.
+
+  - id: T4
+    title: "A6 — /api/tasks ?include_children=1 (parent's subtasks included when the parent matches a view)"
+    ac: [A6]
+    deps: [T1]
+    parallel: true
+    detail: >
+      In GET /api/tasks, after the existing filter/sort pipeline, when query include_children=1: for every
+      task remaining in the result that is a parent, ensure its subtasks (other items whose parent == its id)
+      are present in the response even if a child would not have matched the active filter/smart-view on its
+      own. Do not duplicate children already matched. Without the flag, behavior is byte-identical to today
+      (no regression). Keep it stateless (re-read via loadAllItems) and preserve listSort ordering; children
+      carry their parent field so the client can nest.
+    verify: >
+      With include_children=1, a Today view that matches a parent also returns that parent's non-matching
+      subtasks (deduped); without the flag the returned set is identical to the pre-change behavior for the
+      same query (assert against a fixture). Children retain parent for client-side nesting.
+
+  - id: T5
+    title: "A8 — document the new endpoints + registry.json in SKILL.md (#web) and schema.md"
+    ac: [A8]
+    deps: [T2, T3, T4]
+    parallel: false
+    detail: >
+      Update plugins/pmos-toolkit/skills/mytasks/SKILL.md: in the References list and the #web phase, add a
+      short "Web API endpoints" note covering GET /api/people, POST /api/people, PATCH /api/people/:handle,
+      POST /api/projects, POST /api/labels, the /api/meta union, and ?include_children=1 (cite design §5 as
+      the contract home — do not restate the full table, §K). Update schema.md to document registry.json:
+      its path (~/.pmos/tasks/registry.json), shape ({projects:[],labels:[]}), purpose (lets empty
+      user-created containers show in the sidebar), and the invariant that it only ADDS visibility — the
+      terminal stays registry-agnostic and derives projects/labels from task files (D5). Keep the
+      non-interactive block byte-identical; keep argument-hint accurate (no new CLI verb in this story).
+    verify: >
+      SKILL.md #web lists the new endpoints and cites design §5; schema.md documents registry.json (path,
+      shape, purpose, add-only invariant); the non-interactive block is unchanged byte-for-byte; phase
+      anchors/cross-refs resolve.
+
+  - id: T6
+    title: "A7 — tests in tests/run.mjs: people CRUD, registry+meta union, include_children + no-regression"
+    ac: [A7]
+    deps: [T2, T3, T4]
+    parallel: false
+    detail: >
+      Add scenarios to tests/run.mjs against a temp ~/.pmos: (1) GET /api/people empty → []; POST creates
+      with derived handle; POST dup handle → 409; POST missing name → 400; PATCH edits; PATCH unknown → 404;
+      a POSTed record parses through the /people frontmatter reader (shape round-trip). (2) POST /api/projects
+      + /api/labels add+dedupe; existing name no-op; /api/meta returns registry ∪ derived (assert an
+      empty registry-only project AND a task-derived project both appear). (3) /api/tasks?include_children=1
+      includes a parent's non-matching subtask; the same query without the flag returns the pre-change set
+      (regression guard). Ensure all PRE-EXISTING tests/run.mjs scenarios still pass.
+    verify: >
+      New scenarios are failing-first then green; the full tests/run.mjs suite passes (new + existing); the
+      regression guard proves no-flag behavior is unchanged.
+
+  - id: T7
+    title: "Verify: skill-eval [D]+[J], 4 lints + audit, load-bearing dogfood against a real ~/.pmos"
+    ac: [A1, A2, A3, A4, A5, A6, A7, A8]
+    deps: [T5, T6]
+    parallel: false
+    detail: >
+      Run feature-sdlc/tools/skill-eval-check.sh --target claude-code on the mytasks skill dir; run the four
+      hygiene lints (lint-non-interactive-inline.sh, audit-recommended.sh, lint-flags-vs-hints.sh,
+      lint-phase-refs.sh) green. Confirm zero new dependencies (no package.json change). Load-bearing
+      dogfood: start the server against a scratch HOME/.pmos, then via curl/node — create a person (POST
+      /api/people), GET /api/people shows it; add an empty project (POST /api/projects), GET /api/meta shows
+      it; prove cross-skill sync by reading ~/.pmos/people/<handle>.md and confirming it parses as a valid
+      /people record (and, if /people is runnable, that /people lists it). Capture the responses as evidence.
+    verify: >
+      skill-eval [D] exits 0 (or only pre-existing residuals on untouched lines); [J] passes; 4 lints +
+      audit green; tests/run.mjs green; dogfood shows people create→list, empty-project→meta, and a
+      web-created person readable as a /people record — proving the shared-store contract (D6) and registry
+      (D5) work end to end.

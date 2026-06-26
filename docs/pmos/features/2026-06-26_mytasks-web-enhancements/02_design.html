@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<meta name="pmos:artifact" content="design">
+<title>Design — /mytasks web UI enhancements (epic 260626-a8a)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: Georgia, "Times New Roman", serif; max-width: 50rem; margin: 0 auto; padding: 2rem 1.25rem; line-height: 1.6; color: #1a1a1a; background: #fbfaf6; }
+  h1, h2, h3 { font-family: -apple-system, system-ui, sans-serif; line-height: 1.25; }
+  h1 { font-size: 2rem; } h2 { font-size: 1.3rem; margin-top: 2.2rem; border-bottom: 1px solid #ddd; padding-bottom: .3rem; } h3 { font-size: 1.05rem; }
+  code, pre { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  code { background: #efece3; padding: .1em .35em; border-radius: 3px; font-size: .9em; }
+  pre { background: #efece3; padding: .9rem; border-radius: 6px; overflow-x: auto; font-size: .82rem; line-height: 1.45; }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; margin: 1rem 0; }
+  th, td { border: 1px solid #d6d2c6; padding: .45rem .6rem; text-align: left; vertical-align: top; }
+  th { background: #efece3; font-family: system-ui, sans-serif; }
+  .tag { display: inline-block; font: 600 .72rem system-ui; padding: .1em .5em; border-radius: 3px; background: #e3dcc9; }
+  .blocker { background: #f3c9c0; } .friction { background: #f0e2b8; } .ok { background: #c9e3c0; }
+  blockquote { border-left: 3px solid #c9b98c; margin: 1rem 0; padding: .3rem 1rem; color: #555; background: #f4f1e8; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #1a1816; color: #e8e4da; } code, pre, th { background: #2a2724; } th, td { border-color: #3a3530; }
+    h2 { border-color: #3a3530; } blockquote { background: #232019; color: #c9c2b2; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Design — /mytasks web UI enhancements</h1>
+<p><strong>Epic</strong> 260626-a8a · <strong>Plugin</strong> pmos-toolkit · <strong>Route</strong> skill ·
+<strong>Status</strong> defining · <strong>Date</strong> 2026-06-26</p>
+<p>The cross-story design contract for raising the <code>/mytasks</code> web UI (shipped epic
+<code>260613-5av</code>, currently <code>pmos-toolkit/v2.93.0</code>) to an "inline-everything"
+Todoist-class app, plus a new <code>/mytasks import</code> command. Grounded in a read of the current web
+layer — <code>scripts/webapp/{app.js,app.css,index.html}</code>, <code>scripts/serve.js</code>,
+<code>scripts/lib.js</code>, <code>schema.md</code> — and the sibling <code>/people</code> store.</p>
+
+<h2 id="problem">1. Problem</h2>
+<p>The terminal verbs are full-featured, but the web app lags behind in the small interactions that make a
+task app pleasant, and it has <em>no</em> affordance for several capabilities the CLI already supports. From
+hands-on use, the gaps are:</p>
+<ul>
+  <li>Projects, labels, and people can't be created from the sidebar without leaving the app; there is no
+  people surface at all.</li>
+  <li>Editing a task means opening the side panel — there is no inline title edit, and no <code>@</code>/
+  <code>#</code>/<code>+</code> autocomplete while typing.</li>
+  <li>Subtasks show as separate top-level rows instead of nesting under their parent; opening a subtask gives
+  no parent context.</li>
+  <li>The always-grey LNO flag left of the checkbox is unexplained noise; the checkbox is tiny; completed
+  tasks aren't struck through.</li>
+  <li>No way to add a task below the list (only the bottom bar); no way to set type, recurrence, or a
+  check-in note; Due/Start/Project/People are free-text rather than pickers.</li>
+  <li>No bulk capture — pasting an outline of work must be typed task-by-task.</li>
+</ul>
+
+<h2 id="non-goals">2. Non-goals</h2>
+<ul>
+  <li><strong>No new persistent task fields.</strong> <code>schema.md</code> is unchanged (I2). Everything
+  this epic exposes (<code>type</code>, <code>importance</code>, <code>recur</code>, <code>parent</code>,
+  <code>project</code>, <code>labels</code>, <code>people</code>) already exists.</li>
+  <li><strong>No "IC / Coordinate / Groom" type model</strong> (D1) — the 6-value <code>type</code> enum
+  stays; the UI just makes it editable.</li>
+  <li><strong>No dependencies / build step / CDN</strong> (I4).</li>
+  <li><strong>No change to terminal behavior of record</strong> — the CLI keeps deriving projects/labels from
+  task files; the registry (§4) only <em>adds</em> sidebar visibility, never hides.</li>
+</ul>
+
+<h2 id="decisions">3. Decisions</h2>
+<table>
+  <tr><th>#</th><th>Decision</th><th>Rationale</th></tr>
+  <tr><td>D1</td><td>Task type stays the existing 6-value enum (<code>execution/follow-up/reminder/idea/read/call</code>); make it an editable dropdown in the UI. Drop "IC/Coordinate/Groom".</td><td>No schema change, no migration; the seed's relabel can be revisited later as a pure view concern if wanted.</td></tr>
+  <tr><td>D2</td><td>LNO badge: green "L" (leverage), blue "N" (neutral), nothing for overhead. Click cycles; legend + tooltip.</td><td>Replaces always-grey noise with a glanceable, meaningful badge; overhead stays visually quiet.</td></tr>
+  <tr><td>D3</td><td><code>import</code>: structure-first (indent/markers/tokens/dates) + AI fallback; confirm the tree before writing.</td><td>Handles both clean outlines and messy paste; never writes unconfirmed.</td></tr>
+  <tr><td>D4</td><td>3 staged stories: foundation → UI → import.</td><td>Each independently shippable; smaller diffs; the UI &amp; import build on a stable API.</td></tr>
+  <tr><td>D5</td><td>Projects/labels registry at <code>~/.pmos/tasks/registry.json</code>; <code>/api/meta</code> returns registry ∪ derived. Registry only adds.</td><td>Lets an empty, freshly-created container appear in the sidebar; terminal stays registry-agnostic.</td></tr>
+  <tr><td>D6</td><td>Web people CRUD writes the shared <code>~/.pmos/people/</code> store via <code>/api/people</code> (frontmatter round-trip + INDEX regen).</td><td>One source of truth; <code>/people</code> CLI and web never diverge.</td></tr>
+</table>
+
+<h2 id="invariants">4. Architecture &amp; invariants</h2>
+<p>The web layer stays a thin, stateless view over markdown files (design of <code>260613-5av</code>,
+unchanged):</p>
+<ul>
+  <li><strong>I1 — files of record, stateless server.</strong> Every endpoint re-reads the store per request;
+  writes go through <code>lib.js</code> atomic temp-then-rename. No server-side task state.</li>
+  <li><strong>I2 — terminal ↔ web parity, additive only.</strong> Web mutations map to the same field edits
+  the CLI makes; the task file shape never changes. New surfaces (registry, people CRUD) are additive.</li>
+  <li><strong>I3 — optimistic concurrency.</strong> Task mutations keep <code>expected_version</code>; the
+  409 + reload-banner path is untouched.</li>
+  <li><strong>I4 — zero-dependency.</strong> Native browser elements only — <code>&lt;input type=date&gt;</code>
+  for pickers, custom <code>div</code>/<code>datalist</code> dropdowns for autocomplete. No npm/CDN.</li>
+  <li><strong>I5 — <code>import</code> is agent-driven</strong> (not a server endpoint): the model parses +
+  confirms; writes reuse <code>lib.js</code> + <code>mint-id.mjs</code>.</li>
+</ul>
+
+<h3>Registry (D5)</h3>
+<p><code>~/.pmos/tasks/registry.json</code> = <code>{ "projects": [], "labels": [] }</code>, created on first
+write. <code>/api/projects</code> / <code>/api/labels</code> POST add a slug-normalized, deduped entry.
+<code>/api/meta</code> returns <code>{ projects, labels }</code> = the sorted, deduped <em>union</em> of
+registry entries and values derived from task frontmatter. A project that exists only via a task still
+appears (back-compat); an empty registry-only project also appears. The terminal never reads
+<code>registry.json</code> — it derives from task files as today, so the registry can only make the web show
+<em>more</em>, never less.</p>
+
+<h3>People over the web (D6)</h3>
+<p><code>/api/people</code> reads/writes <code>~/.pmos/people/{handle}.md</code> using the same frontmatter
+parse/serialize as <code>lib.js</code> (the people record shape is in <code>/people</code>
+<code>schema.md</code>: <code>handle</code>, <code>name</code>, optional <code>designation/role/team/
+email/aliases</code>). Handle derivation reuses the <code>/people</code> <code>lookup.md</code> kebab rule.
+After any write the server regenerates <code>~/.pmos/people/INDEX.md</code> so the CLI sees a consistent
+index. A person created in the web is fully usable from <code>/people</code> and vice-versa.</p>
+
+<h2 id="endpoints">5. Endpoint surface (story 260626-71x)</h2>
+<table>
+  <tr><th>Method + path</th><th>Body / query</th><th>Returns</th></tr>
+  <tr><td><code>GET /api/people</code></td><td>—</td><td><code>{people:[{handle,name}]}</code> sorted by name; empty store → <code>[]</code></td></tr>
+  <tr><td><code>POST /api/people</code></td><td><code>{name, handle?, designation?, role?, team?, email?, aliases?}</code></td><td>201 created record; 409 on dup handle; 400 on missing name</td></tr>
+  <tr><td><code>PATCH /api/people/:handle</code></td><td><code>{fields}</code></td><td>200 updated record; 404 unknown handle</td></tr>
+  <tr><td><code>POST /api/projects</code></td><td><code>{name}</code></td><td>200 <code>{projects:[…]}</code>; existing name = no-op success</td></tr>
+  <tr><td><code>POST /api/labels</code></td><td><code>{name}</code></td><td>200 <code>{labels:[…]}</code>; existing name = no-op success</td></tr>
+  <tr><td><code>GET /api/meta</code></td><td>—</td><td><code>{projects, labels}</code> = registry ∪ derived (changed: now unions the registry)</td></tr>
+  <tr><td><code>GET /api/tasks</code></td><td><code>…&amp;include_children=1</code></td><td>when a parent matches the view, its subtasks are included even if a child wouldn't match the filter alone; no-flag behavior unchanged</td></tr>
+</table>
+<p>All existing task endpoints (<code>POST /api/tasks</code>, <code>PATCH /api/tasks/:id</code>,
+<code>/complete</code>, <code>/drop</code>, <code>/checkin</code>, <code>/reorder</code>) are unchanged.</p>
+
+<h2 id="ui">6. Web UI overhaul (story 260626-tf4)</h2>
+<p>All in <code>scripts/webapp/{app.js,app.css,index.html}</code>. Highlights mapped to the seed:</p>
+<table>
+  <tr><th>Seed ask</th><th>Design</th></tr>
+  <tr><td>Add projects inline from sidebar</td><td><code>+ Add project</code> → inline input → <code>POST /api/projects</code> → appears + selected. Same for labels.</td></tr>
+  <tr><td>People sidebar nav</td><td>New "People" section lists <code>/api/people</code>; inline add/edit (no dialog) via POST/PATCH.</td></tr>
+  <tr><td>Inline task edit + pencil → toolbar</td><td>Click title text = inline edit (blur/Enter → PATCH). A pencil icon opens the detail/edit toolbar.</td></tr>
+  <tr><td><code>@</code>/<code>#</code>/<code>+</code> dropdowns</td><td>Token-triggered autocomplete in inline edit + quick-add; keyboard navigable; sources <code>/api/meta</code> + <code>/api/people</code>.</td></tr>
+  <tr><td>+Add Task below the list</td><td>Persistent <code>+ Add task</code> row under the last task; presets project/label from the active view.</td></tr>
+  <tr><td>Grey flag confusing / checkbox too small / strikethrough</td><td>D2 badge (green L / blue N / none); larger checkbox hit-area; completed title struck through.</td></tr>
+  <tr><td>Subtasks inline, collapsed</td><td>Children nest under parent behind a chevron ("▸ N subtasks"), collapsed by default; not separate rows. Uses <code>include_children=1</code>.</td></tr>
+  <tr><td>Subtask shows parent in toolbar</td><td>Opening a subtask's toolbar shows its parent (name + open-parent link).</td></tr>
+  <tr><td>Add a check-in</td><td>Check-in action takes an optional note input before POST <code>/checkin</code>.</td></tr>
+  <tr><td>Change task type</td><td><code>type</code> dropdown of the 6 enum values (D1) in the toolbar.</td></tr>
+  <tr><td>Recurring tasks</td><td>Recurrence control: preset dropdown + free field for <code>every N …</code>/<code>every &lt;weekday&gt;</code>; grammar-validated by the server.</td></tr>
+  <tr><td>Edit toolbar: Project dropdown, Due/Start datepickers, People dropdown</td><td>Project = <code>&lt;select&gt;</code> from <code>/api/meta</code> ("Inbox" clears); Due/Start = <code>&lt;input type=date&gt;</code>; People = multi-select from <code>/api/people</code>.</td></tr>
+</table>
+
+<h2 id="import">7. /mytasks import (story 260626-j9v)</h2>
+<p>A new <code>import</code> subcommand (a <code>#routing</code> entry + an <code>#import</code> phase in
+<code>SKILL.md</code>). Agent-driven (I5):</p>
+<ol>
+  <li><strong>Take the text inline</strong> (pasted after the command; prompt if absent and interactive).</li>
+  <li><strong>Parse structure-first (D3):</strong> a leading <code>#project</code> line → container;
+  indentation depth → subtask of the nearest shallower line; bullet/checkbox markers → task lines;
+  <code>+label</code>/<code>@handle</code> tokens and trailing dates → fields. <strong>Structure always wins
+  on conflict;</strong> only the unresolved remainder is AI-inferred.</li>
+  <li><strong>Confirm the tree</strong> — print an indented preview (project → task → subtask with inferred
+  labels/people/dates) and resolve real ambiguities with <code>AskUserQuestion</code> (carrying a
+  <code>(Recommended)</code> default). Nothing is written until confirmed. Under <code>--non-interactive</code>
+  the canonical block AUTO-PICKs the recommended reading and records ambiguities as open questions.</li>
+  <li><strong>Write</strong> — mint ids (<code>mint-id.mjs</code>), set <code>parent</code> for subtasks,
+  apply <code>project/labels/people/due</code>, register new projects/labels, regenerate <code>INDEX.md</code>
+  once. People tokens resolve via <code>/people find</code>; unresolved tokens are flagged, never invented.</li>
+  <li><strong>Report</strong> — list created tasks/subtasks (id + project + inferred fields), new
+  projects/labels, and any unresolved <code>@handle</code>.</li>
+</ol>
+
+<h2 id="testing">8. Testing &amp; release</h2>
+<ul>
+  <li><strong>71x</strong>: server tests in <code>tests/run.mjs</code> (people CRUD incl. handle derivation /
+  409 / 400 / round-trip-vs-<code>/people</code>; registry add+dedupe+union; <code>include_children</code>
+  inclusion + no-flag no-regression). Live dogfood against a real <code>~/.pmos</code>.</li>
+  <li><strong>tf4</strong>: Playwright dogfood against a live <code>/mytasks web</code> proving every AC,
+  console error-free.</li>
+  <li><strong>j9v</strong>: parser fixtures in <code>tests/</code> (indentation, markers, tokens, messy/
+  inferred, structure-wins-on-conflict); live import into a scratch <code>~/.pmos</code>.</li>
+  <li>All stories conform to <code>skill-patterns.md §A–§L</code>, keep the non-interactive block inline
+  byte-identical, pass <code>skill-eval</code> <code>[D]</code>+<code>[J]</code> and the 4 lints + audit.</li>
+  <li>All three target <code>pmos-toolkit</code> → <strong>one release</strong> at Loop-3 (foundation →
+  UI → import order; UI &amp; import depend on the foundation).</li>
+</ul>
+
+</body>
+</html>
