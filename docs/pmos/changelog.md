@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-06-25 — pmos-gamekit 0.9.0: /poker reference panel + table restyle
+
+**`/poker` now teaches while you play, and looks the part.** A collapsible right-hand **References panel** puts strategy at your fingertips: hand rankings, an interactive 169-cell preflop range chart (with an honest "unmodeled spot" explainer), and pot-odds / Rule-of-2-and-4 quick math. The table got a visual overhaul — oval felt, gold hero seat, chip strips, a unit toggle — plus a "Poker" HUD title and the pmos wordmark. The previous live-coaching mode is gone in favor of these always-available references.
+
 ## 2026-06-25 — pmos-toolkit 2.89.0: design-slop detection across the pipeline
 
 **pmos now catches generic "AI-slop" visual design before it ships.** A shared design-slop engine — contrast failures, gradient-only styling, default-font tells, spacing soup, and 30+ other guidelines — now backs two surfaces:
