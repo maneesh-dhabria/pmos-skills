@@ -203,6 +203,27 @@ If anything failed, surface the error to the user and decide together: retry wit
 
 ---
 
+## Phase 3.5: Deterministic slop pre-pass {#slop-prepass}
+
+Before the LLM critique, run the **deterministic slop engine** over the captured source — a machine lane that flags known generated-design tells (side-tab accents, gradient text, monotonous spacing, bounce easing, "theater" framing copy, …) with zero judgement and zero network. This lane runs **first** and stays **distinct** from the LLM heuristic/PSYCH lanes that follow (D-STACK): a reader can always tell a machine-flagged tell from a judged UX issue. It **complements, never replaces**, the LLM critique in Phases 4–5.
+
+Run the packaged helper **once per captured target** — loop the journey's file list in wireframes/prototype mode (one run per captured screen), or run once against the live URL in URL mode. It drives the same Playwright/Chromium path `assets/capture.mjs` already uses, injects the vendored engine at `_shared/slop-engine/browser.js`, calls `window.pmosDesignScan()`, and reads the `.pmos-slop-*` findings from the **live DOM — programmatically, never from a screenshot**:
+
+```
+node {skill_dir}/assets/slop-prepass.mjs \
+  --source <captured-url-or-file> \
+  --out {out_dir} \
+  [--viewport 1440x900]
+```
+
+Output: `{out_dir}/slop-findings.json` — an object `{ generated, source, engine, overlaysRendered, findings: [{ id, category, severity, snippet, selector, section }] }`, where each `snippet` carries the offending text/CSS in the engine's straight-double-quote convention (a `skipped: true` + empty `findings` shape is written on graceful degradation, below). The `findings` array feeds the report's first lane in Phase 6 ({#synthesise-report}), ahead of the LLM recommendations.
+
+**Graceful degradation (Inv-5).** The engine lane is purely additive. If the engine bundle is missing/unreadable or the scan errors, the helper logs a single stderr skip note, writes an empty `slop-findings.json`, and exits 0 — `/design-crit` then proceeds **exactly as today** from Phase 4 onward with no machine lane and no regression. A missing Playwright install is a dependency error (exit 3) — the same class `assets/capture.mjs` already surfaces in Phase 3; resolve it there. Never let an empty or absent engine lane roll back or alter the capture → LLM critique flow.
+
+**Determinism + provenance (Inv-3/Inv-4).** The lane makes no LLM or network call; the engine is referenced only by its pmos-native path and the `window.pmosDesignScan` / `.pmos-slop-*` globals.
+
+---
+
 ## Phase 4: Heuristic evaluation against the rubric {#heuristic-eval}
 
 Read `reference/eval.md` (canonical rubric) into context.
@@ -261,6 +282,14 @@ Source: <url-or-path> (<type>)
 Journeys reviewed: <count>
 Screens captured: <count>
 
+## Deterministic slop findings (machine-flagged)
+
+Engine lane (from `slop-findings.json`, Phase 3.5) — deterministic tells, no judgement, no network. Reported **first** and kept **separate** from the LLM critique below (D-STACK).
+
+| Rule | Where | Snippet |
+|------|-------|---------|
+| `<id>` | <section> | <snippet> |
+
 ## TL;DR (top 5 recommendations)
 
 1. **[high] <one-line headline>** — <one-line "why" tied to evidence>. <one-line concrete fix>.
@@ -295,6 +324,8 @@ Findings the user chose to defer; logged for future review.
 
 Pointer to `eval-findings.json`.
 ```
+
+Render the **Deterministic slop findings** table from `{out_dir}/slop-findings.json` (Phase 3.5): one row per finding — rule `id`, its `section`, and `snippet`. If the lane was skipped (`skipped: true`) or empty (`findings: []`), replace the table with a single line — `No deterministic slop tells flagged.` or `Engine lane skipped — <reason>.` — and continue. Never merge engine tells into the LLM recommendation sections below: they are a distinct lane (D-STACK), so the machine lane stays machine-only and the LLM lane stays judgement-only.
 
 Each recommendation must:
 

@@ -3205,8 +3205,8 @@ if (IS_BROWSER) {
   // Detect extension mode via the script tag's data attribute or the document element fallback.
   // currentScript is reliable for synchronously-executing scripts (which our IIFE is).
   const _myScript = document.currentScript;
-  const EXTENSION_MODE = (_myScript && _myScript.dataset.pmos-slopExtension === 'true')
-    || document.documentElement.dataset.pmos-slopExtension === 'true';
+  const EXTENSION_MODE = (_myScript && _myScript.dataset.pmosSlopExtension === 'true')
+    || document.documentElement.dataset.pmosSlopExtension === 'true';
 
   // Kinpaku gold — pinned to the site's brand token (see
   // site/styles/kinpaku-tokens.css --ks-kinpaku). Keep this in sync with
@@ -3226,8 +3226,12 @@ if (IS_BROWSER) {
   const LABEL_BG = BRAND_COLOR;
   const OUTLINE_COLOR = BRAND_COLOR;
 
-  // Inject hover styles via CSS (more reliable than JS event listeners)
+  // Inject hover styles via CSS (more reliable than JS event listeners).
+  // Marked pmos-slop-style so the page-level regex clone (scanDom) excludes the
+  // engine's own chrome CSS — otherwise its label gradient / background-clip
+  // registers as a gradient-text page tell against the inspected page itself.
   const styleEl = document.createElement('style');
+  styleEl.className = 'pmos-slop-style';
   styleEl.textContent = `
     @keyframes pmos-slop-reveal {
       from { opacity: 0; }
@@ -3405,7 +3409,7 @@ if (IS_BROWSER) {
   let overlayIndex = 0;
   const visibilityObserver = new IntersectionObserver((entries) => {
     for (const entry of entries) {
-      const overlay = entry.target._pmos-slopOverlay;
+      const overlay = entry.target._pmosSlopOverlay;
       if (!overlay) continue;
       if (entry.isIntersecting) {
         overlay.style.display = '';
@@ -3435,9 +3439,9 @@ if (IS_BROWSER) {
     if (typeof overlay._cleanup === 'function') {
       try { overlay._cleanup(); } catch { /* best effort overlay teardown */ }
     }
-    if (overlay._targetEl && overlay._targetEl._pmos-slopOverlay === overlay) {
+    if (overlay._targetEl && overlay._targetEl._pmosSlopOverlay === overlay) {
       visibilityObserver.unobserve(overlay._targetEl);
-      delete overlay._targetEl._pmos-slopOverlay;
+      delete overlay._targetEl._pmosSlopOverlay;
     }
     const idx = overlays.indexOf(overlay);
     if (idx >= 0) overlays.splice(idx, 1);
@@ -3458,7 +3462,7 @@ if (IS_BROWSER) {
   });
 
   const highlight = function(el, findings) {
-    if (el._pmos-slopOverlay) detachOverlay(el._pmos-slopOverlay);
+    if (el._pmosSlopOverlay) detachOverlay(el._pmosSlopOverlay);
     const hasSlop = findings.some(f => RULE_CATEGORY[f.type || f.id] === 'slop');
 
     const fixed = isInFixedContext(el);
@@ -3560,7 +3564,7 @@ if (IS_BROWSER) {
     // Start hidden; the IntersectionObserver will show it once the target is rendered
     outline.style.display = 'none';
     outline._staggerIndex = overlayIndex++;
-    el._pmos-slopOverlay = outline;
+    el._pmosSlopOverlay = outline;
     visibilityObserver.observe(el);
 
     // After first paint, check label width vs outline
@@ -4747,11 +4751,18 @@ if (IS_BROWSER) {
     }
 
     // Regex-on-HTML checks (shared with Node)
-    // Clone the document and strip pmos-slop-live overlay nodes before the
-    // regex scan, so the inspector's own inline styles (transitions on top/
-    // left/width/height, etc.) don't register as page anti-patterns.
+    // Clone the document and strip the engine's own overlay chrome before the
+    // regex scan, so the inspector's injected outlines/labels/banner/tooltip and
+    // its chrome <style> (gradient text-clip on labels, overshoot beziers,
+    // rule-description copy containing words like "theater") don't register as
+    // page anti-patterns against the inspected page. Strip by the pmos-native
+    // chrome classes — the legacy `[id^="pmos-slop-live-"]` selector matched an
+    // earlier id-based chrome scheme and is dead in this build (kept as a backstop).
     const docClone = document.documentElement.cloneNode(true);
-    for (const node of docClone.querySelectorAll('[id^="pmos-slop-live-"]')) {
+    const CHROME = '.pmos-slop-overlay, .pmos-slop-label, .pmos-slop-banner, '
+      + '.pmos-slop-tooltip, .pmos-slop-spotlight-backdrop, .pmos-slop-style, '
+      + '[id^="pmos-slop-live-"]';
+    for (const node of docClone.querySelectorAll(CHROME)) {
       node.remove();
     }
     const htmlPatternFindings = checkHtmlPatterns(docClone.outerHTML);
@@ -5126,13 +5137,13 @@ if (IS_BROWSER) {
     }
   }
 
-  window.pmos-slopDetect = detect;
-  window.pmos-slopDetectAsync = detectAsync;
+  window.pmosSlopDetect = detect;
+  window.pmosSlopDetectAsync = detectAsync;
   window.pmosDesignScan = scan;
   window.pmosDesignScanAsync = scanAsync;
-  window.pmos-slopCollectVisualContrastCandidates = collectVisualContrastCandidates;
-  window.pmos-slopAnalyzeVisualContrast = analyzeVisualContrast;
-  window.pmos-slopGetLastVisualContrastAnalyses = () => lastVisualContrastAnalyses.slice();
+  window.pmosSlopCollectVisualContrastCandidates = collectVisualContrastCandidates;
+  window.pmosSlopAnalyzeVisualContrast = analyzeVisualContrast;
+  window.pmosSlopGetLastVisualContrastAnalyses = () => lastVisualContrastAnalyses.slice();
 }
 
 })();
