@@ -5,14 +5,14 @@ kind: story
 title: "/primer library-viewer full parity with /frameworks"
 type: enhancement
 priority: should
-status: planned
+status: done
 route: skill
 parent: 260626-z2p
 dependencies: []
 worktree: .claude/worktrees/feat-260626-0g6
 plan_doc: docs/pmos/features/2026-06-26_primer-viewer-parity/stories/260626-0g6/03_plan.html
 tasks_file: docs/pmos/features/2026-06-26_primer-viewer-parity/stories/260626-0g6/tasks.yaml
-claimed_by: build:e385ea38
+claimed_by:
 pr:
 labels: [primer, frameworks, learn-list, library-viewer, pmos-learnkit, skill]
 created: 2026-06-26
