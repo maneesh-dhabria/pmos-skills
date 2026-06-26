@@ -23,6 +23,7 @@ const SCRIPTS = path.join(here, '..', 'scripts');
 const lib = require(path.join(SCRIPTS, 'lib.js'));
 const { spawnRecurrence } = require(path.join(SCRIPTS, 'recur.js'));
 const serve = require(path.join(SCRIPTS, 'serve.js'));
+const people = require(path.join(SCRIPTS, 'people.js'));
 
 let pass = 0, fail = 0;
 const failures = [];
@@ -242,12 +243,149 @@ async function testApi() {
   }
 }
 
+// ── 6. People CRUD over the shared ~/.pmos/people store (story 260626-71x, A1-A3) ──
+function mkTmpRoot() {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'mytasks-root-'));
+  fs.mkdirSync(path.join(root, 'tasks', 'items'), { recursive: true });
+  fs.mkdirSync(path.join(root, 'people'), { recursive: true });
+  return { root, tasksDir: path.join(root, 'tasks'), peopleDir: path.join(root, 'people') };
+}
+
+async function testPeople() {
+  const { root, tasksDir, peopleDir } = mkTmpRoot();
+  const { server, port } = await serve.start({ tasksDir, peopleDir, port: 0, idleSec: 0, pidFile: null });
+  try {
+    let r = await reqJson(port, 'GET', '/api/people');
+    eq('people empty store → []', r.json.people, []);
+
+    r = await reqJson(port, 'POST', '/api/people', { name: 'Sarah Chen', role: 'Eng Manager', team: 'platform' });
+    eq('people POST 201', r.status, 201);
+    eq('handle derived (firstname-lastinitial)', r.json.person.handle, 'sarah-c');
+    eq('person role stored', r.json.person.role, 'Eng Manager');
+
+    r = await reqJson(port, 'POST', '/api/people', { name: 'Someone', handle: 'sarah-c' });
+    eq('duplicate handle → 409', r.status, 409);
+    ok('409 carries existing record', r.json.person && r.json.person.handle === 'sarah-c', JSON.stringify(r.json));
+
+    r = await reqJson(port, 'POST', '/api/people', { role: 'no name' });
+    eq('missing name → 400', r.status, 400);
+
+    r = await reqJson(port, 'GET', '/api/people');
+    eq('people list count 1', r.json.people.length, 1);
+    eq('people list shape {handle,name}', r.json.people[0], { handle: 'sarah-c', name: 'Sarah Chen' });
+
+    r = await reqJson(port, 'PATCH', '/api/people/sarah-c', { fields: { designation: 'VP Engineering', email: 'sarah@acme.com' } });
+    eq('PATCH 200', r.status, 200);
+    eq('PATCH applied designation', r.json.person.designation, 'VP Engineering');
+
+    r = await reqJson(port, 'PATCH', '/api/people/nobody', { fields: { role: 'x' } });
+    eq('PATCH unknown handle → 404', r.status, 404);
+
+    // byte-shape compatibility with /people (key order, omitted bare keys, no nulls)
+    const raw = fs.readFileSync(path.join(peopleDir, 'sarah-c.md'), 'utf8');
+    ok('person file canonical head', raw.startsWith('---\nschema_version: 1\nhandle: sarah-c\nname: Sarah Chen\n'), raw.slice(0, 120));
+    ok('absent optionals omitted (no bare keys)', !/\nworking_relationship:\n/.test(raw) && !/\naliases:\n/.test(raw), raw);
+    // parses cleanly through the /people-shaped reader (round-trip)
+    const reread = people.parsePerson(raw).fm;
+    eq('round-trip handle', reread.handle, 'sarah-c');
+    eq('round-trip patched field', reread.designation, 'VP Engineering');
+
+    ok('people INDEX regenerated', fs.existsSync(path.join(peopleDir, 'INDEX.md')));
+    ok('people INDEX has row', /\| sarah-c \| Sarah Chen \|/.test(fs.readFileSync(path.join(peopleDir, 'INDEX.md'), 'utf8')));
+
+    // a /people-CLI-created record (written raw) is visible to GET /api/people
+    fs.writeFileSync(path.join(peopleDir, 'mark-davis.md'),
+      '---\nschema_version: 1\nhandle: mark-davis\nname: Mark Davis\nrole: PM Lead\ncreated: 2026-04-25\nupdated: 2026-04-25\n---\n');
+    r = await reqJson(port, 'GET', '/api/people');
+    eq('cross-skill: list now 2', r.json.people.length, 2);
+    ok('cross-skill: /people record visible to web', r.json.people.some((p) => p.handle === 'mark-davis'), JSON.stringify(r.json.people));
+  } finally {
+    server.close();
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+}
+
+// ── 7. Registry + /api/meta union (story 260626-71x, A4/A5) ──
+async function testRegistryMeta() {
+  const { root, tasksDir, peopleDir } = mkTmpRoot();
+  const { server, port } = await serve.start({ tasksDir, peopleDir, port: 0, idleSec: 0, pidFile: null });
+  try {
+    await reqJson(port, 'POST', '/api/tasks', { fields: { title: 'T1', project: 'launch', labels: 'urgent' } });
+
+    let r = await reqJson(port, 'POST', '/api/projects', { name: 'Marketing Plan' });
+    eq('add project 200', r.status, 200);
+    ok('registry slug-normalized', r.json.projects.includes('marketing-plan'), JSON.stringify(r.json.projects));
+    ok('registry.json created on first write', fs.existsSync(path.join(tasksDir, 'registry.json')));
+
+    const before = r.json.projects.length;
+    r = await reqJson(port, 'POST', '/api/projects', { name: 'Marketing Plan' });
+    eq('duplicate add → no-op 200', r.status, 200);
+    eq('duplicate add does not grow list', r.json.projects.length, before);
+
+    r = await reqJson(port, 'POST', '/api/projects', { name: 'launch' });
+    eq('task-derived name → no-op 200', r.status, 200);
+    ok('derived name not duplicated into registry', !r.json.projects.includes('launch'), JSON.stringify(r.json.projects));
+
+    r = await reqJson(port, 'POST', '/api/labels', { name: 'q3' });
+    ok('label added', r.json.labels.includes('q3'), JSON.stringify(r.json.labels));
+
+    r = await reqJson(port, 'POST', '/api/projects', { name: '   ' });
+    eq('empty name → 400', r.status, 400);
+
+    // /api/meta = registry ∪ derived
+    r = await reqJson(port, 'GET', '/api/meta');
+    ok('meta union: registry-only project appears', r.json.projects.includes('marketing-plan'), JSON.stringify(r.json.projects));
+    ok('meta union: task-derived project appears', r.json.projects.includes('launch'), JSON.stringify(r.json.projects));
+    ok('meta union: task-derived label appears', r.json.labels.includes('urgent'), JSON.stringify(r.json.labels));
+    ok('meta union: registry-only label appears', r.json.labels.includes('q3'), JSON.stringify(r.json.labels));
+  } finally {
+    server.close();
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+}
+
+// ── 8. /api/tasks?include_children=1 (story 260626-71x, A6) ──
+async function testIncludeChildren() {
+  const { root, tasksDir, peopleDir } = mkTmpRoot();
+  const { server, port } = await serve.start({ tasksDir, peopleDir, port: 0, idleSec: 0, pidFile: null });
+  try {
+    const today = lib.isoToday();
+    const parent = (await reqJson(port, 'POST', '/api/tasks', { fields: { title: 'Parent', due: today } })).json.task;
+    const child = (await reqJson(port, 'POST', '/api/tasks', { fields: { title: 'Child', parent: parent.id } })).json.task;
+
+    // no flag: the due=today view matches only the parent (child has no due)
+    let r = await reqJson(port, 'GET', '/api/tasks?due=today');
+    eq('no-flag due=today → parent only', r.json.tasks.map((t) => t.id), [parent.id]);
+
+    // with flag: the parent's non-matching subtask is included
+    r = await reqJson(port, 'GET', '/api/tasks?due=today&include_children=1');
+    const ids = r.json.tasks.map((t) => t.id);
+    ok('include_children attaches non-matching child', ids.includes(parent.id) && ids.includes(child.id), JSON.stringify(ids));
+    ok('child carries parent for nesting', r.json.tasks.find((t) => t.id === child.id).parent === parent.id);
+
+    // no duplicate when a child already matched the filter
+    r = await reqJson(port, 'GET', '/api/tasks?include_children=1');
+    const all = r.json.tasks.map((t) => t.id);
+    eq('include_children dedupes', all.length, new Set(all).size);
+
+    // regression guard: no-flag full list is the pre-change set (both, normal tasks)
+    r = await reqJson(port, 'GET', '/api/tasks');
+    eq('no-flag full list unchanged', r.json.tasks.map((t) => t.id).sort(), [parent.id, child.id].sort());
+  } finally {
+    server.close();
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+}
+
 async function main() {
   testFrontmatter();
   testDateMath();
   testSpawn();
   testIndex();
   await testApi();
+  await testPeople();
+  await testRegistryMeta();
+  await testIncludeChildren();
   console.log(`\nmytasks web selftest: ${pass} passed, ${fail} failed`);
   if (fail) { console.error('FAILURES:\n  - ' + failures.join('\n  - ')); process.exit(1); }
   process.exit(0);

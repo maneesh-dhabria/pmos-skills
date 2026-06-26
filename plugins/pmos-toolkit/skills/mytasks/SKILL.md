@@ -42,7 +42,7 @@ These instructions use Claude Code tool names. In other environments:
 - `inference-heuristics.md` — quick-capture keyword + date + person + `#project`/`+label` token rules (`project` is never auto-inferred — only an explicit `#project` token / prompt / `set` sets it)
 - `output-formats.md` — exact capture report templates and unknown-person prompt copy
 - `_shared/interactive-prompts.md` — interactive prompting protocol (used by `add`, `refine`, unknown-person flow)
-- `scripts/serve.js` — zero-dep localhost server + JSON API behind the web UI (adapts the `comments` substrate serve.js); `scripts/lib.js` (frontmatter round-trip, validation, INDEX regen, quick-add token parse), `scripts/recur.js` (the `#recur-spawn` routine, shared by CLI + web), `scripts/webapp/` (the single-file app), `scripts/mytasks-open.{command,sh,bat}` (launcher trio)
+- `scripts/serve.js` — zero-dep localhost server + JSON API behind the web UI (adapts the `comments` substrate serve.js); `scripts/lib.js` (frontmatter round-trip, validation, INDEX regen, quick-add token parse), `scripts/registry.js` (projects/labels registry → `registry.json`, design D5), `scripts/people.js` (web CRUD over the shared `~/.pmos/people/` store, design D6), `scripts/recur.js` (the `#recur-spawn` routine, shared by CLI + web), `scripts/webapp/` (the single-file app), `scripts/mytasks-open.{command,sh,bat}` (launcher trio). The JSON API surface is documented at `#web-api` (contract home: design §5).
 - Sibling skill `/people` — fuzzy-match person lookup via `/people find`
 
 ---
@@ -329,3 +329,13 @@ Triggered by `/mytasks web`. Starts the local server (`scripts/serve.js`) and op
 **`--non-interactive`:** `web` is interactive-by-nature (it opens a browser for a human). Under `--non-interactive`, do NOT block or spawn a browser — start/reuse the server and **print the launch URL** (`Web UI at http://127.0.0.1:<port>/ (non-interactive: not opening a browser)`), then exit cleanly. This phase issues no interactive prompt, so the canonical classifier has nothing to defer.
 
 > **Server-required by design (D11):** the web app has **no `file://` mode**. Opening `index.html` from disk shows a blocking "run `/mytasks web`" modal — there is no degraded read-only path, because writes need the server. This mirrors the `comments` launcher posture.
+
+### Web API endpoints {#web-api}
+
+The browser app talks to `scripts/serve.js` over a small JSON API (localhost-only; mutations require a loopback `Origin`). The full request/response contract is the **single home** in the epic design §5 (`docs/pmos/features/2026-06-26_mytasks-web-enhancements/02_design.html`, "Endpoint surface") — cite it, do not restate the table here (§K). The surface:
+
+- **Tasks** — `GET/POST /api/tasks`, `PATCH /api/tasks/:id`, `POST /api/tasks/:id/{complete,drop,checkin}`, `POST /api/tasks/reorder` (unchanged). `GET /api/tasks?include_children=1` additionally returns a matched parent's subtasks even when a child would not match the active filter on its own (no flag → unchanged behavior).
+- **People** (shared `~/.pmos/people/` store, design D6) — `GET /api/people` (list `{handle,name}` sorted by name), `POST /api/people` (create; handle auto-derived per `/people` `lookup.md` when omitted; `409` dup handle, `400` missing name), `PATCH /api/people/:handle` (edit; `404` unknown). Records are byte-shape-compatible with `/people` — a record written here is editable from the `/people` CLI and vice-versa.
+- **Registry** (`~/.pmos/tasks/registry.json`, design D5) — `POST /api/projects {name}` / `POST /api/labels {name}` add a slug-normalized, deduped empty container (an existing name is a no-op success). `GET /api/meta` returns `{projects, labels}` as the **union** of registry entries and the values derived from task files — so a freshly created empty project still shows in the sidebar.
+
+Server-side helpers live in `scripts/registry.js` (registry read/add) and `scripts/people.js` (people CRUD + INDEX regen), both reusing `scripts/lib.js` primitives (atomic write, slug, frontmatter round-trip). The people store defaults to `~/.pmos/people/` (a `--people-dir` override keeps test/scratch roots isolated).
