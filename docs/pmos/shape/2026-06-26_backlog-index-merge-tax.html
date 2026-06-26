@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="shape">
+  <meta name="pmos:shape-phase" content="complete">
+  <meta name="pmos:shape-slug" content="backlog-index-merge-tax">
+  <meta name="pmos:shape-date" content="2026-06-26">
+  <meta name="pmos:shape-context" content="internal-tool">
+  <title>Backlog INDEX.md — a no-reader cache on the merge path — Problem Brief</title>
+  <link rel="stylesheet" href="assets/style.css?v=2.93.0">
+  <script defer src="assets/viewer.js?v=2.93.0"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Backlog INDEX.md — a no-reader cache on the merge path</h1>
+    <div class="pmos-artifact-actions">
+      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    </div>
+    <a class="pmos-attribution pmos-attribution--toolbar"
+       href="https://github.com/maneesh-dhabria/pmos-skills/blob/main/plugins/pmos-toolkit/README.md"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="tldr">
+<h2 id="tldr">The shaped problem</h2>
+<p>Every backlog mutation has to rewrite a committed status snapshot (<code>backlog/INDEX.md</code>) that no tool and no human ever reads — so the operator pays a hand-regeneration tax on each <code>/backlog</code> change and each <code>/feature-sdlc define</code>, and when parallel worktrees touch that one file at once they eat avoidable git merge conflicts — all to keep current a view whose every field is already derivable on demand from the item YAML.</p>
+<p><strong>Who / when / why-now:</strong> Whoever runs backlog mutations or <code>/feature-sdlc define|build</code> (today, the model acting for the operator). It bites on every mutating command, and acutely whenever concurrent worktrees / release-trains rewrite <code>INDEX.md</code> in parallel. Why now: parallel worktrees + release trains are this repo's default working model, and completed items already dominate the corpus (124 of 143), so the hand-regenerated file only grows larger and more collision-prone over time.</p>
+<p><em>This is a <strong>problem</strong> brief. It deliberately proposes no solution — see Handoff below.</em></p>
+</section>
+
+<section id="felt-problem">
+<h2 id="felt-problem">Felt problem (HMW + JTBD)</h2>
+<p><strong>How might we:</strong> keep the backlog's at-a-glance state correct without maintaining a committed, hand-regenerated file that nothing reads and that collides across worktrees?</p>
+<p><strong>Who:</strong> the operator — and the model acting on their behalf — running the define → build → release loops across parallel git worktrees.</p>
+<p><strong>When / where:</strong> every <code>/backlog add|refine|set|promote</code> and every <code>/feature-sdlc define</code> merge — the moment a mutating handler ends by rewriting <code>INDEX.md</code> and that change lands on the commit / merge path.</p>
+<p><strong>Job-to-be-done:</strong> when I mutate the backlog, I want the canonical state to update with zero extra bookkeeping and zero merge friction, so I can run many features in parallel without collisions on a shared file.</p>
+<p><strong>Falsifiable hypothesis:</strong> If we solve the <em>INDEX-on-the-merge-path coupling</em>, then <em>define/build commits carrying INDEX diffs, and cross-worktree merge conflicts on backlog state,</em> observably drop to ~zero.</p>
+</section>
+
+<section id="context-classification">
+<h2 id="context-classification">Context classification</h2>
+<p><strong>Bucket:</strong> internal-tool <span class="pmos-muted">(inferred — absent in <code>.pmos/settings.yaml</code> (<code>workstream: null</code>); confirmed in-session)</span></p>
+<p>This is the agent-skills repo's own SDLC tooling — an internal developer tool, not a shipped product feature or a market bet. So strategic-positioning and market lenses are N/A; the live constraints here are operational: concurrency-safety, maintenance cost, and the correctness of a derived view.</p>
+<p class="pmos-muted">Classification persists (not the answers); workstream &gt; settings; re-confirmed only on absent/doc-seeded/conflicting signals.</p>
+</section>
+
+<section id="ladder">
+<h2 id="ladder">Abstraction ladder</h2>
+<p>Climbing <em>why</em> / descending <em>how</em> to find the right altitude — with a 5-Whys pass on the "merge conflict on INDEX.md" symptom.</p>
+<ul>
+<li><strong>Symptom (↓ how):</strong> two worktrees both edited <code>backlog/INDEX.md</code> → git merge conflict on the file.</li>
+<li><strong>Why?</strong> Every mutating handler ends by rewriting the whole <code>INDEX.md</code>, and worktrees run concurrently — so the same lines move in two branches.</li>
+<li><strong>Why rewrite it at all?</strong> <code>INDEX.md</code> is a committed cache that must be kept fresh to match the item YAML (the <code>tracker-crudl</code> "regenerable cache" contract).</li>
+<li><strong>Why keep that cache fresh — why does it exist?</strong> To offer a human-readable at-a-glance backlog without running any tooling.</li>
+<li><strong>Why does that justify a committed, mutated-on-every-write file?</strong> It doesn't — no human or tool actually reads it (confirmed write-only this session). Every programmatic consumer already re-derives from the YAML.</li>
+<li><strong>Root (↑ why):</strong> a derivable view is being persisted as committed mutable state on the merge path, with no consumer.</li>
+</ul>
+<p><strong>Chosen altitude:</strong> the mid-rung — "a derivable, no-reader view is persisted as committed mutable state on the concurrent-merge path." High enough to question whether <code>INDEX.md</code> should exist; low enough to act on without re-litigating the whole tracker design.</p>
+</section>
+
+<section id="decomposition">
+<h2 id="decomposition">Decomposition</h2>
+<p>Sub-problems, with the real one marked ★.</p>
+<ol>
+<li><strong>★ The no-reader committed cache.</strong> <code>INDEX.md</code> is committed, mutable, hand-regenerated state that every mutation rewrites — incurring (a) a regeneration / maintenance tax and (b) cross-worktree merge conflicts — while no consumer reads it. This is the leverage point.</li>
+<li><strong>Trust / freshness.</strong> Even taken as a human snapshot, it can be stale (the "Last regenerated" line can lag the YAML), so it fails at the only job it nominally has. (Subordinate to ★ — and moot if ★ is resolved, since nobody reads it anyway.)</li>
+<li><strong>Anticipated parse cost.</strong> Re-deriving views from all 143 → N item files on every command could get slow at scale. <em>Currently speculative</em> — 143 small files parse fast; the operator raised it, but it is a <strong>distinct, lower-priority problem</strong> and possibly not yet real. "Move completed items to a folder" is a <em>solution</em> to this sub-problem, not a problem — out of scope for this brief.</li>
+<li><strong>Pattern blast-radius.</strong> The same committed-derivable-cache shape exists in the sibling trackers (<code>/mytasks</code>, <code>/people</code>) built on <code>_shared/tracker-crudl.md</code> — so a fix scoped to backlog alone may leave the same pattern (and the same costs) in place elsewhere.</li>
+</ol>
+</section>
+
+<section id="framings">
+<h2 id="framings">Competing framings</h2>
+<p>2–3 ways to frame the problem (lenses on the problem, <em>not</em> solution commitments), with the ripple-on-the-framing — "if framed as X vs Y, what does each set in motion downstream?"</p>
+<table>
+<tr><th>Framing</th><th>What it sets in motion</th><th>Kept / rejected &amp; why</th></tr>
+<tr><td><strong>A — "INDEX is dead weight"</strong>: a no-reader, derivable cache.</td><td>Downstream work is about getting it <em>off the commit/merge path</em> — eliminating the regen tax and the conflicts at once; the only open design question becomes <em>where</em> a human view lives, if ever wanted.</td><td><strong>KEPT</strong> — matches the confirmed write-only fact.</td></tr>
+<tr><td><strong>B — "INDEX is a stale human view to fix"</strong>.</td><td>Leads to investing in freshness / auto-regen — keeping the committed file but making it reliable and conflict-resistant.</td><td><strong>REJECTED</strong> — nobody reads it; making an unread file fresher is wasted motion.</td></tr>
+<tr><td><strong>C — "The real problem is parse performance at scale"</strong>.</td><td>Leads to archiving / sharding completed items for speed (the "separate folder" idea).</td><td><strong>PARKED</strong> — a separate, currently-unvalidated sub-problem (SP3); must not be allowed to drive the INDEX decision.</td></tr>
+</table>
+<p><strong>Chosen framing:</strong> A — <code>INDEX.md</code> is a no-reader, derivable cache whose only effect today is maintenance + merge cost. The problem to hand downstream is about that <em>coupling</em>, not about freshness (B) or speed (C).</p>
+</section>
+
+<section id="lens-ledger">
+<h2 id="lens-ledger">Lens ledger</h2>
+<p>Every applicable lens with its disposition — <strong>including N/A and Parked-with-reason</strong> — so any uncovered dimension is visible, not silently absent. Dispositions: Answered · Parked (out-of-scope, with reason) · Open question · N/A-for-context. See <code>_shared/lens-ledger.md</code>.</p>
+<table>
+<tr><th>Lens</th><th>Disposition</th><th>Note (evidence / reason / why dropped)</th></tr>
+<tr><td>Customer &amp; pain</td><td>Answered</td><td>Operator + model; pain = per-mutation regen tax + cross-worktree merge conflicts on a shared file.</td></tr>
+<tr><td>Job-to-be-done &amp; moment</td><td>Answered</td><td>Mutate the backlog → canonical state updates with no bookkeeping and no merge friction; the moment is every mutating commit, acutely under parallel worktrees.</td></tr>
+<tr><td>Root cause / altitude</td><td>Answered</td><td>A derivable view persisted as committed mutable state on the merge path, with no consumer (5-Whys above).</td></tr>
+<tr><td>Strategic positioning / market</td><td>N/A-for-context</td><td>Internal dev tool — no market, no positioning. Downshifted per the internal-tool matrix row.</td></tr>
+<tr><td>Constraints &amp; feasibility</td><td>Answered</td><td>Hard operational constraint: this repo's default model is parallel worktrees + release trains. Any resolution must be worktree-merge-safe (no shared mutable file on the commit path).</td></tr>
+<tr><td>Risks &amp; second-order</td><td>Parked (with reason)</td><td>Latent-consumer risk: would removing INDEX silently break a human GitHub-browse habit or a future skill? Confirmed no current consumer; risk low but flagged for the downstream design to grep before any removal.</td></tr>
+<tr><td>Adaptive — concurrency / merge-contention</td><td>Answered</td><td>The load-bearing dimension. Committed shared mutable state under concurrent worktrees is what converts a harmless cache into a recurring cost. (Off-deck — see ceiling-breaker.)</td></tr>
+<tr><td>Adaptive — pattern consistency (sibling trackers)</td><td>Open question</td><td>Does the fix generalize to <code>/mytasks</code> and <code>/people</code>, which share <code>_shared/tracker-crudl.md</code> and presumably their own INDEX files? Scope decision for downstream.</td></tr>
+</table>
+<p><strong>Ceiling-breaker:</strong> Off-deck probe — <em>concurrency / merge-contention as a first-class dimension.</em> The standard problem deck has no lens for "committed shared mutable state under parallel worktrees," yet that is the actual mechanism turning a benign cache into a recurring cost. Surfacing it reframes the question from "is INDEX.md useful?" to "should <em>any</em> derivable state sit on the merge path in a concurrent-worktree repo?" — which also implicates the sibling trackers (<code>/mytasks</code>, <code>/people</code>) on the same <code>tracker-crudl</code> substrate.</p>
+</section>
+
+<section id="open-questions">
+<h2 id="open-questions">Open questions</h2>
+<ul>
+<li><strong>Scope to siblings?</strong> Does the same fix apply to <code>/mytasks</code> and <code>/people</code>, which share the <code>tracker-crudl</code> substrate and their own INDEX files — or is this backlog-only?</li>
+<li><strong>Is SP3 real?</strong> Is the parse-performance concern real at the current/expected corpus size, or premature? Needs a measurement before any "move completed items to a folder" work is justified.</li>
+<li><strong>Where would a human view live, if ever wanted?</strong> If an at-a-glance view is desired later, where does it live so it's <em>not</em> on the merge path (generate-on-read? the <code>/backlog web</code> viewer only? a <code>.gitignore</code>d build artifact)? A solution-space question — deferred to <code>/ideate</code> or <code>/requirements</code>.</li>
+<li><strong>Latent external consumers?</strong> Are there INDEX.md readers outside this repo's skills (external tooling, bookmarks, doc links) to grep for before removal?</li>
+</ul>
+</section>
+
+<section id="handoff">
+<h2 id="handoff">Handoff</h2>
+<p>This brief shapes the <em>problem</em>. Pick zero or more next steps — solution work begins downstream:</p>
+<ul>
+<li><code>/ideate backlog-index-merge-tax</code> — explore solution variants (drop INDEX entirely, generate-on-read, <code>.gitignore</code> it, otherwise decouple from the merge path) now that the problem is sharp.</li>
+<li><code>/backlog add --kind epic "Get the backlog's derivable status off the merge path (INDEX.md is write-only)"</code> — capture the shaped problem as work.</li>
+<li><code>/requirements backlog-index-merge-tax</code> — if you already favor a direction and want acceptance criteria.</li>
+<li><code>/ripple-effects docs/pmos/shape/2026-06-26_backlog-index-merge-tax.html</code> — optional, to map the second-order consequences of removing INDEX across the three trackers before committing.</li>
+</ul>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: docs/pmos/shape/2026-06-26_backlog-index-merge-tax.html</span>
+    <span class="pmos-attribution-sep" aria-hidden="true">·</span>
+    <a class="pmos-attribution pmos-attribution--footer"
+       href="https://github.com/maneesh-dhabria/pmos-skills/blob/main/plugins/pmos-toolkit/README.md"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </footer>
+  <!-- pmos-comments:start -->
+  <script id="pmos-comments" type="application/json">{"version":1,"threads":[]}</script>
+  <!-- pmos-comments:end -->
+</body>
+</html>
