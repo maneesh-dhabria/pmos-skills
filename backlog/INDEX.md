@@ -1,8 +1,8 @@
 # Backlog
 
-Last regenerated: 2026-06-26 (define 260626-fdh — /poker fixes epic defined; story 260626-vpj planned)
+Last regenerated: 2026-06-26 (define 260626-7s4 — /landing-page enhancements epic defined; stories 260626-h70, 260626-qrm planned)
 
-150 items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
+153 items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
 ## Epics
 | id | status | route | plugin | stories (done/total) | title |
@@ -58,6 +58,7 @@ Last regenerated: 2026-06-26 (define 260626-fdh — /poker fixes epic defined; s
 | 260624-3nj | released | skill | pmos-gamekit | 1/1 | "/poker — static References panel (hand rankings + interactive preflop chart + pot-odds/Rule-of-2&4) + table restyle to poker-coach look + HUD 'Poker' title + pmos watermark; drop all live coaching" |
 | 260625-sm0 | released | skill | pmos-toolkit | 1/1 | "/backlog grooming false-positive — AC detection requires checkbox markers, so numbered/dash ACs read as ungroomed" |
 | 260626-4sm | defined | skill | pmos-utilities | 0/1 | "/to-notion-doc — convert md/html/txt → a faithful Notion page via the Notion MCP (heading/style prefs, image-upload ladder, table-fidelity, chunked write, create-or-update, verification)" |
+| 260626-7s4 | defined | skill | pmos-toolkit | 0/2 | "/landing-page enhancements — show-balance, persona, media (incl. video), multi-product, asset-fidelity/mobile, logo, footer attribution" |
 | 260626-804 | defined | skill | pmos-toolkit | 0/2 | "slop-engine proof-of-execution — /design-crit + /verify must prove the deterministic slop lane ran, never claim graceful degradation by assertion" |
 | 260626-8pa | defined | skill | pmos-toolkit | 0/4 | "Get derivable status off the merge path across the three trackers (/backlog, /mytasks, /people) + harden tracker-crudl.md" |
 | 260626-a8a | defined | skill | pmos-toolkit | 0/3 | "/mytasks web UI enhancements — inline-everything overhaul (sidebar projects/labels/people, inline edit + @/#/+ autocomplete, nested subtasks, type/recur/checkin controls, LNO badge redesign) + /mytasks import" |
@@ -154,6 +155,8 @@ Last regenerated: 2026-06-26 (define 260626-fdh — /poker fixes epic defined; s
 | 260626-5cq | story | tech-debt | planned | 260626-8pa | "/people — delete committed INDEX, retire rebuild-index from add/set/refine + Phase 8, inline derived render" |  | docs/pmos/features/2026-06-26_trackers-index-merge-tax/stories/260626-5cq/03_plan.html |  |
 | 260626-nq0 | story | feature | planned | 260626-8pa | "/people — NEW zero-dep web viewer (serve-web.mjs + viewer.html), derives from person files per request, web-default + inline fallback" |  | docs/pmos/features/2026-06-26_trackers-index-merge-tax/stories/260626-nq0/03_plan.html |  |
 | 260626-vpj | story | feature | planned | 260626-fdh | "/poker layout + random-table fixes — hero-seat/action-bar overlap; random mode ≥2 opponents" | docs/pmos/features/2026-06-26_poker-fixes/02_design.html | docs/pmos/features/2026-06-26_poker-fixes/stories/260626-vpj/03_plan.html |  |
+| 260626-h70 | story | enhancement | planned | 260626-7s4 | "/landing-page — content, persona & structure: 1-2 personas + jargon calibration, do>show>tell principle + signature moments, who-for/not-for row + dedup, ≥3 structure variants, multi-product organizing principle, footer attribution" | docs/pmos/features/2026-06-26_landing-page-enhancements/02_design.html | docs/pmos/features/2026-06-26_landing-page-enhancements/stories/260626-h70-content-persona-structure/03_plan.html |  |
+| 260626-qrm | story | enhancement | planned | 260626-7s4 | "/landing-page — visual, media & assets: asset fidelity + mobile hard gate, live style preview, logo phase, media-strategy gate (static/carousel/video via Playwright+ffmpeg), shared design substrate (deps 260626-h70)" | docs/pmos/features/2026-06-26_landing-page-enhancements/02_design.html | docs/pmos/features/2026-06-26_landing-page-enhancements/stories/260626-qrm-visual-media-assets/03_plan.html |  |
 
 ## could
 
