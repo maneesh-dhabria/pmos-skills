@@ -10,10 +10,11 @@ route: skill
 dependencies: [260624-1e5]
 plugin: pmos-toolkit
 status: done
+released: v2.91.0
 feature_folder: docs/pmos/features/2026-06-24_wiki/
 plan_doc: docs/pmos/features/2026-06-24_wiki/stories/260624-rmq/03_plan.md
 tasks: docs/pmos/features/2026-06-24_wiki/stories/260624-rmq/tasks.yaml
-worktree: .claude/worktrees/feat-260624-rmq
+worktree:
 claimed_by: null
 driver_holder: null
 labels: [pmos-toolkit, wiki, skill, mcp, qa, new-skill]

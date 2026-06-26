@@ -10,10 +10,11 @@ route: skill
 dependencies: []
 plugin: pmos-toolkit
 status: done
+released: v2.91.0
 feature_folder: docs/pmos/features/2026-06-24_wiki/
 plan_doc: docs/pmos/features/2026-06-24_wiki/stories/260624-1e5/03_plan.md
 tasks: docs/pmos/features/2026-06-24_wiki/stories/260624-1e5/tasks.yaml
-worktree: .claude/worktrees/feat-260624-1e5
+worktree:
 claimed_by:
 driver_holder:
 labels: [pmos-toolkit, wiki, engine, viewer, substrate, new-substrate]
