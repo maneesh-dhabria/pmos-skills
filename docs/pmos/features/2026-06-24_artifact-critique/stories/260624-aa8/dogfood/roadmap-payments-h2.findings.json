@@ -1,0 +1,147 @@
+{
+  "schema": "pmos-critique-findings/v1",
+  "skill": "artifact-critique",
+  "doc": {
+    "title": "Payments platform — H2 roadmap",
+    "type": "roadmap",
+    "type_confidence": "detected",
+    "hybrid_of": null,
+    "char_count": 1180,
+    "source_path": "dogfood/roadmap-payments-h2.md"
+  },
+  "opening": {
+    "pushing_hardest_on": [
+      "Success is directional — 'fall' and 'stops climbing' with no baseline, target, or threshold",
+      "The churn-to-flakiness causal claim is the load-bearing bet and it is asserted, not evidenced",
+      "The merchant-facing changes ship with no rollout or migration plan"
+    ]
+  },
+  "axes": [
+    {
+      "axis": "Customer",
+      "applicable": true,
+      "verdict": "MIXED",
+      "reason": "Merchant trust is named as the organizing driver, but there is no segmentation and the churn it points to is never quantified.",
+      "quote": "stop losing merchants to flakiness before we chase new payment methods",
+      "quote_section": "§1",
+      "what_id_want_to_see": "Which merchants churn (size, volume, vertical) and the measured churn rate the roadmap is trying to bend."
+    },
+    {
+      "axis": "Solution",
+      "applicable": true,
+      "verdict": "STRONG",
+      "reason": "The Now bucket is concrete, correctly-scoped table-stakes engineering, tied directly to the failure it prevents.",
+      "quote": "Ship idempotency keys on the charge API and a real retry-with-backoff path.",
+      "quote_section": "§2",
+      "what_id_want_to_see": "Already strong — an explicit acceptance bar (zero double-charges on retry) would close it out."
+    },
+    {
+      "axis": "Scope",
+      "applicable": true,
+      "verdict": "MIXED",
+      "reason": "Now/Next/Later sequencing with a real reason for deferring new rails, but no explicit out-of-scope or CUT line for H2 itself.",
+      "quote": "Sequenced last on purpose — new rails on a flaky core just multiply the failure surface.",
+      "quote_section": "§4",
+      "what_id_want_to_see": "An explicit 'not in H2' list so the Later bucket can't quietly pull forward."
+    },
+    {
+      "axis": "Metrics",
+      "applicable": true,
+      "verdict": "WEAK",
+      "reason": "Both success signals are directional only — 'fall' and 'stops climbing' carry no baseline, target, timeframe, or threshold, so the roadmap can't be falsified.",
+      "quote": "We will know H2 worked when outage minutes fall and merchant churn stops climbing.",
+      "quote_section": "§5",
+      "what_id_want_to_see": "A baseline (outage minutes and churn today), a target with a date, and a threshold that would say H2 failed."
+    },
+    {
+      "axis": "Pricing",
+      "applicable": false,
+      "verdict": "N/A",
+      "reason": "An internal reliability roadmap; no external pricing decision is at stake (the economics, if any, belong under Strategy).",
+      "quote": null,
+      "quote_section": null,
+      "what_id_want_to_see": "n/a — no pricing question raised."
+    },
+    {
+      "axis": "Strategy",
+      "applicable": true,
+      "verdict": "STRONG",
+      "reason": "A genuine sequencing thesis — earn trust before chasing expansion — and it is consistently applied across the Now/Next/Later split.",
+      "quote": "After two outages last quarter, the platform's job is to stop losing merchants to flakiness before we chase new payment methods.",
+      "quote_section": "§1",
+      "what_id_want_to_see": "Already strong — name the cost of being wrong (what a competitor ships while we harden) to pressure-test the sequencing."
+    },
+    {
+      "axis": "GTM",
+      "applicable": true,
+      "verdict": "WEAK",
+      "reason": "The Next bucket is merchant-facing (status page, webhook guarantees) but there is no rollout, comms, or migration plan for getting merchants onto it.",
+      "quote": "Add a merchant-facing status page and webhook delivery guarantees.",
+      "quote_section": "§3",
+      "what_id_want_to_see": "A rollout plan for the merchant-facing changes — who gets the status page first, how webhook-contract changes are communicated and migrated."
+    },
+    {
+      "axis": "Stage",
+      "applicable": true,
+      "verdict": "STRONG",
+      "reason": "Stage is explicit and honest — a mature platform with live merchants recovering from real outages, sequencing hardening ahead of new rails.",
+      "quote": "Explore alternative payment methods (bank debit, wallets) once the core is trustworthy.",
+      "quote_section": "§4",
+      "what_id_want_to_see": "Already strong — a trust threshold that gates the Later bucket would make the stage-gating mechanical."
+    },
+    {
+      "axis": "AI",
+      "applicable": false,
+      "verdict": "N/A",
+      "reason": "No AI/LLM feature is proposed in this roadmap.",
+      "quote": null,
+      "quote_section": null,
+      "what_id_want_to_see": "n/a — no model-backed feature in scope."
+    },
+    {
+      "axis": "Risks",
+      "applicable": true,
+      "verdict": "MIXED",
+      "reason": "Names the sharpest technical risk (stale-webhook replay) and gestures at the mitigation, but offers no broader pre-mortem covering the outages themselves or merchant comms.",
+      "quote": "The redrive queue could replay stale webhooks and confuse downstream merchant systems if we don't dedupe on delivery.",
+      "quote_section": "§6",
+      "what_id_want_to_see": "A pre-mortem beyond the redrive queue — repeat-outage blast radius, status-page accuracy during an incident, and the dedupe key's failure modes."
+    }
+  ],
+  "weakest_claims": [
+    {
+      "rank": 1,
+      "claim": "H2 is a success when outage minutes fall and churn stops climbing.",
+      "quote": "We will know H2 worked when outage minutes fall and merchant churn stops climbing.",
+      "quote_section": "§5",
+      "followups": [
+        "What are outage minutes and churn today, and what number by when counts as success?",
+        "If churn keeps climbing while outage minutes fall, did H2 work — or is flakiness not the real driver?"
+      ]
+    },
+    {
+      "rank": 2,
+      "claim": "Merchants are leaving because of flakiness, so reliability is the right H2 bet.",
+      "quote": "stop losing merchants to flakiness before we chase new payment methods",
+      "quote_section": "§1",
+      "followups": [
+        "What evidence ties churn to reliability specifically, versus price, coverage, or missing payment methods?"
+      ]
+    }
+  ],
+  "bottom_line": {
+    "strengths": [
+      "Clear Now/Next/Later sequencing with a real reason for deferring new rails",
+      "An explicit trust-before-expansion thesis, consistently applied",
+      "Honest, well-chosen Now-bucket table-stakes tied to a concrete failure"
+    ],
+    "must_dos": [
+      "Put a baseline, dated target, and failure threshold on outage minutes and churn",
+      "Evidence that flakiness — not price or coverage — is why merchants actually churn",
+      "A rollout and migration plan for the merchant-facing status page and webhook changes"
+    ]
+  },
+  "limits": [
+    "No engineering design is linked — the redrive 'delivered' semantics and the dedupe key may be specified elsewhere, not visible in this roadmap"
+  ]
+}
