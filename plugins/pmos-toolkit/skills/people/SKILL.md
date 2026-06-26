@@ -2,7 +2,7 @@
 name: people
 description: Shared person/contact directory for the pmos-toolkit. Stores handle, name, designation, role, working relationship, team, email, workstreams, aliases at ~/.pmos/people/. Consumed by /mytasks (and future people-aware skills). Use when the user says "add a person", "find someone", "who is X", "list people", or "/people".
 user-invocable: true
-argument-hint: "[ | add <name> | list [filters] | show <handle-or-name> | find <text> | set <handle> <field>=<value> | refine <handle> | rebuild-index] [--non-interactive | --interactive]"
+argument-hint: "[ | add <name> | list [filters] | show <handle-or-name> | find <text> | set <handle> <field>=<value> | refine <handle>] [--non-interactive | --interactive]"
 ---
 
 # People
@@ -19,8 +19,8 @@ These instructions use Claude Code tool names. In other environments:
 
 ## References
 
-- `schema.md` — record file shape, **single source for enum values**, `INDEX.md` format (binds `_shared/tracker-crudl.md`)
-- `_shared/tracker-crudl.md` — shared tracker contract (`created`/`updated`/`schema_version` §3, INDEX regenerability §5; handle-keyed, no archive)
+- `schema.md` — record file shape, **single source for enum values**, index-view format (binds `_shared/tracker-crudl.md`)
+- `_shared/tracker-crudl.md` — shared tracker contract (`created`/`updated`/`schema_version` §3, derived-on-read index view §5 INV-1/2/3; handle-keyed, no archive)
 - `lookup.md` — fuzzy-match algorithm, handle derivation rules, caller behavior on multi-match
 - `_shared/interactive-prompts.md` — interactive prompting protocol
 
@@ -32,14 +32,13 @@ Parse the user's argument to determine the subcommand.
 
 | Argument shape | Subcommand |
 |---|---|
-| empty | Phase 1 (show INDEX.md) |
+| empty | Phase 1 (inline derived index view) |
 | `add <name>` | Phase 3 (proactive create — interactive) |
 | `list [flags]` | Phase 5 (filtered list) |
 | `show <handle-or-name>` | Phase 4 (render record) |
 | `find <text>` | Phase 2 (fuzzy-match lookup) |
 | `set <handle> <field>=<value>` | Phase 6 (single-field edit) |
 | `refine <handle>` | Phase 7 (interactive multi-field refine) |
-| `rebuild-index` | Phase 8 (regenerate INDEX.md) |
 | (any other free text) | Phase 2 — treat as `find <text>` |
 
 **Route queries to `find`, never to a write.** Free text matching no verb is a lookup: strip leading query scaffolding ("who is", "who's", "do I know") and run `find` on the rest — `find` is read-only, so the fall-through is safe. A query never creates or edits a record; `add` is the only create path.
@@ -76,23 +75,13 @@ Parse the user's argument to determine the subcommand.
 8. **End-of-skill summary.** Print to stderr at exit: `pmos-toolkit: /<skill> finished — outcome=<clean|deferred|error>, open_questions=<N>` (NFR-07).
 <!-- non-interactive-block:end -->
 
-## Phase 1: Show INDEX {#show-index}
+## Phase 1: Show Index View (derived on read) {#show-index}
 
-Triggered by `/people` with no arguments.
+Triggered by `/people` with no arguments. The at-a-glance directory is an **index view derived on read** from the record files — there is no committed `INDEX.md` (per `_shared/tracker-crudl.md` §5, INV-1/2/3). Bare `/people` renders this view inline (the web viewer becomes the default surface in a later story; until then the inline derived render is the bare-command surface — INV-2's fallback path).
 
-1. If `~/.pmos/people/INDEX.md` does not exist (or `~/.pmos/people/` is missing entirely), output `No people yet. Add a person with /people add <name>.` and exit.
-2. Freshness check per `_shared/tracker-crudl.md` §5: if any `~/.pmos/people/*.md` (excluding `INDEX.md` itself) has a newer mtime than INDEX's `Last regenerated:` date, regenerate (`#rebuild-index`) before rendering.
-3. Output the contents of `~/.pmos/people/INDEX.md` to the user.
-
----
-
-## Phase 8: Rebuild Index {#rebuild-index}
-
-Triggered by `/people rebuild-index`. Defined early because every write phase (3, 6, 7) applies it.
-
-1. Glob `~/.pmos/people/*.md` (excluding `INDEX.md`); parse frontmatter. Skip files with malformed frontmatter (one-line warning per skip; do not abort).
-2. Overwrite `~/.pmos/people/INDEX.md` with the exact format, sort (`name` ascending, case-insensitive), and columns defined in `schema.md` "INDEX.md format" (empty cells per `_shared/tracker-crudl.md` §5).
-3. Report — if invoked directly: `Regenerated INDEX.md: {count} people.` If invoked from another phase: silent on success, warn on failure.
+1. If `~/.pmos/people/` is missing entirely or contains no `*.md` record files, output `No people yet. Add a person with /people add <name>.` and exit. Empty-state is gated on **the absence of record files**, never on a missing index file.
+2. Glob `~/.pmos/people/*.md`; parse frontmatter; skip malformed files with a one-line warning (do not abort). Sort by `name` ascending, case-insensitive.
+3. Render the derived table inline — the same format and columns defined in `schema.md` "Index view format" (empty cells per `_shared/tracker-crudl.md` §5), identical to the `#list` render. Never write the derived view back to disk; never print a stored index blob.
 
 ---
 
@@ -101,7 +90,7 @@ Triggered by `/people rebuild-index`. Defined early because every write phase (3
 Triggered by `/people find <text>` (or query-shaped free text per `#routing`). Read-only lookup. Used by `/mytasks` capture and by users directly.
 
 1. If `~/.pmos/people/` does not exist or contains no records, output: `No people in directory. Add one with /people add <name>.` Exit.
-2. Glob `~/.pmos/people/*.md` (excluding `INDEX.md`); parse frontmatter; skip malformed files with a one-line warning.
+2. Glob `~/.pmos/people/*.md`; parse frontmatter; skip malformed files with a one-line warning.
 3. Apply the 5-tier match algorithm in `lookup.md` — stop at the first tier that produces matches; within-tier ordering per `lookup.md` (`updated:` desc, then handle).
 4. Render:
    - **0 matches:** `No matches for '{input}'.`
@@ -141,9 +130,9 @@ Ask in this order, ONE field at a time per the shared protocol:
 
 Write `~/.pmos/people/{handle}.md` with the frontmatter shape in `schema.md`. Skipped fields are written as bare keys with no value (e.g., `email:`, not absent); list fields as YAML lists (empty list as `[]`). No body section is auto-written — `schema.md`: the skill never writes the body; users add `## Notes` via direct edit or `/people refine`.
 
-### Step 4: Regenerate INDEX, report
+### Step 4: Report
 
-Apply `#rebuild-index` inline. If regeneration fails, the record file is still written — warn suggesting `/people rebuild-index`, but DO NOT roll back the record write. Output: `Added {handle} ({name}).`
+The record file is the source of truth — the bare-`/people` index view is derived on read from `~/.pmos/people/*.md` (Phase 1), so there is nothing to regenerate after a write. Output: `Added {handle} ({name}).`
 
 ### Reactive create entry point (called by `/mytasks`, not user-invoked)
 
@@ -181,10 +170,10 @@ Triggered by `/people list ...` or any list-shaped request. Filters are inferred
 <!-- nl-sugar -->
 - `--relationship <enum>` — records whose `working_relationship:` equals the value; enum per `schema.md`
 
-1. Glob `~/.pmos/people/*.md` (excluding `INDEX.md`); parse frontmatter; skip malformed files with a one-line warning.
+1. Glob `~/.pmos/people/*.md`; parse frontmatter; skip malformed files with a one-line warning.
 2. Validate relationship values against the `schema.md` enum. Reject with `Unknown relationship '{value}'. Allowed: boss, direct-report, peer, team-member, stakeholder, external, other.`
 3. Filter (AND semantics); sort survivors by `name` ascending.
-4. Render the same table as INDEX.md (columns per `schema.md`). If 0 matches: `No people match.`
+4. Render the same derived table as the Phase 1 index view (columns per `schema.md` "Index view format"). If 0 matches: `No people match.`
 
 ---
 
@@ -215,7 +204,7 @@ Unknown fields: `Field '{field}' is not recognized. Allowed: {comma-separated li
 
 ### Step 4: Edit and report
 
-Load record, update only the named field, set `updated:` to today, write back. Apply `#rebuild-index`. Output: `Updated {handle}: {field} = {value}.`
+Load record, update only the named field, set `updated:` to today, write back. The index view is derived on read (Phase 1) — no regeneration step. Output: `Updated {handle}: {field} = {value}.`
 
 ---
 
@@ -226,4 +215,4 @@ Triggered by `/people refine <handle-or-text>`. Interactive — pre-filled walk 
 1. Resolve the record exactly as in `#set` Step 1 (fuzzy resolve; refuse with the ranked list on multi-match).
 2. Walk the same field order as `#add` Step 2 (designation → role → working_relationship → team → email → workstreams → aliases), each prompt pre-filled with the current value. Refine-flow defaults and `<enter>`/`clear` semantics per `_shared/interactive-prompts.md`.
 3. Replace each field with the new value (only if changed). Set `updated:` to today. Body is untouched.
-4. Apply `#rebuild-index`. Output: `Refined {handle}.`
+4. Write back. The index view is derived on read (Phase 1) — no regeneration step. Output: `Refined {handle}.`

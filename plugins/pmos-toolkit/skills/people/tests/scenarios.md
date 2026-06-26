@@ -12,37 +12,28 @@ Expected:
 - Output: `No people yet. Add a person with /people add <name>.`
 - No files created.
 
-### Scenario: `/people rebuild-index` (empty fixture)
+### Scenario: `/people` (no args, empty fixture — empty-state gated on record files)
 
 Expected:
-- Glob returns 0 files.
-- Write `~/.pmos/people/INDEX.md` with header and empty table (column row only, no data rows).
-- Output: `Regenerated INDEX.md: 0 people.`
+- Glob `~/.pmos/people/*.md` returns 0 record files.
+- Output: `No people yet. Add a person with /people add <name>.` — the empty-state is gated on the absence of record files, never on a missing index file.
+- No files created (no INDEX is ever written).
 
 ## Fixture: with-people
 
 Three records: `sarah-chen`, `mark-davis`, `sarah-patel`.
 
-### Scenario: `/people` (no args, with-people fixture)
+### Scenario: `/people` (no args, with-people fixture — derived on read)
 
 Expected:
-- Read INDEX.md (skip regeneration since INDEX is fresh — `Last regenerated: 2026-04-22` matches the most recent record `updated:`).
-- Render the INDEX.md table verbatim.
+- Glob the 3 record files; parse frontmatter; sort by `name` ascending: Mark Davis, Sarah Chen, Sarah Patel.
+- Render the derived index-view table inline (columns per `schema.md` "Index view format"). No INDEX file is read or written.
 
-### Scenario: `/people` (no args, with-people fixture, after manual edit to sarah-chen.md without INDEX update)
-
-Expected:
-- Detect freshness drift (sarah-chen.md mtime newer than INDEX.md `Last regenerated:`).
-- Regenerate INDEX.md (apply Phase 8).
-- Render the regenerated INDEX.md.
-
-### Scenario: `/people rebuild-index` (with-people fixture)
+### Scenario: `/people` (no args, with-people fixture, after a manual edit to sarah-chen.md)
 
 Expected:
-- Read all 3 records.
-- Sort by name ascending: Mark Davis, Sarah Chen, Sarah Patel.
-- Write INDEX.md.
-- Output: `Regenerated INDEX.md: 3 people.`
+- The edit to `sarah-chen.md` is reflected immediately — the index view is derived on read from the record files, so there is no staleness and nothing to regenerate.
+- Render the derived table inline with the edited values. No INDEX file is consulted or written.
 
 ### Scenario: `/people find sarah-chen` (with-people fixture)
 
@@ -112,9 +103,8 @@ Expected interactive flow (uses AskUserQuestion if available, else fallback per 
 6. Prompt for `email` (free string, skippable). User: `sarah@acme.com`.
 7. Prompt for `workstreams` (comma-separated list, skippable). User: `platform-q3`.
 8. Prompt for `aliases` (comma-separated list, skippable). User: `sarah, schen, sc`.
-9. Write `~/.pmos/people/sarah-c.md` with all collected fields, `created`/`updated` = today.
-10. Apply Phase 8 (regenerate INDEX.md).
-11. Output: `Added sarah-c (Sarah Chen).`
+9. Write `~/.pmos/people/sarah-c.md` with all collected fields, `created`/`updated` = today. (No index regeneration — the index view is derived on read.)
+10. Output: `Added sarah-c (Sarah Chen).`
 
 ### Scenario: `/people add Sarah Chen` (with-people fixture, sarah-c.md does NOT exist; sarah-chen.md DOES exist)
 
@@ -173,7 +163,7 @@ Expected:
 - Read all records.
 - Filter to records whose `workstreams:` contains `platform-q3`.
 - With-people fixture: sarah-chen and mark-davis match.
-- Render flat sorted (by name) table with INDEX.md columns.
+- Render flat sorted (by name) table with the index-view columns (per `schema.md` "Index view format").
 
 ### Scenario: `/people list --relationship peer`
 
@@ -190,8 +180,7 @@ Expected: AND semantics. Same two records (both filters pass for sarah-chen and 
 
 Expected:
 - Validate `team` is an allowed editable field. (`team` is free-string, no enum check.)
-- Load sarah-chen.md, update `team: infra`, set `updated:` to today.
-- Apply Phase 8 (regenerate INDEX).
+- Load sarah-chen.md, update `team: infra`, set `updated:` to today. (No index regeneration — derived on read.)
 - Output: `Updated sarah-chen: team = infra.`
 
 ### Scenario: `/people set sarah-chen working_relationship=invalid_value`
@@ -212,7 +201,7 @@ Expected:
 
 Expected (Phase 6 Step 1 resolves like `show`, per `lookup.md` "Caller behavior"):
 - `sarah` is not an existing handle file → apply find → tier 2 alias match → unique → `sarah-chen`.
-- Proceed: update `team: infra` on sarah-chen, set `updated:`, regenerate INDEX.
+- Proceed: update `team: infra` on sarah-chen, set `updated:`. (No index regeneration — derived on read.)
 - Output: `Updated sarah-chen: team = infra.`
 
 ### Scenario: `/people set sara team=infra` (fuzzy input, multi-match)
@@ -236,6 +225,5 @@ Expected interactive flow per `_shared/interactive-prompts.md` — same field or
 5. Prompt email (current: `sarah@acme.com`). User: `<enter>`.
 6. Prompt workstreams (current: `platform-q3`). User: `<enter>`.
 7. Prompt aliases (current: `sarah, schen, sc`). User: appends, types `sarah, schen, sc, schen2`.
-8. Write back, set `updated:` to today.
-9. Apply Phase 8.
-10. Output: `Refined sarah-chen.`
+8. Write back, set `updated:` to today. (No index regeneration — the index view is derived on read.)
+9. Output: `Refined sarah-chen.`

@@ -2,7 +2,7 @@
 name: backlog
 description: Maintain a lightweight, AI-readable backlog of epics and stories — features, bugs, tech-debt, chores, docs, spikes, and ideas — inside the repo. Zero-friction quick-capture (`/backlog add ...`) plus a three-queue tracker (groom / next / releases) driving the define → build → release loops. Integrates with the requirements → spec → plan → execute → verify pipeline via `--backlog <id>` and feeds `/feature-sdlc define|build` and `/complete-dev --epic`. Use when the user says "add to backlog", "capture this idea", "track this bug", "show the backlog", "what's next", "what needs grooming", "what can I release", "claim a story", or "promote a backlog item".
 user-invocable: true
-argument-hint: "[<text> | add <text> | list | show <id> [--tasks] | groom | next [--status planned|in-progress] | releases | web [--no-open] [--port N] | refine <id> | set <id> <field>=<value> | promote <id> [--feature <slug>] | claim <id> [--holder <id>] | unclaim <id> | link <id> <doc> | archive | rebuild-index] [--kind epic|story] [--epic <id>] [--json] [--non-interactive | --interactive]"
+argument-hint: "[<text> | add <text> | list | show <id> [--tasks] | groom | next [--status planned|in-progress] | releases | web [--no-open] [--port N] | refine <id> | set <id> <field>=<value> | promote <id> [--feature <slug>] | claim <id> [--holder <id>] | unclaim <id> | link <id> <doc> | archive] [--kind epic|story] [--epic <id>] [--json] [--non-interactive | --interactive]"
 ---
 
 # Backlog
@@ -32,8 +32,8 @@ These instructions use Claude Code tool names. In other environments:
 
 ## References
 
-- `schema.md` — the data model: kinds, enums, defaults, status machines, body, `tasks.yaml`, claim locks, INDEX, archive root. **The single source of truth for every enum.**
-- `_shared/tracker-crudl.md` — shared tracker invariants: id/slug (§2), universal fields (§3), INDEX-as-cache (§5), archive (§6).
+- `schema.md` — the data model: kinds, enums, defaults, status machines, body, `tasks.yaml`, claim locks, index view, archive root. **The single source of truth for every enum.**
+- `_shared/tracker-crudl.md` — shared tracker invariants: id/slug (§2), universal fields (§3), derived-on-read index view (§5, INV-1/2/3), archive (§6).
 - `inference-heuristics.md` — keyword → type table for quick-capture.
 - `pipeline-bridge.md` — the `--backlog <id>` contract + three-loop story write-back rules (main-checkout-only, auto-commit, blocked channel).
 - `scripts/claim-lock.cjs` — O_EXCL story-claim lock (D13).
@@ -66,7 +66,6 @@ Parse the argument to pick a handler. Be liberal with the form — both `/backlo
 | `set <id> <field>=<value>` | `#set` |
 | `promote <id>` | `#promote` |
 | `refine <id>` | `#refine` |
-| `rebuild-index` | `#rebuild-index` |
 | `list …` / `show <id>` / `link <id> <doc>` / `archive` / any read or light-maintenance request | `#interpret` |
 
 If the first token is not a recognized verb AND the argument is non-empty, treat the whole argument as `add <text>` (frictionless capture is the priority) — **unless the text is query-shaped**. A question or read request about the backlog ("what's in my backlog for auth?", "do we have anything on rate limits?", "show me the bugs") routes to `#interpret`. Never create an item from a question about the backlog.
@@ -120,8 +119,7 @@ If the first token is not a recognized verb AND the argument is non-empty, treat
    - otherwise → create the story **and** a same-titled singleton epic (`status: inbox`), set the story's `parent:` to it. Rollup views collapse single-story epics, so this is invisible until the epic grows. Stories stay re-parentable via `set <id> parent=<epic>` until first claim.
    - retro capture ("capture this as already done") → status `done` (story); still wrapped. <!-- nl-sugar --> `--done` stays parsed as the explicit spelling.
 5. Write `backlog/items/{id}-{slug}.md` — frontmatter only, no body, per `schema.md` "Defaults on create". `title` = the original text, unchanged.
-6. Regenerate INDEX inline (`#rebuild-index`). If regeneration fails, the item file is still written — warn suggesting `/backlog rebuild-index`, but DO NOT roll back the write.
-7. Output exactly one line (the capture contract — the user learns the inferred type here):
+6. Output exactly one line (the capture contract — the user learns the inferred type here):
 
    `Captured #{id} ({type}, {kind}, should): "{title}"` — for an auto-wrapped story, append ` in epic #{epic-id}`.
 
@@ -145,7 +143,7 @@ If the first token is not a recognized verb AND the argument is non-empty, treat
 
    On enum violation: `Unknown {field} '{value}'. Allowed: {list from schema.md}.` No write.
 3. **Main-checkout rule (stories, D11).** When the working dir is a story worktree and the field is a status/claim/release/body mutation, write the item in the **main checkout** (resolve via `git worktree list --porcelain`), not the worktree copy, then auto-commit path-scoped per `pipeline-bridge.md`. Plain field edits from the main checkout commit normally.
-4. **Edit.** Update only the named field, set `updated:` to today, write back. If `title` changed, rename the file to match the new slug (preserve the id prefix). Regenerate INDEX. Confirm in one line: id + field + new value (note any rename).
+4. **Edit.** Update only the named field, set `updated:` to today, write back. If `title` changed, rename the file to match the new slug (preserve the id prefix). Confirm in one line: id + field + new value (note any rename).
 
 ## next — the picker (machine API, D22) {#next}
 
@@ -184,19 +182,9 @@ If the first token is not a recognized verb AND the argument is non-empty, treat
 4. Write the seed to `{feature_folder}/01_requirements.{html,md}`. If it exists, do NOT overwrite — abort: `#{id}: {path} already exists. Re-run with --feature <new-slug> or remove it.`
 5. Invoke the target with `--backlog {id}` (the bridge consent gate). The frontmatter write-back is the target's responsibility per `pipeline-bridge.md`. Confirm one line on return.
 
-## rebuild-index {#rebuild-index}
-
-`/backlog rebuild-index`. Also invoked internally by every mutating handler, per the regenerable-cache contract in `_shared/tracker-crudl.md` §5.
-
-1. Glob `<repo>/backlog/items/*.md`; parse frontmatter; skip malformed files (one-line warning per skip; never abort).
-2. Overwrite `<repo>/backlog/INDEX.md` per `schema.md`'s "INDEX.md format" — the `## Epics` rollup (derived `done/total`), then priority-grouped stories. Grouping, sort, columns, and `Last regenerated:` are specified there.
-3. Invoked directly: `Regenerated INDEX.md: {count} items.` Invoked internally: silent on success, warn on failure.
-
----
-
 ## Interpret the request {#interpret}
 
-The read and light-maintenance paths (`list`, `show`, `link`, `archive`, and ad-hoc queries) share one rule: **the user describes what they want; interpret the constraints and act.** No fixed flag grammar — infer filters, scope, and destinations from natural language, validating enum values against `schema.md` and sorting per its INDEX rules. The legacy flag spellings still parse as sugar.
+The read and light-maintenance paths (`list`, `show`, `link`, `archive`, and ad-hoc queries) share one rule: **the user describes what they want; interpret the constraints and act.** No fixed flag grammar — infer filters, scope, and destinations from natural language, validating enum values against `schema.md` and sorting per its index-view rules. The legacy flag spellings still parse as sugar.
 
 **list / query** — "list must-priority bugs", "what's blocked on 0042", "show the inbox epics", "anything on rate limits across the workstream".
 <!-- nl-sugar -->
@@ -217,7 +205,7 @@ Legacy: `list --type/--status/--priority/--label <v>`, `--repo <name>`, `--works
 Legacy: `--quarter YYYY-QN`.
 - Eligibility: `status` in `done`/`released`/`wontfix` AND age (today − `updated:`) > 30 days.
 - Destination quarter per-item from `updated:` unless the user names one (forces it for all).
-- Move per `_shared/tracker-crudl.md` §6 (`git mv`; plain move outside git). Regenerate INDEX. Report: count + `#{id} → {quarter}` per item, or `0 items: nothing eligible.`
+- Move per `_shared/tracker-crudl.md` §6 (`git mv`; plain move outside git). Report: count + `#{id} → {quarter}` per item, or `0 items: nothing eligible.`
 
 ## refine {#refine}
 
@@ -226,21 +214,21 @@ Legacy: `--quarter YYYY-QN`.
 <!-- defer-only: free-form -->
 Ask via `AskUserQuestion` when available, in order: **Title** (current shown; enter to keep) · **Context** (multi-line; "skip") · **Acceptance Criteria** (one per line; "done" to finish; zero is fine) · **Priority** (enum; default current) · **Score** (1–1000 or "skip") · **Labels** (comma-separated or "skip"). For a story, ACs are what gate it from `draft` → `ready`.
 
-Write the body per `schema.md`'s section order (always `## Context` — use "_TBD_" if skipped; `## Acceptance Criteria` only if any given; never `## Notes`). Keep frontmatter except `updated:` → today, and for a story `status:` → `ready` if currently `draft`/`inbox` and ≥1 AC exists, plus any changed `priority`/`score`/`labels`. Regenerate INDEX. Confirm one line: id + old → new status (omit the arrow if unchanged).
+Write the body per `schema.md`'s section order (always `## Context` — use "_TBD_" if skipped; `## Acceptance Criteria` only if any given; never `## Notes`). Keep frontmatter except `updated:` → today, and for a story `status:` → `ready` if currently `draft`/`inbox` and ≥1 AC exists, plus any changed `priority`/`score`/`labels`. Confirm one line: id + old → new status (omit the arrow if unchanged).
 
 ---
 
 ## dashboard — bare /backlog (the three queues, D25) {#dashboard}
 
-`/backlog` with no arguments renders the three-queue dashboard: **groom** (your desk), a **next preview** (the machine's queue), and **releases** (the shelf).
+`/backlog` with no arguments surfaces the backlog at a glance. Per `_shared/tracker-crudl.md` §5 INV-2 it is **web-default with an inline render-on-read fallback** — both paths derive from `items/*.md`; nothing is read from or written to a committed index file.
 
-1. If `<repo>/backlog/INDEX.md` is missing (or `backlog/` absent), output `No backlog yet. Capture an item with /backlog add <text>.` and exit.
-2. Freshness per `_shared/tracker-crudl.md` §5: regenerate INDEX if any `items/` file is newer than its `Last regenerated:` date.
-3. Render three compact sections, each derived at render time:
+1. **Empty-state gate (INV-2):** if `<repo>/backlog/items/` holds no `*.md` files (or `backlog/` is absent), output `No backlog yet. Capture an item with /backlog add <text>.` and exit. The gate is on **zero record files**, never on a missing index file.
+2. **Default — launch the web viewer (INV-2).** Interactively, hand off to `#web` (run `scripts/serve-web.mjs`, open the browser); the viewer derives the three queues + epic→story tree live from the record files. Print the `Backlog viewer ready at http://127.0.0.1:<port>/` line and stop here.
+3. **Fallback — inline derived render.** When the web viewer cannot run — `--non-interactive`, headless, no browser, or the server fails to bind — render the three-queue dashboard inline, **derived on read** from `items/*.md` (the define/build loops run `--non-interactive` and take this path). Three compact sections, each derived at render time:
    - **Groom (waiting on you):** the `#groom` summary (counts + top rows).
    - **Next (the machine's queue):** the single `#next` pick (or "nothing ready").
    - **Releases (the shelf):** the `#releases` release-ready list (or "nothing release-ready").
-   Each row carries its copy-ready next command. Then print the full `INDEX.md` below the dashboard.
+   Each row carries its copy-ready next command. **Never print a stored INDEX blob** — there is none; the listing is computed fresh from the record files this read (INV-1/INV-3).
 
 ## groom — the human queue (D25) {#groom}
 
