@@ -1,6 +1,6 @@
 # Tracker CRUDL — Shared Contract
 
-Authoritative contract for pmos **tracker** skills: file-backed stores where each record is a markdown file (YAML frontmatter + optional freeform body), fronted by a regenerable `INDEX.md`. `/backlog`, `/mytasks`, and `/people` all bind this contract.
+Authoritative contract for pmos **tracker** skills: file-backed stores where each record is a markdown file (YAML frontmatter + optional freeform body), surfaced by an index view **derived on read** from the record files (never a committed file — §5). `/backlog`, `/mytasks`, and `/people` all bind this contract.
 
 Each tracker's own `schema.md` declares only its **bindings** — its field set, enum allowed-values, grouping/sort/columns, store root, and keying scheme — and **cites this file for the invariants below instead of restating them**. When an invariant here and a binding in a skill's `schema.md` appear to disagree, this file wins for the invariant; the skill's `schema.md` wins for its own fields.
 
@@ -50,22 +50,26 @@ Every record, in every tracker, carries:
 - **Unrecognized fields.** Preserved verbatim on edit, ignored on read. Never dropped.
 - **Empty optional fields.** Whether an unset optional is written as an absent key or a present-empty key is a per-skill binding (see each `schema.md` "Defaults on create").
 
-## 5. INDEX.md (regenerable cache)
+## 5. Index view (derived on read)
 
-- `INDEX.md` at the store root is a cache, **never the source of truth** — the record files are.
-- Regenerate it from the record files on **every mutating op** and on the skill's explicit rebuild command.
-- The first line after the `# <Title>` heading is `Last regenerated: {today ISO date}`.
-- Grouping, sort order, and columns are per-skill bindings (see `schema.md`).
+A tracker's at-a-glance index is a **view derived from the record files on read** — it is computed fresh whenever it is shown and never persisted. Three invariants govern it; together they keep the index off the merge path entirely.
+
+- **INV-1 — No committed, mutation-written derived file on the merge path.** The index view is **never** stored as a committed artifact, **never** written by a mutating handler, and **never** a merge dependency. There is no `INDEX.md` at the store root. Staleness is impossible because nothing is stored; a freshness check is therefore neither needed nor allowed.
+  - **Named merge-path invariant (why this is a contract, not a preference):** a single committed file that every mutating op rewrites is a merge-conflict magnet under the parallel-worktree + release-train model — concurrent `define`/`build` runs each rewrite the whole file off one baseline, and the hand-merged rows silently drift from (or duplicate) the record files (the root of the 0016 duplicate-id incident, `docs/pmos/features/2026-06-12_concurrency-safe-ids/02_design.html#incident`). Deriving on read removes the file, and with it the entire failure class.
+- **INV-2 — Web-default view, inline render-on-read fallback.** The bare command's default at-a-glance surface is the **web viewer**, which already derives from the record files. When the web viewer cannot run — `--non-interactive`, headless, no browser, no server — the bare command degrades to an **inline render derived on read** from the same record-file scan. Both paths derive from the record files, so terminal and web agree by construction. Empty-state is gated on **"zero record files,"** never on a missing index file.
+- **INV-3 — No static export.** The view exists only as the web render (default) or the inline derived render (fallback) — **never** as a persisted file, not even a `.gitignore`d on-demand dump. Derive fresh per read.
+- Grouping, sort order, and columns of the derived view are per-skill bindings (see `schema.md`).
 - Empty optional fields render as **empty cells** — never `null`, never `-`.
-- Archived records are NEVER listed in `INDEX.md`.
-- **Freshness check.** If any record file's mtime is newer than INDEX's `Last regenerated:` date, treat INDEX as stale and regenerate before any read that relies on it.
+- Archived records are NEVER included in the derived index view.
+
+**Substrate-level note (the load-bearing rule):** these invariants live here, in the shared substrate, precisely so a tracker built on this contract inherits the merge-safe behavior **by construction** — a future tracker cannot reintroduce a committed mutation-written index without contradicting §5. Any tracker `schema.md` that still describes a persisted `INDEX.md` is in violation of this section.
 
 ## 6. Archive
 
 Not every tracker archives. For stores that DO:
 
 - Archived records live at `archive/YYYY-QN/{filename}` (the quarter of archival), with full content preserved.
-- The archive mirrors the live store's layout; archived records are never written to `INDEX.md`.
+- The archive mirrors the live store's layout; archived records are never included in the derived index view.
 - Archiving is a **move, not a delete** — content is retained.
 
 ---
@@ -78,5 +82,5 @@ A tracker `schema.md` cites this file for the invariants above and declares only
 2. The full frontmatter field table + each enum's allowed values (§3, §4).
 3. Defaults on create / capture.
 4. Body section conventions.
-5. INDEX grouping / sort / columns (§5).
+5. Derived index-view grouping / sort / columns (§5).
 6. Whether it archives, and if so the archive root (§6).
