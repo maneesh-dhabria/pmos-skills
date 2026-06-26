@@ -9,10 +9,10 @@ status: planned
 route: skill
 parent: 260626-z2p
 dependencies: []
-worktree:
+worktree: .claude/worktrees/feat-260626-0g6
 plan_doc: docs/pmos/features/2026-06-26_primer-viewer-parity/stories/260626-0g6/03_plan.html
 tasks_file: docs/pmos/features/2026-06-26_primer-viewer-parity/stories/260626-0g6/tasks.yaml
-claimed_by:
+claimed_by: build:e385ea38
 pr:
 labels: [primer, frameworks, learn-list, library-viewer, pmos-learnkit, skill]
 created: 2026-06-26
