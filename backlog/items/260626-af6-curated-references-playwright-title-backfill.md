@@ -5,18 +5,19 @@ kind: story
 title: "curated-references — Playwright title + content backfill"
 type: tech-debt
 priority: should
-status: planned
+status: in-progress
 route: skill
 parent: 260626-j5k
 dependencies: []
-worktree:
+worktree: .claude/worktrees/feat-260626-af6
 plan_doc: docs/pmos/features/2026-06-26_learn-list-corpus-hygiene/stories/260626-af6/03_plan.html
 tasks_file: docs/pmos/features/2026-06-26_learn-list-corpus-hygiene/stories/260626-af6/tasks.yaml
-claimed_by:
+claimed_by: build:e385ea38
+driver_holder: build:e385ea38
 pr:
 labels: [learn-list, primer, pmos-learnkit, skill, corpus]
 created: 2026-06-26
-updated: 2026-06-26
+updated: 2026-06-27
 ---
 
 ## Context
