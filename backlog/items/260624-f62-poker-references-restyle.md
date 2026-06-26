@@ -10,10 +10,11 @@ route: skill
 dependencies: []
 plugin: pmos-gamekit
 status: done
+released: v0.9.0
 feature_folder: docs/pmos/features/2026-06-24_poker-references-restyle/
 plan_doc: docs/pmos/features/2026-06-24_poker-references-restyle/stories/260624-f62/03_plan.md
 tasks: docs/pmos/features/2026-06-24_poker-references-restyle/stories/260624-f62/tasks.yaml
-worktree: .claude/worktrees/feat-260624-f62 (feat/260624-f62)
+worktree:
 claimed_by: build:6681ff46-e6d7-4cb7-854d-4ca3ea2b44ff
 driver_holder: build:6681ff46-e6d7-4cb7-854d-4ca3ea2b44ff
 labels: [pmos-gamekit, poker, references, restyle, hud, watermark]

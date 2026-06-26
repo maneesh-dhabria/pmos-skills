@@ -4,7 +4,8 @@ id: 260624-3nj
 kind: epic
 title: "/poker — static References panel (hand rankings + interactive preflop chart + pot-odds/Rule-of-2&4) + table restyle to poker-coach look + HUD 'Poker' title + pmos watermark; drop all live coaching"
 type: feature
-status: defined
+status: released
+released: v0.9.0
 priority: should
 labels: [pmos-gamekit, poker, references, restyle, hud, watermark]
 route: skill
