@@ -12,7 +12,8 @@ dependencies: []
 worktree:
 plan_doc: docs/pmos/features/2026-06-26_mytasks-web-enhancements/stories/260626-71x/03_plan.html
 tasks_file: docs/pmos/features/2026-06-26_mytasks-web-enhancements/stories/260626-71x/tasks.yaml
-claimed_by: null
+claimed_by: build:e385ea38
+driver_holder: build:e385ea38
 pr:
 labels: [pmos-toolkit, mytasks, web-ui, server]
 created: 2026-06-26
