@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>/landing-page — visual style gallery</title>
+<!--
+  Bundled, self-contained, OFFLINE swatch gallery for the /landing-page skill.
+  Renders all 6 frozen theme-token sets (reference/style-tokens.json) as labelled
+  hero+section SWATCHES — so what the user previews here is exactly what the generator binds.
+  No CDN, no build, no network. The token data below is inlined verbatim from style-tokens.json
+  (kept in sync; the selftest asserts the 6 ids/names + that this file is self-contained).
+  Design bias (02_design.html#styles): restraint + a point of view over commodity effects.
+-->
+<style>
+  :root { color-scheme: light dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 2.5rem 1.25rem 4rem;
+    font-family: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
+    background: #f4f4f5; color: #18181b; line-height: 1.5;
+  }
+  .page-head { max-width: 60rem; margin: 0 auto 2rem; }
+  .page-head h1 { font-size: 1.6rem; margin: 0 0 .35rem; }
+  .page-head p { margin: 0; color: #52525b; max-width: 42rem; }
+  .grid { max-width: 60rem; margin: 0 auto; display: grid; gap: 1.75rem; }
+  .swatch {
+    border: 1px solid #e4e4e7; border-radius: 14px; overflow: hidden;
+    background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  }
+  .swatch-meta {
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem .75rem;
+    padding: .8rem 1rem; border-bottom: 1px solid #e4e4e7; background: #fafafa;
+  }
+  .swatch-meta .name { font-weight: 700; font-size: 1.02rem; }
+  .swatch-meta .id { font-family: ui-monospace, Menlo, monospace; font-size: .78rem; color: #71717a; }
+  .swatch-meta .exemplars { margin-left: auto; font-size: .8rem; color: #71717a; font-style: italic; }
+  /* the rendered preview region — all style vars are scoped here */
+  .preview { padding: 0; }
+  .preview .hero {
+    padding: 2.4rem 1.6rem; background: var(--bg); color: var(--fg);
+    font-family: var(--font-body);
+  }
+  .preview .hero h2 {
+    margin: 0 0 .5rem; font-family: var(--font-display); font-weight: var(--weight-display);
+    font-size: 1.7rem; line-height: 1.15; letter-spacing: -.01em;
+  }
+  .preview .hero .sub { margin: 0 0 1.1rem; color: var(--muted); max-width: 34rem; font-size: 1rem; }
+  .preview .hero .cta {
+    display: inline-block; padding: .6rem 1.15rem; border: 0; cursor: default;
+    background: var(--accent); color: var(--accent-fg);
+    border-radius: var(--radius); font-weight: 600; font-size: .95rem; box-shadow: var(--shadow);
+  }
+  .preview .hero .trust { margin: 1rem 0 0; font-size: .78rem; color: var(--muted); }
+  .preview .section {
+    padding: 1.5rem 1.6rem 1.9rem; background: var(--surface); color: var(--fg);
+    font-family: var(--font-body); border-top: 1px solid var(--border);
+  }
+  .preview .section .row { display: grid; grid-template-columns: repeat(3, 1fr); gap: .9rem; }
+  .preview .section .card {
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: .85rem .9rem;
+  }
+  .preview .section .card .dot { width: 1.4rem; height: 1.4rem; border-radius: 6px; background: var(--accent); margin-bottom: .5rem; }
+  .preview .section .card h3 { margin: 0 0 .25rem; font-family: var(--font-display); font-size: .9rem; }
+  .preview .section .card p { margin: 0; font-size: .78rem; color: var(--muted); }
+  .preview .imagery { padding: .7rem 1.6rem 1.2rem; background: var(--surface); font-size: .76rem; color: var(--muted); border-top: 1px dashed var(--border); }
+  @media (max-width: 540px) { .preview .section .row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header class="page-head">
+  <h1>/landing-page — visual style gallery</h1>
+  <p>Six frozen themes. Each swatch is rendered from its token set, so the preview matches exactly
+     what the generator binds at draft time. Pick a style at Phase 4; the page inherits these tokens.</p>
+</header>
+<main class="grid" id="grid" aria-label="style swatches">
+  <!-- Static swatch containers: stable data-style ids are present in the file source (no JS needed
+       to find them); the JS below fills each one's content live from its token set. -->
+  <section class="swatch" data-style="clean-minimal-saas"></section>
+  <section class="swatch" data-style="dark-developer-tool"></section>
+  <section class="swatch" data-style="bold-playful-illustration"></section>
+  <section class="swatch" data-style="editorial-typographic"></section>
+  <section class="swatch" data-style="warm-consumer-lifestyle"></section>
+  <section class="swatch" data-style="enterprise-trust"></section>
+</main>
+
+<script id="style-tokens" type="application/json">
+{
+  "styles": [
+    { "id": "clean-minimal-saas", "name": "Clean minimal SaaS", "exemplars": "Linear, Vercel, Notion",
+      "palette": { "--bg": "#ffffff", "--fg": "#0a0a0a", "--accent": "#4338ca", "--accent-fg": "#ffffff", "--muted": "#52525b", "--surface": "#f9fafb", "--surface-2": "#f3f4f6", "--border": "#e5e7eb" },
+      "type": { "--font-display": "'Inter', -apple-system, system-ui, sans-serif", "--font-body": "'Inter', -apple-system, system-ui, sans-serif", "--weight-display": "700" },
+      "radius": "10px", "shadow": "0 1px 2px rgba(16,24,40,.06), 0 8px 24px rgba(16,24,40,.06)",
+      "imagery": "Crisp product-UI screenshots on generous whitespace; one accent only; no stock photography." },
+    { "id": "dark-developer-tool", "name": "Dark developer tool", "exemplars": "Vercel, Supabase",
+      "palette": { "--bg": "#0d1117", "--fg": "#e6edf3", "--accent": "#3fb950", "--accent-fg": "#06240d", "--muted": "#9da7b3", "--surface": "#161b22", "--surface-2": "#21262d", "--border": "#30363d" },
+      "type": { "--font-display": "'Inter', -apple-system, system-ui, sans-serif", "--font-body": "'Inter', -apple-system, system-ui, sans-serif", "--weight-display": "700" },
+      "radius": "8px", "shadow": "0 0 0 1px rgba(255,255,255,.04), 0 8px 24px rgba(0,0,0,.5)",
+      "imagery": "Live code samples, terminal/demo frames, bento grids; product-as-demo, never abstract." },
+    { "id": "bold-playful-illustration", "name": "Bold playful illustration", "exemplars": "growth.design, Duolingo",
+      "palette": { "--bg": "#fffaf2", "--fg": "#1a1730", "--accent": "#d6336c", "--accent-fg": "#ffffff", "--muted": "#6b6478", "--surface": "#fff1e6", "--surface-2": "#ffe3cc", "--border": "#f0cdb0" },
+      "type": { "--font-display": "'Poppins', 'Inter', system-ui, sans-serif", "--font-body": "'Inter', system-ui, sans-serif", "--weight-display": "800" },
+      "radius": "18px", "shadow": "0 6px 0 rgba(26,23,48,.12), 0 12px 28px rgba(214,51,108,.14)",
+      "imagery": "Custom flat illustrations, big friendly display type, high-contrast warm accents." },
+    { "id": "editorial-typographic", "name": "Editorial / typographic", "exemplars": "Premium editorial",
+      "palette": { "--bg": "#faf6ef", "--fg": "#211d18", "--accent": "#2c3e50", "--accent-fg": "#ffffff", "--muted": "#5d574d", "--surface": "#f3ece0", "--surface-2": "#e9dfce", "--border": "#ddd0ba" },
+      "type": { "--font-display": "'Playfair Display', Georgia, 'Times New Roman', serif", "--font-body": "-apple-system, system-ui, sans-serif", "--weight-display": "700" },
+      "radius": "4px", "shadow": "0 1px 2px rgba(33,29,24,.08)",
+      "imagery": "Type-led layouts, minimal restrained imagery, large drop-cap headlines, wide margins." },
+    { "id": "warm-consumer-lifestyle", "name": "Warm consumer lifestyle", "exemplars": "Consumer / wellness / D2C",
+      "palette": { "--bg": "#fdf8f4", "--fg": "#2b2420", "--accent": "#c2410c", "--accent-fg": "#ffffff", "--muted": "#6b5d52", "--surface": "#f7ede4", "--surface-2": "#f0e0d2", "--border": "#e6d2bf" },
+      "type": { "--font-display": "'Nunito', 'Quicksand', system-ui, sans-serif", "--font-body": "'Nunito', system-ui, sans-serif", "--weight-display": "700" },
+      "radius": "16px", "shadow": "0 2px 8px rgba(43,36,32,.06), 0 16px 40px rgba(194,65,12,.08)",
+      "imagery": "Real-people photography, warm soft tones, rounded humanist sans, lifestyle context." },
+    { "id": "enterprise-trust", "name": "Enterprise trust", "exemplars": "Enterprise B2B",
+      "palette": { "--bg": "#ffffff", "--fg": "#0f172a", "--accent": "#1d4ed8", "--accent-fg": "#ffffff", "--muted": "#475569", "--surface": "#f8fafc", "--surface-2": "#f1f5f9", "--border": "#e2e8f0" },
+      "type": { "--font-display": "'IBM Plex Sans', -apple-system, system-ui, sans-serif", "--font-body": "-apple-system, system-ui, sans-serif", "--weight-display": "600" },
+      "radius": "6px", "shadow": "0 1px 2px rgba(15,23,42,.06), 0 4px 12px rgba(15,23,42,.05)",
+      "imagery": "Logo walls, certification/security badges, restrained corporate blues, quantified ROI charts." }
+  ]
+}
+</script>
+
+<script>
+  // Restraint by design: each swatch is a single tasteful hero+section, not a busy demo.
+  var DATA = JSON.parse(document.getElementById("style-tokens").textContent).styles;
+  var grid = document.getElementById("grid");
+  var COPY = {
+    "clean-minimal-saas":        { h: "Ship faster with less friction", s: "The clean, fast workspace your team actually wants to open every morning.", cta: "Start free", feat: ["Fast by default","One source of truth","Built to scale"] },
+    "dark-developer-tool":       { h: "Your product is the demo", s: "Drop in three lines, deploy to the edge, watch it run. No meetings required.", cta: "Read the docs", feat: ["Edge runtime","Type-safe API","Zero config"] },
+    "bold-playful-illustration": { h: "Learning that actually sticks", s: "Bite-sized lessons, real psychology, zero boredom — finish what you start.", cta: "Join the course", feat: ["Daily streaks","Real examples","Made to enjoy"] },
+    "editorial-typographic":     { h: "Writing worth your evening", s: "Long-form craft for people who still believe a sentence can change a mind.", cta: "Start reading", feat: ["Original essays","No algorithm","Reader-first"] },
+    "warm-consumer-lifestyle":   { h: "Feel better, every single day", s: "Small warm rituals that fit real life — guided, gentle, and genuinely yours.", cta: "Begin today", feat: ["Guided routines","Made for you","Calm by design"] },
+    "enterprise-trust":          { h: "Enterprise-grade, audited, proven", s: "The platform Fortune-500 security teams approve — SOC 2, SSO, and 99.99% uptime.", cta: "Book a demo", feat: ["SOC 2 Type II","SSO & SCIM","99.99% SLA"] }
+  };
+
+  DATA.forEach(function (st) {
+    var c = COPY[st.id];
+    var vars = "";
+    Object.keys(st.palette).forEach(function (k) { vars += k + ":" + st.palette[k] + ";"; });
+    vars += "--font-display:" + st.type["--font-display"] + ";";
+    vars += "--font-body:" + st.type["--font-body"] + ";";
+    vars += "--weight-display:" + st.type["--weight-display"] + ";";
+    vars += "--radius:" + st.radius + ";--shadow:" + st.shadow + ";";
+
+    var cards = c.feat.map(function (f, i) {
+      return '<div class="card"><div class="dot"></div><h3>' + f + '</h3><p>Built to handle the objection your buyer raises right here.</p></div>';
+    }).join("");
+
+    var el = grid.querySelector('[data-style="' + st.id + '"]');
+    if (!el) return;
+    el.innerHTML =
+      '<div class="swatch-meta">' +
+        '<span class="name">' + st.name + '</span>' +
+        '<span class="id">' + st.id + '</span>' +
+        '<span class="exemplars">' + st.exemplars + '</span>' +
+      '</div>' +
+      '<div class="preview" style="' + vars + '">' +
+        '<div class="hero">' +
+          '<h2>' + c.h + '</h2>' +
+          '<p class="sub">' + c.s + '</p>' +
+          '<span class="cta">' + c.cta + '</span>' +
+          '<p class="trust">Trusted by teams who ship — join 4,000+ today.</p>' +
+        '</div>' +
+        '<div class="section"><div class="row">' + cards + '</div></div>' +
+        '<div class="imagery">Imagery direction — ' + st.imagery + '</div>' +
+      '</div>';
+  });
+</script>
+</body>
+</html>
