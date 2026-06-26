@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-06-25 — pmos-toolkit 2.89.0: design-slop detection across the pipeline
+
+**pmos now catches generic "AI-slop" visual design before it ships.** A shared design-slop engine — contrast failures, gradient-only styling, default-font tells, spacing soup, and 30+ other guidelines — now backs two surfaces:
+
+- **`/design-crit` runs a slop pre-pass** before its UX critique, flagging mechanical design tells up front so the human critique can focus on judgment calls.
+- **`/verify` gained a slop gate** that scans emitted HTML artifacts and fails the verification when design-slop guidelines are violated.
+
+**`/wireframes`, `/prototype`, and `/execute` carry a prevention floor** — a one-line cite of the canonical design-slop rules, so the guidelines are visible at authoring time, not just at review time.
+
+**Skill quality & internals.** The engine is a vendored, pmos-native substrate (credited under NOTICE) with the rules registry as the single source of truth; the human-readable rules doc is generated from that registry and kept honest by a CI drift-lint that fails if the doc falls out of sync.
+
 ## 2026-06-25 — pmos-learnkit 0.30.0: /magazine pipeline robustness
 
 **`/magazine` now scopes what it digests and never silently drops items.** Catching up on a feed backlog is more controllable and more reliable:
