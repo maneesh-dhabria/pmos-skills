@@ -1,0 +1,68 @@
+schema_version: 1
+story: 260626-4mc
+epic: 260626-804
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+execution_mode: inline
+# Story B: close the milder skip-by-assertion variant in /verify's Slop gate. Skill location:
+# plugins/pmos-toolkit/skills/verify/SKILL.md. The verdict is ALREADY exit-code-driven
+# (scripts/slop-gate.mjs exit 2 == [Blocker] fires) — only the SKIP branch is narrative. This story
+# requires /verify to surface the runner's literal output line and tie "ran vs skipped" to the JSON
+# report's ran/skipped field + the exit code, never to narrative. Engine (_shared/slop-engine/) and the
+# runner (verify/scripts/slop-gate.mjs) are UNCHANGED — SKILL.md instructions only. See design §4 I2,
+# §5 helper-output (slop-gate.mjs), §7 Story B. NO release-prereq tasks (design §9).
+tasks:
+  - id: T1
+    title: "Study: design doc §7, /verify SKILL.md Slop-gate phase + Inv-5 wording, slop-gate.mjs output"
+    ac: [B1]
+    deps: []
+    parallel: false
+    detail: >
+      Read ../../02_design.html §5 (slop-gate.mjs output contract) and §7 (Story B). Read the current
+      plugins/pmos-toolkit/skills/verify/SKILL.md Slop-gate phase (the runner invocation, the exit-code
+      verdict tie-in, and the Inv-5 skip wording — fix the exact line ranges). Read
+      plugins/pmos-toolkit/skills/verify/scripts/slop-gate.mjs to confirm the verbatim stderr run-summary
+      and skip-note lines, the JSON report fields (ran, skipped, engine, counts), and the exit codes (2
+      blocker / 0 clean / 64 usage). Read skill-patterns §H (hard gate) + §K (one-home). Produce NO edits.
+    verify: >
+      Exact Slop-gate phase + Inv-5 line ranges fixed; the verbatim slop-gate run-summary + skip-note lines
+      and the JSON ran/skipped fields captured from the runner source (not memory).
+
+  - id: T2
+    title: "B1 — require surfacing the runner line; tie ran-vs-skipped to JSON+exit-code, not narrative"
+    ac: [B1]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Edit the Slop-gate phase so /verify MUST surface the runner's literal output line before recording
+      the verdict — the run-summary (`[slop-gate] … GATE FIRES …` / `… no quality blocker; slop advisory
+      only`) or the skip-note (`[slop-gate] slop gate skipped — engine/parser unavailable: <reason>`).
+      Rewrite the Inv-5 / skip wording so a skip is recorded ONLY when the runner emitted its skip-note
+      (JSON report ran==false / skipped==true) or exited in the skip path — never by narrative assertion.
+      Leave the exit-code-driven PASS condition unchanged (zero unfixed [Blocker] quality faults whenever
+      the gate ran). Add the same anti-pattern shape as design-crit A1: do not claim the gate skipped /
+      the engine is unavailable without the runner's skip-note. Cite §5 of the design (helper-output) as
+      the single home; do not restate the runner internals in SKILL.md prose.
+    verify: >
+      The Slop-gate phase requires the verbatim runner line; "ran vs skipped" is keyed to the JSON
+      ran/skipped field + exit code; the anti-pattern is present; the exit-code PASS condition is intact;
+      no narrative-skip path remains.
+
+  - id: T3
+    title: "Verify: skill-eval [D]+[J], 4 lints + audit, dogfood both runner branches"
+    ac: [B1]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Run feature-sdlc/tools/skill-eval-check.sh --target claude-code on the verify skill dir; run the four
+      hygiene lints + audit-recommended.sh and confirm green (phase-ref anchors must resolve). Confirm the
+      engine and verify/scripts/slop-gate.mjs are unchanged and slop-gate.test.mjs stays green. Dogfood
+      (load-bearing): run `node plugins/pmos-toolkit/skills/verify/scripts/slop-gate.mjs` against a real
+      HTML to show the run-summary line + JSON (ran:true, counts); then force the skip branch (point the
+      engine at a missing file) to show the literal skip-note + JSON ran:false/skipped:true — proving the
+      "skipped" determination is earned, not asserted.
+    verify: >
+      skill-eval [D] exits 0 (or only pre-existing residuals on untouched lines); [J] passes; 4 lints +
+      audit green; slop-gate.test.mjs green; dogfood shows BOTH the run-summary (+JSON ran:true) and the
+      earned skip-note (+JSON skipped:true).

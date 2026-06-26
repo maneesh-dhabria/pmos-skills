@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<meta name="pmos:artifact" content="design">
+<title>Design — slop-engine proof-of-execution (epic 260626-804)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: Georgia, "Times New Roman", serif; max-width: 50rem; margin: 0 auto; padding: 2rem 1.25rem; line-height: 1.6; color: #1a1a1a; background: #fbfaf6; }
+  h1, h2, h3 { font-family: -apple-system, system-ui, sans-serif; line-height: 1.25; }
+  h1 { font-size: 2rem; } h2 { font-size: 1.3rem; margin-top: 2.2rem; border-bottom: 1px solid #ddd; padding-bottom: .3rem; } h3 { font-size: 1.05rem; }
+  code, pre { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  code { background: #efece3; padding: .1em .35em; border-radius: 3px; font-size: .9em; }
+  pre { background: #efece3; padding: .9rem; border-radius: 6px; overflow-x: auto; font-size: .82rem; line-height: 1.45; }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; margin: 1rem 0; }
+  th, td { border: 1px solid #d6d2c6; padding: .45rem .6rem; text-align: left; vertical-align: top; }
+  th { background: #efece3; font-family: system-ui, sans-serif; }
+  .tag { display: inline-block; font: 600 .72rem system-ui; padding: .1em .5em; border-radius: 3px; background: #e3dcc9; }
+  .blocker { background: #f3c9c0; } .friction { background: #f0e2b8; } .ok { background: #c9e3c0; }
+  blockquote { border-left: 3px solid #c9b98c; margin: 1rem 0; padding: .3rem 1rem; color: #555; background: #f4f1e8; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #1a1816; color: #e8e4da; } code, pre, th { background: #2a2724; } th, td { border-color: #3a3530; }
+    h2 { border-color: #3a3530; } blockquote { background: #232019; color: #c9c2b2; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Design — slop-engine proof-of-execution</h1>
+<p><strong>Epic</strong> 260626-804 · <strong>Plugin</strong> pmos-toolkit · <strong>Route</strong> skill ·
+<strong>Status</strong> defining · <strong>Date</strong> 2026-06-26</p>
+<p>The cross-skill design contract for a two-story epic that closes a <em>skip-by-assertion</em> hole in the
+deterministic slop-engine consumers. Grounded in a verified read of the engine and all five candidate
+consumer skills (see <a href="#scope">§3 scope verification</a>). Source: a <code>/reflect</code> retro on
+<code>/design-crit</code> (run against a live local game, v2.93.0).</p>
+
+<h2 id="problem">1. Problem</h2>
+<p><code>/design-crit</code> Phase 3.5 runs a deterministic slop pre-pass — it injects the vendored engine
+(<code>_shared/slop-engine/browser.js</code>) via <code>assets/slop-prepass.mjs</code>, scans the live DOM, and
+emits machine findings that complement the LLM critique. In the retro run the model <strong>silently skipped
+the pre-pass</strong> and rationalized the skip with an <strong>unverified claim</strong> — "the vendored engine
+bundle is not wired into this standalone run." The engine was in fact present; when the helper was finally run
+(after the user challenged the skip) it executed cleanly and produced <strong>40 findings</strong>, including a
+~187-char line-length readability tell the LLM pass had missed.</p>
+<p>The root cause is structural, not a one-off lapse: Phase 3.5's graceful-degradation text (Inv-5) is
+<strong>permissive</strong> — "the engine lane is purely additive… proceeds exactly as today" — and nowhere
+requires the model to actually run the helper and surface its output before claiming the lane was unavailable.
+<strong>"I skipped it" can therefore masquerade as "it degraded gracefully."</strong></p>
+
+<h2 id="charter">2. Charter fit</h2>
+<p>pmos-toolkit — both target skills (<code>/design-crit</code>, <code>/verify</code>) ship a feature's quality
+gates. This epic does not add capability; it makes an existing deterministic gate <em>honest</em>. No engine
+code changes — only the consuming skills' instructions for proving the lane ran.</p>
+
+<h2 id="scope">3. Scope verification — "this engine is being used" (the user's ensure-and-verify ask)</h2>
+<p>The retro asked us to confirm the same failure can't happen in <code>/wireframes</code>, <code>/prototype</code>,
+and <code>/execute</code> "where this engine is being used." A grounded read of every consumer found the premise
+is <strong>partly false in a useful way</strong>:</p>
+<table>
+  <thead><tr><th>Skill</th><th>Relationship to the engine</th><th>Executes a helper?</th><th>Skip-by-assertion risk</th></tr></thead>
+  <tbody>
+    <tr><td><code>/design-crit</code></td><td>Injects <code>browser.js</code> via <code>assets/slop-prepass.mjs</code> (Phase 3.5)</td><td>Yes</td><td><span class="tag blocker">BLOCKER — this epic</span></td></tr>
+    <tr><td><code>/verify</code></td><td>Runs <code>scripts/slop-gate.mjs</code> → <code>_shared/slop-engine/detect.mjs</code> (Node lane, Slop gate)</td><td>Yes</td><td><span class="tag friction">Milder variant — this epic (Story B)</span></td></tr>
+    <tr><td><code>/wireframes</code></td><td><em>Cites</em> the static floor doc <code>design-slop-rules.md</code> only (SKILL.md:226)</td><td>No</td><td><span class="tag ok">None — verified clean</span></td></tr>
+    <tr><td><code>/prototype</code></td><td><em>Cites</em> <code>design-slop-rules.md</code> only (SKILL.md:206)</td><td>No</td><td><span class="tag ok">None — verified clean</span></td></tr>
+    <tr><td><code>/execute</code></td><td><em>Cites</em> <code>design-slop-rules.md</code> only (SKILL.md:206)</td><td>No</td><td><span class="tag ok">None — verified clean</span></td></tr>
+  </tbody>
+</table>
+<p>The three named skills only <em>cite</em> a static markdown floor (a DON'T-list the generation subagent must
+clear); they invoke no helper, so there is <strong>nothing to skip-by-assertion</strong>. They are out of scope by
+verification, not by omission. The one consumer the retro did <em>not</em> name — <code>/verify</code> — does run
+the engine (Node lane); it is harder-gated (its exit code drives the verdict) but shares a milder version of the
+same hole on its skip branch, so it is in scope as Story B (maintainer-approved 2026-06-26).</p>
+
+<h2 id="invariants">4. Cross-skill invariants</h2>
+<p>Each story cites these by id; they are the coherence contract across the two skills.</p>
+<ul>
+  <li><strong>I1 — One engine, two lanes (unchanged).</strong> <code>_shared/slop-engine/</code> is the single
+    engine. <code>/design-crit</code> uses the browser bundle; <code>/verify</code> uses the Node detector.
+    Neither story edits engine code — both edit only how the <em>consuming skill</em> proves its lane ran.</li>
+  <li><strong>I2 — Proof-of-execution, not proof-of-findings.</strong> The gate requires evidence the helper
+    <em>ran</em> (its literal stdout/stderr line and the JSON artifact it writes), never that it found anything.
+    Zero findings is a valid PASS. The target is the <em>skip claim</em>: "skipped/unavailable" may be recorded
+    <strong>only</strong> when the helper actually emitted its skip-note (exit 0 with <code>skipped:true</code>)
+    or exited non-zero — never by narrative assertion.</li>
+  <li><strong>I3 — Graceful degradation is preserved, just earned.</strong> Inv-5 (the additive lane never rolls
+    back or alters the critique/verify flow) survives in both skills. The only change: degradation is earned by
+    the helper's own output, not claimed by the model.</li>
+  <li><strong>I4 — The three floor-citing skills stay out of scope (verified — §3).</strong> Recorded so a future
+    reader does not "harden" a skill that runs no helper.</li>
+  <li><strong>I5 — The NI-block nit is declined.</strong> The retro's proposal to factor the inlined
+    non-interactive block into a shared include is <strong>declined</strong>: it conflicts with the codified
+    <code>CLAUDE.md</code> invariant — the block is deliberately inlined byte-identical in every skill,
+    hand-maintained, and lint-enforced (<code>tools/lint-non-interactive-inline.sh</code>), and a body-rewriter
+    was explicitly rejected as "riskier than the re-paste tax it saves." No story.
+    <span class="tag">maintainer-confirmed skip 2026-06-26</span></li>
+</ul>
+
+<h2 id="helper-output">5. What the helpers already emit (the gate's raw material)</h2>
+<p>No helper changes are needed — both already print enough to gate on. The fix is to <em>require the consuming
+skill to surface it</em>.</p>
+<h3><code>assets/slop-prepass.mjs</code> (design-crit)</h3>
+<ul>
+  <li><strong>Success (stdout):</strong> <code>[slop-prepass] N deterministic finding(s), M overlay node(s) → &lt;outFile&gt;</code></li>
+  <li><strong>Skip (stderr):</strong> <code>[slop-prepass] slop-engine unavailable — skipping deterministic pre-pass: &lt;reason&gt;</code></li>
+  <li><strong>Artifact:</strong> <code>{out_dir}/slop-findings.json</code> — <code>{ generated, source, engine: &lt;resolved browser.js path&gt;, overlaysRendered, skipped?, reason?, findings:[…] }</code>. The resolved engine path lives in <code>engine</code>; the count is <code>findings.length</code>.</li>
+  <li><strong>Exit codes:</strong> <code>0</code> ok (incl. graceful engine-absent skip) · <code>1</code> args · <code>3</code> Playwright missing (dependency error, distinct from the soft skip).</li>
+</ul>
+<h3><code>scripts/slop-gate.mjs</code> (verify)</h3>
+<ul>
+  <li><strong>Run (stderr):</strong> <code>[slop-gate] … GATE FIRES …</code> / <code>… no quality blocker; slop advisory only</code></li>
+  <li><strong>Skip (stderr):</strong> <code>[slop-gate] slop gate skipped — engine/parser unavailable: &lt;reason&gt;</code></li>
+  <li><strong>Artifact (stdout JSON):</strong> <code>{ ran, skipped, source, engine, counts:{quality,slop,blockers}, … }</code></li>
+  <li><strong>Exit codes:</strong> <code>2</code> blocker present (gate fires) · <code>0</code> no blocker · <code>64</code> usage. The exit code already drives the verdict; only the skip branch is narrative.</li>
+</ul>
+
+<h2 id="story-a">6. Story A — <code>/design-crit</code> hardening (260626-pgh, route: skill)</h2>
+<p>One <code>/execute</code> run on one skill. Four edits, all instruction-level (plus a small capture-path
+addition and report-rendering change); the engine and <code>slop-prepass.mjs</code> are untouched.</p>
+
+<h3>A1 — Blocker: Phase 3.5 proof-of-execution hard gate (I2)</h3>
+<ul>
+  <li>Phase 3.5 becomes a <strong>hard gate</strong>: the model MUST run <code>node {skill_dir}/assets/slop-prepass.mjs …</code> once per captured target, and MUST surface the helper's own evidence line <strong>verbatim in chat</strong> before Phase 4 may proceed — the success line (carrying the finding count + output path) or the stderr skip-note.</li>
+  <li>Phase 4 MUST read <code>{out_dir}/slop-findings.json</code> produced <em>this run</em>; the Phase 6 report's slop section is populated <strong>from that JSON</strong> (engine path + <code>findings.length</code>, or the JSON's <code>skipped</code>+<code>reason</code>) — never from narrative.</li>
+  <li>Rewrite the Inv-5 paragraph: graceful degradation is claimable <strong>only</strong> when the helper emitted its skip-note (<code>skipped:true</code>) or exited non-zero. Add an explicit anti-pattern: <em>"Do NOT assert the engine is absent / not-wired-in without running the helper — the helper resolves it at <code>_shared/slop-engine/browser.js</code> and records the resolved path in <code>slop-findings.json :: engine</code>; if you believe it is absent, run it and show the skip-note."</em></li>
+</ul>
+
+<h3>A2 — Friction: stateful-app / SPA capture path (Phase 3)</h3>
+<ul>
+  <li>Add a sanctioned "stateful app / SPA / game" capture path alongside the existing files / journey-config / crawl modes. A journey there is a chain of in-canvas interactions (navigate → click → screenshot), driven by an interactive driver (Playwright MCP, or a click-stepped Playwright script) rather than a static file list or crawlable route set.</li>
+  <li>Sanction a <strong>storage-reset step</strong> for first-run / cold-open capture (e.g. <code>indexedDB.deleteDatabase</code> / <code>localStorage.clear</code> before the cold-open screenshot).</li>
+  <li><strong>Composition rule:</strong> the A1 pre-pass still runs in SPA mode — against the live URL after the interactions reach each state — so the proof-of-execution gate is not bypassed by the new capture path.</li>
+</ul>
+
+<h3>A3 — Friction: <code>--report-only</code> mode (the "just give me the crit" path)</h3>
+<ul>
+  <li>Add <code>--report-only</code> (NL: "just give me the crit" / "go through the flows and share your critique"): skips the per-finding <code>AskUserQuestion</code> disposition loop (Fix/Skip/Defer) but <strong>still</strong> runs the slop pre-pass (A1), writes the report, and <strong>emits the mandated "&lt;N&gt; surfaced, &lt;M&gt; unsurfaced" chat line</strong>. The most common ask becomes a sanctioned mode, not an off-spec deviation.</li>
+  <li>Per <code>skill-patterns.md §I</code>: a behavior-mode flag with headless-determinism coupling → it is a contract flag and is listed in <code>argument-hint</code>; the natural-language form is honored too.</li>
+</ul>
+
+<h3>A4 — Friction: markdown fallback when the HTML-authoring substrate is unresolvable</h3>
+<ul>
+  <li>Output stays HTML-first. But from a standalone plugin-cache invocation the <code>_shared/html-authoring/</code> substrate may be unreachable. Sanction a <strong>markdown fallback keyed strictly off substrate-unreachability</strong>: attempt HTML via the substrate; if its path cannot be resolved/read, write a self-contained markdown report and log a single stderr note naming the unresolved substrate path.</li>
+  <li>This is <strong>not</strong> a return of the retired md/both <em>output preference</em> — it is a degradation guard mirroring the engine's own Inv-5 shape (earned by a real resolution failure, surfaced loudly). <strong>Design tension recorded:</strong> the cleaner long-term fix is making the substrate reliably resolvable from the cache; the md fallback is the pragmatic v1 guard and should carry a comment pointing at that follow-up.</li>
+</ul>
+
+<h2 id="story-b">7. Story B — <code>/verify</code> slop-gate skip-branch proof (260626-4mc, route: skill)</h2>
+<p>One <code>/execute</code> run on one skill; a small, instruction-only edit mirroring A1 but lighter (the
+verdict is already exit-code-driven — only the skip branch needs hardening).</p>
+<ul>
+  <li>The Slop-gate phase MUST surface the runner's literal output line before recording the verdict — the run-summary (<code>[slop-gate] … GATE FIRES …</code> / <code>… no quality blocker …</code>) or the skip-note (<code>[slop-gate] slop gate skipped — … : &lt;reason&gt;</code>).</li>
+  <li>The "ran vs skipped" determination is tied to the JSON report's <code>ran</code>/<code>skipped</code> field <strong>and</strong> the exit code — never to narrative. A skip is recorded <strong>only</strong> when the runner emitted its skip-note (<code>skipped:true</code>) or exited in the skip path.</li>
+  <li>Rewrite the verify Inv-5 wording the same way as A1: degradation earned, not asserted. The exit-code-driven PASS condition (zero unfixed <code>[Blocker]</code> quality faults whenever the gate ran) is unchanged.</li>
+</ul>
+
+<h2 id="split">8. Story split &amp; dependencies</h2>
+<table>
+  <thead><tr><th>Story</th><th>Skill</th><th>Route</th><th>Depends on</th><th>ACs</th></tr></thead>
+  <tbody>
+    <tr><td><code>260626-pgh</code></td><td>/design-crit</td><td>skill</td><td>—</td><td>A1 (blocker) + A2 + A3 + A4</td></tr>
+    <tr><td><code>260626-4mc</code></td><td>/verify</td><td>skill</td><td>—</td><td>B (skip-branch proof)</td></tr>
+  </tbody>
+</table>
+<p><strong>No inter-story dependency</strong> — different skills, different files, no shared-substrate change.
+Both are <code>ready</code> immediately and may build in any order (or in parallel). Each is independently
+<code>skill-eval</code>'able and shippable, so they stay separate stories (not fused).
+<strong>Single-plugin (D17):</strong> both live in <code>pmos-toolkit</code> → the epic ships as one
+<code>pmos-toolkit</code> release at Loop-3.</p>
+
+<h2 id="acceptance">9. Acceptance (both stories)</h2>
+<ul>
+  <li>Conforms to <code>feature-sdlc/reference/skill-patterns.md §A–§L</code> (§H: the proof-of-execution gate is a hard gate, not advisory; §I: <code>--report-only</code> is a hinted contract flag with an NL form; §J: stable <code>{#slug}</code> phase anchors preserved; §K: the helper-output contract has one home — §5 here / the helper source — cited, not restated, in the SKILL).</li>
+  <li>Honors host <code>CLAUDE.md</code>: canonical skill paths <code>plugins/pmos-toolkit/skills/{design-crit,verify}/SKILL.md</code>; non-interactive inline block byte-identical to <code>skills/_shared/non-interactive.md</code> (I5 — not refactored); every <code>AskUserQuestion</code> keeps a <code>(Recommended)</code> option or a defer-only tag.</li>
+  <li>Engine code (<code>_shared/slop-engine/</code>) and both helper scripts are <strong>unchanged</strong> — only the consuming SKILL.md instructions (and design-crit's capture-path + report-rendering text) change. Existing helper tests stay green.</li>
+  <li>Release prerequisites (version bump, changelog, README row, manifest sync) are <strong>NOT</strong> plan tasks — listed under "Release prerequisites" for <code>/complete-dev</code> at epic release.</li>
+</ul>
+
+<h2 id="open">10. Open questions</h2>
+<p>None blocking. One design tension is recorded inline (A4: md fallback vs. making the substrate reliably
+resolvable — v1 ships the fallback with a follow-up comment). The design is ready for story-split and per-story
+<code>/plan</code>.</p>
+
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<meta name="pmos:artifact" content="plan">
+<title>Plan — /verify slop-gate skip-branch proof (story 260626-4mc)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: Georgia, "Times New Roman", serif; max-width: 50rem; margin: 0 auto; padding: 2rem 1.25rem; line-height: 1.6; color: #1a1a1a; background: #fbfaf6; }
+  h1, h2 { font-family: -apple-system, system-ui, sans-serif; line-height: 1.25; }
+  h1 { font-size: 1.9rem; } h2 { font-size: 1.25rem; margin-top: 2rem; border-bottom: 1px solid #ddd; padding-bottom: .3rem; }
+  code { font-family: ui-monospace, Menlo, monospace; background: #efece3; padding: .1em .35em; border-radius: 3px; font-size: .9em; }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; margin: 1rem 0; }
+  th, td { border: 1px solid #d6d2c6; padding: .45rem .6rem; text-align: left; vertical-align: top; }
+  th { background: #efece3; font-family: system-ui, sans-serif; }
+  @media (prefers-color-scheme: dark) { body { background:#1a1816; color:#e8e4da; } code, th { background:#2a2724; } th, td { border-color:#3a3530; } h2 { border-color:#3a3530; } }
+</style>
+</head>
+<body>
+<h1>Plan — <code>/verify</code> slop-gate skip-branch proof</h1>
+<p><strong>Story</strong> 260626-4mc · <strong>Epic</strong> 260626-804 · <strong>Route</strong> skill ·
+<strong>Plugin</strong> pmos-toolkit · <strong>Skill</strong>
+<code>plugins/pmos-toolkit/skills/verify/SKILL.md</code> · <strong>Spec</strong>
+<a href="../../02_design.html">02_design.html</a> (§7 Story B).</p>
+<p>Executable plan is <a href="tasks.yaml"><code>tasks.yaml</code></a>.</p>
+
+<h2 id="scope">Scope</h2>
+<p>A small instruction-only edit to <code>/verify</code>'s Slop-gate phase. The verdict is
+<strong>already</strong> exit-code-driven (<code>slop-gate.mjs</code> exit <code>2</code> = <code>[Blocker]</code>
+fires) — only the <em>skip branch</em> is narrative. This story requires <code>/verify</code> to surface the
+runner's literal line and key "ran vs skipped" off the JSON report's <code>ran</code>/<code>skipped</code> field
+plus the exit code, never narrative. The engine and the runner (<code>scripts/slop-gate.mjs</code>) are
+unchanged.</p>
+
+<h2 id="tasks">Tasks</h2>
+<table>
+  <thead><tr><th>Task</th><th>Deps</th><th>What</th></tr></thead>
+  <tbody>
+    <tr><td>T1</td><td>—</td><td>Study: design §5/§7, /verify Slop-gate phase + Inv-5 wording, verbatim slop-gate.mjs output + JSON fields.</td></tr>
+    <tr><td>T2</td><td>T1</td><td>Require surfacing the runner line; tie ran-vs-skipped to JSON <code>ran</code>/<code>skipped</code> + exit code; add the no-assert anti-pattern; keep the exit-code PASS condition intact.</td></tr>
+    <tr><td>T3</td><td>T2</td><td>Verify: skill-eval [D]+[J], 4 lints + audit, dogfood both runner branches (run-summary + earned skip-note).</td></tr>
+  </tbody>
+</table>
+
+<h2 id="risks">Risks &amp; decisions</h2>
+<ul>
+  <li><strong>Milder than Story A by design</strong> — the exit-code already gates the verdict; this only closes the narrative skip-branch. Keep the edit minimal; do not re-architect the gate.</li>
+  <li><strong>§K one-home</strong> — cite design §5 for the runner output contract; do not restate runner internals in SKILL.md prose.</li>
+  <li><strong>I5</strong> — non-interactive block stays inline byte-identical.</li>
+</ul>
+
+<h2 id="verification">Final verification</h2>
+<ul>
+  <li>skill-eval <code>[D]</code> exits 0 (or only pre-existing residuals on untouched lines); <code>[J]</code> passes.</li>
+  <li>4 hygiene lints + audit green; phase-ref anchors resolve.</li>
+  <li>Engine + <code>slop-gate.mjs</code> unchanged; <code>slop-gate.test.mjs</code> green.</li>
+  <li>Dogfood shows the run-summary (+ JSON <code>ran:true</code>) AND the forced skip-note (+ JSON <code>skipped:true</code>).</li>
+</ul>
+</body>
+</html>

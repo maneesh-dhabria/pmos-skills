@@ -1,0 +1,135 @@
+schema_version: 1
+story: 260626-pgh
+epic: 260626-804
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+execution_mode: inline
+# Story A: harden /design-crit so the deterministic slop pre-pass (Phase 3.5) cannot be skipped by
+# assertion, plus three frictions from the same retro. Skill location:
+# plugins/pmos-toolkit/skills/design-crit/SKILL.md. The engine (_shared/slop-engine/) and the helper
+# (design-crit/assets/slop-prepass.mjs) are UNCHANGED — only the SKILL.md instructions (Phase 3 capture,
+# Phase 3.5 gate, Phase 4 read, Phase 6 report) and the argument-hint change; A2 may add a small
+# capture-path note. Proof-of-execution is enforced by requiring the model to (a) run the helper and
+# surface its literal stdout/stderr line, and (b) populate the report's slop section FROM the helper's
+# slop-findings.json, never from narrative — see design §4 I2, §5 helper-output, §6 Story A.
+# NO release-prereq tasks here (version bump, changelog, README row, manifest sync, learnings-header) —
+# design §9; /complete-dev (Loop 3) is the sole writer at epic release.
+tasks:
+  - id: T1
+    title: "Study: design doc, /design-crit SKILL.md (Phases 3/3.5/4/6), slop-prepass.mjs output, capture.mjs, skill-patterns"
+    ac: [A1, A2, A3, A4]
+    deps: []
+    parallel: false
+    detail: >
+      Read ../../02_design.html (invariants I1–I5, §5 helper-output contract, §6 Story A A1–A4). Read the
+      current plugins/pmos-toolkit/skills/design-crit/SKILL.md end-to-end, fixing exact line ranges for
+      Phase 3 (capture modes), Phase 3.5 (#slop-prepass, the invocation block + Inv-5 paragraph), Phase 4
+      (reads slop-findings.json), and Phase 6 (renders the slop section + the surfaced/unsurfaced count
+      line + the disposition loop). Read assets/slop-prepass.mjs to confirm the exact literal stdout
+      success line, the stderr skip-note, the exit codes, and the slop-findings.json shape (engine,
+      skipped, reason, findings) the gate will key off. Read assets/capture.mjs to see the existing
+      files/journey-config/crawl modes A2 extends. Read feature-sdlc/reference/skill-patterns.md §A–§L
+      (esp. §H gates, §I flags, §J anchors, §K one-home) and skills/_shared/non-interactive.md (I5 — the
+      block stays inline, not refactored). Produce NO edits — capture the exact insertion points and the
+      verbatim helper lines to quote in the gate.
+    verify: >
+      Exact line ranges for Phases 3/3.5/4/6 fixed; the verbatim slop-prepass success + skip lines and the
+      slop-findings.json field names captured from the helper source (not memory); §H/§I/§J/§K acceptance
+      criteria and the non-interactive block located before any edit.
+
+  - id: T2
+    title: "A1 — Phase 3.5 becomes a proof-of-execution hard gate (the blocker)"
+    ac: [A1]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Rewrite the #slop-prepass phase so it is a HARD GATE, not an additive nicety. The model MUST run
+      `node {skill_dir}/assets/slop-prepass.mjs --source <target> --out {out_dir} [--viewport WxH]` once
+      per captured target, and MUST surface the helper's own evidence line VERBATIM in chat before Phase 4
+      proceeds: the success line `[slop-prepass] N deterministic finding(s), M overlay node(s) → <file>` or
+      the stderr skip-note `[slop-prepass] slop-engine unavailable — skipping deterministic pre-pass:
+      <reason>`. Rewrite the Inv-5 paragraph: graceful degradation may be claimed ONLY when the helper
+      emitted its skip-note (slop-findings.json :: skipped == true) or exited non-zero — NEVER by
+      assertion. Add an anti-pattern entry: "Do NOT assert the engine is absent / not-wired-in without
+      running the helper — it resolves the engine at _shared/slop-engine/browser.js and records the
+      resolved path in slop-findings.json :: engine; if you believe it is absent, run it and show the
+      skip-note." Update Phase 4 to REQUIRE a slop-findings.json produced THIS run, and Phase 6 to populate
+      the slop section FROM that JSON (engine path + findings.length, or the JSON's skipped+reason) — strike
+      any wording that lets the section be filled from narrative.
+    verify: >
+      #slop-prepass reads as a hard gate with a mandatory verbatim-surface step; the Inv-5 rewrite makes
+      "skipped" earnable only via slop-findings.json.skipped==true or a non-zero exit; the anti-pattern is
+      present; Phase 4/6 require the JSON and render from it. A reviewer reading only the new Phase 3.5
+      cannot find a sanctioned narrative-skip path.
+
+  - id: T3
+    title: "A2 — stateful-app / SPA capture path + storage-reset (Phase 3), composing with the A1 gate"
+    ac: [A2]
+    deps: [T1]
+    parallel: true
+    detail: >
+      Add a "stateful app / SPA / game" capture path to Phase 3 alongside files/journey-config/crawl: a
+      journey is a chain of in-canvas interactions (navigate → click → screenshot) driven by an interactive
+      driver (Playwright MCP or a click-stepped Playwright script), not a static file list or crawlable
+      route set. Sanction a storage-reset step (indexedDB.deleteDatabase / localStorage.clear) before a
+      cold-open / first-run capture. State the composition rule explicitly: the A1 pre-pass STILL runs in
+      SPA mode — against the live URL once each state is reached — so the proof-of-execution gate is not
+      bypassed by this path.
+    verify: >
+      Phase 3 documents the SPA/stateful path + storage-reset as a first-class capture mode; the
+      composition note ties it back to the Phase 3.5 gate so SPA captures still feed slop-prepass.
+
+  - id: T4
+    title: "A3 — --report-only mode (skip dispositions, keep the gate + the mandated count line)"
+    ac: [A3]
+    deps: [T1]
+    parallel: true
+    detail: >
+      Add a --report-only flag (NL forms: "just give me the crit" / "go through the flows and share your
+      critique"). In this mode the per-finding AskUserQuestion disposition loop (Fix/Skip/Defer) is skipped,
+      but the slop pre-pass (A1) still runs, the report is still written, and the mandated
+      "<N> surfaced, <M> unsurfaced" chat line still fires. Add the flag to the SKILL.md frontmatter
+      argument-hint (§I: behavior-mode flag with headless-determinism coupling → contract flag, hinted),
+      handle it in the body where the disposition loop lives, and honor the NL form. Confirm the
+      non-interactive contract still holds (report-only is orthogonal to --non-interactive).
+    verify: >
+      --report-only is in argument-hint and handled in the body; the disposition loop is bypassed while the
+      slop pre-pass and the surfaced/unsurfaced line still fire; the NL phrasing maps to the mode; the
+      flag-vs-hint lint passes.
+
+  - id: T5
+    title: "A4 — markdown fallback when the html-authoring substrate is unresolvable"
+    ac: [A4]
+    deps: [T1]
+    parallel: true
+    detail: >
+      In the Phase 6 output step, sanction a markdown fallback keyed STRICTLY off substrate-unreachability:
+      attempt HTML via _shared/html-authoring/; if its path cannot be resolved/read, write a self-contained
+      markdown report and log a single stderr note naming the unresolved substrate path. Make explicit this
+      is NOT a return of the retired md/both output preference — it is a degradation guard mirroring the
+      engine's Inv-5 shape (earned by a real resolution failure, surfaced loudly). Add a follow-up comment
+      pointing at the cleaner long-term fix (make the substrate reliably resolvable from the plugin cache).
+    verify: >
+      Phase 6 documents the md fallback as substrate-unreachability-only with a loud stderr note; the text
+      distinguishes it from the retired output-format preference; the follow-up comment is present.
+
+  - id: T6
+    title: "Verify: skill-eval [D]+[J], 4 lints + audit, load-bearing dogfood of the gate and --report-only"
+    ac: [A1, A2, A3, A4]
+    deps: [T2, T3, T4, T5]
+    parallel: false
+    detail: >
+      Run feature-sdlc/tools/skill-eval-check.sh --target claude-code on the design-crit skill dir; run the
+      four hygiene lints (lint-non-interactive-inline.sh, audit-recommended.sh, lint-flags-vs-hints.sh,
+      lint-phase-refs.sh) and confirm green (the new --report-only flag must be hinted; the #slop-prepass
+      anchor and any cross-refs must resolve). Confirm the engine and assets/slop-prepass.mjs are unchanged
+      and slop-prepass.test.mjs stays green. Dogfood (load-bearing): run
+      `node plugins/pmos-toolkit/skills/design-crit/assets/slop-prepass.mjs --source <a real HTML file> --out <tmp>`
+      and show the literal success line + the slop-findings.json (engine path + findings.length); then
+      simulate the unavailable-engine path (point --engine at a missing file) to show the stderr skip-note
+      and skipped:true — proving the gate's two evidence branches are real, not asserted.
+    verify: >
+      skill-eval [D] exits 0 (or only pre-existing residuals on untouched lines); [J] passes; 4 lints +
+      audit green; slop-prepass.test.mjs green; dogfood shows BOTH the run-evidence line (+JSON) and the
+      earned skip-note — demonstrating "skipped" is no longer claimable by assertion.
