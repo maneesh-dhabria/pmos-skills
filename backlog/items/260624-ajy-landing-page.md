@@ -4,7 +4,8 @@ id: 260624-ajy
 kind: epic
 title: "/landing-page — guided product landing-page generator (context ingestion → approved section structure → 2-3 hero-fold explorations → visual-style selector → single-file HTML draft)"
 type: feature
-status: defined
+status: released
+released: v2.90.0
 priority: should
 labels: [pmos-toolkit, landing-page, html-artifact, marketing, new-skill]
 route: skill

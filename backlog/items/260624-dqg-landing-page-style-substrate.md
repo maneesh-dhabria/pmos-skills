@@ -10,10 +10,11 @@ route: skill
 dependencies: []
 plugin: pmos-toolkit
 status: done
+released: v2.90.0
 feature_folder: docs/pmos/features/2026-06-24_landing-page/
 plan_doc: docs/pmos/features/2026-06-24_landing-page/stories/260624-dqg/03_plan.md
 tasks: docs/pmos/features/2026-06-24_landing-page/stories/260624-dqg/tasks.yaml
-worktree: .claude/worktrees/feat-260624-dqg
+worktree:
 claimed_by:
 driver_holder: build:360c93c8-71d2-4f84-a4b4-db50aec1d4f9
 labels: [pmos-toolkit, landing-page, substrate, style-system, new-substrate]
