@@ -1,8 +1,8 @@
 # Backlog
 
-Last regenerated: 2026-06-26 (capture 260626-j5k — /learn-list curated-references corpus hygiene epic + 2 stories: af6 title-backfill, ex8 tag-vocab)
+Last regenerated: 2026-06-26 (define 260626-z2p — /primer library-viewer full parity with /frameworks epic + 1 story: 0g6)
 
-156 items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
+158 items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
 ## Epics
 | id | status | route | plugin | stories (done/total) | title |
@@ -64,6 +64,7 @@ Last regenerated: 2026-06-26 (capture 260626-j5k — /learn-list curated-referen
 | 260626-a8a | defined | skill | pmos-toolkit | 0/3 | "/mytasks web UI enhancements — inline-everything overhaul (sidebar projects/labels/people, inline edit + @/#/+ autocomplete, nested subtasks, type/recur/checkin controls, LNO badge redesign) + /mytasks import" |
 | 260626-fdh | defined | skill | pmos-gamekit | 0/1 | "/poker fixes — hero seat overlaps the action-bar status text; random mode minimum 2 opponents" |
 | 260626-j5k | defined | skill | pmos-learnkit | 0/2 | "/learn-list curated-references corpus hygiene — Playwright title backfill (34% junk titles) + closed tag vocabulary (511→~120 tags)" |
+| 260626-z2p | defined | skill | pmos-learnkit | 0/1 | "/primer library-viewer full parity with /frameworks (shared library-viewer interface)" |
 
 ## must
 
@@ -160,6 +161,7 @@ Last regenerated: 2026-06-26 (capture 260626-j5k — /learn-list curated-referen
 | 260626-qrm | story | enhancement | planned | 260626-7s4 | "/landing-page — visual, media & assets: asset fidelity + mobile hard gate, live style preview, logo phase, media-strategy gate (static/carousel/video via Playwright+ffmpeg), shared design substrate (deps 260626-h70)" | docs/pmos/features/2026-06-26_landing-page-enhancements/02_design.html | docs/pmos/features/2026-06-26_landing-page-enhancements/stories/260626-qrm-visual-media-assets/03_plan.html |  |
 | 260626-af6 | story | tech-debt | planned | 260626-j5k | "curated-references — Playwright title + content backfill: recover real titles for 611/1817 junk-title records (Cloudflare/403/429/Amazon), re-summarize ungrounded, drop dead pages" | docs/pmos/features/2026-06-26_learn-list-corpus-hygiene/02_design.html | docs/pmos/features/2026-06-26_learn-list-corpus-hygiene/stories/260626-af6/03_plan.html |  |
 | 260626-ex8 | story | tech-debt | planned | 260626-j5k | "curated-references — closed tag vocabulary + synonym normalization: 511→~120 tags, collapse synonyms/plurals, drop brand tags, apply at import time (deps 260626-af6)" | docs/pmos/features/2026-06-26_learn-list-corpus-hygiene/02_design.html | docs/pmos/features/2026-06-26_learn-list-corpus-hygiene/stories/260626-ex8/03_plan.html |  |
+| 260626-0g6 | story | enhancement | planned | 260626-z2p | "/primer library-viewer — full parity with /frameworks: iframe in-page reader, 3 views, multi-select facets, valueLabels, dynamic {count} bug fix; additive default-off substrate seam, frameworks/learn-list zero-regression" | docs/pmos/features/2026-06-26_primer-viewer-parity/02_design.html | docs/pmos/features/2026-06-26_primer-viewer-parity/stories/260626-0g6/03_plan.html |  |
 
 ## could
 
