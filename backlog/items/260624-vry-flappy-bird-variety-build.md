@@ -10,10 +10,11 @@ route: skill
 dependencies: []
 plugin: pmos-gamekit
 status: done
+released: v0.10.0
 feature_folder: docs/pmos/features/2026-06-24_flappy-bird-variety/
 plan_doc: docs/pmos/features/2026-06-24_flappy-bird-variety/stories/260624-vry/03_plan.md
 tasks: docs/pmos/features/2026-06-24_flappy-bird-variety/stories/260624-vry/tasks.yaml
-worktree: feat/260624-vry
+worktree:
 claimed_by:
 driver_holder:
 labels: [pmos-gamekit, flappy-bird, game, visual-variety, theming, enhancement]

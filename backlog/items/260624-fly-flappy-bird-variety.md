@@ -4,7 +4,8 @@ id: 260624-fly
 kind: epic
 title: "/flappy-bird visual variety — per-game randomized backgrounds (7 procedural themes), 4 procedural bird shapes, contrast-safe color palette (5 colors + accents), and a subtle pmos top-HUD wordmark linking to the repo; all behind a pure, seedable, selftested variant picker (Inv-1 preserved)"
 type: feature
-status: defined
+status: released
+released: v0.10.0
 priority: should
 labels: [pmos-gamekit, flappy-bird, game, visual-variety, theming, enhancement]
 route: skill
