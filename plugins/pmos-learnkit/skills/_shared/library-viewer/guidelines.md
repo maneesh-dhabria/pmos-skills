@@ -73,6 +73,31 @@ reader:
 Selection highlight in all three views is a **targeted** class toggle on the existing nodes —
 never a full `#groups` rebuild — so opening a record causes no perceived reload.
 
+## Reader mode — markdown columns (default) vs. iframe (opt-in)
+
+The sidebar reader has two modes, selected by `config.reader.mode`:
+
+- **`'columns'` (default — also the value when `reader.mode` is absent):** the markdown-column
+  reader described above (renders `bodyHtmlField` / `columns` / `refsField` inline). This is the
+  only mode the substrate emitted before the seam existed, and it stays **byte-identical** — a
+  consumer that does not set `reader.mode` gets exactly the previous output (INV-1). The iframe
+  CSS and runtime are injected **only** when `mode === 'iframe'`, so the unset path adds zero
+  bytes.
+- **`'iframe'` (opt-in):** the reader renders the item's **own standalone HTML document** in a
+  lazily-loaded `<iframe>` instead of a markdown column. Use this when each card already maps to a
+  self-contained HTML file (a published artifact) and a large corpus should not eagerly load every
+  document. Set `config.reader.iframeField` to the card field holding the document URL/path
+  (default `'href'`). The iframe `src` is assigned **only on open** (never at first paint), carries
+  a restrictive `sandbox="allow-popups allow-popups-to-escape-sandbox"` (never
+  `allow-same-origin` + `allow-scripts` together), offers an **"Open in new tab ↗"** affordance,
+  and shows a visible **empty-state** when a card has no document. `openReader` is overridden to
+  the iframe renderer; the rest of the sidebar (hash deep-link, Escape-to-close, focus return,
+  mobile stacking) is inherited unchanged.
+
+Both modes are **config-driven** — the iframe mode adds **no new export** and does not change any
+of the 9 frozen signatures (INV-5); it is reached purely through `config.reader.mode` /
+`config.reader.iframeField`.
+
 ## Thumbnails (detailed view)
 
 Detailed cards emit a `data-thumb` **placeholder**; the thumbnail HTML is injected **lazily**
