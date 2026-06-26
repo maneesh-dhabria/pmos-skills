@@ -13,7 +13,9 @@ self-contained, one-button Flappy Bird (`game/flappy-bird.html`) through the sha
 zero-dependency launcher and points your browser at it. All gameplay (Easy/Normal/Hard
 difficulty picker, gravity + fixed-impulse flap physics, scrolling pipes with random gaps,
 ceiling clamp, +1-per-pipe scoring, session high score, pause, game-over + restart, and a
-new-best flourish) lives inside the one HTML file and runs offline.
+new-best flourish) lives inside the one HTML file and runs offline. Each new game also
+rolls a fresh, contrast-checked look — one of seven background themes, four bird shapes, and
+five bird colors — and a subtle top-HUD `pmos · flappy-bird` wordmark links back to the repo.
 
 This skill follows the launch contract in
 `../_shared/game-launcher/game-launcher.md` (the §K canonical home for the bundling

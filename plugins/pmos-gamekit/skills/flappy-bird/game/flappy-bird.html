@@ -43,6 +43,22 @@
   }
   #best b{display:block; font-size:clamp(16px,4vw,22px)}
 
+  /* pmos wordmark — subtle top-HUD attribution link; centered so it never
+     overlaps score (left) or best (right); its own backing keeps it legible
+     over every theme. pointer-events:auto re-enables the link inside the
+     pointer-events:none HUD, and it sits above the canvas so a click on it
+     is a navigation, never a flap. */
+  #wordmark{
+    position:absolute; left:50%; top:9px; transform:translateX(-50%);
+    pointer-events:auto; z-index:4;
+    font-size:clamp(9px,2.4vw,12px); font-weight:700; letter-spacing:.3px;
+    color:#fff; text-decoration:none; opacity:.9; white-space:nowrap;
+    background:rgba(20,32,43,.42); border:1px solid rgba(255,255,255,.18);
+    padding:3px 9px; border-radius:999px; backdrop-filter:blur(2px);
+  }
+  #wordmark:hover{opacity:1}
+  #wordmark:focus-visible{outline:3px solid #1d6fe0; outline-offset:2px}
+
   /* Overlays */
   .overlay{
     position:absolute; inset:0; z-index:4; display:none;
@@ -114,6 +130,7 @@
 
     <div id="hud" aria-hidden="false">
       <div id="score" aria-live="off">0</div>
+      <a id="wordmark" href="https://github.com/maneesh-dhabria/pmos-skills" target="_blank" rel="noopener">pmos · flappy-bird</a>
       <div id="best">BEST<b id="bestVal">0</b></div>
     </div>
 
@@ -308,6 +325,90 @@
     return state;
   }
 
+  /* ===== Visual variety: pure registries + seedable picker (Inv-1) ========
+   * Data-only theme/palette/bird registries and a pure pickVariants() on the
+   * engine surface. The motif & bird DRAW functions live in the render layer;
+   * only the metadata they read lives here, so the picker stays DOM-free,
+   * seedable, and selftested. See 02_design.html #data-model / #picker.
+   * ====================================================================== */
+
+  var DEFAULT_PIPE = { light: '#5bbf3a', dark: '#3f8f27', shine: 'rgba(255,255,255,.22)' };
+
+  // index 0 = sky (the default ready-preview); order is stable (selftests assert by id).
+  var THEMES = [
+    { id: 'sky',        grad: ['#a9e7ef', '#d8f6fa'], ground: { fill: '#ded895', top: '#c4ba6a' },
+      pipe: null,                                                                lum: 'light', motif: 'clouds'   },
+    { id: 'ocean',      grad: ['#9fdcea', '#cdeef5'], ground: { fill: '#2a6f7a', top: '#1d5560' },
+      pipe: null,                                                                lum: 'mid',   motif: 'bubbles'  },
+    { id: 'space',      grad: ['#0b0f2a', '#161b3d'], ground: { fill: '#0e1230', top: '#3a3f66', platform: true },
+      pipe: { light: '#9aa7c7', dark: '#5b6690', shine: 'rgba(255,255,255,.30)' }, lum: 'dark',  motif: 'stars'    },
+    { id: 'sunset',     grad: ['#ffd8a8', '#ffb3a0'], ground: { fill: '#7a4a52', top: '#5a343c' },
+      pipe: { light: '#7b3f7a', dark: '#562a55', shine: 'rgba(255,255,255,.22)' }, lum: 'mid',   motif: 'sunhills' },
+    { id: 'night-city', grad: ['#141a2e', '#28324f'], ground: { fill: '#10131f', top: '#2c3550' },
+      pipe: { light: '#b0bcd6', dark: '#6b7595', shine: 'rgba(255,255,255,.26)' }, lum: 'dark',  motif: 'skyline'  },
+    { id: 'forest',     grad: ['#cfe8b0', '#a9d98a'], ground: { fill: '#4a6b2a', top: '#37511f' },
+      pipe: { light: '#6b4f2a', dark: '#4a371c', shine: 'rgba(255,255,255,.18)' }, lum: 'mid',   motif: 'hills'    },
+    { id: 'cave',       grad: ['#1a1414', '#2c2220'], ground: { fill: '#171211', top: '#3a2c28' },
+      pipe: { light: '#c9b39b', dark: '#8a7763', shine: 'rgba(255,255,255,.22)' }, lum: 'dark',  motif: 'stalac'   }
+  ];
+
+  // 5 bird colors {body, accent (belly/cheek), beak}. Shape & color are chosen independently.
+  var PALETTE = [
+    { id: 'sunflower', body: '#ffd43b', accent: '#fff3bf', beak: '#ff8c42', lum: 'light' },
+    { id: 'coral',     body: '#ff6b6b', accent: '#ffd8d8', beak: '#d6336c', lum: 'mid'   },
+    { id: 'sky-blue',  body: '#4dabf7', accent: '#d0ebff', beak: '#1971c2', lum: 'mid'   },
+    { id: 'mint',      body: '#51cf66', accent: '#d3f9d8', beak: '#2f9e44', lum: 'mid'   },
+    { id: 'grape',     body: '#cc5de8', accent: '#f3d9fa', beak: '#9c36b5', lum: 'mid'   }
+  ];
+
+  var BIRD_SHAPES = ['round', 'sparrow', 'duck', 'owl'];
+
+  // Rec.601 luma in [0,1] on gamma-encoded channels — a cheap, deterministic
+  // brightness proxy for the contrast gate. Hue is carried by the art; the
+  // playability gate only needs the bird & pipes to differ in BRIGHTNESS from
+  // the sky band where they are read.
+  function hexLuma(hex) {
+    var h = hex.charAt(0) === '#' ? hex.slice(1) : hex;
+    var r = parseInt(h.slice(0, 2), 16);
+    var g = parseInt(h.slice(2, 4), 16);
+    var b = parseInt(h.slice(4, 6), 16);
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  }
+
+  var CONTRAST_THRESHOLD = 0.20;   // min luma delta the bird & pipes must clear vs the sky band
+
+  function themeBgLuma(i)   { return hexLuma(THEMES[i].grad[0]); }
+  function themePipeLuma(i) { var t = THEMES[i].pipe; return hexLuma(t ? t.light : DEFAULT_PIPE.light); }
+  function colorLuma(i)     { return hexLuma(PALETTE[i].body); }
+
+  // palette indices whose body luma clears the threshold against theme[bg]'s sky band.
+  function contrastSafeColors(bg) {
+    var ref = themeBgLuma(bg), out = [];
+    for (var i = 0; i < PALETTE.length; i++) {
+      if (Math.abs(ref - colorLuma(i)) >= CONTRAST_THRESHOLD) out.push(i);
+    }
+    return out;
+  }
+
+  // pure + seedable -> {bg, bird, color} integer indices.
+  //  bg    != prevBg (D3 — never an immediate background repeat)
+  //  color  = a contrast-safe palette index for bg (D2)
+  //  bird   = any of the 4 shapes (free)
+  function pickVariants(seed, prevBg) {
+    var rng = makeRng(seed);
+    var n = THEMES.length, bg;
+    if (prevBg === null || prevBg === undefined) {
+      bg = Math.floor(rng() * n) % n;
+    } else {
+      var k = Math.floor(rng() * (n - 1));   // choose among the other n-1 themes
+      bg = (k < prevBg) ? k : k + 1;          // skip prevBg
+    }
+    var safe = contrastSafeColors(bg);
+    var color = safe[Math.floor(rng() * safe.length) % safe.length];
+    var bird = Math.floor(rng() * BIRD_SHAPES.length) % BIRD_SHAPES.length;
+    return { bg: bg, bird: bird, color: color };
+  }
+
   root.FlappyEngine = {
     createState: createState,
     difficultyParams: difficultyParams,
@@ -316,7 +417,20 @@
     spawnPipe: spawnPipe,
     collides: collides,
     makeRng: makeRng,
-    constants: { PIPE_W: PIPE_W, BIRD_R: BIRD_R, GROUND_H: GROUND_H }
+    THEMES: THEMES,
+    PALETTE: PALETTE,
+    BIRD_SHAPES: BIRD_SHAPES,
+    DEFAULT_PIPE: DEFAULT_PIPE,
+    pickVariants: pickVariants,
+    contrast: {
+      THRESHOLD: CONTRAST_THRESHOLD,
+      luma: hexLuma,
+      themeBg: themeBgLuma,
+      themePipe: themePipeLuma,
+      color: colorLuma,
+      safeColors: contrastSafeColors
+    },
+    constants: { PIPE_W: PIPE_W, BIRD_R: BIRD_R, GROUND_H: GROUND_H, CONTRAST_THRESHOLD: CONTRAST_THRESHOLD }
   };
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -351,10 +465,19 @@ if (typeof document !== 'undefined') (function () {
   var STEP = 1 / 120;      // fixed-timestep (seconds)
   var birdFlap = 0;        // wing-flap animation phase (render only)
   var bobT = 0;            // ready-state hover bob (render only)
+  var motifT = 0;          // slow render clock for subtle parallax motifs (render only)
+
+  // active per-game visuals (set by pickVariants at newGame); sky preview is the default.
+  var THEMES = E.THEMES, PALETTE = E.PALETTE, BIRD_SHAPES = E.BIRD_SHAPES, DEFAULT_PIPE = E.DEFAULT_PIPE;
+  var activeBg = 0, activeBird = 0, activeColor = E.contrast.safeColors(0)[0];
+  var prevBgIndex = 0;     // sky is the ready-preview; the first game re-rolls a different bg
 
   function announce(msg) { live.textContent = msg; }
 
   function newGame() {
+    // re-roll a fresh, contrast-safe, non-repeating set of visuals for this game
+    var v = E.pickVariants((Math.floor(Math.random() * 0xffffffff)) >>> 0, prevBgIndex);
+    activeBg = v.bg; activeBird = v.bird; activeColor = v.color; prevBgIndex = v.bg;
     state = E.createState({ width: W, height: H, difficulty: difficulty, seed: null, best: sessionBest });
     paused = false;
     acc = 0; lastT = 0;
@@ -446,7 +569,7 @@ if (typeof document !== 'undefined') (function () {
       acc += frame;
       while (acc >= STEP) { E.step(state, STEP); acc -= STEP; if (state.status === 'over') break; }
     }
-    bobT += frame; birdFlap = Math.max(0, birdFlap - frame * 3);
+    bobT += frame; motifT += frame; birdFlap = Math.max(0, birdFlap - frame * 3);
     syncHud();
     draw();
 
@@ -458,21 +581,24 @@ if (typeof document !== 'undefined') (function () {
   function draw() {
     if (!state) return;
     var gy = state.groundY;
-    // sky gradient
+    var th = THEMES[activeBg];
+
+    // sky gradient (per-theme)
     var g = ctx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, '#4ec0ca'); g.addColorStop(1, '#8fe0e6');
+    g.addColorStop(0, th.grad[0]); g.addColorStop(1, th.grad[1]);
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
 
-    // pipes
+    // subtle background motif (behind pipes)
+    drawMotif(th.motif, gy);
+
+    // pipes (per-theme tint, else default green)
+    var pipe = th.pipe || DEFAULT_PIPE;
     for (var i = 0; i < state.pipes.length; i++) {
-      drawPipe(state.pipes[i], gy);
+      drawPipe(state.pipes[i], gy, pipe);
     }
 
-    // ground
-    ctx.fillStyle = '#ded895'; ctx.fillRect(0, gy, W, H - gy);
-    ctx.fillStyle = '#c4ba6a'; ctx.fillRect(0, gy, W, 10);
-    ctx.fillStyle = 'rgba(0,0,0,.08)';
-    for (var x = 0; x < W; x += 24) ctx.fillRect(x, gy + 12, 12, 6);
+    // ground (per-theme)
+    drawGround(th.ground, gy);
 
     // bird
     drawBird();
@@ -487,47 +613,161 @@ if (typeof document !== 'undefined') (function () {
     }
   }
 
-  function drawPipe(p, gy) {
+  function drawPipe(p, gy, pipe) {
     var topH = p.gapY, lowY = p.gapY + p.gapH;
-    ctx.fillStyle = '#5bbf3a';
+    ctx.fillStyle = pipe.light;
     ctx.fillRect(p.x, 0, PIPE_W, topH);
     ctx.fillRect(p.x, lowY, PIPE_W, gy - lowY);
     // lips
-    ctx.fillStyle = '#3f8f27';
+    ctx.fillStyle = pipe.dark;
     ctx.fillRect(p.x - 3, topH - 16, PIPE_W + 6, 16);
     ctx.fillRect(p.x - 3, lowY, PIPE_W + 6, 16);
     // highlight stripe (shape cue, not color-alone)
-    ctx.fillStyle = 'rgba(255,255,255,.22)';
+    ctx.fillStyle = pipe.shine;
     ctx.fillRect(p.x + 6, 0, 6, topH);
     ctx.fillRect(p.x + 6, lowY, 6, gy - lowY);
   }
 
+  function drawGround(gnd, gy) {
+    ctx.fillStyle = gnd.fill; ctx.fillRect(0, gy, W, H - gy);
+    ctx.fillStyle = gnd.top;  ctx.fillRect(0, gy, W, gnd.platform ? 4 : 10);
+    if (!gnd.platform) {
+      ctx.fillStyle = 'rgba(0,0,0,.08)';
+      for (var x = 0; x < W; x += 24) ctx.fillRect(x, gy + 12, 12, 6);
+    }
+  }
+
+  /* -- background motifs: cheap, subtle, deterministic (render only) -------- */
+  function cloud(x, y, r) {
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.arc(x + r, y + 4, r * 0.8, 0, Math.PI * 2);
+    ctx.arc(x - r * 0.9, y + 5, r * 0.7, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  function hill(baseX, gy, rw, peakY) {
+    ctx.beginPath(); ctx.moveTo(baseX - rw, gy);
+    ctx.quadraticCurveTo(baseX, peakY, baseX + rw, gy); ctx.closePath(); ctx.fill();
+  }
+  function drawMotif(motif, gy) {
+    var t = motifT;
+    ctx.save();
+    if (motif === 'clouds') {
+      ctx.fillStyle = 'rgba(255,255,255,.55)';
+      for (var i = 0; i < 3; i++) cloud(((i * 150 + t * 12) % (W + 120)) - 60, 70 + i * 60, 26 + i * 4);
+    } else if (motif === 'bubbles') {
+      ctx.fillStyle = 'rgba(255,255,255,.30)';
+      for (var i = 0; i < 10; i++) {
+        var by = gy - ((t * 20 + i * 61) % gy);
+        ctx.beginPath(); ctx.arc((i * 53) % W, by, 3 + (i % 3), 0, Math.PI * 2); ctx.fill();
+      }
+    } else if (motif === 'stars') {
+      for (var i = 0; i < 46; i++) {
+        var tw = 0.5 + 0.5 * Math.sin(t * 2 + i);
+        ctx.fillStyle = 'rgba(255,255,255,' + (0.3 + 0.5 * tw).toFixed(3) + ')';
+        ctx.fillRect((i * 73 + 13) % W, (i * 129 + 7) % (gy - 20), 2, 2);
+      }
+    } else if (motif === 'sunhills') {
+      ctx.fillStyle = 'rgba(255,241,200,.9)';
+      ctx.beginPath(); ctx.arc(W * 0.72, 96, 34, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(120,70,80,.32)';
+      hill(0, gy, 140, gy - 120); hill(W, gy, 150, gy - 90);
+    } else if (motif === 'skyline') {
+      for (var i = 0; i < 7; i++) {
+        var bx = i * 52 - ((t * 4) % 52), bw = 36, bh = 120 + ((i * 53) % 120);
+        ctx.fillStyle = 'rgba(8,11,22,.85)';
+        ctx.fillRect(bx, gy - bh, bw, bh);
+        ctx.fillStyle = 'rgba(255,214,120,.6)';
+        for (var wy = gy - bh + 10; wy < gy - 12; wy += 18)
+          for (var wx = bx + 6; wx < bx + bw - 6; wx += 12)
+            if ((wx + wy + i) % 3 === 0) ctx.fillRect(wx, wy, 4, 6);
+      }
+    } else if (motif === 'hills') {
+      ctx.fillStyle = 'rgba(60,110,40,.38)'; hill(0, gy, 200, gy - 150);
+      ctx.fillStyle = 'rgba(40,80,28,.42)'; hill(W, gy, 220, gy - 110);
+    } else if (motif === 'stalac') {
+      ctx.fillStyle = 'rgba(40,30,28,.6)';
+      for (var i = 0; i < 8; i++) {
+        var sx = i * 46 + 10, h = 30 + ((i * 37) % 70);
+        ctx.beginPath(); ctx.moveTo(sx, 0); ctx.lineTo(sx + 14, 0); ctx.lineTo(sx + 7, h); ctx.closePath(); ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+
+  /* -- bird: one of 4 procedural silhouettes, painted in the active palette -- */
+  function wing(col) {
+    ctx.fillStyle = col.beak;
+    var wy = -2 + (birdFlap > 0.5 ? -5 : 4);
+    ctx.beginPath(); ctx.ellipse(-3, wy, 7, 4, -0.3, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  }
+  function eye(ex, ey) {
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(ex, ey, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#1e2330'; ctx.beginPath(); ctx.arc(ex + 1.5, ey, 2, 0, Math.PI * 2); ctx.fill();
+  }
+  function drawRound(b, col) {
+    ctx.fillStyle = col.body;
+    ctx.beginPath(); ctx.arc(0, 0, b.r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = col.accent;
+    ctx.beginPath(); ctx.arc(-2, 4, b.r * 0.55, 0, Math.PI * 2); ctx.fill();
+    wing(col); eye(6, -4);
+    ctx.fillStyle = col.beak;
+    ctx.beginPath(); ctx.moveTo(b.r - 2, -1); ctx.lineTo(b.r + 7, 2); ctx.lineTo(b.r - 2, 5); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+  }
+  function drawSparrow(b, col) {
+    ctx.fillStyle = col.body;
+    ctx.beginPath(); ctx.ellipse(0, 0, b.r, b.r * 0.78, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    // pointed tail
+    ctx.beginPath(); ctx.moveTo(-b.r + 2, -2); ctx.lineTo(-b.r - 8, -5); ctx.lineTo(-b.r - 8, 3); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = col.accent;
+    ctx.beginPath(); ctx.ellipse(-1, 4, b.r * 0.5, b.r * 0.4, 0, 0, Math.PI * 2); ctx.fill();
+    wing(col); eye(6, -3);
+    // long pointed beak
+    ctx.fillStyle = col.beak;
+    ctx.beginPath(); ctx.moveTo(b.r - 3, -1); ctx.lineTo(b.r + 10, 1.5); ctx.lineTo(b.r - 3, 4); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+  }
+  function drawDuck(b, col) {
+    ctx.fillStyle = col.body;
+    ctx.beginPath(); ctx.ellipse(0, 1, b.r * 1.15, b.r * 0.92, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = col.accent;
+    ctx.beginPath(); ctx.ellipse(-1, 5, b.r * 0.6, b.r * 0.45, 0, 0, Math.PI * 2); ctx.fill();
+    wing(col); eye(6, -4);
+    // broad flat bill
+    ctx.fillStyle = col.beak;
+    ctx.beginPath(); ctx.ellipse(b.r + 3, 2, 7, 3.4, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  }
+  function drawOwl(b, col) {
+    ctx.fillStyle = col.body;
+    ctx.beginPath(); ctx.arc(0, 0, b.r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    // ear tufts
+    ctx.beginPath(); ctx.moveTo(-b.r * 0.7, -b.r * 0.6); ctx.lineTo(-b.r * 0.3, -b.r * 1.2); ctx.lineTo(-b.r * 0.1, -b.r * 0.7); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(b.r * 0.1, -b.r * 0.7); ctx.lineTo(b.r * 0.3, -b.r * 1.2); ctx.lineTo(b.r * 0.7, -b.r * 0.6); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = col.accent;
+    ctx.beginPath(); ctx.arc(0, 4, b.r * 0.6, 0, Math.PI * 2); ctx.fill();
+    wing(col);
+    // two big eyes
+    eye(-3, -3); eye(7, -3);
+    // small hooked beak between the eyes
+    ctx.fillStyle = col.beak;
+    ctx.beginPath(); ctx.moveTo(2, 0); ctx.lineTo(6, 2); ctx.lineTo(2, 4); ctx.closePath(); ctx.fill(); ctx.stroke();
+  }
   function drawBird() {
-    var b = state.bird;
+    var b = state.bird, col = PALETTE[activeColor];
     ctx.save();
     ctx.translate(b.x, b.y);
     var ang = Math.max(-0.5, Math.min(1.1, b.vy / 520));
     ctx.rotate(ang);
-    // body
-    ctx.fillStyle = '#ffd43b';
     ctx.strokeStyle = '#1e2330'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(0, 0, b.r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    // belly
-    ctx.fillStyle = '#fff3bf';
-    ctx.beginPath(); ctx.arc(-2, 4, b.r * 0.55, 0, Math.PI * 2); ctx.fill();
-    // wing (flap phase)
-    ctx.fillStyle = '#f59f00';
-    var wy = -2 + (birdFlap > 0.5 ? -5 : 4);
-    ctx.beginPath(); ctx.ellipse(-3, wy, 7, 4, -0.3, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    // eye
-    ctx.fillStyle = '#fff';
-    ctx.beginPath(); ctx.arc(6, -4, 4, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#1e2330';
-    ctx.beginPath(); ctx.arc(7.5, -4, 2, 0, Math.PI * 2); ctx.fill();
-    // beak
-    ctx.fillStyle = '#ff8c42';
-    ctx.beginPath(); ctx.moveTo(b.r - 2, -1); ctx.lineTo(b.r + 7, 2); ctx.lineTo(b.r - 2, 5); ctx.closePath();
-    ctx.fill(); ctx.stroke();
+    var shape = BIRD_SHAPES[activeBird];
+    if (shape === 'sparrow') drawSparrow(b, col);
+    else if (shape === 'duck') drawDuck(b, col);
+    else if (shape === 'owl') drawOwl(b, col);
+    else drawRound(b, col);
     ctx.restore();
   }
 
@@ -580,6 +820,11 @@ if (typeof document !== 'undefined') (function () {
     newGame: function (opts) {
       opts = opts || {};
       if (opts.difficulty) setDifficulty(opts.difficulty);
+      // deterministic variant pick so the e2e can pin a specific theme/bird/color
+      var prev = (opts.prevBg === undefined ? prevBgIndex : opts.prevBg);
+      var vseed = (opts.seed === undefined ? ((Math.floor(Math.random() * 0xffffffff)) >>> 0) : opts.seed);
+      var v = E.pickVariants(vseed, prev);
+      activeBg = v.bg; activeBird = v.bird; activeColor = v.color; prevBgIndex = v.bg;
       state = E.createState({ width: W, height: H, difficulty: difficulty, seed: (opts.seed === undefined ? null : opts.seed), best: sessionBest });
       paused = false; acc = 0; lastT = 0;
       startOv.classList.remove('show'); overOv.classList.remove('show'); pauseOv.classList.remove('show');
@@ -612,7 +857,10 @@ if (typeof document !== 'undefined') (function () {
       status: state.status, score: state.score, best: state.best,
       birdY: state.bird.y, birdVY: state.bird.vy, birdX: state.bird.x,
       pipes: state.pipes.length, difficulty: difficulty,
-      params: state.params, groundY: state.groundY, sessionBest: sessionBest
+      params: state.params, groundY: state.groundY, sessionBest: sessionBest,
+      bg: activeBg, bird: activeBird, color: activeColor,
+      themeId: THEMES[activeBg].id, birdId: BIRD_SHAPES[activeBird], colorId: PALETTE[activeColor].id,
+      pipeList: state.pipes.map(function (p) { return { x: p.x, gapY: p.gapY, gapH: p.gapH }; })
     };
   }
 })();
