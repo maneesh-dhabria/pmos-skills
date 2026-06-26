@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>/learn-list curated-references corpus hygiene — epic design (260626-j5k)</title>
+<style>
+  :root{--ink:#1a1a1a;--muted:#5a5a5a;--line:#e2e2e2;--accent:#0b6e4f;--bg:#fff;--code:#f6f8fa;--warn:#b4690e}
+  *{box-sizing:border-box}
+  body{font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);margin:0;padding:2rem 1.25rem;max-width:60rem;margin-inline:auto}
+  h1{font-size:1.8rem;line-height:1.2;margin:0 0 .25rem}
+  h2{font-size:1.3rem;margin:2.4rem 0 .6rem;padding-top:.4rem;border-top:2px solid var(--line)}
+  h3{font-size:1.05rem;margin:1.4rem 0 .4rem;color:var(--accent)}
+  .sub{color:var(--muted);margin:0 0 1.5rem}
+  table{border-collapse:collapse;width:100%;margin:.8rem 0;font-size:.92rem}
+  th,td{border:1px solid var(--line);padding:.45rem .6rem;text-align:left;vertical-align:top}
+  th{background:var(--code);font-weight:600}
+  code{background:var(--code);padding:.1rem .35rem;border-radius:4px;font-size:.88em}
+  .d{scroll-margin-top:1rem}
+  .pill{display:inline-block;font-size:.72rem;font-weight:700;padding:.1rem .5rem;border-radius:999px;background:var(--accent);color:#fff;vertical-align:middle}
+  .storyA{background:#0b6e4f}.storyB{background:#1d4ed8}
+  ul{margin:.4rem 0 .8rem;padding-left:1.3rem}
+  li{margin:.2rem 0}
+  blockquote{margin:.6rem 0;padding:.5rem .9rem;border-left:3px solid var(--accent);background:var(--code);color:var(--muted)}
+  .meta{font-size:.85rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<h1>/learn-list curated-references corpus hygiene</h1>
+<p class="sub">Epic <code>260626-j5k</code> · route: skill · plugin: pmos-learnkit · two deliverables (title backfill → tag vocabulary). The cross-skill coherence contract the stories cite by anchor.</p>
+
+<p class="meta">This is the epic <strong>design_doc</strong> (the <code>route: skill</code> analogue of a <code>/spec</code>): it names the cross-cutting invariants and shared-substrate shape that the per-story plans must honour. Per-skill implementation detail lives in each story's <code>/plan</code>, not here.</p>
+
+<h2 id="problem">1. Problem</h2>
+<p>The shipped reference corpus <code>plugins/pmos-learnkit/skills/_shared/topic-research/curated-references.json</code> (1,817 records) backs <code>/learn-list browse</code> and the <code>/primer</code> library viewer, and feeds the IDF prefilter (<code>curated-references-match.mjs</code>) both skills consume. It was imported once, verbatim, from a Notion spike YAML via <code>import-curated-references.mjs</code>, which only scrubs PII and drops dead (404) pages — it never re-fetched titles or normalized tags. Two end-user-facing quality defects result, both confirmed by measurement on 2026-06-26:</p>
+<ul>
+  <li><strong>Junk titles — 611 / 1,817 (34%).</strong> The display label is a non-title: 305 empty, 179 <code>"Just a moment..."</code> (Cloudflare), 98 <code>"Amazon.com"</code>, 11 <code>"403 Forbidden"</code>, 10 <code>"429 Too Many Requests"</code>, 8 WAF pages. 54% of these still carry a real grounded <code>summary</code> — only the title is broken.</li>
+  <li><strong>Tag sprawl — 511 distinct tags.</strong> 57% appear ≤2 times, 42% exactly once; only ~99 appear ≥10 times. The browse-viewer facet list is unusable at this width, and brand/company tags (amazon, netflix, openai, anthropic, claude, figma, kafka, redis, kubernetes…) add noise without topic value.</li>
+</ul>
+<p>Proven feasible (2026-06-26): a read-only headless-Chromium (Playwright) prototype recovered real titles for 45/50 sampled junk records — <strong>90% reachable, 70% clean on first pass</strong> — with every miss traced to a known, addressable cause. Body content comes back too, so ungrounded summaries can be re-fetched in the same pass.</p>
+
+<h2 id="feedback-map">2. Defect → fix map</h2>
+<table>
+  <thead><tr><th>Observed defect</th><th>Evidence (2026-06-26 measurement)</th><th>Fix</th><th>Story</th></tr></thead>
+  <tbody>
+    <tr><td>Error-page / empty titles shown in browse viewer</td><td>611/1817 junk titles across 6 categories</td><td>Headless-Chromium backfill recovering og:title→document.title→h1, redirect-following</td><td><span class="pill storyA">af6</span></td></tr>
+    <tr><td>Ungrounded summaries (<code>summary_grounded:false</code>) ship as weak</td><td>auth-walled / bot-blocked records kept as WEAK at import</td><td>Re-summarize from recovered body content in the same pass; flip to grounded only on a real summary</td><td><span class="pill storyA">af6</span></td></tr>
+    <tr><td>Dead pages shipped with an error label</td><td>e.g. <code>"Deployment Paused"</code> (dead Vercel), hard 404</td><td>Drop genuinely-dead records, never re-ship with an error-page title</td><td><span class="pill storyA">af6</span></td></tr>
+    <tr><td>Unusable facet list width</td><td>511 distinct tags; 290 (57%) appear ≤2×</td><td>Closed ~120-tag vocabulary as data; long tail mapped or dropped</td><td><span class="pill storyB">ex8</span></td></tr>
+    <tr><td>Synonym / plural / spelling drift</td><td>startup(s), a/b-testing×3, system(s)-design, prioriti[sz]ation, api(s), llm(s)…</td><td>Synonym→canonical map applied at import time</td><td><span class="pill storyB">ex8</span></td></tr>
+    <tr><td>Brand/company tags pollute topic facets</td><td>20 brand tags (amazon, netflix, openai, figma, kafka…)</td><td>Drop or fold into a topic tag</td><td><span class="pill storyB">ex8</span></td></tr>
+  </tbody>
+</table>
+
+<h2 id="decisions">3. Decisions</h2>
+
+<h3 class="d" id="d1">D1 — Playwright is a build-time tool, never a runtime skill dependency</h3>
+<p>The backfill runs offline at corpus-refresh time (like <code>import-curated-references.mjs</code>), not when a user invokes <code>/learn-list</code> or <code>/primer</code>. The shipped artifact is the cleaned JSON; the recovery script is tooling. This preserves the learnkit zero-runtime-dependency posture (the skills stay offline, no-network, no-account). Chromium is resolved from the already-installed Playwright cache; the script degrades with a clear error if absent rather than adding an npm dependency to the plugin.</p>
+
+<h3 class="d" id="d2">D2 — The tag vocabulary lives as reviewable data, not buried in script logic</h3>
+<p>The closed vocabulary and the synonym→canonical map are authored as data files under the topic-research substrate (e.g. <code>tag-vocabulary.json</code> + <code>tag-synonyms.json</code>), so a maintainer tunes the taxonomy without editing code. <code>import-curated-references.mjs</code> (or a tag-normalize step it calls) reads them and is the single enforcement point. One fact, one home (CLAUDE.md §K).</p>
+
+<h3 class="d" id="d3">D3 — Normalize at import time, not as a one-shot mutation of the shipped JSON</h3>
+<p>Both fixes are wired into the <strong>generation path</strong> so a future corpus refresh stays clean — the corpus is never hand-edited. Backfill is a pre-pass that feeds cleaned records into the importer; tag normalization is a transform inside the importer. Re-running the importer over a fresh spike export reproduces a clean corpus deterministically.</p>
+
+<h3 class="d" id="d4">D4 — Story order af6 → ex8 (backfill before tag-vocab)</h3>
+<p><code>ex8</code> declares a dependency on <code>af6</code>. The backfill (<code>af6</code>) re-summarizes ungrounded records; those re-summaries must be re-tagged under the new closed vocabulary (<code>ex8</code>) in one generation rather than tagged twice. Running tag-vocab first would re-tag stale summaries that the backfill then overwrites. The picker orders <code>af6</code> first via the dependency.</p>
+
+<h3 class="d" id="d5">D5 — Recovery precedence, real-browser escalation, and the "still-junk" guard</h3>
+<p>Title recovery precedence is <code>og:title</code> → a clean <code>document.title</code> → first <code>&lt;h1&gt;</code>, following redirects to the canonical URL (the prototype found Substack/Technically redirecting to canonical hosts). A recovered value that is itself junk — host-only like <code>medium.com</code>, an error string, or &lt;5 chars — does <strong>not</strong> overwrite. Instead the record <strong>escalates</strong>:</p>
+<ol>
+  <li>Headless fetch with a real UA + <code>networkidle</code> settle (the prototype default).</li>
+  <li>On a junk/host-only/error result, one cooldown-retry (clears most Cloudflare JS challenges, which the 2.5s prototype wait was too short for).</li>
+  <li>Still junk → <strong>escalate to a real (non-headless) Playwright browser context</strong> — the same path the interactive Playwright MCP took when it successfully recovered <em>"The Principles of Product Development Flow — Donald G. Reinertsen"</em> from a page that headless returned as <code>"Amazon.com"</code>. Per maintainer decision (2026-06-26), this real-browser escalation is applied to <strong>generic/error titles like <code>Amazon.com</code> too</strong>, not just empty ones — we try to fetch the genuine title before any fallback.</li>
+  <li>Only if the real browser also fails does the URL-slug heuristic act as a last-resort title source (Amazon book slugs are close to the title); a slug-derived title is marked so it can be audited.</li>
+</ol>
+<p>No fix silently swaps one junk label for another, and no record is dropped merely because the <em>first</em> (headless) attempt failed — the live-fetch evidence used by D6 is the result <em>after</em> this escalation ladder.</p>
+
+<h3 class="d" id="d6">D6 — Conservative drop policy: only confirmed-dead, after full Playwright escalation</h3>
+<p>Per maintainer decision (2026-06-26), the drop is <strong>conservative</strong>: a record is removed <strong>only</strong> when the live fetch — <em>after</em> the full D5 escalation ladder including the real-browser attempt — confirms the page is genuinely gone (hard 404, dead domain, <code>"Deployment Paused"</code>). A record that merely resisted a headless title fetch but is alive is <strong>kept</strong> with its recovered (real-browser or slug) title; it is never dropped for being hard to fetch, and never re-shipped with an error-page label. This extends the importer's existing DEAD policy (<code>#junk-policy</code>) from title/summary-text detection to post-escalation live-fetch evidence. The before/after record count, the drop list, and any slug-fallback titles are reported by the backfill so every deletion and fallback is auditable.</p>
+
+<h3 class="d" id="d7">D7 — Final tag count target ~100–150; nothing outside the closed vocabulary ships</h3>
+<p>Every shipped tag must be a member of the closed vocabulary. Unknown tags after normalization are reported and gated (a non-zero unknown count is a build-time failure, not a silent pass), so the taxonomy cannot silently re-sprawl on the next refresh.</p>
+
+<h2 id="constraints">4. Constraints (cross-cutting invariants every story honours)</h2>
+<ul>
+  <li><strong>C1 — PII gate stays GREEN.</strong> The T1 PII scrub gate (<code>tests/test_pii_scrub_gate.sh</code>) must pass over the regenerated corpus. Recovered titles/summaries are scrubbed by the same gate before shipping.</li>
+  <li><strong>C2 — Browse viewers stay correct.</strong> <code>/learn-list browse</code> and the <code>/primer</code> library viewer (both built on <code>_shared/library-viewer/</code>) must render the regenerated corpus with no regression; facet filters must reflect the new tag set.</li>
+  <li><strong>C3 — IDF prefilter stays functional.</strong> <code>curated-references-match.mjs</code> derives tag IDF weights from the corpus; collapsing 511→~120 tags changes those weights. The prefilter must still function (re-check after re-tag; a ubiquitous tag with IDF≤0 must not break matching).</li>
+  <li><strong>C4 — Schema unchanged.</strong> The 7-field record shape (<code>url,title,source_type,publication_date,tags,summary,summary_grounded</code>) and the <code>ref_&lt;sha256(url)&gt;</code> id derivation are preserved. Backfill may change <code>title</code>/<code>summary</code>/<code>summary_grounded</code> values and drop records; it never adds fields. A title/URL change that re-canonicalizes the URL re-mints the id (id is <code>sha256(url)</code>) — consumers key on id, so the re-mint must be deterministic and reported.</li>
+  <li><strong>C5 — Skill conformance.</strong> Any touched SKILL.md conforms to <code>skill-patterns.md §A–§L</code> and passes <code>skill-eval.md</code>. Most of this epic is substrate + tooling under <code>_shared/topic-research/</code>, not SKILL.md prose — the eval surface is small but non-zero (the <code>--no-curated</code> / coverage notes in <code>/learn-list</code> and <code>/primer</code> must stay accurate).</li>
+</ul>
+
+<h2 id="stories">5. Story split</h2>
+<p>Default 1-deliverable-1-story; the two deliverables are independently shippable and independently verifiable (each regenerates and re-validates the corpus), so they stay separate stories with an ordering dependency rather than fusing.</p>
+<table>
+  <thead><tr><th>Story</th><th>Scope</th><th>Deps</th><th>route</th></tr></thead>
+  <tbody>
+    <tr><td><code>260626-af6</code> <span class="pill storyA">A</span></td><td>Playwright title + content backfill: recover titles for 611 junk records, re-summarize ungrounded, drop dead pages, wire into the generation path</td><td>—</td><td>skill</td></tr>
+    <tr><td><code>260626-ex8</code> <span class="pill storyB">B</span></td><td>Closed tag vocabulary + synonym normalization: ~120-tag vocab as data, synonym map, drop brand tags, apply at import time</td><td><code>af6</code></td><td>skill</td></tr>
+  </tbody>
+</table>
+<p class="meta">Both touch the same substrate (<code>_shared/topic-research/</code>) and both regenerate the corpus, so they build sequentially (B after A's cleaned corpus exists). Single-plugin (pmos-learnkit) — D17 satisfied.</p>
+
+<h2 id="acceptance">6. Epic acceptance surface</h2>
+<ul>
+  <li>Junk-title rate drops from 34% toward &lt;5%; remaining genuinely-dead pages dropped, not shipped with an error label (af6).</li>
+  <li>Tag count collapses 511 → ~100–150; every shipped tag is in the closed vocabulary; synonym/plural/brand variants eliminated (ex8).</li>
+  <li>Normalization applied at import time so a refresh stays clean (af6 + ex8).</li>
+  <li>C1–C5 hold: PII gate green, browse viewers + IDF prefilter correct, schema unchanged, skill conformance.</li>
+</ul>
+
+<!-- pmos-comments:start -->
+<script id="pmos-comments" type="application/json">{"version":1,"threads":[]}</script>
+<!-- pmos-comments:end -->
+</body>
+</html>
