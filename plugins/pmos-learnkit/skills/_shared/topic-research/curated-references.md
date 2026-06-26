@@ -17,6 +17,25 @@ something the substrate owner ships or doesn't.
 
 A run also skips the overlay when the caller suppresses it — see "Suppression" below.
 
+## How the corpus is generated (D3 pipeline)
+
+The shipped `curated-references.json` is produced by a two-step, re-runnable pre-pass —
+not edited by hand. A refresh from a fresh export is always **import → backfill**:
+
+1. **Import** (`scripts/import-curated-references.mjs`) scrubs the raw export into the
+   7-field PII-safe shape with content-derived ids — titles/summaries verbatim from the
+   crawl, dead pages excluded.
+2. **Backfill** (`scripts/backfill-titles.mjs`) recovers real titles for junk-title
+   records (bot-wall / error / host-only) and re-summarizes ungrounded ones over a
+   throttled headless-Chromium pass (Playwright is a **build-time tool only** — never a
+   runtime dependency of any skill that inlines this file). It is idempotent: only
+   records still carrying a junk title or an ungrounded summary are re-touched, and a
+   confirmed-dead page (rendered 404 after the full escalation ladder) is dropped. ids
+   re-mint when a record's canonical URL changes; the run report lists every remint.
+
+This generation pipeline is invisible to the overlay at runtime — consumers read only the
+finished corpus. See the script headers for the D5/D6/D8/D9 recovery contract.
+
 ## Contents
 
 - When this runs (present-only)

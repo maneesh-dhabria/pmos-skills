@@ -7,7 +7,7 @@
 // without a browser. No network, no Date, no Math.random.
 
 import {
-  isJunk, stillJunk, host, isTweetHost, refId, slugTitle, canonicalForFetch,
+  isJunk, stillJunk, host, isTweetHost, refId, slugTitle, canonicalForFetch, dedupeById,
 } from '../scripts/backfill-titles.mjs';
 
 let pass = 0, fail = 0;
@@ -70,6 +70,28 @@ eq(canonicalForFetch('https://www.amazon.com/gp/product/B00SM8MMJO?ref=foo'),
   'amazon /gp/product canonical preserved, query dropped');
 eq(canonicalForFetch('https://example.com/a/b?x=1'), 'https://example.com/a/b?x=1',
   'non-amazon URL is returned unchanged (redirects followed by the browser)');
+
+// --- dedupe by canonical id (two source urls canonicalize onto one id) -------
+{
+  // Same id (same url after canonicalization) → collapse to one; grounded wins.
+  const a = { id: 'ref_x', url: 'https://www.amazon.com/dp/B1', title: 'Book', summary: '', summary_grounded: false };
+  const b = { id: 'ref_x', url: 'https://www.amazon.com/dp/B1', title: 'Book', summary: 'A real grounded blurb that is long.', summary_grounded: true };
+  const { records, collapsed } = dedupeById([a, b]);
+  eq(records.length, 1, 'duplicate id collapses to a single record');
+  ok(records[0].summary_grounded, 'grounded record wins the collision');
+  eq(collapsed.length, 1, 'one collapse is reported');
+  eq(collapsed[0].dropped, 1, 'collapse reports one dropped duplicate');
+}
+{
+  // Distinct ids are untouched; order-independent count.
+  const recs = [
+    { id: 'ref_a', url: 'u/a', title: 'A', summary: '', summary_grounded: false },
+    { id: 'ref_b', url: 'u/b', title: 'B', summary: '', summary_grounded: false },
+  ];
+  const { records, collapsed } = dedupeById(recs);
+  eq(records.length, 2, 'distinct ids are preserved');
+  eq(collapsed.length, 0, 'no collapse when ids are unique');
+}
 
 console.log(`\nbackfill_titles_unit: ${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);

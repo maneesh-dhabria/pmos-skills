@@ -13,6 +13,17 @@
 // Both args optional — defaults below. After running, the T1 PII scrub gate
 // (tests/test_pii_scrub_gate.sh) must pass GREEN over the produced file.
 //
+// GENERATION PIPELINE (D3, story 260626-af6). This importer is STEP 1 — it produces the
+// scrubbed JSON verbatim from the spike (titles/summaries exactly as the Notion crawl left
+// them). STEP 2 is the title + content backfill, which recovers real titles for junk-title
+// records and re-summarizes ungrounded ones over a throttled headless-Chromium pass:
+//
+//   node .../scripts/backfill-titles.mjs .../curated-references.json   # writes back in place
+//
+// The backfill is idempotent + re-runnable (it only re-touches records still carrying a junk
+// title or an ungrounded summary), so a refresh from a new spike export is: import → backfill.
+// See scripts/backfill-titles.mjs for the D5/D6/D8/D9 recovery contract.
+//
 // What it does per record (#pii-gate):
 //   - keep ONLY {url,title,source_type,publication_date,tags,summary,summary_grounded};
 //   - re-mint id = "ref_" + sha256(url).slice(0,12)  (provably content-derived);

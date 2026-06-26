@@ -337,8 +337,33 @@ function project(rec) {
   };
 }
 
+// Collapse records that project to the same content-derived id. URL canonicalization
+// (Amazon → /dp/ASIN; tweet redirect normalization) can rewrite two distinct source urls
+// onto one canonical url; without this they would ship as duplicate id+url rows that break
+// any id-keyed consumer (the viewers, the prefilter). Deterministic winner per id:
+// grounded first, then longer summary, then longer title, then first-seen (stable).
+export function dedupeById(projected) {
+  const winner = new Map();   // id -> record
+  const collapsed = [];       // {id, url, dropped} for the report
+  const better = (a, b) => {
+    if (a.summary_grounded !== b.summary_grounded) return a.summary_grounded ? a : b;
+    if ((a.summary || '').length !== (b.summary || '').length) return (a.summary || '').length > (b.summary || '').length ? a : b;
+    if ((a.title || '').length !== (b.title || '').length) return (a.title || '').length > (b.title || '').length ? a : b;
+    return a; // stable: keep the first-seen on a full tie
+  };
+  for (const r of projected) {
+    const prev = winner.get(r.id);
+    if (!prev) { winner.set(r.id, r); continue; }
+    winner.set(r.id, better(prev, r));
+    const c = collapsed.find((x) => x.id === r.id);
+    if (c) c.dropped++; else collapsed.push({ id: r.id, url: r.url, dropped: 1 });
+  }
+  return { records: [...winner.values()], collapsed };
+}
+
 function recompute(refs) {
-  const kept = refs.map(project).sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  const { records } = dedupeById(refs.map(project));
+  const kept = records.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
   const grounded = kept.filter((r) => r.summary_grounded === true).length;
   return {
     meta: { schema_version: 1, source: 'curated-references', counts: { total: kept.length, grounded, weak: kept.length - grounded } },
@@ -442,17 +467,22 @@ export async function backfill(opts) {
   writeCorpus();
 
   const kept = [...byId.values()].filter((r) => !drops.has(r.id));
-  const after = junkBreakdown(kept);
+  // Mirror exactly what writeCorpus persists (project → dedupe by canonical id).
+  const finalCorpus = recompute(kept);
+  const finalRefs = finalCorpus.references;
+  const { collapsed: dedupCollapsed } = dedupeById(kept.map(project));
+  const after = junkBreakdown(finalRefs);
   const tally = results.reduce((a, r) => ((a[r.status] = (a[r.status] || 0) + 1), a), {});
   const report = {
     generated_for: '260626-af6',
     corpus: opts.corpus,
-    counts: { total_before: refs.length, total_after: kept.length, dropped: drops.size },
+    counts: { total_before: refs.length, total_after: finalRefs.length, dropped: drops.size, deduped: dedupCollapsed.reduce((s, c) => s + c.dropped, 0) },
     junk_before: before, junk_after: after,
     junk_rate_before: +(100 * before.total_junk / refs.length).toFixed(2),
-    junk_rate_after: +(100 * after.total_junk / kept.length).toFixed(2),
+    junk_rate_after: +(100 * after.total_junk / finalRefs.length).toFixed(2),
     status_tally: tally,
     drop_list: [...drops],
+    dedup_collapsed: dedupCollapsed,
     slug_fallback_list: results.filter((r) => r.auditSlug && r.newTitle).map((r) => ({ id: r.id, title: r.newTitle, url: r.url })),
     rate_limited_worklist: results.filter((r) => r.rateLimited).map((r) => r.id),
     id_remints: remints,
