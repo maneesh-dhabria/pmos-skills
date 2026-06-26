@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<meta name="pmos:artifact" content="plan">
+<title>Plan — /people index removal (story 260626-5cq)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: Georgia, "Times New Roman", serif; max-width: 50rem; margin: 0 auto; padding: 2rem 1.25rem; line-height: 1.6; color: #1a1a1a; background: #fbfaf6; }
+  h1, h2, h3 { font-family: -apple-system, system-ui, sans-serif; line-height: 1.25; }
+  h1 { font-size: 1.9rem; } h2 { font-size: 1.25rem; margin-top: 2rem; border-bottom: 1px solid #ddd; padding-bottom: .3rem; }
+  code { font-family: ui-monospace, Menlo, monospace; background: #efece3; padding: .1em .35em; border-radius: 3px; font-size: .9em; }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; margin: 1rem 0; }
+  th, td { border: 1px solid #d6d2c6; padding: .45rem .6rem; text-align: left; vertical-align: top; }
+  th { background: #efece3; font-family: system-ui, sans-serif; }
+  @media (prefers-color-scheme: dark) { body { background:#1a1816; color:#e8e4da; } code, th { background:#2a2724; } th, td { border-color:#3a3530; } h2 { border-color:#3a3530; } }
+</style>
+</head>
+<body>
+<h1>Plan — <code>/people</code> index removal</h1>
+<p><strong>Story</strong> 260626-5cq · <strong>Epic</strong> 260626-8pa · <strong>Route</strong> skill ·
+<strong>Plugin</strong> pmos-toolkit · <strong>Deps</strong> 260626-psr · <strong>Spec</strong>
+<a href="../../02_design.html">02_design.html</a> (#change-people).</p>
+<p>Executable plan is <a href="tasks.yaml"><code>tasks.yaml</code></a>; this is the human-readable companion.</p>
+
+<h2 id="scope">Scope</h2>
+<p><code>/people</code> mirrors <code>/backlog</code>'s anti-pattern with an inline LLM-regenerated committed
+<code>~/.pmos/people/INDEX.md</code> (no script). Delete it, retire the rebuild-index procedure from every
+mutating handler (add/set/refine) and Phase 8, and make bare <code>/people</code> render an inline view
+derived from <code>~/.pmos/people/*.md</code> on read. This is the <strong>prerequisite for S4
+(260626-nq0)</strong>, which adds the web-default surface on top of the now-derived read path. Depends on
+260626-psr for the rewritten substrate §5.</p>
+
+<h2 id="tasks">Tasks (waves)</h2>
+<table>
+  <thead><tr><th>Task</th><th>AC</th><th>Deps</th><th>What</th></tr></thead>
+  <tbody>
+    <tr><td>T1</td><td>AC1–AC5</td><td>—</td><td>Study: design doc, people SKILL.md rebuild-index sites (:146/:218/:229) + Phase 8 (:89), schema.md (:63), fixtures.</td></tr>
+    <tr><td>T2</td><td>AC1–AC3</td><td>T1</td><td>Delete <code>people/INDEX.md</code>; retire rebuild-index from add/set/refine + Phase 8; inline derived render on read.</td></tr>
+    <tr><td>T3</td><td>AC4</td><td>T1</td><td><code>schema.md</code> INDEX format → index view format; remove <code>with-people/INDEX.md</code> fixture.</td></tr>
+    <tr><td>T4</td><td>AC1–AC5</td><td>T2, T3</td><td>Verify: skill-eval [D]+[J], 4 lints + audit, dogfood inline derived render with no INDEX + empty-state.</td></tr>
+  </tbody>
+</table>
+<p>T3 is independent of T2 once T1 lands.</p>
+
+<h2 id="risks">Risks &amp; decisions</h2>
+<ul>
+  <li><strong>No script — inline procedure.</strong> Unlike <code>/mytasks</code>, the people regeneration is
+    an inline LLM step, so removal is pure SKILL.md/schema editing; no migration is folded in (so no D6-style
+    relocation needed here).</li>
+  <li><strong>Sequencing for S4.</strong> The web viewer (260626-nq0) depends on this story because the read
+    path must already be derive-on-read before a web-default surface is layered on it.</li>
+  <li><strong>Dep ordering.</strong> Claims after 260626-psr merges so the rewritten <code>§5</code> is present.</li>
+</ul>
+
+<h2 id="verification">Final verification</h2>
+<ul>
+  <li>No <code>~/.pmos/people/INDEX.md</code>; Phase 8 retired; no handler regenerates an index.</li>
+  <li>Bare <code>/people</code> renders an inline view derived from person files; empty-state gated on absence of <code>*.md</code>.</li>
+  <li><code>schema.md</code> reworded; <code>with-people/INDEX.md</code> fixture removed.</li>
+  <li>skill-eval <code>[D]</code> exits 0 (or only pre-existing residuals); <code>[J]</code> passes; 4 lints + audit green.</li>
+  <li>Dogfood: real person files → inline derived render, no INDEX written; empty store → correct empty-state.</li>
+</ul>
+</body>
+</html>

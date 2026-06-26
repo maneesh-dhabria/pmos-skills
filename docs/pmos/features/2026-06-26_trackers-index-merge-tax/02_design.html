@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="feature-sdlc">
+  <meta name="pmos:epic" content="260626-8pa">
+  <meta name="pmos:doc-kind" content="epic-design">
+  <title>Trackers — derived index off the merge path · Epic Design (260626-8pa)</title>
+  <style>
+    :root { --ink:#1a1a1a; --muted:#666; --line:#e2e2e2; --accent:#2a5db0; --warn:#b00020; --ok:#0a7d2c; }
+    * { box-sizing:border-box; }
+    body { font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif; color:var(--ink); max-width:920px; margin:0 auto; padding:2.5rem 1.5rem 6rem; }
+    h1 { font-size:1.8rem; line-height:1.25; margin:0 0 .3rem; }
+    h2 { font-size:1.25rem; margin:2.4rem 0 .6rem; padding-top:.6rem; border-top:2px solid var(--line); }
+    h3 { font-size:1.02rem; margin:1.4rem 0 .4rem; }
+    code { background:#f4f4f4; padding:.1em .35em; border-radius:3px; font-size:.88em; }
+    pre { background:#f7f7f7; padding:.8rem 1rem; border-radius:6px; overflow-x:auto; font-size:.85em; border:1px solid var(--line); }
+    table { border-collapse:collapse; width:100%; margin:.8rem 0; font-size:.92rem; }
+    th,td { border:1px solid var(--line); padding:.45rem .6rem; text-align:left; vertical-align:top; }
+    th { background:#f4f6fa; }
+    .muted { color:var(--muted); }
+    .tag { display:inline-block; font-size:.72rem; font-weight:600; padding:.08em .5em; border-radius:10px; vertical-align:middle; }
+    .t-keep { background:#eaf6ec; color:var(--ok); }
+    .t-cut { background:#fdeaec; color:var(--warn); }
+    .lead { font-size:1.05rem; color:#333; }
+    .callout { border-left:3px solid var(--accent); background:#f5f8fd; padding:.7rem 1rem; margin:1rem 0; border-radius:0 6px 6px 0; }
+    .decision { border-left:3px solid var(--ok); background:#f4fbf6; padding:.7rem 1rem; margin:1rem 0; border-radius:0 6px 6px 0; }
+    .open { border-left:3px solid var(--warn); background:#fef7f4; padding:.7rem 1rem; margin:1rem 0; border-radius:0 6px 6px 0; }
+    a { color:var(--accent); }
+    .fr { font-weight:600; color:var(--accent); }
+    footer { margin-top:3rem; padding-top:1rem; border-top:1px solid var(--line); color:var(--muted); font-size:.85rem; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Trackers — get the derived index off the merge path</h1>
+  <p class="muted">Epic <strong>260626-8pa</strong> · route: skill · pmos-toolkit · 2026-06-26<br>
+  Cross-skill coherence contract for <code>/backlog</code>, <code>/mytasks</code>, <code>/people</code> + the shared <code>_shared/tracker-crudl.md</code> substrate.</p>
+</header>
+
+<section id="tldr">
+<h2 id="tldr">TL;DR</h2>
+<p class="lead">Each of the three trackers commits an <code>INDEX.md</code> "regenerable cache" that every mutating handler rewrites — a structural merge-conflict magnet under parallel worktrees, with a per-mutation regeneration tax, for a file no script and no human reads. <strong>Fix: stop persisting a committed index; derive the at-a-glance view on read from the record files (which is what the scripts/web layer already does). Rewrite the substrate contract so the pattern cannot reappear.</strong></p>
+<p>This is the shaped problem in <a href="../../shape/2026-06-26_backlog-index-merge-tax.html">docs/pmos/shape/2026-06-26_backlog-index-merge-tax.html</a>, widened from <code>/backlog</code>-only to all three trackers + substrate per the maintainer's scope decision.</p>
+</section>
+
+<section id="problem">
+<h2 id="problem">Problem (recap + ground truth)</h2>
+<ul>
+<li><strong>The committed cache buys nothing the merge path can't.</strong> The deterministic layer already derives everything from the record files: <code>backlog/scripts/serve-web-lib.mjs</code> globs <code>items/*.md</code>; <code>mytasks/scripts/serve.js</code> + <code>lib.js</code> load <code>items/</code>; the web viewers never read <code>INDEX.md</code>.</li>
+<li><strong>But the LLM render paths DO read the committed INDEX</strong> — and this is the real work, not just a <code>git rm</code>:
+  <ul>
+    <li><code>backlog/SKILL.md:237/243</code> — bare-<code>/backlog</code> dashboard uses INDEX's existence as the empty-state gate and prints the INDEX blob verbatim.</li>
+    <li><code>mytasks/SKILL.md:110–112</code> (Phase 1 echo) + <code>:187</code> (<code>list</code> step 1: "INDEX.md answers most filters").</li>
+    <li><code>people/SKILL.md:83–85</code> — bare-<code>/people</code> echoes INDEX verbatim.</li>
+  </ul>
+  These prose procedures must be rewritten to <em>derive-and-render from the record files</em>, exactly as the scripts already do.</li>
+<li><strong>Three regeneration mechanisms, not one.</strong> <code>/backlog</code> and <code>/people</code> regenerate via an <em>inline LLM procedure</em> (no script). <code>/mytasks</code> regenerates via a real JS function <code>scripts/lib.js → regenerateIndex()</code> that <strong>also folds an idempotent <code>workstream:</code>→<code>project:</code> frontmatter migration</strong> (Phase 12 step 0) — a load-bearing side effect to preserve elsewhere.</li>
+<li><strong>External blast radius is exactly one call.</strong> <code>feature-sdlc/SKILL.md:448</code> (the define definition-merge) runs <code>/backlog rebuild-index</code> after the docs-only merge. Its corruption guard — <code>check-id-uniqueness.mjs post-merge &lt;root&gt;/backlog/items</code> — reads <code>items/</code>, <strong>not</strong> INDEX, so the safety property survives removal. <code>/complete-dev</code> has zero INDEX references.</li>
+</ul>
+</section>
+
+<section id="invariant">
+<h2 id="invariant">The coherence contract (the invariant all stories cite)</h2>
+<div class="callout">
+<p><strong>INV-1 — No committed, mutation-rewritten derived file on the merge path.</strong> A tracker's at-a-glance index is a <em>derived view</em>, computed on read from the record files. It is never persisted as a committed artifact, never written by a mutating handler, and never a merge dependency. Staleness is impossible because nothing is stored.</p>
+<p><strong>INV-2 — Web-default view, render-on-read fallback (grill outcome).</strong> The bare command's <em>default</em> at-a-glance surface is the <strong>web viewer</strong> (which already derives from the record files). When the web viewer cannot run — <code>--non-interactive</code>, headless, no browser, no server — the bare command degrades to an <strong>inline render derived on read</strong> from the same record-file scan. Both paths derive from the record files, so terminal and web agree by construction. Empty-state = "zero record files," never "index file missing."</p>
+<p><strong>INV-3 — No static export.</strong> The committed <code>INDEX.md</code> is deleted outright; no on-demand <code>.gitignore</code>d export replaces it (grill: "retire entirely; default to web, not inline"). The view exists only as the web render (default) or the inline derived render (fallback) — never as a persisted file.</p>
+</div>
+<p>INV-1 is the load-bearing change: it lives in the substrate (<code>_shared/tracker-crudl.md</code>), so a future tracker built on the substrate inherits the merge-safe behavior by construction — "doesn't happen again."</p>
+</section>
+
+<section id="decisions">
+<h2 id="decisions">Decision log</h2>
+<table>
+<tr><th>#</th><th>Decision</th><th>Rationale / alternative rejected</th></tr>
+<tr><td>D1</td><td><strong>Eliminate the committed file entirely (grill-confirmed).</strong> No gitignored export either.</td><td>Shape framing A ("dead weight") + grill: "retire entirely." The committed file is write-only for the deterministic layer; the view is regenerated fresh on demand. <em>Alt rejected:</em> gitignore-and-keep leaves a file + regen step for no gain.</td></tr>
+<tr><td>D1b</td><td><strong>Web is the default at-a-glance surface; inline derived render is the fallback (grill).</strong></td><td>"By default open the web interface, not inline." The web viewers already derive from the record files. Inline render is retained as the non-interactive / headless fallback (the define/build loops run these skills <code>--non-interactive</code>) — INV-2.</td></tr>
+<tr><td>D1c</td><td><strong>Build a <code>/people</code> web viewer (grill — scope expansion).</strong></td><td>"Build a people web viewer too," so all three default to web uniformly. <code>/people</code> has no <code>scripts/</code> today; the viewer is modeled on <code>/backlog</code>'s <code>serve-web-lib.mjs</code> (already a derive-from-records engine). Adds story S4.</td></tr>
+<tr><td>D2</td><td><strong>The substrate rewrite is the primary deliverable.</strong></td><td>Fixing the 3 skills without §5 lets the next tracker reintroduce the pattern. INV-1 must live in <code>tracker-crudl.md</code>.</td></tr>
+<tr><td>D3</td><td><strong>3 stories: /backlog (+ substrate + the one consumer edit) → /mytasks → /people.</strong></td><td>Substrate rides the /backlog story (precedent: <code>_shared/lens-ledger.md</code> shipped in the /shape story's one surface). mytasks + people <code>dependencies: [backlog story]</code> so the new §5 is merged in at claim time (D9 transitive merge). Each story has a real SKILL.md for <code>/skill-eval</code>; a substrate-only story would have nothing to score.</td></tr>
+<tr><td>D4</td><td><strong>The <code>feature-sdlc:448</code> consumer edit rides the /backlog story.</strong></td><td>It removes the <code>/backlog rebuild-index</code> call from the define-merge (the uniqueness guard stays — it reads <code>items/</code>). Tightly coupled to backlog's INDEX removal; a 1-line consumer update, not its own story.</td></tr>
+<tr><td>D5</td><td><strong>Preserve the mytasks <code>workstream:</code>→<code>project:</code> migration</strong> by relocating it out of <code>regenerateIndex()</code>.</td><td>It was folded into rebuild (Phase 12 step 0). When rebuild stops writing a file, the migration moves to a one-shot normalization on load (<code>loadAllItems</code>) so it is not lost.</td></tr>
+<tr><td>D6</td><td><strong>Convert <code>regenerateIndex()</code> → <code>renderIndex()</code></strong> (returns the markdown string; does not write).</td><td>Keeps the deterministic, tested derivation for the render path; drops only the <code>writeItemAtomic(... 'INDEX.md')</code> + the per-mutation calls. Tests in <code>mytasks/tests/run.mjs</code> retarget from "file exists / file contents" to "renderIndex output."</td></tr>
+<tr><td>D7</td><td><strong>Out of scope: archiving / sharding completed items for parse speed</strong> (shape SP3).</td><td>Unvalidated; 143 small files parse fast. Note: §6 archive's "never in INDEX" clause still needs a wording update to "never in the derived view," but no <code>archive/</code> behavior changes.</td></tr>
+</table>
+</section>
+
+<section id="substrate-change">
+<h2 id="substrate-change">Substrate change — <code>_shared/tracker-crudl.md</code></h2>
+<p>The authoritative anchors (from the map): §5 (lines 53–61, the "regenerable cache" contract), §6 (lines 63–69, archive's "never in INDEX" clause), and the binding checklist item 5 (line 81). Rewrite spec:</p>
+<table>
+<tr><th>Section</th><th>From</th><th>To</th></tr>
+<tr><td>§5 heading</td><td><code>## 5. INDEX.md (regenerable cache)</code></td><td><code>## 5. Index view (derived on read)</code></td></tr>
+<tr><td>§5 body</td><td>"Regenerate it from the record files on <strong>every mutating op</strong>… Freshness check: if any record's mtime is newer than INDEX's date, regenerate before any read."</td><td>Encodes <strong>INV-1/INV-2/INV-3</strong>: the index is a view derived from the record files at read time; <strong>no mutating handler writes it</strong>; no committed index file exists; empty-state = zero record files; grouping/sort/columns stay per-skill bindings; any optional static export is gitignored + on-demand (INV-3). The freshness rule is deleted (nothing to stale).</td></tr>
+<tr><td>§6 archive</td><td>"archived records are never written to <code>INDEX.md</code>."</td><td>"archived records are never included in the derived index view." (No archive behavior change — D7.)</td></tr>
+<tr><td>binding checklist :81</td><td>"5. INDEX grouping / sort / columns (§5)."</td><td>"5. Derived index-view grouping / sort / columns (§5)."</td></tr>
+<tr><td>NEW</td><td>—</td><td>Add an explicit <strong>merge-path invariant</strong> line (INV-1) so the "no committed mutation-written derived file" rule is a named contract, not implied.</td></tr>
+</table>
+</section>
+
+<section id="change-backlog">
+<h2 id="change-backlog">Change-set — <code>/backlog</code> (story 1, hosts substrate + consumer edit)</h2>
+<ul>
+<li><span class="tag t-cut">cut</span> Delete committed <code>backlog/INDEX.md</code>.</li>
+<li><span class="tag t-cut">cut</span> Remove "Regenerate INDEX" from <code>#add</code> (:123), <code>set</code> (:148), <code>archive</code> (:220), <code>refine</code> (:229), and the <code>promote</code> / define-merge regenerators named in <code>schema.md:223</code>.</li>
+<li><span class="tag t-keep">repurpose</span> <code>#rebuild-index</code> (:187) → a <em>render</em> procedure: derive-and-print the dashboard from <code>items/*.md</code> (the grouping/queues already "derived at render time" per :239). The direct-invocation echo (<code>Regenerated INDEX.md: {count} items.</code>) becomes a rendered view, or the verb is retired in favor of bare <code>/backlog</code>.</li>
+<li><span class="tag t-keep">rewrite</span> Bare-<code>/backlog</code> (:237/243): <strong>default → launch the web viewer</strong> (<code>web</code> verb / <code>serve-web.mjs</code>); <strong>fallback → inline derived render</strong> from <code>items/*.md</code> when <code>--non-interactive</code> / headless / no browser (INV-2). Empty-state gate → "no <code>items/*.md</code>". Never print an INDEX blob.</li>
+<li><span class="tag t-keep">rewrite</span> <code>schema.md</code> <code>## INDEX.md format</code> (:194) → <code>## Index view format</code> (same columns/grouping; just not persisted). Update <code>:223</code> ("only sanctioned writer is rebuild-index") to reflect no writer.</li>
+<li><span class="tag t-keep">consumer (D4)</span> <code>feature-sdlc/SKILL.md:448</code>: drop the <code>/backlog rebuild-index</code> call from the define-merge; keep the <code>check-id-uniqueness.mjs post-merge … items</code> assertion verbatim.</li>
+<li><span class="tag t-keep">tests/scenarios</span> Update <code>backlog/tests/scenarios.md:24/51/95</code> (INDEX-generation / print / count lines). <code>serve-web.test.mjs</code> needs no change (derives from YAML).</li>
+</ul>
+</section>
+
+<section id="change-mytasks">
+<h2 id="change-mytasks">Change-set — <code>/mytasks</code> (story 2, deps: story 1)</h2>
+<ul>
+<li><span class="tag t-keep">rewrite</span> <code>scripts/lib.js</code>: <code>regenerateIndex()</code> → <code>renderIndex()</code> (return the markdown; remove the <code>writeItemAtomic(… 'INDEX.md')</code> at :360). <strong>Relocate the <code>workstream:</code>→<code>project:</code> migration (D5)</strong> from rebuild step 0 into a one-shot load-time normalization in <code>loadAllItems</code>.</li>
+<li><span class="tag t-cut">cut</span> <code>scripts/serve.js</code>: remove the <code>lib.regenerateIndex(...)</code> calls after every mutation (lines 188/204/254/264/281/290).</li>
+<li><span class="tag t-cut">cut</span> <code>SKILL.md</code>: remove "Apply <code>#rebuild-index</code>" from add/set/refine/done/drop/checkin/archive; retire/repurpose Phase 12.</li>
+<li><span class="tag t-keep">rewrite</span> <code>SKILL.md</code> Phase 1 (:110–112): bare <code>/mytasks</code> <strong>default → launch web viewer</strong> (<code>serve.js</code>); <strong>fallback → inline derived render</strong> from <code>items/</code> (INV-2). <code>list</code> step 1 (:187) derives from <code>items/</code>; empty-state = no items. (web/CLI list endpoints already derive from YAML — no change.)</li>
+<li><span class="tag t-keep">tests/fixtures</span> <code>tests/run.mjs</code>: <code>testIndex</code> (:128–138) retargets to <code>renderIndex()</code> output; drop the "INDEX.md exists after mutations" assertion (:229). Remove committed INDEX fixtures under <code>tests/fixtures/{with-tasks,with-archive,with-subtasks,with-checkins}/INDEX.md</code>. Update <code>tests/scenarios.md</code>.</li>
+</ul>
+</section>
+
+<section id="change-people">
+<h2 id="change-people">Change-set — <code>/people</code> INDEX removal (story S3, deps: S1)</h2>
+<ul>
+<li><span class="tag t-cut">cut</span> Delete committed <code>~/.pmos/people/INDEX.md</code>. Remove "Apply <code>#rebuild-index</code>" from add (:146), set (:218), refine (:229); retire Phase 8 (:89).</li>
+<li><span class="tag t-keep">rewrite</span> Bare-<code>/people</code> Phase 1 (:83–85): inline derived render from <code>~/.pmos/people/*.md</code> (the <code>list</code>/<code>find</code> paths at :104/:184 already do this — reuse); empty-state = no record files. <em>(Web becomes the default in S4 once the viewer exists; until then bare /people renders inline.)</em></li>
+<li><span class="tag t-keep">rewrite</span> <code>schema.md:63</code> <code>## INDEX.md format</code> → <code>## Index view format</code>.</li>
+<li><span class="tag t-keep">tests/fixtures</span> Remove committed <code>tests/fixtures/with-people/INDEX.md</code>; update <code>tests/scenarios.md</code>.</li>
+</ul>
+</section>
+
+<section id="change-people-web">
+<h2 id="change-people-web">New build — <code>/people</code> web viewer (story S4, deps: S3)</h2>
+<p>Grill decision D1c: build a web viewer so <code>/people</code> defaults to web like the other two. <code>/people</code> has no <code>scripts/</code> today; model on <code>/backlog</code>'s engine (already a derive-from-records faceted viewer).</p>
+<ul>
+<li><span class="tag t-keep">new</span> <code>people/scripts/serve-web.mjs</code> + <code>serve-web-lib.mjs</code> (port from backlog: bind 127.0.0.1 ephemeral port, parse <code>~/.pmos/people/*.md</code>, derive the table model, serve <code>GET /api/people</code> fresh per request) + <code>people/web/viewer.html</code>.</li>
+<li><span class="tag t-keep">new</span> <code>web</code> verb in <code>people/SKILL.md</code>; flip bare-<code>/people</code> default → launch web viewer, inline derived render as the non-interactive/headless fallback (INV-2).</li>
+<li><span class="tag t-keep">new</span> <code>people/tests/serve-web.test.mjs</code> (model on <code>backlog/tests/serve-web.test.mjs</code> — assert the derived API, PII-safety of the people record fields).</li>
+</ul>
+</section>
+
+<section id="frs">
+<h2 id="frs">Functional requirements</h2>
+<p>Stories cite these by id. Each is testable against the change-set above.</p>
+<ul>
+<li><span class="fr">FR-1</span> No committed <code>INDEX.md</code> exists in any tracker store after the change (backlog repo store; mytasks/people <code>~/.pmos/</code> stores).</li>
+<li><span class="fr">FR-2</span> No mutating handler (add/set/refine/promote/archive/checkin/done/drop/define-merge) writes or regenerates an index file.</li>
+<li><span class="fr">FR-3</span> Bare command renders the index view derived from the record files; empty-state is gated on "zero record files," not on a missing index file.</li>
+<li><span class="fr">FR-3a</span> Bare command defaults to launching the web viewer interactively and degrades to the inline derived render under <code>--non-interactive</code> / headless / no browser (INV-2). Applies to <code>/backlog</code> + <code>/mytasks</code> immediately; to <code>/people</code> after S4.</li>
+<li><span class="fr">FR-4</span> The substrate <code>tracker-crudl.md</code> §5 encodes INV-1/INV-2/INV-3; §6 + binding checklist updated; a named merge-path invariant is present.</li>
+<li><span class="fr">FR-5</span> <code>feature-sdlc:448</code> no longer calls <code>/backlog rebuild-index</code>; the post-merge <code>check-id-uniqueness.mjs … items</code> assertion is unchanged and still passes.</li>
+<li><span class="fr">FR-6</span> The mytasks <code>workstream:</code>→<code>project:</code> migration still runs (relocated to load-time normalization); a fixture carrying the legacy field normalizes on read.</li>
+<li><span class="fr">FR-7</span> mytasks <code>renderIndex()</code> returns the same grouped markdown the old <code>regenerateIndex()</code> wrote (buckets <code>## leverage / ## neutral / ## overhead</code>, completed excluded), proven by the retargeted <code>run.mjs</code> test.</li>
+<li><span class="fr">FR-8</span> Web viewers (backlog <code>serve-web</code>, mytasks <code>serve</code>) behave identically — they never read INDEX — proven by their existing tests passing unchanged.</li>
+<li><span class="fr">FR-9</span> Each skill conforms to <code>skill-patterns.md §A–§L</code> and CLAUDE.md skill-authoring conventions; <code>/skill-eval</code> passes per story.</li>
+<li><span class="fr">FR-10</span> A <code>/people</code> web viewer exists (<code>serve-web.mjs</code> + <code>serve-web-lib.mjs</code> + <code>web/viewer.html</code>), derives the table from <code>~/.pmos/people/*.md</code> fresh per request, never reads an index file, and is covered by a <code>serve-web.test.mjs</code> (S4).</li>
+</ul>
+</section>
+
+<section id="story-split">
+<h2 id="story-split">Proposed story split (route: skill)</h2>
+<table>
+<tr><th>Story</th><th>Scope</th><th>deps</th><th>ACs (cite)</th></tr>
+<tr><td><strong>S1 — /backlog + substrate + consumer</strong></td><td>backlog change-set (incl. web-default), <code>tracker-crudl.md</code> §5/§6 rewrite (INV-1/2/3), <code>feature-sdlc:448</code> edit</td><td>—</td><td>FR-1,2,3,3a,4,5,8,9 (backlog scope)</td></tr>
+<tr><td><strong>S2 — /mytasks</strong></td><td>mytasks change-set (renderIndex, migration relocation, web-default, tests/fixtures)</td><td>S1</td><td>FR-1,2,3,3a,6,7,8,9 (mytasks scope)</td></tr>
+<tr><td><strong>S3 — /people INDEX removal</strong></td><td>people INDEX removal + inline derived render + tests/fixtures</td><td>S1</td><td>FR-1,2,3,9 (people scope)</td></tr>
+<tr><td><strong>S4 — /people web viewer</strong></td><td>new <code>serve-web</code> + <code>viewer.html</code> + tests; bare-/people web-default + inline fallback</td><td>S3</td><td>FR-3a,10,9 (people scope)</td></tr>
+</table>
+<p class="muted">All four are pmos-toolkit (single-plugin ✓). S2/S3 depend on S1 so the rewritten substrate §5 is present at claim time (D9 transitive dep-merge); S4 depends on S3 (needs the derive-from-records render path + the INDEX already gone). Built via <code>/feature-sdlc build --next</code>; shipped as one epic release by <code>/complete-dev --epic 260626-8pa</code>.</p>
+</section>
+
+<section id="out-of-scope">
+<h2 id="out-of-scope">Out of scope</h2>
+<ul>
+<li><strong>Archiving / sharding completed items for parse speed</strong> (shape SP3) — unvalidated; deferred.</li>
+<li><strong>Changing the web viewers</strong> — they already derive from YAML; untouched (regression-guarded by their existing tests).</li>
+<li><strong>The id-uniqueness / claim-lock machinery</strong> — independent of INDEX; untouched.</li>
+</ul>
+</section>
+
+<section id="open-decisions">
+<h2 id="open-decisions">Grill outcomes (resolved)</h2>
+<div class="decision">
+<ul>
+<li><strong>OD-1 → RESOLVED:</strong> Delete the committed file entirely; render-on-read. No gitignored export (D1, INV-3).</li>
+<li><strong>OD-2 → RESOLVED:</strong> Retire the <code>rebuild-index</code> verb/phases entirely; <strong>default to the web interface, not inline</strong> (D1b — web-default + inline fallback, INV-2).</li>
+<li><strong>OD-3 → RESOLVED:</strong> Substrate rides the /backlog story S1 (D3).</li>
+<li><strong>OD-4 → RESOLVED + EXPANDED:</strong> Build a <code>/people</code> web viewer so all three default to web (D1c → new story S4). mytasks/people rebuild phases deleted; the web viewer is the default surface, inline render the fallback.</li>
+<li><strong>Constraints:</strong> proceed as designed — <code>feature-sdlc:448</code> edit rides S1, mytasks migration relocates to load-time (D5), web viewers' existing tests guard regression, perf/archiving out of scope (D7).</li>
+</ul>
+</div>
+</section>
+
+<footer>
+Epic 260626-8pa · design-build (Loop 1 / define) · grounded in <code>docs/pmos/shape/2026-06-26_backlog-index-merge-tax.html</code> and the cross-tracker INDEX mechanics map.
+<!-- pmos-comments:start -->
+<script id="pmos-comments" type="application/json">{"version":1,"threads":[]}</script>
+<!-- pmos-comments:end -->
+</footer>
+</body>
+</html>

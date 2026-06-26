@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<meta name="pmos:artifact" content="plan">
+<title>Plan — /mytasks index removal + renderIndex (story 260626-3d4)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: Georgia, "Times New Roman", serif; max-width: 50rem; margin: 0 auto; padding: 2rem 1.25rem; line-height: 1.6; color: #1a1a1a; background: #fbfaf6; }
+  h1, h2, h3 { font-family: -apple-system, system-ui, sans-serif; line-height: 1.25; }
+  h1 { font-size: 1.9rem; } h2 { font-size: 1.25rem; margin-top: 2rem; border-bottom: 1px solid #ddd; padding-bottom: .3rem; }
+  code { font-family: ui-monospace, Menlo, monospace; background: #efece3; padding: .1em .35em; border-radius: 3px; font-size: .9em; }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; margin: 1rem 0; }
+  th, td { border: 1px solid #d6d2c6; padding: .45rem .6rem; text-align: left; vertical-align: top; }
+  th { background: #efece3; font-family: system-ui, sans-serif; }
+  @media (prefers-color-scheme: dark) { body { background:#1a1816; color:#e8e4da; } code, th { background:#2a2724; } th, td { border-color:#3a3530; } h2 { border-color:#3a3530; } }
+</style>
+</head>
+<body>
+<h1>Plan — <code>/mytasks</code> index removal + <code>renderIndex</code></h1>
+<p><strong>Story</strong> 260626-3d4 · <strong>Epic</strong> 260626-8pa · <strong>Route</strong> skill ·
+<strong>Plugin</strong> pmos-toolkit · <strong>Deps</strong> 260626-psr · <strong>Spec</strong>
+<a href="../../02_design.html">02_design.html</a> (#change-mytasks, D6).</p>
+<p>Executable plan is <a href="tasks.yaml"><code>tasks.yaml</code></a>; this is the human-readable companion.</p>
+
+<h2 id="scope">Scope</h2>
+<p>The JS-backed tracker. Remove the committed <code>~/.pmos/tasks/INDEX.md</code>, turning
+<code>lib.js:regenerateIndex()</code> into a write-free <code>renderIndex()</code>. <strong>The catch
+(D6):</strong> <code>regenerateIndex</code> also performs the workstream→project migration, so the write
+cannot simply be deleted — the migration relocates to load-time normalization in <code>loadAllItems</code>
+and must still run on every read. Bare <code>/mytasks</code> becomes web-default with an inline derived
+fallback. Depends on 260626-psr so the rewritten substrate §5 is in this worktree at claim time.</p>
+
+<h2 id="tasks">Tasks (waves)</h2>
+<table>
+  <thead><tr><th>Task</th><th>AC</th><th>Deps</th><th>What</th></tr></thead>
+  <tbody>
+    <tr><td>T1</td><td>AC1–AC7</td><td>—</td><td>Study: design doc, lib.js regenerateIndex/loadAllItems split, serve.js six call-sites, run.mjs + fixtures, SKILL.md.</td></tr>
+    <tr><td>T2</td><td>AC2, AC3</td><td>T1</td><td><code>regenerateIndex</code>→<code>renderIndex</code> (returns md, no write); <strong>relocate migration</strong> into <code>loadAllItems</code>.</td></tr>
+    <tr><td>T3</td><td>AC1, AC4</td><td>T2</td><td>Drop the six <code>serve.js</code> index writes; SKILL.md bare <code>/mytasks</code> web-default + inline fallback.</td></tr>
+    <tr><td>T4</td><td>AC5, AC6</td><td>T2</td><td>Retarget <code>testIndex</code> to the returned string; drop on-disk assertion + INDEX fixtures; keep a migration assertion.</td></tr>
+    <tr><td>T5</td><td>AC1–AC7</td><td>T3, T4</td><td>Verify: skill-eval [D]+[J], 4 lints + audit, dogfood web-default fallback + migration-on-read.</td></tr>
+  </tbody>
+</table>
+<p>T3/T4 are independent once T2 lands.</p>
+
+<h2 id="risks">Risks &amp; decisions</h2>
+<ul>
+  <li><strong>Migration regression is the live risk (D6).</strong> Deleting <code>regenerateIndex</code>
+    naively would silently drop the workstream→project fold. Mitigation: relocate it to
+    <code>loadAllItems</code> (runs on every read) and add a test asserting it still fires.</li>
+  <li><strong>Byte-equivalence.</strong> <code>renderIndex</code> must emit the same buckets the old
+    function did — proven by retargeting <code>testIndex</code> to the returned string rather than reading a
+    file.</li>
+  <li><strong>Dep ordering.</strong> Claims after 260626-psr merges so the rewritten <code>§5</code>
+    (INV-1/2/3) is in this worktree.</li>
+</ul>
+
+<h2 id="verification">Final verification</h2>
+<ul>
+  <li>No <code>~/.pmos/tasks/INDEX.md</code> written by any path; <code>renderIndex</code> returns the md string only.</li>
+  <li>Migration runs from <code>loadAllItems</code> on every read (test-guarded).</li>
+  <li><code>tests/run.mjs</code> green; on-disk assertion + INDEX fixtures removed.</li>
+  <li>skill-eval <code>[D]</code> exits 0 (or only pre-existing residuals); <code>[J]</code> passes; 4 lints + audit green.</li>
+  <li>Dogfood: legacy workstream-keyed item migrates on read with no INDEX written; bare <code>/mytasks --non-interactive</code> renders inline derived buckets.</li>
+</ul>
+</body>
+</html>
