@@ -5,19 +5,19 @@ kind: story
 title: "/design-crit — Phase 3.5 slop pre-pass proof-of-execution hard gate (blocker) + stateful/SPA capture + --report-only + md fallback"
 type: enhancement
 priority: should
-status: planned
+status: done
 route: skill
 parent: 260626-804
 dependencies: []
-worktree:
+worktree: .claude/worktrees/feat-260626-pgh
 plan_doc: docs/pmos/features/2026-06-26_slop-engine-proof-of-execution/stories/260626-pgh/03_plan.html
 tasks_file: docs/pmos/features/2026-06-26_slop-engine-proof-of-execution/stories/260626-pgh/tasks.yaml
-claimed_by: build:e385ea38
-driver_holder: build:e385ea38
+claimed_by:
+driver_holder:
 pr:
 labels: [pmos-toolkit, design-crit, slop-engine, quality-gate]
 created: 2026-06-26
-updated: 2026-06-26
+updated: 2026-06-27
 ---
 
 ## Context
