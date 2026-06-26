@@ -5,15 +5,15 @@ kind: story
 title: "/mytasks web UI overhaul — inline everything: sidebar projects/labels/people CRUD, inline title edit + @/#/+ autocomplete, nested collapsed subtasks, LNO badge redesign, type/recur/checkin/datepicker controls"
 type: enhancement
 priority: should
-status: in-progress
+status: done
 route: skill
 parent: 260626-a8a
 dependencies: [260626-71x]
 worktree: .claude/worktrees/feat-260626-tf4
 plan_doc: docs/pmos/features/2026-06-26_mytasks-web-enhancements/stories/260626-tf4/03_plan.html
 tasks_file: docs/pmos/features/2026-06-26_mytasks-web-enhancements/stories/260626-tf4/tasks.yaml
-claimed_by: build:e385ea38
-driver_holder: build:e385ea38
+claimed_by:
+driver_holder:
 pr:
 labels: [pmos-toolkit, mytasks, web-ui, frontend]
 created: 2026-06-26
