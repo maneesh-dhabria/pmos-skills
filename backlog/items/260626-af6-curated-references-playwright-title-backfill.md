@@ -5,7 +5,7 @@ kind: story
 title: "curated-references — Playwright title + content backfill"
 type: tech-debt
 priority: should
-status: in-progress
+status: done
 route: skill
 parent: 260626-j5k
 dependencies: []
@@ -59,3 +59,21 @@ Read-only prototype + proof: session scratchpad `backfill-prototype.mjs` + `back
 (50-record run: 35 clean / 10 host-only-weak / 2 still-junk Amazon / 3 errors). Re-author as the shipped
 script under the topic-research substrate. Run before `260626-ex8` so re-summarized records get re-tagged
 under the new vocabulary.
+
+### Build outcome (2026-06-27, build:e385ea38) — DONE
+
+Shipped `scripts/backfill-titles.mjs` (D5 escalation ladder, D6 conservative drop, D8 X/Twitter branch,
+D9 throttling) + `tests/backfill_titles_unit.mjs` (35/0) + D3 doc-wiring (importer header +
+`curated-references.md`). Full 817-record headed-Chromium pass over the corpus:
+
+- **junk-title rate 33.68% → 0.44%** (AC: <5% ✓); 1817 → 1797 records (12 confirmed-dead drops + 8 dedupe).
+- titles recovered 778, re-summarized 424, slug-fallback 5, **0 rate-limited**, 352 id-remints (canonical URL).
+- **Dedupe-by-id fix:** URL canonicalization (Amazon `/dp/ASIN`, tweet redirect) collapsed 8 pairs onto one
+  canonical id; added deterministic `dedupeById()` (grounded > longer summary > longer title > first) so the
+  corpus never ships duplicate id+url rows. Reported as `dedup_collapsed`.
+
+**All ACs met.** Gates: unit 35/0 · PII scrub gate PASS (1797) · prefilter suite PASS + live sample · skill-agnostic
+PASS · `/learn-list` live-DOM render (1797 cards, recovered titles present, 0 junk titles, 0 PII leak) ·
+skill-eval [D] learn-list 22/0 + primer 22/0 + book-summary 21/0 (exit 0) · 4 repo lints + audit EXIT0.
+Schema-diff verified: only title/summary/grounded + 12 drops + 8 dedupe + reported remints; no new fields,
+0 dup ids/urls. Impl `95a88fb1` on `feat/260626-af6` (worktree kept). Unblocks `260626-ex8` (tag vocabulary).
