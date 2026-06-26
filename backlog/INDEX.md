@@ -1,8 +1,8 @@
 # Backlog
 
-Last regenerated: 2026-06-26 (Loop-3 release train: 8 epics shipped — 2bm→learnkit v0.30.0, 3jp/ajy/c62/kkw/sm0→toolkit v2.89-2.93.0, 3nj/fly→gamekit v0.9-0.10.0)
+Last regenerated: 2026-06-26 (define 260626-4sm — /to-notion-doc skill epic defined; story 260626-sbf planned)
 
-134 items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
+136 items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
 ## Epics
 | id | status | route | plugin | stories (done/total) | title |
@@ -57,6 +57,7 @@ Last regenerated: 2026-06-26 (Loop-3 release train: 8 epics shipped — 2bm→le
 | 260624-fly | released | skill | pmos-gamekit | 1/1 | "/flappy-bird visual variety — 7 procedural background themes + 4 procedural bird shapes + 5-color contrast-safe palette + subtle top-HUD pmos wordmark, behind a pure seedable pickVariants() picker (Inv-1 preserved)" |
 | 260624-3nj | released | skill | pmos-gamekit | 1/1 | "/poker — static References panel (hand rankings + interactive preflop chart + pot-odds/Rule-of-2&4) + table restyle to poker-coach look + HUD 'Poker' title + pmos watermark; drop all live coaching" |
 | 260625-sm0 | released | skill | pmos-toolkit | 1/1 | "/backlog grooming false-positive — AC detection requires checkbox markers, so numbered/dash ACs read as ungroomed" |
+| 260626-4sm | defined | skill | pmos-utilities | 0/1 | "/to-notion-doc — convert md/html/txt → a faithful Notion page via the Notion MCP (heading/style prefs, image-upload ladder, table-fidelity, chunked write, create-or-update, verification)" |
 
 ## must
 
@@ -138,6 +139,7 @@ Last regenerated: 2026-06-26 (Loop-3 release train: 8 epics shipped — 2bm→le
 | 260624-vry | story | feature | done | 260624-fly | "Build /flappy-bird visual variety — 7 background themes + 4 bird shapes + 5-color contrast-safe palette + top-HUD pmos wordmark, behind a pure seedable pickVariants() picker, with engine selftests (contrast/no-repeat/determinism/coverage) + headless dogfood" | docs/pmos/features/2026-06-24_flappy-bird-variety/02_design.html | docs/pmos/features/2026-06-24_flappy-bird-variety/stories/260624-vry/03_plan.md |  |
 | 260624-f62 | story | feature | done | 260624-3nj | "/poker References panel + restyle — collapsible right-side panel with 3 static references (hand rankings, interactive preflop chart, pot-odds/Rule-of-2&4) + bundled chart data & pure handKey/chartAction helpers + table restyle to poker-coach look + HUD 'Poker' title + pmos watermark + extended selftest" | docs/pmos/features/2026-06-24_poker-references-restyle/02_design.html | docs/pmos/features/2026-06-24_poker-references-restyle/stories/260624-f62/03_plan.md |  |
 | 260625-751 | story | bug | done | 260625-sm0 | "/backlog grooming AC detection — accept checkbox/dash/numbered criteria; reconcile schema.md; regression-test the format matrix" | docs/pmos/features/2026-06-25_backlog-ac-grooming-format/02_design.md | docs/pmos/features/2026-06-25_backlog-ac-grooming-format/stories/260625-751/03_plan.md |  |
+| 260626-sbf | story | feature | planned | 260626-4sm | "/to-notion-doc skill — parse md/html/txt → faithful Notion page via MCP; remembered heading+style prefs in settings.yaml; runtime-gated image-upload ladder; table-fidelity; chunked/resumable write; create-or-update (rewrite/archive/in-place); completeness+integrity verification" | docs/pmos/features/2026-06-26_to-notion-doc/02_design.html | docs/pmos/features/2026-06-26_to-notion-doc/stories/260626-sbf/03_plan.html |  |
 
 ## could
 

@@ -4,9 +4,9 @@ id: 260626-4sm
 kind: epic
 title: "/to-notion-doc — convert a local markdown / HTML / txt document into a faithful Notion page via the Notion MCP, with per-user heading + styling preferences, a robust image-upload ladder, full-width table guidelines, block-by-block mapping with ambiguity prompts, and a post-write completeness + orphan-block verification pass"
 type: feature
-status: defining
+status: defined
 priority: should
-labels: [pmos-toolkit, to-notion-doc, notion, mcp, document-conversion, new-skill]
+labels: [pmos-utilities, to-notion-doc, notion, mcp, document-conversion, new-skill]
 route: skill
 created: 2026-06-26
 updated: 2026-06-26
