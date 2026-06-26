@@ -5,15 +5,15 @@ kind: story
 title: "/mytasks import — paste a text outline, parse (indentation/markers + AI fallback) into projects/tasks/subtasks/labels, confirm the tree, then write items"
 type: enhancement
 priority: should
-status: in-progress
+status: done
 route: skill
 parent: 260626-a8a
 dependencies: [260626-71x]
 worktree: .claude/worktrees/feat-260626-j9v
 plan_doc: docs/pmos/features/2026-06-26_mytasks-web-enhancements/stories/260626-j9v/03_plan.html
 tasks_file: docs/pmos/features/2026-06-26_mytasks-web-enhancements/stories/260626-j9v/tasks.yaml
-claimed_by: build:e385ea38
-driver_holder: build:e385ea38
+claimed_by:
+driver_holder:
 pr:
 labels: [pmos-toolkit, mytasks, import]
 created: 2026-06-26
