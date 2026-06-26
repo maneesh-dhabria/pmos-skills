@@ -1,0 +1,139 @@
+schema_version: 1
+story: 260626-0g6
+epic: 260626-z2p
+route: skill
+plugin: pmos-learnkit
+spec: ../../02_design.html
+execution_mode: inline
+# Singleton-epic story: bring /primer's browse library to full feature parity with /frameworks under the
+# shared _shared/library-viewer/ interface. Adds a default-off iframe reader seam to the SUBSTRATE (lib.mjs),
+# retrofits the primer CONSUMER onto it (iframe reader, 3 views, multi-select facets, valueLabels, named
+# toCard+ALLOWED, dynamic {count}, drop dead summaryField), updates tests + #browse prose, and proves
+# /frameworks + /learn-list zero-regression. Primers are standalone HTML docs -> in-page reader = lazy
+# sandboxed iframe (user decision). NO release-prereq tasks — /complete-dev (Loop 3) owns version/changelog/README.
+tasks:
+  - id: T1
+    title: "Study: design D1-D9 + INV-1..6; lib.mjs reader/emitHtml; frameworks vs primer vs learn-list build-library; all three test suites"
+    ac: [substrate-seam, consumer, bugfix, adapter, zero-regression, tests, offline, prose, eval]
+    deps: []
+    parallel: false
+    detail: >
+      Read ../../02_design.html (D1 generic-substrate-seam, D2 {count} bug, D3 iframe reader, D4 facets,
+      D5 views, D6 toCard, D7 dead summaryField, D8 thumbnails-OOS, D9 tests; INV-1..6; the substrate-consumer
+      boundary table). Read plugins/pmos-learnkit/skills/_shared/library-viewer/lib.mjs end to end — pin the
+      reader emit path (the columns reader, openReader, the cfg.card link-out short-circuit at ~lib.mjs:735),
+      emitHtml's subtitleTemplate {count} replace (~:310) + the runtime subtitleCount.textContent=DATA.length
+      (~:753), and where a new reader.mode branch must slot so absent/'columns' stays byte-identical. Read
+      library-viewer/guidelines.md (the 9 frozen exports + the dynamic-count hard constraint). Read the
+      REFERENCE consumer frameworks/scripts/build-library.mjs (toCard whitelist, the 3 facet kinds incl.
+      multi-dropdown + valueLabels SUPER_CATEGORY_LABELS, the 3 views + {count} subtitle, the F6 selftest)
+      and learn-list/scripts/build-library.mjs (toCard + ALLOWED). Read the SUBJECT primer/scripts/build-library.mjs
+      (loadCurated + scanUserPrimers inline cards, PRIMER_CARD link-out, PRIMER_CSS .viewswitch{display:none},
+      the dead summaryField, the hardcoded sub string, the /· 1 of yours/ selftest). Read all three tests/
+      dirs (frameworks build-library.test.sh + json-contract + structure; primer build-library.test.sh +
+      structure; the substrate _shared/library-viewer/tests). Confirm primer corpus location
+      (data/primers-index.json + data/primers/*.html) and where build writes ({docs_path}/primer/library.html).
+      Produce NO edits.
+    verify: >
+      The exact lib.mjs insertion points for the iframe reader mode are pinned (server emit + client lazy-src);
+      the columns-reader path that must stay byte-identical is identified; frameworks' views/facets/valueLabels
+      config is understood well enough to mirror; primer's current PRIMER_CARD/PRIMER_CSS/facets/subtitle are
+      mapped to their D3-D7 fixes; the three test suites' assertions are known; nothing about the 9 frozen
+      exports' signatures will change.
+
+  - id: T2
+    title: "Substrate: additive default-off reader.mode:'iframe' seam in _shared/library-viewer/lib.mjs (+ guidelines.md)"
+    ac: [substrate-seam, zero-regression, offline]
+    deps: [T1]
+    parallel: false
+    detail: >
+      TDD. Add to lib.mjs a config.reader.mode path: when reader.mode === 'iframe' (with config.reader.iframeField,
+      e.g. 'href'), the reader pane emits a sandboxed <iframe> (no src until a card opens), an "Open in new tab"
+      anchor in the reader header bound to the open card's iframeField, and an empty-state when nothing is
+      selected; on card-open the client lazily sets iframe.src = card[iframeField] instead of rendering markdown
+      columns. Sandbox tokens: reading-only (NO allow-same-origin+allow-scripts together — escape risk); include
+      allow-popups/allow-popups-to-escape-sandbox so "Open in new tab" works (final token set decided here +
+      noted in the story). When reader.mode is absent or 'columns', emit the EXACT current markdown-column reader
+      (byte-identical — INV-1). Keep all 9 frozen exports' signatures (INV-5); the new behaviour is config-driven,
+      not a new export. Update guidelines.md to document the seam (mode/iframeField, default-off, sandbox note).
+    verify: >
+      New substrate test (under _shared/library-viewer/tests) asserts: with reader.mode:'iframe' the emit
+      contains a sandboxed <iframe>, an open-in-new-tab anchor, lazy-src plumbing (no eager src), and routes
+      card-open to the iframe (not openReader columns); with reader.mode absent the emitted HTML for a fixture
+      corpus is byte-identical to the pre-change emit (golden compare). The shipped frameworks + learn-list
+      selftests still pass un-edited (they set no reader.mode).
+
+  - id: T3
+    title: "Consumer: retrofit primer/scripts/build-library.mjs onto the seam — iframe reader, 3 views, multi-facets, valueLabels, toCard+ALLOWED, {count}, drop summaryField"
+    ac: [consumer, bugfix, adapter, offline]
+    deps: [T2]
+    parallel: false
+    detail: >
+      TDD against the primer selftest. (D6) Introduce a single named toCard(rec) adapter (explicit field-by-field,
+      never spread) + an ALLOWED constant, and route both loadCurated() and scanUserPrimers() through it (preserve
+      the PII-safe explicit whitelist). (D3) Set config.reader = {mode:'iframe', iframeField:'href'} and remove
+      the cfg.card link-out so titles open the iframe reader; drop the vestigial reader:{columns:[]}. (D5) Set
+      views:[list,cards,detailed] with list default and DELETE the .viewswitch{display:none} rule from PRIMER_CSS.
+      (D4) Make category + audience multi-dropdown facets (add +search to category if its option count is wide);
+      keep collection/depth/super_category single-select; add valueLabels for super_category (mirror frameworks'
+      SUPER_CATEGORY_LABELS shape). (D2 bug) Replace the hardcoded `sub` string with a subtitleTemplate carrying a
+      literal {count} token (curated/yours static parts may remain as prose around it) so emitHtml emits
+      #subtitleCount and the runtime sets it from DATA.length. (D7) Remove the dead summaryField:'summary'.
+    verify: >
+      primer --selftest passes with new assertions: card hook routes to the iframe reader (not link-out),
+      the {count}/#subtitleCount form present (the old /· 1 of yours/ assertion replaced), views array has 3
+      entries with list default, category/audience facets are multi-dropdown, super_category carries valueLabels,
+      no summaryField in config. Page still self-contained/offline (no external link/script/img).
+
+  - id: T4
+    title: "Tests: primer build-library.test.sh + selftest new assertions; re-run frameworks + learn-list shipped suites UN-EDITED (zero-regression proof)"
+    ac: [tests, zero-regression]
+    deps: [T3]
+    parallel: false
+    detail: >
+      (D9) Extend primer/scripts/tests/build-library.test.sh + the in-file --selftest to assert the new contract:
+      the sandboxed iframe reader element + lazy-src plumbing + open-in-new-tab anchor; the three-view switch
+      present and NOT display:none; the multi-dropdown facet controls (data-dd for category/audience + any
+      tagSearch); the valueLabels rename surfaced as an <option> label != raw value; the dynamic #subtitleCount
+      element present. Remove/replace the assertion that cemented the hardcoded subtitle. Then prove INV-1/INV-2:
+      run the SHIPPED, UN-EDITED frameworks suite (build-library.test.sh + json-contract.test.mjs + structure.test.sh
+      + frameworks --selftest) and learn-list suite green with zero edits to their files/corpora.
+    verify: >
+      primer suite green incl. all new assertions; frameworks + learn-list suites green with `git diff` showing
+      ZERO changes under their skill dirs; the substrate golden-compare (T2) confirms columns-mode byte-identity.
+
+  - id: T5
+    title: "SKILL.md #browse prose: describe the in-page iframe reader + 3 views + multi-select facets"
+    ac: [prose]
+    deps: [T3]
+    parallel: true
+    detail: >
+      Update plugins/pmos-learnkit/skills/primer/SKILL.md #browse (the line currently reading "every primer
+      becomes a card ... linking to its standalone HTML" + "Client-side facets (Collection / area / category /
+      audience / depth) + free-text search"): describe that the library now offers an in-page reader (opens the
+      selected primer in a sandboxed iframe, with Open-in-new-tab), three views (list/cards/detailed), and
+      multi-select dropdown facets — matching /frameworks. Keep it accurate to the shipped behaviour; do not
+      overclaim. No release-prereq edits.
+    verify: >
+      The #browse prose matches the actual emitted viewer (reader + views + facet kinds); no stale "link-out
+      only" wording remains; skill-patterns §K (one-fact-one-home) respected — the substrate seam is described
+      in guidelines.md, cited not restated here.
+
+  - id: T6
+    title: "Live dogfood + skill-eval prep: build library, open, verify reader/views/facets offline; lints + audit + comments-coverage"
+    ac: [offline, eval, consumer]
+    deps: [T4, T5]
+    parallel: false
+    detail: >
+      Build the primer library against the shipped corpus
+      (node primer/scripts/build-library.mjs --out {docs_path}/primer/library.html). Open it (Playwright/file://)
+      and verify load-bearing behaviour: a card opens its primer in the sandboxed iframe reader; Open-in-new-tab
+      resolves the sibling primer; views switch list/cards/detailed; category + audience multi-select filter;
+      #subtitleCount shows the live total; page + iframe load offline with no external resource requests. Capture
+      a screenshot. Then run the 4 hygiene lints (lint-non-interactive-inline, lint-flags-vs-hints,
+      lint-phase-refs, audit-recommended) + comments-coverage relevant to /primer, and skill-eval.md prep so
+      Phase 6a (skill-eval) and Phase 7 (/verify) can score clean.
+    verify: >
+      Screenshot + console show: iframe reader opens the right primer, no external network requests, views +
+      multi-facets work, #subtitleCount live; lints + audit green; build-library + all three test suites green;
+      ready for /skill-eval ([D]+[J]) and /verify.
