@@ -63,7 +63,7 @@ Last regenerated: 2026-06-26 (capture 260626-j5k — /learn-list curated-referen
 | 260626-8pa | defined | skill | pmos-toolkit | 0/4 | "Get derivable status off the merge path across the three trackers (/backlog, /mytasks, /people) + harden tracker-crudl.md" |
 | 260626-a8a | defined | skill | pmos-toolkit | 0/3 | "/mytasks web UI enhancements — inline-everything overhaul (sidebar projects/labels/people, inline edit + @/#/+ autocomplete, nested subtasks, type/recur/checkin controls, LNO badge redesign) + /mytasks import" |
 | 260626-fdh | defined | skill | pmos-gamekit | 0/1 | "/poker fixes — hero seat overlaps the action-bar status text; random mode minimum 2 opponents" |
-| 260626-j5k | inbox | skill | pmos-learnkit | 0/2 | "/learn-list curated-references corpus hygiene — Playwright title backfill (34% junk titles) + closed tag vocabulary (511→~120 tags)" |
+| 260626-j5k | defined | skill | pmos-learnkit | 0/2 | "/learn-list curated-references corpus hygiene — Playwright title backfill (34% junk titles) + closed tag vocabulary (511→~120 tags)" |
 
 ## must
 
@@ -158,8 +158,8 @@ Last regenerated: 2026-06-26 (capture 260626-j5k — /learn-list curated-referen
 | 260626-vpj | story | feature | planned | 260626-fdh | "/poker layout + random-table fixes — hero-seat/action-bar overlap; random mode ≥2 opponents" | docs/pmos/features/2026-06-26_poker-fixes/02_design.html | docs/pmos/features/2026-06-26_poker-fixes/stories/260626-vpj/03_plan.html |  |
 | 260626-h70 | story | enhancement | planned | 260626-7s4 | "/landing-page — content, persona & structure: 1-2 personas + jargon calibration, do>show>tell principle + signature moments, who-for/not-for row + dedup, ≥3 structure variants, multi-product organizing principle, footer attribution" | docs/pmos/features/2026-06-26_landing-page-enhancements/02_design.html | docs/pmos/features/2026-06-26_landing-page-enhancements/stories/260626-h70-content-persona-structure/03_plan.html |  |
 | 260626-qrm | story | enhancement | planned | 260626-7s4 | "/landing-page — visual, media & assets: asset fidelity + mobile hard gate, live style preview, logo phase, media-strategy gate (static/carousel/video via Playwright+ffmpeg), shared design substrate (deps 260626-h70)" | docs/pmos/features/2026-06-26_landing-page-enhancements/02_design.html | docs/pmos/features/2026-06-26_landing-page-enhancements/stories/260626-qrm-visual-media-assets/03_plan.html |  |
-| 260626-af6 | story | tech-debt | ready | 260626-j5k | "curated-references — Playwright title + content backfill: recover real titles for 611/1817 junk-title records (Cloudflare/403/429/Amazon), re-summarize ungrounded, drop dead pages" |  |  |  |
-| 260626-ex8 | story | tech-debt | ready | 260626-j5k | "curated-references — closed tag vocabulary + synonym normalization: 511→~120 tags, collapse synonyms/plurals, drop brand tags, apply at import time (deps 260626-af6)" |  |  |  |
+| 260626-af6 | story | tech-debt | planned | 260626-j5k | "curated-references — Playwright title + content backfill: recover real titles for 611/1817 junk-title records (Cloudflare/403/429/Amazon), re-summarize ungrounded, drop dead pages" | docs/pmos/features/2026-06-26_learn-list-corpus-hygiene/02_design.html | docs/pmos/features/2026-06-26_learn-list-corpus-hygiene/stories/260626-af6/03_plan.html |  |
+| 260626-ex8 | story | tech-debt | planned | 260626-j5k | "curated-references — closed tag vocabulary + synonym normalization: 511→~120 tags, collapse synonyms/plurals, drop brand tags, apply at import time (deps 260626-af6)" | docs/pmos/features/2026-06-26_learn-list-corpus-hygiene/02_design.html | docs/pmos/features/2026-06-26_learn-list-corpus-hygiene/stories/260626-ex8/03_plan.html |  |
 
 ## could
 

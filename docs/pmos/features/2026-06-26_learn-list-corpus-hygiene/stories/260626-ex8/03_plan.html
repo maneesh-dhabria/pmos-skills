@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="plan">
+<title>Plan — Story B (260626-ex8): closed tag vocabulary + synonym normalization</title>
+<style>
+  :root{--ink:#1a1a1a;--muted:#5a5a5a;--line:#e2e2e2;--accent:#1d4ed8;--bg:#fff;--code:#f6f8fa}
+  *{box-sizing:border-box}
+  body{font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);margin:0;padding:2rem 1.25rem;max-width:60rem;margin-inline:auto}
+  h1{font-size:1.7rem;margin:0 0 .25rem}
+  h2{font-size:1.25rem;margin:2rem 0 .5rem;padding-top:.4rem;border-top:2px solid var(--line)}
+  table{border-collapse:collapse;width:100%;margin:.8rem 0;font-size:.92rem}
+  th,td{border:1px solid var(--line);padding:.45rem .6rem;text-align:left;vertical-align:top}
+  th{background:var(--code);font-weight:600}
+  code{background:var(--code);padding:.1rem .35rem;border-radius:4px;font-size:.88em}
+  ul{margin:.4rem 0 .8rem;padding-left:1.3rem}
+  .sub{color:var(--muted);margin:0 0 1.2rem}
+</style>
+</head>
+<body>
+<h1>Plan — Story B: closed tag vocabulary + synonym normalization</h1>
+<p class="sub">Story <code>260626-ex8</code> · epic <code>260626-j5k</code> · route: skill · plugin: pmos-learnkit · deps: <code>260626-af6</code>. Scoped by design D2/D3/D7 + the story ACs.</p>
+
+<h2>Task waves</h2>
+<p>Wave 1: study + analyse the live tag distribution (T1). Wave 2: author the vocabulary + synonym data files (T2). Wave 3: wire the normalize step into the importer + gate unknowns (T3). Wave 4: regenerate + validate viewers/prefilter (T4) + skill conformance (T5). Runs <strong>after</strong> af6's cleaned corpus exists so re-summarized records get tagged once under the new vocabulary (D4).</p>
+
+<h2>Key risks</h2>
+<ul>
+  <li><strong>Over-collapsing loses signal.</strong> Mapping too aggressively could merge genuinely-distinct topics. Mitigation: the vocabulary is reviewable data (D2); the synonym map only collapses provable synonyms/plurals/spellings; ambiguous merges are listed for maintainer review, not auto-applied.</li>
+  <li><strong>IDF weights shift (C3).</strong> Collapsing 511→~120 tags changes <code>curated-references-match.mjs</code> IDF weights; a now-ubiquitous tag could get weight ≤0. Mitigation: re-check the prefilter after re-tag; confirm matching still returns sane results on sample topics.</li>
+  <li><strong>Silent re-sprawl on next refresh.</strong> Mitigation: a non-zero unknown-tag count after normalization is a build-time failure (D7), so the closed set can't quietly grow.</li>
+</ul>
+
+<h2>Verification</h2>
+<ul>
+  <li>Final distinct-tag count lands ~100–150; every shipped tag is a vocabulary member.</li>
+  <li>Synonym/plural/spelling variants collapsed; brand/company tags dropped or folded.</li>
+  <li>Unknown-tag count after normalization is reported and gated (non-zero ⇒ build fails).</li>
+  <li>T1 PII gate GREEN; <code>/learn-list browse</code> + <code>/primer</code> facet filters reflect the new tag set (live DOM); IDF prefilter re-checked.</li>
+  <li>Touched SKILL.md passes <code>skill-eval.md</code> + 4 lints.</li>
+</ul>
+</body>
+</html>

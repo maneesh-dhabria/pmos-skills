@@ -5,13 +5,13 @@ kind: story
 title: "curated-references — Playwright title + content backfill"
 type: tech-debt
 priority: should
-status: ready
+status: planned
 route: skill
 parent: 260626-j5k
 dependencies: []
 worktree:
-plan_doc:
-tasks_file:
+plan_doc: docs/pmos/features/2026-06-26_learn-list-corpus-hygiene/stories/260626-af6/03_plan.html
+tasks_file: docs/pmos/features/2026-06-26_learn-list-corpus-hygiene/stories/260626-af6/tasks.yaml
 claimed_by:
 pr:
 labels: [learn-list, primer, pmos-learnkit, skill, corpus]
@@ -33,10 +33,11 @@ harden the prototype's known failure modes.
 ## Acceptance Criteria
 
 - [ ] A reusable script recovers titles via `og:title` → `document.title` → `<h1>`, following redirects to the canonical URL, and writes the cleaned corpus back (idempotent; re-runnable)
-- [ ] Cloudflare/JS-challenge pages handled: wait for `networkidle` / longer settle; retry once when the recovered title is host-only (e.g. `medium.com`)
-- [ ] Amazon pages recovered via non-headless context or a URL-slug fallback (pure-headless returns a captcha shell)
+- [ ] Recovery escalation ladder (design D5): headless+networkidle → cooldown-retry on junk/host-only → **real (non-headless) Playwright browser** → URL-slug last resort. Applied to generic/error titles like `Amazon.com` too, not just empty ones
+- [ ] Cloudflare/JS-challenge pages handled: `networkidle` settle + one cooldown-retry clears the challenge the 2.5s prototype wait missed
+- [ ] Amazon (98 records) recovered via the real-browser escalation (proven to work interactively); URL-slug fallback only if the real browser also fails, and slug-derived titles are marked for audit
 - [ ] Navigation timeout raised (25s → ~40s); transient errors retried, not fatal
-- [ ] Genuinely-dead pages (e.g. `"Deployment Paused"`, hard 404) are DROPPED, never re-shipped with an error-page title
+- [ ] Drop policy is CONSERVATIVE (design D6): a record is dropped ONLY when confirmed genuinely-dead (hard 404 / dead domain / `"Deployment Paused"`) AFTER the full escalation ladder; alive-but-hard-to-fetch records are kept with their recovered title, never dropped, never re-shipped with an error label
 - [ ] Records with `summary_grounded:false` are re-summarized from recovered body content in the same pass and flipped to grounded only when a real summary is produced
 - [ ] Junk-title rate over the full corpus drops to <5% (report before/after counts)
 - [ ] T1 PII scrub gate (`tests/test_pii_scrub_gate.sh`) passes GREEN over the regenerated corpus

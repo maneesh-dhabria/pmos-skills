@@ -5,13 +5,13 @@ kind: story
 title: "curated-references — closed tag vocabulary + synonym normalization"
 type: tech-debt
 priority: should
-status: ready
+status: planned
 route: skill
 parent: 260626-j5k
 dependencies: [260626-af6]
 worktree:
-plan_doc:
-tasks_file:
+plan_doc: docs/pmos/features/2026-06-26_learn-list-corpus-hygiene/stories/260626-ex8/03_plan.html
+tasks_file: docs/pmos/features/2026-06-26_learn-list-corpus-hygiene/stories/260626-ex8/tasks.yaml
 claimed_by:
 pr:
 labels: [learn-list, primer, pmos-learnkit, skill, corpus]

@@ -1,0 +1,84 @@
+schema_version: 1
+story: 260626-ex8
+epic: 260626-j5k
+route: skill
+plugin: pmos-learnkit
+spec: ../../02_design.html
+execution_mode: inline
+# Story B (deps: 260626-af6): closed tag vocabulary + synonym normalization for curated-references.json.
+# Collapses 511 distinct tags -> a closed ~120-tag vocabulary authored as reviewable data (D2), applied at
+# import time (D3), with unknown tags gated (D7). Runs AFTER af6 so af6's re-summarized records are tagged once
+# under the new vocabulary (D4). Substrate + tooling under _shared/topic-research/. NO release-prereq tasks —
+# /complete-dev (Loop 3) owns version/changelog/README.
+tasks:
+  - id: T1
+    title: "Study + analyse: design D2/D3/D7 + live tag distribution + import-curated-references.mjs + match.mjs"
+    ac: [AC1, AC2, AC3, AC4, AC5, AC6, AC7]
+    deps: []
+    parallel: false
+    detail: >
+      Read ../../02_design.html (D2 vocab-as-data, D3 import-time, D7 closed-set gate; C3 IDF prefilter). Compute
+      the live tag distribution over the af6-cleaned corpus (511 distinct; 290 <=2x; ~99 >=10x) — the >=10x set
+      is the vocabulary spine. Read import-curated-references.mjs to find the per-record tag write point. Read
+      curated-references-match.mjs to understand how tag IDF weights are derived (C3). Produce NO edits.
+    verify: >
+      The ~99 high-frequency spine is enumerated; the synonym/plural/brand clusters from the design doc are
+      confirmed against live data; the importer's tag-write point and the prefilter's IDF derivation are pinned.
+
+  - id: T2
+    title: "AC1/AC2/AC3: author tag-vocabulary.json (closed ~120) + tag-synonyms.json (variant->canonical) as data"
+    ac: [AC1, AC2, AC3]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Author tag-vocabulary.json — the closed canonical set (~120): the ~99 high-frequency tags plus
+      deliberately-kept mid-tail topics, each a clean kebab term. Author tag-synonyms.json — variant->canonical
+      map collapsing startup(s), a/b-testing|ab-testing|a-b-testing, system-design|systems-design,
+      prioriti[sz]ation, organi[sz]ation, org-design|organizational-design, api(s), book(s), framework(s),
+      platform(s), tool(s), llm(s), prompt-engineering|prompting|prompts, pmf<->product-market-fit,
+      plg<->product-led-growth, gtm<->go-to-market, ecommerce|e-commerce (and the rest from the live analysis).
+      Brand/company tags (amazon, netflix, openai, anthropic, claude, figma, kafka, redis, kubernetes, ...) map
+      to a topic or to drop. Both files live under _shared/topic-research/ as reviewable data (D2).
+    verify: >
+      Every vocabulary entry is a clean canonical term; every synonym maps to a vocabulary member; brand tags
+      are explicitly mapped or dropped; the files are data (no code).
+
+  - id: T3
+    title: "AC4/AC5: wire a normalize-tags step into the importer + gate unknown tags (D7)"
+    ac: [AC4, AC5]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Add a tag-normalize transform read by import-curated-references.mjs (D3): for each record, map each tag
+      through tag-synonyms.json then drop/keep against tag-vocabulary.json; dedupe. A tag that resolves to
+      nothing in the closed set after mapping increments an unknown-count; a non-zero unknown-count at end of
+      run is a BUILD FAILURE with the offending tags listed (D7) — the maintainer either adds the tag to the
+      vocabulary or extends the synonym map. No tag outside the closed vocabulary survives into the shipped JSON.
+    verify: >
+      Importer applies the map; a planted out-of-vocab tag fails the build loudly; the shipped corpus contains
+      only vocabulary members; re-run is deterministic.
+
+  - id: T4
+    title: "AC6: regenerate + validate — count ~100-150, PII gate, browse facets, IDF prefilter"
+    ac: [AC6]
+    deps: [T3]
+    parallel: false
+    detail: >
+      Regenerate the corpus through the importer. Confirm final distinct-tag count lands ~100-150 and every tag
+      is a vocabulary member. Run tests/test_pii_scrub_gate.sh GREEN (C1). Live-DOM check that /learn-list browse
+      + /primer facet filters reflect the new tag set (C2). Re-check curated-references-match.mjs IDF prefilter
+      on a sample topic — a now-ubiquitous tag with IDF<=0 must not break matching (C3).
+    verify: >
+      Distinct-tag count in range; PII gate GREEN; facet filters show the collapsed set; prefilter returns sane
+      matches; report shows the before/after tag count.
+
+  - id: T5
+    title: "AC7: skill conformance — lints + skill-eval clean over any touched skill"
+    ac: [AC7]
+    deps: [T4]
+    parallel: false
+    detail: >
+      If any SKILL.md prose references the tag taxonomy, update it (one fact, one home). Run the 4 lints +
+      audit-recommended + skill-eval [D] over any touched skill dir.
+    verify: >
+      skill-eval [D] EXIT0 (or only pre-existing residuals); 4 lints + audit pass.

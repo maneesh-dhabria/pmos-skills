@@ -1,0 +1,118 @@
+schema_version: 1
+story: 260626-af6
+epic: 260626-j5k
+route: skill
+plugin: pmos-learnkit
+spec: ../../02_design.html
+execution_mode: inline
+# Story A (deps: none): Playwright title + content backfill for curated-references.json. Recovers real titles
+# for 611/1817 junk-title records via a headless->retry->real-browser->slug escalation ladder (design D5),
+# conservatively drops only confirmed-dead pages (D6), re-summarizes ungrounded records, and wires the whole
+# thing into the generation path (D3) so a refresh stays clean. Substrate + tooling under
+# _shared/topic-research/; SKILL.md edits are minimal (coverage-note accuracy only). NO release-prereq tasks —
+# /complete-dev (Loop 3) owns version/changelog/README.
+tasks:
+  - id: T1
+    title: "Study: design D5/D6/D1/D3 + import-curated-references.mjs + prototype + PII gate + match.mjs + browse viewers"
+    ac: [AC1, AC2, AC3, AC4, AC5, AC6, AC7, AC8, AC9, AC10]
+    deps: []
+    parallel: false
+    detail: >
+      Read ../../02_design.html (D1 build-time tool, D3 import-time, D5 escalation ladder, D6 conservative
+      drop; constraints C1-C5). Read plugins/pmos-learnkit/skills/_shared/topic-research/import-curated-references.mjs
+      (the #pii-gate scrub, #junk-policy DEAD detection, the 7-field whitelist, the ref_ id derivation). Read the
+      proven prototype in the session scratchpad (backfill-prototype.mjs + backfill-report.json) as the starting
+      point. Read tests/test_pii_scrub_gate.sh, curated-references-match.mjs (IDF prefilter), and the
+      _shared/library-viewer build path used by /learn-list browse + /primer. Confirm the installed Playwright
+      module path + Chromium cache. Produce NO edits.
+    verify: >
+      The importer's scrub + DEAD + id-mint touchpoints are pinned; the prototype's known failure modes
+      (host-only medium.com, Amazon captcha, timeouts) and their D5 fixes are mapped to concrete code; the PII
+      gate's expectations are understood; nothing about the schema (C4) will change.
+
+  - id: T2
+    title: "AC1/AC2/AC3/AC4: author the recovery engine (escalation ladder) under _shared/topic-research/scripts/"
+    ac: [AC1, AC2, AC3, AC4]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Author backfill-titles.mjs: for each junk-title record, run the D5 ladder — (1) headless fetch with real
+      UA + networkidle settle, extract og:title -> clean document.title -> first h1, following stable
+      redirects to canonical URL; (2) on junk/host-only/error, one cooldown-retry; (3) escalate to a real
+      (non-headless) Playwright browser context (the path that recovered the Amazon title interactively),
+      applied to generic/error titles like "Amazon.com" too; (4) URL-slug last resort, marking slug-derived
+      titles for audit. Timeout 40s; transient errors retried not fatal. Idempotent + re-runnable. Zero new npm
+      deps — resolve Playwright from the installed cache, degrade with a clear error if absent (D1).
+    verify: >
+      Engine recovers the 4 prototype proof cases (Amazon book, andrewchen 403, technically empty, wikipedia)
+      with clean titles; a planted host-only "medium.com" triggers escalation not acceptance; absent-Playwright
+      path errors clearly instead of silently no-op'ing.
+
+  - id: T3
+    title: "AC5/AC6: conservative-drop policy + auditable report (counts, drop list, slug-fallback list, id re-mints)"
+    ac: [AC5, AC6]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Drop a record ONLY when the post-escalation live fetch confirms it is genuinely dead (hard 404 / dead
+      domain / "Deployment Paused") — D6. Alive-but-hard records are KEPT with their recovered title, never
+      dropped, never re-shipped with an error label. Emit a machine-readable report: before/after total, junk
+      counts per category before/after, the confirmed-dead drop list, the slug-fallback title list, and every
+      ref_ id that changed due to URL canonicalization (C4). Route every recovered title/summary through the
+      importer's PII scrub before it is written (C1).
+    verify: >
+      No record is dropped that the report does not list as confirmed-dead; every slug-derived title is flagged;
+      id re-mints are enumerated; recovered fields are scrubbed.
+
+  - id: T4
+    title: "AC7: wire backfill into the generation path + run over the full corpus -> regenerated JSON"
+    ac: [AC7]
+    deps: [T2, T3]
+    parallel: false
+    detail: >
+      Wire the backfill as a pre-pass feeding import-curated-references.mjs (D3) so a future refresh from a new
+      spike export reproduces a clean corpus deterministically. Run it over all 611 junk-title records; write the
+      regenerated curated-references.json. Recompute meta.counts. Confirm junk-title rate <5%.
+    verify: >
+      Post-run junk-title rate <5% (report); meta.counts correct; the importer run is deterministic on re-run.
+
+  - id: T5
+    title: "AC5: re-summarize ungrounded (summary_grounded:false) records from recovered body content"
+    ac: [AC5]
+    deps: [T2]
+    parallel: false
+    detail: >
+      For records whose summary_grounded is false, use the recovered body text (already fetched in T2) to
+      produce a real summary; flip summary_grounded:true ONLY when a genuine summary is produced from real
+      content. Otherwise leave the record WEAK and unchanged (no fabricated summaries).
+    verify: >
+      Spot-check 5 re-summarized records have grounded summaries matching real body text; records with no
+      recoverable body stay WEAK.
+
+  - id: T6
+    title: "AC8: validate cross-cutting invariants — PII gate, browse viewers, IDF prefilter, schema"
+    ac: [AC8]
+    deps: [T4, T5]
+    parallel: false
+    detail: >
+      Run tests/test_pii_scrub_gate.sh GREEN over the regenerated corpus (C1). Live-DOM check /learn-list browse
+      + /primer library viewers render the new corpus with no regression (C2). Verify curated-references-match.mjs
+      IDF prefilter still functions on a sample topic (C3). Assert the 7-field schema + id derivation unchanged
+      except the reported re-mints (C4).
+    verify: >
+      PII gate GREEN; both viewers render; prefilter returns sane matches; schema diff is titles/summaries/drops
+      only (plus reported id re-mints), no new fields.
+
+  - id: T7
+    title: "AC9: skill conformance — keep /learn-list + /primer coverage notes accurate; lints + skill-eval clean"
+    ac: [AC9, AC10]
+    deps: [T6]
+    parallel: false
+    detail: >
+      If any SKILL.md prose references corpus size / coverage / --no-curated behavior that the backfill changed,
+      update it (one fact, one home). Run the 4 lints + audit-recommended + skill-eval [D] over any touched
+      skill dir. Most of this story is substrate/tooling, so the eval surface is small — confirm it is clean,
+      not assumed.
+    verify: >
+      skill-eval [D] EXIT0 (or only pre-existing residuals) over touched skills; 4 lints + audit pass; coverage
+      prose matches the regenerated corpus.

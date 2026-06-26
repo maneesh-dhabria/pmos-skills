@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="plan">
+<title>Plan — Story A (260626-af6): Playwright title + content backfill</title>
+<style>
+  :root{--ink:#1a1a1a;--muted:#5a5a5a;--line:#e2e2e2;--accent:#0b6e4f;--bg:#fff;--code:#f6f8fa}
+  *{box-sizing:border-box}
+  body{font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);margin:0;padding:2rem 1.25rem;max-width:60rem;margin-inline:auto}
+  h1{font-size:1.7rem;margin:0 0 .25rem}
+  h2{font-size:1.25rem;margin:2rem 0 .5rem;padding-top:.4rem;border-top:2px solid var(--line)}
+  table{border-collapse:collapse;width:100%;margin:.8rem 0;font-size:.92rem}
+  th,td{border:1px solid var(--line);padding:.45rem .6rem;text-align:left;vertical-align:top}
+  th{background:var(--code);font-weight:600}
+  code{background:var(--code);padding:.1rem .35rem;border-radius:4px;font-size:.88em}
+  ul{margin:.4rem 0 .8rem;padding-left:1.3rem}
+  .sub{color:var(--muted);margin:0 0 1.2rem}
+</style>
+</head>
+<body>
+<h1>Plan — Story A: Playwright title + content backfill</h1>
+<p class="sub">Story <code>260626-af6</code> · epic <code>260626-j5k</code> · route: skill · plugin: pmos-learnkit · deps: none. Scoped by design D5/D6/D1/D3 + the story ACs.</p>
+
+<h2>Task waves</h2>
+<p>Wave 1: study (T1). Wave 2: build the recovery engine (T2) + drop/report policy (T3). Wave 3: run + re-summarize (T4, T5). Wave 4: validate cross-cutting invariants (T6) + skill conformance (T7).</p>
+
+<h2>Key risks</h2>
+<ul>
+  <li><strong>Real-browser escalation flakiness.</strong> Non-headless fetches (Amazon, hard Cloudflare) are slower and can still fail. Mitigation: bounded retries + URL-slug last resort (D5); never block the whole run on one record.</li>
+  <li><strong>id re-mint on URL canonicalization.</strong> Redirect-following can change the canonical URL, which re-mints <code>ref_&lt;sha256(url)&gt;</code> (C4). Mitigation: re-mint deterministically, report id changes, and keep the redirect decision explicit (only adopt canonical when it's a stable 301/308, not a transient).</li>
+  <li><strong>PII in recovered text.</strong> Recovered titles/summaries must pass the same T1 scrub (C1). Mitigation: route every recovered field through the importer's scrub before writing.</li>
+  <li><strong>Re-summarization drift.</strong> Re-summarizing ungrounded records could lower quality. Mitigation: only flip <code>summary_grounded:true</code> when a real summary is produced from real body text; otherwise leave the record WEAK, unchanged.</li>
+</ul>
+
+<h2>Verification</h2>
+<ul>
+  <li>Junk-title rate over the full corpus drops to &lt;5% (report before/after counts per category).</li>
+  <li>Conservative-drop honoured: every dropped record is in the reported confirmed-dead list; spot-check 5 that they're genuinely gone.</li>
+  <li>T1 PII scrub gate passes GREEN over the regenerated corpus.</li>
+  <li><code>/learn-list browse</code> + <code>/primer</code> library viewers render the regenerated corpus (live DOM check); <code>curated-references-match.mjs</code> prefilter still functions on a sample topic.</li>
+  <li>Re-running the importer reproduces the cleaned corpus deterministically (D3).</li>
+  <li>Touched SKILL.md (if any) passes <code>skill-eval.md</code> + the 4 lints.</li>
+</ul>
+</body>
+</html>
