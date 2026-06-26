@@ -1,6 +1,6 @@
 # Backlog
 
-Last regenerated: 2026-06-25 (hand-regen: define merge of epic 260625-sm0 /backlog grooming AC-format + 1 story; earlier same-day cg6/shm/rmq/1e5 → done + 8 stories' ACs normalized)
+Last regenerated: 2026-06-26 (Loop-3 release train: 8 epics shipped — 2bm→learnkit v0.30.0, 3jp/ajy/c62/kkw/sm0→toolkit v2.89-2.93.0, 3nj/fly→gamekit v0.9-0.10.0)
 
 134 items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
@@ -49,14 +49,14 @@ Last regenerated: 2026-06-25 (hand-regen: define merge of epic 260625-sm0 /backl
 | 260617-n7a | released | skill | pmos-toolkit | 1/1 | "/logo skill refinements — rename /logos→/logo + concept/style exploration & approval + mark-type aspect gate + learnings-approval" |
 | 260617-pbk | released | skill | pmos-learnkit | 1/1 | "/playbook → evolution-only mode (remove case-study mode; default-evolution + marketplace skill-picker; mine everything)" |
 | 260617-vvd | released | skill | pmos-utilities | 3/3 | "/converter — convert files between formats (JSON↔YAML, CSV↔JSON, HTML↔MD, PDF↔MD) via a single-file web UI + zero-dep Node server" |
-| 260624-2bm | defined | skill | pmos-learnkit | 2/2 | "/magazine pipeline robustness — windowing flags (days/since/until + date range), prep snapshot-scoping, Stage-B GUID reconciliation, durable per-issue items, feed quarantine" |
-| 260624-3jp | defined | skill | pmos-toolkit | 2/4 | "Design-slop engine — vendored _shared/slop-engine (pmos-native, NOTICE-credited) + /design-crit detect pre-pass + /verify slop gate + prevention reference & drift-lint" |
-| 260624-kkw | defined | skill | pmos-toolkit | 2/2 | "/artifact-critique — opinionated, axis-by-axis product-doc critique skill (10-axis verdict scorecard + quote-grounded deep-dives + ranked weakest-claims) on a shared _shared/critique-rubric/ substrate" |
-| 260624-c62 | defined | skill | pmos-toolkit | 2/2 | "/wiki — self-assembling onboarding wiki over a PM's own working docs (resumable generic-MCP ingestion → byte-exact document mirror + derived/cited understanding layer → purpose-built skimmable/faceted/annotatable single-file viewer + grounded Q&A), filterable to one workstream or --all" |
-| 260624-ajy | defined | skill | pmos-toolkit | 2/2 | "/landing-page — guided product landing-page generator (research+cited brief → approved section structure → 2-3 rendered hero options → bundled visual-style selector → single self-contained HTML in a per-page folder → copy+visual self-review)" |
-| 260624-fly | defined | skill | pmos-gamekit | 1/1 | "/flappy-bird visual variety — 7 procedural background themes + 4 procedural bird shapes + 5-color contrast-safe palette + subtle top-HUD pmos wordmark, behind a pure seedable pickVariants() picker (Inv-1 preserved)" |
-| 260624-3nj | defined | skill | pmos-gamekit | 1/1 | "/poker — static References panel (hand rankings + interactive preflop chart + pot-odds/Rule-of-2&4) + table restyle to poker-coach look + HUD 'Poker' title + pmos watermark; drop all live coaching" |
-| 260625-sm0 | defined | skill | pmos-toolkit | 1/1 | "/backlog grooming false-positive — AC detection requires checkbox markers, so numbered/dash ACs read as ungroomed" |
+| 260624-2bm | released | skill | pmos-learnkit | 2/2 | "/magazine pipeline robustness — windowing flags (days/since/until + date range), prep snapshot-scoping, Stage-B GUID reconciliation, durable per-issue items, feed quarantine" |
+| 260624-3jp | released | skill | pmos-toolkit | 4/4 | "Design-slop engine — vendored _shared/slop-engine (pmos-native, NOTICE-credited) + /design-crit detect pre-pass + /verify slop gate + prevention reference & drift-lint" |
+| 260624-kkw | released | skill | pmos-toolkit | 2/2 | "/artifact-critique — opinionated, axis-by-axis product-doc critique skill (10-axis verdict scorecard + quote-grounded deep-dives + ranked weakest-claims) on a shared _shared/critique-rubric/ substrate" |
+| 260624-c62 | released | skill | pmos-toolkit | 2/2 | "/wiki — self-assembling onboarding wiki over a PM's own working docs (resumable generic-MCP ingestion → byte-exact document mirror + derived/cited understanding layer → purpose-built skimmable/faceted/annotatable single-file viewer + grounded Q&A), filterable to one workstream or --all" |
+| 260624-ajy | released | skill | pmos-toolkit | 2/2 | "/landing-page — guided product landing-page generator (research+cited brief → approved section structure → 2-3 rendered hero options → bundled visual-style selector → single self-contained HTML in a per-page folder → copy+visual self-review)" |
+| 260624-fly | released | skill | pmos-gamekit | 1/1 | "/flappy-bird visual variety — 7 procedural background themes + 4 procedural bird shapes + 5-color contrast-safe palette + subtle top-HUD pmos wordmark, behind a pure seedable pickVariants() picker (Inv-1 preserved)" |
+| 260624-3nj | released | skill | pmos-gamekit | 1/1 | "/poker — static References panel (hand rankings + interactive preflop chart + pot-odds/Rule-of-2&4) + table restyle to poker-coach look + HUD 'Poker' title + pmos watermark; drop all live coaching" |
+| 260625-sm0 | released | skill | pmos-toolkit | 1/1 | "/backlog grooming false-positive — AC detection requires checkbox markers, so numbered/dash ACs read as ungroomed" |
 
 ## must
 
