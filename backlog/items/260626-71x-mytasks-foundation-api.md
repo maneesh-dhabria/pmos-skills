@@ -5,19 +5,19 @@ kind: story
 title: "/mytasks foundation — server/API + data layer: /api/people CRUD, projects/labels registry + /api/meta union, /api/tasks subtask-children support"
 type: enhancement
 priority: should
-status: planned
+status: done
 route: skill
 parent: 260626-a8a
 dependencies: []
-worktree:
+worktree: .claude/worktrees/feat-260626-71x
 plan_doc: docs/pmos/features/2026-06-26_mytasks-web-enhancements/stories/260626-71x/03_plan.html
 tasks_file: docs/pmos/features/2026-06-26_mytasks-web-enhancements/stories/260626-71x/tasks.yaml
-claimed_by: build:e385ea38
-driver_holder: build:e385ea38
+claimed_by:
+driver_holder:
 pr:
 labels: [pmos-toolkit, mytasks, web-ui, server]
 created: 2026-06-26
-updated: 2026-06-26
+updated: 2026-06-27
 ---
 
 ## Context
