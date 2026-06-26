@@ -28,11 +28,13 @@
     <nav id="smart-views"></nav>
     <div class="side-section"><div class="side-head">Projects</div><nav id="projects"></nav></div>
     <div class="side-section"><div class="side-head">Labels</div><nav id="labels"></nav></div>
+    <div class="side-section"><div class="side-head">People</div><nav id="people"></nav></div>
   </aside>
 
   <main id="list-pane">
-    <header id="list-header"><h1 id="view-title">Today</h1></header>
+    <header id="list-header"><h1 id="view-title">Today</h1><span id="lno-legend" class="muted" title="Importance: Leverage / Neutral / overhead (no badge)"><span class="lno-badge lev">L</span>everage · <span class="lno-badge neu">N</span>eutral</span></header>
     <ul id="task-list"></ul>
+    <div id="list-footer"></div>
     <form id="quick-add" autocomplete="off">
       <input id="quick-input" type="text" placeholder="+ Quick-add  (e.g. Call @sam #home +urgent tomorrow)">
     </form>
