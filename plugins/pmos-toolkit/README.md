@@ -28,6 +28,7 @@
 
 ### Authoring & artifacts
 - **/artifact** — Generate and refine PM/eng artifacts (PRD, design docs, discovery doc) from context.
+- **/landing-page** — Guided product landing-page generator: cited brief → approved sections → 2–3 hero options → visual-style selector → single self-contained HTML.
 - **/diagram** — Generate a single themed SVG diagram from a description.
 - **/logo** — Propose and generate on-brand SVG logo candidates from a brief.
 - **/polish** — Critique and refactor a single document (Markdown or HTML) for clarity and de-AI-slop.

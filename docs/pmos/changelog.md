@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-06-25 — pmos-toolkit 2.90.0: new /landing-page — guided landing-page generator
+
+**New skill: `/landing-page`.** Turns product context into a single, self-contained landing-page HTML through a guided six-phase flow: it researches and writes a cited brief, gets you to approve the section structure, renders 2–3 hero-fold options to choose between, lets you pick a bundled visual style (six contrast-safe, WCAG-AA token sets with a live gallery preview), then emits the page into its own per-page folder and runs a copy + visual self-review before handing it back. No external design tools, no network — the style substrate ships with the skill.
+
 ## 2026-06-25 — pmos-gamekit 0.9.0: /poker reference panel + table restyle
 
 **`/poker` now teaches while you play, and looks the part.** A collapsible right-hand **References panel** puts strategy at your fingertips: hand rankings, an interactive 169-cell preflop range chart (with an honest "unmodeled spot" explainer), and pot-odds / Rule-of-2-and-4 quick math. The table got a visual overhaul — oval felt, gold hero seat, chip strips, a unit toggle — plus a "Poker" HUD title and the pmos wordmark. The previous live-coaching mode is gone in favor of these always-available references.
