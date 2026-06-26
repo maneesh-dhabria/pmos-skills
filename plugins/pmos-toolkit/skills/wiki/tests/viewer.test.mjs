@@ -60,9 +60,14 @@ for (const rel of engineFiles) {
      !/\bnew\s+WebSocket\b/.test(txt) && !/createServer\s*\(/.test(txt));
 }
 
-// ---- AC5: no SKILL.md in this story's wiki dir ----
+// ---- AC5: Story rmq authors the SKILL.md (was "absent" under 1e5; flipped on rmq merge) ----
 import { existsSync } from 'node:fs';
-ok('AC5 no SKILL.md in wiki/ (Story rmq authors it)', !existsSync(join(WIKI, 'SKILL.md')));
+{
+  const skillPath = join(WIKI, 'SKILL.md');
+  ok('AC5 SKILL.md present in wiki/ (authored by Story rmq)', existsSync(skillPath));
+  const skill = existsSync(skillPath) ? readFileSync(skillPath, 'utf8') : '';
+  ok('AC5 SKILL.md is the wiki skill (name: wiki)', /^name:\s*wiki\s*$/m.test(skill));
+}
 
 // ---- emit the fixture-injected instance for the live dogfood ----
 try {
