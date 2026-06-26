@@ -24,6 +24,7 @@ const lib = require(path.join(SCRIPTS, 'lib.js'));
 const { spawnRecurrence } = require(path.join(SCRIPTS, 'recur.js'));
 const serve = require(path.join(SCRIPTS, 'serve.js'));
 const people = require(path.join(SCRIPTS, 'people.js'));
+const { parseOutline } = require(path.join(SCRIPTS, 'import-parse.js'));
 
 let pass = 0, fail = 0;
 const failures = [];
@@ -377,6 +378,64 @@ async function testIncludeChildren() {
   }
 }
 
+// ── 9. /mytasks import structure-first parser (story 260626-j9v, A2/A3/A7) ──
+function testImport() {
+  const today = '2026-06-27';
+
+  // (a) pure-indentation outline: depth → subtask of nearest shallower line
+  {
+    const out = parseOutline('Plan launch\n  Draft copy\n  Review copy\n    Get legal sign-off', today);
+    eq('indent: 4 nodes', out.nodes.length, 4);
+    eq('indent: top-level has no parent', out.nodes[0].parentIndex, null);
+    eq('indent: Draft copy parent = Plan launch', out.nodes[1].parentIndex, 0);
+    eq('indent: Review copy parent = Plan launch', out.nodes[2].parentIndex, 0);
+    eq('indent: legal sign-off parent = Review copy', out.nodes[3].parentIndex, 2);
+    eq('indent: titles clean', out.nodes.map((n) => n.title), ['Plan launch', 'Draft copy', 'Review copy', 'Get legal sign-off']);
+  }
+
+  // (b) marker-based list: `-`, `*`, `- [ ]` all strip to task lines
+  {
+    const out = parseOutline('- Buy milk\n* Call plumber\n- [ ] File taxes\n- [x] Already done', today);
+    eq('markers: 4 task nodes', out.nodes.length, 4);
+    eq('markers: stripped titles', out.nodes.map((n) => n.title), ['Buy milk', 'Call plumber', 'File taxes', 'Already done']);
+    eq('markers: all top-level', out.nodes.map((n) => n.parentIndex), [null, null, null, null]);
+  }
+
+  // (c) explicit tokens: #project header container, +label, @handle, trailing date
+  {
+    const out = parseOutline('#q3-launch\n  Email the list @sarah +urgent by friday\n  Write the post +content', today);
+    eq('tokens: project registered', out.projects, ['q3-launch']);
+    eq('tokens: 2 tasks (header is not a task)', out.nodes.length, 2);
+    eq('tokens: both in container project', out.nodes.map((n) => n.project), ['q3-launch', 'q3-launch']);
+    eq('tokens: people extracted', out.nodes[0].people, ['sarah']);
+    eq('tokens: labels extracted', out.nodes[0].labels, ['urgent']);
+    eq('tokens: labels collected globally', out.labels, ['urgent', 'content']);
+    ok('tokens: trailing date stripped → due set', out.nodes[0].due === '2026-07-03' && !/friday/i.test(out.nodes[0].title), `due=${out.nodes[0].due} title=${out.nodes[0].title}`);
+  }
+
+  // (d) messy/mixed input — flat lines, a header that reads like a project, an
+  // inline #project token on a task. The structural pass resolves what it can
+  // (the AI fallback in SKILL.md handles the genuinely ambiguous remainder).
+  {
+    const out = parseOutline('Project: Home Reno\n  - Demo the kitchen\n  - Order cabinets\nStandalone #errands Pick up keys', today);
+    eq('mixed: Project: header → slug container', out.nodes.slice(0, 2).map((n) => n.project), ['home-reno', 'home-reno']);
+    eq('mixed: dedented task leaves the container', out.nodes[2].project, 'errands');
+    eq('mixed: dedented task is top-level', out.nodes[2].parentIndex, null);
+    ok('mixed: home-reno + errands both registered', out.projects.includes('home-reno') && out.projects.includes('errands'), JSON.stringify(out.projects));
+  }
+
+  // (e) structure-wins-on-conflict: an indented child also carries a #project
+  // token; the container (structure) overrides the token, and indentation —
+  // not the token — sets the parent.
+  {
+    const out = parseOutline('#alpha\n  Parent task\n    Child #beta task', today);
+    eq('conflict: child parent = Parent task (indentation wins)', out.nodes[1].parentIndex, 0);
+    eq('conflict: child project = alpha (container wins over #beta token)', out.nodes[1].project, 'alpha');
+    ok('conflict: overridden #beta token is discarded, not registered', !out.projects.includes('beta'), JSON.stringify(out.projects));
+    eq('conflict: only the container project is registered', out.projects, ['alpha']);
+  }
+}
+
 async function main() {
   testFrontmatter();
   testDateMath();
@@ -386,6 +445,7 @@ async function main() {
   await testPeople();
   await testRegistryMeta();
   await testIncludeChildren();
+  testImport();
   console.log(`\nmytasks web selftest: ${pass} passed, ${fail} failed`);
   if (fail) { console.error('FAILURES:\n  - ' + failures.join('\n  - ')); process.exit(1); }
   process.exit(0);
