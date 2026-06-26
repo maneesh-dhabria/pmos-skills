@@ -1,6 +1,6 @@
 # /mytasks Item Schema
 
-> Binds the shared tracker contract in [`../_shared/tracker-crudl.md`](../_shared/tracker-crudl.md). This file declares mytasks's **bindings** (fields, enums, INDEX shape, archive root); the shared contract governs the **invariants** (id/slug rules, `created`/`updated`/`schema_version`, INDEX regenerability, archive convention).
+> Binds the shared tracker contract in [`../_shared/tracker-crudl.md`](../_shared/tracker-crudl.md). This file declares mytasks's **bindings** (fields, enums, index-view shape, archive root); the shared contract governs the **invariants** (id/slug rules, `created`/`updated`/`schema_version`, derived-on-read index view §5 INV-1/2/3, archive convention).
 
 Every task is a markdown file at `~/.pmos/tasks/items/{id}-{slug}.md`.
 
@@ -35,7 +35,7 @@ completed:                       # ISO date, set when status -> completed/droppe
 ---
 ```
 
-> **`schema_version`** is `2` as of the project/subtask/recurrence extension. Files written before this (with `schema_version: 1` or the key absent — absent reads as `1`) stay valid: a `1`-era file simply has no `project`/`parent`/`order`/`recur` keys and a `workstream:` key instead. The `rebuild-index` migration (SKILL.md Phase 12) renames `workstream:` → `project:` in place; it never rewrites ids or other fields.
+> **`schema_version`** is `2` as of the project/subtask/recurrence extension. Files written before this (with `schema_version: 1` or the key absent — absent reads as `1`) stay valid: a `1`-era file simply has no `project`/`parent`/`order`/`recur` keys and a `workstream:` key instead. A one-shot load-time normalization in `lib.js loadAllItems` (`migrateWorkstreamKey`) renames `workstream:` → `project:` in place on every read — key only, value preserved; it never rewrites ids or other fields, and is a no-op once no `workstream:` key remains.
 
 ### Enum values (the skill MUST validate against these and never invent new ones)
 
@@ -105,14 +105,12 @@ Free-form. User-written.
 
 Tasks captured quickly typically have no body. The `## Check-ins` section is created by `/mytasks checkin <id>` if absent.
 
-## INDEX.md format
+## Index view format
 
-`~/.pmos/tasks/INDEX.md` follows the regenerable-cache contract in `../_shared/tracker-crudl.md` §5 (never the source of truth; `Last regenerated:` line; empty cells, never `null`). Binding (grouping/sort/columns):
+The bare-`/mytasks` at-a-glance index is a **view derived on read** from `~/.pmos/tasks/items/*.md` (`lib.js renderIndex`) — there is **no committed `INDEX.md`** and no writer, per `../_shared/tracker-crudl.md` §5 (INV-1/2/3: never persisted; empty cells, never `null`; computed fresh per read, so no `Last regenerated:` line). Binding (grouping/sort/columns):
 
 ```markdown
 # My Tasks
-
-Last regenerated: 2026-04-25
 
 ## leverage
 | id | type | status | due | next_checkin | title | project | parent |
@@ -131,9 +129,9 @@ Last regenerated: 2026-04-25
 | 260613-7k0 | execution | waiting |  |  | Fix coffee machine |  |  |
 ```
 
-Items grouped by `importance` (`leverage`, `neutral`, `overhead`). Within each group, sorted by `due` asc (no-due last) → `updated` desc. A bucket with zero items still gets its `## {bucket}` header and column row (never omit the bucket). Status-based exclusion (mytasks binding): `completed` and `dropped` items are NOT in INDEX.md (cell-rendering and archived-exclusion per shared §5).
+Items grouped by `importance` (`leverage`, `neutral`, `overhead`). Within each group, sorted by `due` asc (no-due last) → `updated` desc. A bucket with zero items still gets its `## {bucket}` header and column row (never omit the bucket). Status-based exclusion (mytasks binding): `completed` and `dropped` items are NOT in the index view (cell-rendering and archived-exclusion per shared §5).
 
-**`project` column** replaces the former `workstream` column. **Subtasks stay flat in INDEX** (design §9 resolution): a subtask is rendered as an ordinary row in its importance bucket, with its `parent:` id shown in the `parent` column — INDEX is not nested. Visual nesting (children indented under a parent) is a view-layer concern handled by the readers (terminal `show`/`list` and the web UI), never baked into the regenerable INDEX cache. An empty `parent` cell means a top-level task.
+**`project` column** replaces the former `workstream` column. **Subtasks stay flat in the index view** (design §9 resolution): a subtask is rendered as an ordinary row in its importance bucket, with its `parent:` id shown in the `parent` column — the index view is not nested. Visual nesting (children indented under a parent) is a view-layer concern handled by the readers (terminal `show`/`list` and the web UI), never baked into the derived index view. An empty `parent` cell means a top-level task.
 
 ## Archive
 

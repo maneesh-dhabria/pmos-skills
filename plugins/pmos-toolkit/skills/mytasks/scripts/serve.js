@@ -185,7 +185,6 @@ async function handleApi(tasksDir, req, res, pathname, query) {
     const file = path.join(lib.itemsDir(tasksDir), `${id}-${slug}.md`);
     fs.mkdirSync(lib.itemsDir(tasksDir), { recursive: true });
     lib.writeItemAtomic(file, lib.serializeItem(fm, ''));
-    lib.regenerateIndex(tasksDir, { today });
     return sendJson(res, 201, { task: itemJson(lib.readItem(file)) });
   }
 
@@ -201,7 +200,6 @@ async function handleApi(tasksDir, req, res, pathname, query) {
       it.fm.order = String(idx + 1); it.fm.updated = today;
       lib.writeItemAtomic(file, lib.serializeItem(it.fm, it.body)); n++;
     });
-    lib.regenerateIndex(tasksDir, { today });
     return sendJson(res, 200, { reordered: n });
   }
 
@@ -251,7 +249,6 @@ async function handleApi(tasksDir, req, res, pathname, query) {
       } else {
         lib.writeItemAtomic(file, lib.serializeItem(it.fm, it.body));
       }
-      lib.regenerateIndex(tasksDir, { today });
       return sendJson(res, 200, { task: itemJson(lib.readItem(renamed)) });
     }
 
@@ -261,7 +258,6 @@ async function handleApi(tasksDir, req, res, pathname, query) {
       it.fm.next_checkin = advanceCheckinField(it.fm.checkin, today);
       it.fm.updated = today;
       lib.writeItemAtomic(file, lib.serializeItem(it.fm, it.body));
-      lib.regenerateIndex(tasksDir, { today });
       return sendJson(res, 200, { task: itemJson(lib.readItem(file)) });
     }
 
@@ -278,7 +274,6 @@ async function handleApi(tasksDir, req, res, pathname, query) {
         }
       }
       lib.writeItemAtomic(file, lib.serializeItem(it.fm, it.body));
-      lib.regenerateIndex(tasksDir, { today });
       return sendJson(res, 200, { task: itemJson(lib.readItem(file)), spawned });
     }
 
@@ -287,7 +282,6 @@ async function handleApi(tasksDir, req, res, pathname, query) {
       const reason = (body.reason || '').toString();
       if (reason) it.body = lib.appendToSection(it.body, 'Notes', `- ${today}: dropped — ${reason}`);
       lib.writeItemAtomic(file, lib.serializeItem(it.fm, it.body));
-      lib.regenerateIndex(tasksDir, { today });
       return sendJson(res, 200, { task: itemJson(lib.readItem(file)) });
     }
 
