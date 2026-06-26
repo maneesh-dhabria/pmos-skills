@@ -12,7 +12,8 @@ dependencies: []
 worktree:
 plan_doc: docs/pmos/features/2026-06-26_slop-engine-proof-of-execution/stories/260626-pgh/03_plan.html
 tasks_file: docs/pmos/features/2026-06-26_slop-engine-proof-of-execution/stories/260626-pgh/tasks.yaml
-claimed_by: null
+claimed_by: build:e385ea38
+driver_holder: build:e385ea38
 pr:
 labels: [pmos-toolkit, design-crit, slop-engine, quality-gate]
 created: 2026-06-26
