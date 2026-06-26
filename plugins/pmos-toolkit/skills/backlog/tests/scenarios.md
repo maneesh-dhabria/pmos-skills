@@ -21,7 +21,7 @@ Expected agent behavior (single round-trip, no clarifying questions):
 2. **Mint** the story id coordination-free via `node scripts/mint-id.mjs` — a `<YYMMDD>-<rand3>` id (e.g. `260612-k3f`), **never** `max+1` or `0001` (`_shared/tracker-crudl.md` §2.3). Infer `type: bug` (keyword "flaky"); `kind: story`, `status: draft`, `priority: should`.
 3. **Auto-wrap (D18):** also mint a second id for a same-titled singleton **epic** (`status: inbox`); set the story's `parent:` to the epic id. The two minted ids differ (independent mints).
 4. Write both item files (frontmatter only, no body), `created`/`updated` = today.
-5. Generate `backlog/INDEX.md` (regenerated, never hand-appended — §5 / schema.md).
+5. Do NOT write any index file — the index view is derived on read from `items/*.md`, never persisted (§5 INV-1 / schema.md).
 6. Output (ids are the minted values): `Captured #<story-id> (bug, story, should): "ssl renewal cron is flaky" in epic #<epic-id>`.
 7. Do NOT ask any clarifying questions. Do NOT load workstream context.
 
@@ -48,7 +48,7 @@ Expected (query-shaped intent guard in `SKILL.md#routing`):
 
 ### Scenario: `/backlog` (no args, with-items fixture)
 
-Expected: the three-queue dashboard (`#dashboard`) — groom summary, next preview, releases shelf — followed by the `INDEX.md` content (regenerated if stale).
+Expected (`#dashboard`, INV-2): interactively, bare `/backlog` launches the web viewer (derives the queues + epic→story tree live from `items/*.md`). Under `--non-interactive` / headless it falls back to the inline three-queue dashboard — groom summary, next preview, releases shelf — **derived on read** from `items/*.md`. No stored `INDEX.md` is read or printed (none exists). Empty-state is gated on zero `items/*.md`, not on a missing index.
 
 ### Scenario: `/backlog list --status planned` (with-items fixture)
 
@@ -90,9 +90,9 @@ Expected: route by status — `draft`/`inbox` → seed `/requirements --backlog 
 
 Expected: refuse — `#0002 is at status 'planned'. Use /feature-sdlc build --story 0002.` No further action.
 
-### Scenario: `/backlog rebuild-index` after a manual edit
+### Scenario: `/backlog` after a manual item edit (index view is derived on read)
 
-Expected: read all files in `items/`, regenerate `INDEX.md` with the `## Epics` rollup + priority-grouped stories, report `Regenerated INDEX.md: 3 items.`
+Expected: there is no `rebuild-index` verb and no `INDEX.md` to regenerate. After hand-editing a file in `items/`, the next bare `/backlog` (web or inline fallback) reflects the edit automatically — the view is recomputed from `items/*.md` on read (§5 INV-1). No regeneration step, no stored index, no `Regenerated INDEX.md` report.
 
 ### Scenario: `/backlog refine 3` (with-items fixture)
 
@@ -150,7 +150,7 @@ Expected: `/backlog set` rejects each of `resume_attempts`, `last_progress`, and
 
 ### Scenario: `/backlog archive` (today = 2026-04-25)
 
-Expected (via `#interpret` archive path): items with `status` in `done`/`released`/`wontfix` AND age > 30 days move to `backlog/archive/{quarter}/`; everything else stays. INDEX regenerated. Report count + per-item destination.
+Expected (via `#interpret` archive path): items with `status` in `done`/`released`/`wontfix` AND age > 30 days move to `backlog/archive/{quarter}/`; everything else stays. No index file to regenerate (the view is derived on read — §5 INV-1); archived items are simply excluded from the next derived view. Report count + per-item destination.
 
 ### Scenario: `/backlog archive --quarter 2026-Q1`
 
@@ -176,7 +176,7 @@ Expected: two sessions branched off the same `main` each `/backlog add` an epic;
 
 ### Scenario: define definition-merge with a colliding id → loud refusal (AC3)
 
-Expected: at `/feature-sdlc define` step 5, `check-id-uniqueness.mjs pre-merge <root> --base main` runs beside the path-scope check. If an item id **added** on the define branch already exists on `main`, the merge is **refused loudly** with the offending id(s) listed (exit 3) — never a silent merge into a duplicate row. Post-merge, `post-merge <root>/backlog/items` asserts no two item files share an id; INDEX is regenerated (not the hand-merged text).
+Expected: at `/feature-sdlc define` step 5, `check-id-uniqueness.mjs pre-merge <root> --base main` runs beside the path-scope check. If an item id **added** on the define branch already exists on `main`, the merge is **refused loudly** with the offending id(s) listed (exit 3) — never a silent merge into a duplicate row. Post-merge, `post-merge <root>/backlog/items` asserts no two item files share an id (it reads `items/`, not any index). There is no index regeneration step — the index view is derived on read (§5 INV-1).
 
 ### Scenario: legacy + new id coexistence (AC2)
 
