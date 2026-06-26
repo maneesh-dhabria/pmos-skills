@@ -10,10 +10,11 @@ route: skill
 dependencies: []
 plugin: pmos-toolkit
 status: done
+released: v2.89.0
 feature_folder: docs/pmos/features/2026-06-24_design-slop-engine/
 plan_doc: docs/pmos/features/2026-06-24_design-slop-engine/stories/260624-cg6/03_plan.md
 tasks: docs/pmos/features/2026-06-24_design-slop-engine/stories/260624-cg6/tasks.yaml
-worktree: .claude/worktrees/feat-260624-cg6
+worktree:
 claimed_by: build:6681ff46-e6d7-4cb7-854d-4ca3ea2b44ff
 driver_holder: build:6681ff46-e6d7-4cb7-854d-4ca3ea2b44ff
 labels: [pmos-toolkit, slop-engine, substrate, vendored, new-substrate]

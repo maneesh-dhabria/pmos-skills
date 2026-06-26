@@ -4,7 +4,8 @@ id: 260624-3jp
 kind: epic
 title: "Design-slop engine — vendored _shared/slop-engine (pmos-native, NOTICE-credited) + /design-crit detect pre-pass + /verify slop gate + prevention reference & drift-lint"
 type: feature
-status: defined
+status: released
+released: v2.89.0
 priority: should
 labels: [pmos-toolkit, design-slop, slop-engine, design-quality, frontend]
 route: skill
