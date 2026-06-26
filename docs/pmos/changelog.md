@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-06-25 — pmos-toolkit 2.93.0: /backlog grooming no longer false-flags numbered/dash acceptance criteria
+
+**`/backlog` grooming stops nagging about acceptance criteria you already wrote.** The grooming check previously only recognized acceptance criteria written as Markdown checkboxes, so stories whose ACs used numbered lists or dashes read as "ungroomed" and kept surfacing in the groom queue. Detection now accepts checkbox, dash, and numbered formats equally, so a story with real ACs in any common format is correctly treated as groomed.
+
 ## 2026-06-25 — pmos-toolkit 2.92.0: new /artifact-critique — opinionated product-doc critique
 
 **New skill: `/artifact-critique`.** Gives a product doc (PRD, roadmap, strategy memo, one-pager) an opinionated, axis-by-axis critique in the voice of a seasoned PM. It scores the doc across 10 axes into a verdict scorecard, backs each judgment with quotes pulled verbatim from the source, and ranks the weakest claims so you know what to fix first. The rubric lives in a shared `_shared/critique-rubric/` substrate (axes, doc-type applicability, and heuristics), and a bundled eval harness keeps the critique grounded — every cited quote must trace back to the source text.
