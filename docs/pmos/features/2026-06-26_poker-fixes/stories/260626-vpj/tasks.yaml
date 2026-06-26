@@ -1,0 +1,66 @@
+schema_version: 1
+story: 260626-vpj
+epic: 260626-fdh
+route: skill
+plugin: pmos-gamekit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-gamekit/skills/poker
+# /poker fixes — both edits live in game/poker.html (engine = the pure <script> assigning PokerEngine;
+#   UI/render layer guarded by document). tests/run.mjs is the engine selftest (node run.mjs --selftest).
+# Reference: feature-sdlc/reference/skill-patterns.md §A–§L + host CLAUDE.md (canonical skill path
+#   plugins/pmos-gamekit/skills/poker, gamekit launch contract). Release prereqs (version bump / changelog /
+#   README / manifest) are /complete-dev's, NOT story tasks (design D6).
+# Inv-1 (engine purity): no DOM in PokerEngine; if F2 adds a pure helper, export it + cover in tests/run.mjs.
+# Inv-2 (cosmetic/UI isolation): F1 CSS+SLOTS and F2 default never alter deal/eval/betting/side-pots/showdown.
+tasks:
+  - id: T1
+    title: "F1 — hero seat no longer overlaps the action bar (clearance below felt + pull hero slot up)"
+    ac: [AC1, AC4]
+    deps: []
+    parallel: true
+    detail: >
+      Edit game/poker.html. The hero seat (SLOTS[0] = { l:50, t:92 }, line ~914) is a fixed-height
+      absolutely-positioned .seat block whose bottom (holecards + nameplate + betchip + lastact) overhangs the
+      width-driven .felt (aspect-ratio 16/10, line 47) and lands on .actionbar .msg, because .table-col (line ~155)
+      stacks .table-wrap (line 280) and .actionbar (line 290) with only gap: 8px. Apply BOTH levers (design D2):
+      (1) add fixed clearance below the felt — e.g. margin-bottom: ~30px on .table-wrap (line 45) and/or raise the
+      .table-col gap — so the overhang has somewhere to go; AND (2) pull the hero slot up: SLOTS[0].t 92 → ~88.
+      The overhang GROWS as the felt shrinks, so the narrow width is the gating case — tune the two magnitudes so
+      clearance holds at all three widths (values in design Open-Q are starting points, not contract). Do NOT move
+      the opponent SLOTS or change the felt aspect-ratio. Inv-2: presentation only — no engine/state change.
+      Verify (FR1.1/FR1.2): load the file and check at desktop 1280px, a tablet width, and narrow ~640px — the
+      hero "You" block clears the "Your move — …" status line with visible gap, and the felt is not clipped or
+      pushed off-screen (Inv-4). Capture a screenshot at the narrow width as evidence.
+
+  - id: T2
+    title: "F2 — random mode deals at least 2 opponents (3-to-6-handed, never heads-up)"
+    ac: [AC2, AC3]
+    deps: []
+    parallel: true
+    detail: >
+      Edit game/poker.html newGame() (line ~1239): change
+        var numBots = numBotsOpt || (1 + Math.floor(rng() * 5)); // 1..5
+      to a >=2-opponent floor:
+        var numBots = numBotsOpt || (2 + Math.floor(rng() * 4)); // random: 2..5 opponents (3..6 handed)
+      Keep the upper bound at 5 opponents / 6 seats (there are 6 SLOTS) — only the floor moves (design D3, FR2.1/2.2).
+      Explicit count buttons (data-n="1".."5") pass numBotsOpt and are unaffected (FR2.3). The "New game — N
+      opponent(s) (…)" log line (line ~1250) already handles plural via (numBots > 1) — confirm it still reads
+      correctly for the 2..5 range (FR2.4). OPTIONAL (design D5, implementer's choice — prefer only if clean):
+      extract a pure randomSeatCount(rng) -> 2..5 onto PokerEngine and add a tests/run.mjs case asserting the range;
+      if you do, export it and keep node tests/run.mjs --selftest green and update the EXPECTED check count.
+      Verify: start several "Random" games — the new-game log never shows "1 opponent"; explicit picks still honor
+      their count.
+
+  - id: T3
+    title: "Conformance + regression pass + SKILL.md copy (only if user-facing wording changed)"
+    ac: [AC5, AC6]
+    deps: [T1, T2]
+    parallel: false
+    detail: >
+      Run node plugins/pmos-gamekit/skills/poker/tests/run.mjs --selftest — must exit 0 (engine untouched, or the
+      new T2 helper case passes). Spot-check the table renders and a hand plays out (deal → bet → showdown)
+      unaffected by the SLOTS/CSS change (Inv-2/Inv-5). Confirm conformance to skill-patterns.md §A–§L
+      (frontmatter/name-matches-dir, non-interactive block intact if present) and host CLAUDE.md (canonical skill
+      path plugins/pmos-gamekit/skills/poker, gamekit launch contract). Update SKILL.md ONLY if these fixes changed
+      user-facing copy it documents (likely no change — neither fix alters controls or rules). Do NOT add
+      version-bump / changelog / README / manifest tasks — those are /complete-dev's (design D6).

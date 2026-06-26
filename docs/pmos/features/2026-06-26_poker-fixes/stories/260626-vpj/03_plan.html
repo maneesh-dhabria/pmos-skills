@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Plan — /poker fixes (260626-vpj)</title>
+<style>
+  :root { --ink:#1d2438; --muted:#5b6680; --accent:#2563eb; --teal:#0ea5a4; --panel:#f4f7ff; }
+  body { font-family: Georgia, 'Times New Roman', serif; color: var(--ink); max-width: 820px; margin: 0 auto; padding: 2.5rem 1.25rem 6rem; line-height: 1.6; }
+  h1,h2,h3 { font-family: -apple-system, Helvetica, Arial, sans-serif; line-height: 1.25; }
+  h1 { font-size: 1.9rem; } h2 { font-size: 1.35rem; margin-top: 2.2rem; border-bottom: 2px solid var(--panel); padding-bottom: .3rem; } h3 { font-size: 1.08rem; margin-top: 1.5rem; }
+  code { font-family: ui-monospace, Menlo, monospace; background: var(--panel); padding: .1em .35em; border-radius: 4px; font-size: .9em; }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-family: -apple-system, Helvetica, Arial, sans-serif; font-size: .92rem; }
+  th,td { border: 1px solid #d7def0; padding: .5rem .6rem; text-align: left; vertical-align: top; }
+  th { background: var(--panel); }
+  .sub { color: var(--muted); font-style: italic; }
+</style>
+</head>
+<body>
+
+<h1 id="title">Plan — /poker fixes</h1>
+<p class="sub">Story <code>260626-vpj</code> · epic <code>260626-fdh</code> · route: skill · plugin: pmos-gamekit · 2026-06-26. Scoped by the epic <code>design_doc</code> (<a href="../../02_design.html">../../02_design.html</a>) anchors + this story's ACs. Tasks live in <code>tasks.yaml</code> (the <code>/execute</code> work queue).</p>
+
+<h2 id="scope">Scope</h2>
+<p>Two confined fixes to the single self-contained game file <code>plugins/pmos-gamekit/skills/poker/game/poker.html</code>:
+<strong>F1</strong> (hero seat overlaps the action bar — <a href="../../02_design.html#fr-overlap">design §FR1</a>) and
+<strong>F2</strong> (random mode ≥2 opponents — <a href="../../02_design.html#fr-random">design §FR2</a>). Both are
+presentation/UI-config only and must not touch the engine, the deal, betting, side-pots, or showdown
+(<a href="../../02_design.html#invariants">Inv-1..Inv-5</a>). One <code>/execute</code> run.</p>
+
+<h2 id="tasks">Tasks</h2>
+<table>
+  <tr><th>Task</th><th>What</th><th>ACs</th><th>Verify</th></tr>
+  <tr><td>T1</td><td>F1 — hero seat clearance: add fixed clearance below the felt (<code>margin-bottom</code> on <code>.table-wrap</code> / increased <code>.table-col</code> gap) AND pull <code>SLOTS[0].t</code> 92→~88. <a href="../../02_design.html#fr-overlap">FR1</a>, <a href="../../02_design.html#decisions">D2</a>.</td><td>AC1, AC4</td><td>Playwright/rendered check at 1280px, tablet, and ~640px — hero block clears <code>.actionbar .msg</code> with no felt clipping.</td></tr>
+  <tr><td>T2</td><td>F2 — random ≥2 opponents: <code>numBots = 2 + Math.floor(rng()*4)</code> at the random-count site (line ~1239); keep singular/plural log wording correct. Optional pure <code>randomSeatCount(rng)</code> helper + selftest (<a href="../../02_design.html#decisions">D5</a>).</td><td>AC2, AC3</td><td>Repeated new "Random" games never deal 1 opponent; explicit count buttons unaffected; engine selftest green.</td></tr>
+  <tr><td>T3</td><td>Conformance + regression: confirm <code>skill-patterns.md §A–§L</code> + host <code>CLAUDE.md</code> (canonical path, gamekit launch); run <code>node tests/run.mjs --selftest</code>; spot-check the table renders + deal/showdown unaffected.</td><td>AC5, AC6</td><td>Selftest exits 0; no engine/render regression; no version-bump/changelog/README tasks (<a href="../../02_design.html#decisions">D6</a>).</td></tr>
+</table>
+
+<h2 id="risks">Risks</h2>
+<ul>
+  <li><strong>Narrow-width regression (F1):</strong> a margin alone can be defeated as the felt shrinks — that is exactly why D2 mandates both levers; the ~640px width is the gating test.</li>
+  <li><strong>SLOTS edit side-effects:</strong> the hero slot feeds <code>buildSeats</code> render only; moving <code>t</code> up must not collide with the board/center — verify the felt center and opponent seats still read correctly.</li>
+  <li><strong>Over-engineering F2:</strong> default to the one-line change; only add the helper if clean (D5).</li>
+</ul>
+
+</body>
+</html>
