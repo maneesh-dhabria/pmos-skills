@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-06-25 — pmos-toolkit 2.91.0: new /wiki — self-assembling onboarding wiki
+
+**New skill: `/wiki`.** Builds a living onboarding wiki over a PM's own working docs. It ingests source documents through a resumable, generic-MCP connection (no per-source adapters), mirrors each document byte-for-byte, then derives a cited understanding layer on top — so every claim links back to the exact source. The result renders as a single-file, skimmable, faceted, annotatable HTML viewer with grounded Q&A, and can be scoped to one workstream or built across everything. Five verbs — `add`, `sync`, `view`, `ask`, `curate` — cover the full lifecycle.
+
 ## 2026-06-25 — pmos-toolkit 2.90.0: new /landing-page — guided landing-page generator
 
 **New skill: `/landing-page`.** Turns product context into a single, self-contained landing-page HTML through a guided six-phase flow: it researches and writes a cited brief, gets you to approve the section structure, renders 2–3 hero-fold options to choose between, lets you pick a bundled visual style (six contrast-safe, WCAG-AA token sets with a live gallery preview), then emits the page into its own per-page folder and runs a copy + visual self-review before handing it back. No external design tools, no network — the style substrate ships with the skill.

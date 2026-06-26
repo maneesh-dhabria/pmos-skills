@@ -43,6 +43,7 @@
 - **/mytasks** — Persistent personal task tracker (LNO importance, due dates, projects, recurrence).
 - **/people** — Shared person/contact directory consumed by /mytasks.
 - **/product-context** — Persistent workstream context that enriches every pipeline skill.
+- **/wiki** — Self-assembling onboarding wiki over your own working docs: resumable MCP ingestion → cited understanding layer → skimmable single-file viewer + grounded Q&A.
 - **/changelog** — Generate user-facing changelog entries at merge time.
 - **/comments** — Resolve open inline-doc-comment threads on a pmos HTML artifact.
 - **/session-log** — Capture what you built, decided, and learned as dated bullets.
