@@ -4,12 +4,13 @@ id: 260626-8pa
 kind: epic
 title: "Get derivable status off the merge path across the three trackers (/backlog, /mytasks, /people) + harden tracker-crudl.md"
 type: tech-debt
-status: defined
+status: released
+released: pmos-toolkit/v2.96.0
 priority: should
 labels: [pmos-toolkit, backlog, mytasks, people, tracker-crudl, merge-path]
 route: skill
 created: 2026-06-26
-updated: 2026-06-26
+updated: 2026-06-27
 source: docs/pmos/shape/2026-06-26_backlog-index-merge-tax.html
 feature_folder: docs/pmos/features/2026-06-26_trackers-index-merge-tax/
 design_doc: docs/pmos/features/2026-06-26_trackers-index-merge-tax/02_design.html

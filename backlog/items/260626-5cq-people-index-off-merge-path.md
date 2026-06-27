@@ -9,11 +9,11 @@ priority: should
 route: skill
 dependencies: [260626-psr]
 plugin: pmos-toolkit
-status: done
+status: released
 feature_folder: docs/pmos/features/2026-06-26_trackers-index-merge-tax/
 plan_doc: docs/pmos/features/2026-06-26_trackers-index-merge-tax/stories/260626-5cq/03_plan.html
 tasks: docs/pmos/features/2026-06-26_trackers-index-merge-tax/stories/260626-5cq/tasks.yaml
-worktree: .claude/worktrees/feat-260626-5cq
+worktree:
 build_branch: feat/260626-5cq
 build_commit: 824ae16e
 claimed_by:
