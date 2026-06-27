@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-06-27 — pmos-toolkit 2.95.0: /verify and /design-crit must prove the slop pre-pass actually ran
+
+**The design-slop gate can no longer be skipped by assertion.** Both `/design-crit` and `/verify` run a deterministic design-slop pre-pass over the HTML they review. Previously a run could quietly skip that pass and rationalize it as "graceful degradation," letting mechanical design tells slip through. Now each skill must surface proof that the slop engine actually executed this run — the captured findings, drawn from this run's output — before it can claim the lane passed. If the engine genuinely cannot run, that is reported honestly as a failure to execute, never disguised as a clean result.
+
 ## 2026-06-27 — pmos-toolkit 2.94.0: /landing-page — richer briefs, media, and multi-product support
 
 **`/landing-page` produces sharper, better-grounded pages.** The brief now captures one or two target personas (with a jargon-tolerance read) and the product's signature moments, and detects multi-product / suite offerings so the page structure fits whether you're selling one thing or a hub. Section scaffolding follows a do > show > tell principle and adds an explicit "who it's for / who it's not for" row. New media support: the skill can plan and embed product video and imagery — captured locally with a graceful degrade ladder, never a remote hotlink — gated by an asset-fidelity and a mobile self-check. You approve a logo up front and see a live style preview before the page is drafted, and the finished page carries a "Built with pmos-toolkit" footer.
