@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-06-27 — pmos-toolkit 2.94.0: /landing-page — richer briefs, media, and multi-product support
+
+**`/landing-page` produces sharper, better-grounded pages.** The brief now captures one or two target personas (with a jargon-tolerance read) and the product's signature moments, and detects multi-product / suite offerings so the page structure fits whether you're selling one thing or a hub. Section scaffolding follows a do > show > tell principle and adds an explicit "who it's for / who it's not for" row. New media support: the skill can plan and embed product video and imagery — captured locally with a graceful degrade ladder, never a remote hotlink — gated by an asset-fidelity and a mobile self-check. You approve a logo up front and see a live style preview before the page is drafted, and the finished page carries a "Built with pmos-toolkit" footer.
+
 ## 2026-06-27 — pmos-utilities 0.4.0: new /to-notion-doc — publish a local doc to Notion
 
 **New skill: `/to-notion-doc`.** Converts a local Markdown document into a real Notion page — headings, lists, tables, code blocks, callouts, and images all map to native Notion blocks. It writes through the Notion MCP connection (no REST token needed for text), chunks large documents so each write stays within Notion's per-request block limits, and verifies the published page block-for-block against the source so you know the conversion landed faithfully. An opt-in image-upload step (requires a `NOTION_TOKEN`) rehosts local images instead of leaving them as dead links.
