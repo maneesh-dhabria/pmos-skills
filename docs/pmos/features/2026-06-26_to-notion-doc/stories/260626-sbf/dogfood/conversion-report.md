@@ -9,12 +9,60 @@ doc; its **content is never committed**, only this report + the reconciliation b
 The full **deterministic** pipeline end-to-end against the real document:
 `parse-doc.mjs` → `map-to-notion.mjs` (both styles) → `chunk-blocks.mjs` → `verify-page.mjs`.
 
-The single step **not** executed is the live Notion **MCP write** (`notion-create-pages` /
-`notion-update-page`). Creating pages in the maintainer's real Notion workspace is an outward-facing,
-hard-to-reverse action that requires an interactive parent-page confirmation (Phase 3, the `defer-only` parent
-pick); it is intentionally not performed in an unattended build run. The write path itself is exercised by the
-script selftests and the chunk plan below; the user runs the live write interactively (pick a parent → the
-4-batch plan is created+appended → the same `verify-page` reconciliation re-runs against the fetched page).
+During the unattended build run, the live Notion **MCP write** was intentionally deferred: creating pages in
+the maintainer's real Notion workspace is an outward-facing, hard-to-reverse action requiring an interactive
+parent-page confirmation (Phase 3, the `defer-only` parent pick). It was **subsequently executed interactively**
+once the maintainer was present and authorized it — see "Live MCP write" below.
+
+## Live MCP write (interactive, 2026-06-27)
+
+With maintainer authorization, the full write path ran end-to-end against the connected workspace ("Maneesh",
+`maneesh.dhabria@gmail.com`, confirmed via `notion-fetch id:self`). To avoid writing into any shared/parented
+location, the page was created as a **standalone workspace-level private page** (no parent), title
+"Porter Metrics Store — POV v6 (to-notion-doc dogfood)", icon 📄.
+
+- **Write:** `notion-create-pages` (batch 0 = create) + 3× `notion-update-page insert_content position:end`
+  (batches 1–3) — the exact 4-batch plan `chunk-blocks` emitted (100 / 96 / 97 / 36).
+- **Structural re-verification** (`notion-fetch` → compare against the offline census): **9 tables**, widths in
+  document order **2, 2, 2, 4, 2, 3, 2, 2, 3** — exact match; all headings (Exec summary → Annexure K) and
+  the 281-row V1-scope table present.
+- **One fidelity drift caught + fixed:** the **2 SVG placeholder callouts** initially did not render — Notion's
+  NFM parser choked on a `<br>` inside `<callout>…</callout>` and fell back to escaped literal text, leaving
+  stray `</callout>` text blocks. Fixed in place via `notion-update-page update_content` and deleted the
+  orphaned closers; post-fix fetch shows both as proper callout blocks.
+  **Root cause + skill fix (structural, applied):** the bug was the inline `<br>` right after the opening tag —
+  **not** multi-line nesting, which the NFM spec explicitly supports. The renderer (`map-to-notion.mjs`) now
+  emits the spec-correct **tab-indented multi-line** form for all callouts (image stub, ambiguity placeholder,
+  expressive admonitions):
+  ```
+  <callout icon="🖼">
+  	Body text
+  </callout>
+  ```
+  A regression selftest asserts no `<callout…><br>` is ever produced. See `reference/notion-blocks.md` §1
+  ("Callout form — no inline `<br>`").
+
+### Structural skill fixes applied (post-dogfood feedback, 2026-06-27)
+
+Five structural issues the maintainer flagged on the rendered page were fixed in the skill (not just this doc):
+
+1. **Callout `<br>` renderer bug** — above; tab-indented multi-line form + regression test.
+2. **Table full-width** — `fit-page-width="true"` already emitted on every table; added a regression selftest
+   (`fit-page-width` count == `<table>` count) and documented in §3 that a narrow few-column table is a Notion
+   *client* layout choice, not a missing attribute.
+3. **Rich tags inside section headers** (e.g. "Query metrics Nowad-hoc/metric-query") — `parse-doc.mjs` now
+   detects decorative inline tags/badges/chips/`<code>` in a heading and lifts them to a metadata paragraph
+   below, leaving the heading title clean.
+4. **Table of contents** — parser detects a source TOC (`<nav>`/`.toc`/anchor-link list) and the skill (Phase 1)
+   asks: Notion native `<table_of_contents/>` (recommended) / replicate as list / omit (`--toc` flag overrides).
+5. **Section dividers** — new `section_dividers` preference (asked first-run, default off; `--dividers`/
+   `--no-dividers` override) inserts a rule before each top-level section heading when on.
+
+All five are covered by selftests (parse-doc 29/0, map-to-notion 35/0; suite 111/0), the 4 hygiene lints,
+audit-recommended, and skill-eval (`--target claude-code` EXIT 0).
+
+The page content itself (the maintainer's POV) is **never committed** — only this report and the reconciliation
+above.
 
 ## Block census (parse-doc)
 

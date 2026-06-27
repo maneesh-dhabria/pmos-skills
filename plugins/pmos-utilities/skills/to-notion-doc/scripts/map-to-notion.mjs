@@ -122,6 +122,17 @@ export function buildModel(tree, opts = {}) {
         return { _si: b.si, type: 'image', src: b.src, alt: b.alt || '', external: !!b.external };
       }
       case 'table': return mapTable(b, rec);
+      case 'toc': {
+        // The source doc carried a table of contents. opts.tocMode (skill Phase 1 prompt) decides the fate:
+        //   native (default) → Notion's auto-updating <table_of_contents/> block (recommended);
+        //   replicate        → the source entries re-emitted as a plain bullet list;
+        //   omit             → drop it (user-skipped — terminal disposition, never counted as a loss).
+        const m = opts.tocMode || 'native';
+        if (m === 'omit') { rec('user-skipped', 'none'); return { _si: b.si, type: 'toc_omit' }; }
+        if (m === 'replicate') { rec('mapped', 'bulleted_list_item'); return { _si: b.si, type: 'toc_replicate', items: (b.items || []).map((it) => toNotionRich(it)) }; }
+        rec('mapped', 'table_of_contents');
+        return { _si: b.si, type: 'toc_native' };
+      }
       case 'ambiguous': {
         // resolved by the skill (Phase 2); default placeholder callout = stubbed
         rec('ambiguous-pending', 'callout');
@@ -150,8 +161,27 @@ export function buildModel(tree, opts = {}) {
     return m;
   };
 
-  const blocks = source.map(mapNode);
+  let blocks = source.map(mapNode);
+  // Section dividers (opt-in preference): insert a horizontal rule before every top-level section heading
+  // (heading_1 / heading_2) except the first, so each section reads as visibly closed. Only in 'normal'
+  // heading mode — toggle headings already own their bodies, so an inter-section rule would be noise.
+  if (opts.sectionDividers && headings === 'normal') blocks = withSectionDividers(blocks);
   return { blocks, plan, style, headings };
+}
+
+// Insert a synthetic divider before each heading_1/heading_2 that isn't the first block and isn't already
+// preceded by a divider. Synthetic dividers carry no source index (_synthetic) so they never enter the
+// reconciliation plan or the completeness census.
+function withSectionDividers(blocks) {
+  const out = [];
+  for (const b of blocks) {
+    const isSectionHead = b.type === 'heading_1' || b.type === 'heading_2';
+    if (isSectionHead && out.length && out[out.length - 1].type !== 'divider') {
+      out.push({ type: 'divider', _synthetic: true });
+    }
+    out.push(b);
+  }
+  return out;
 }
 
 // ---------------------------------------------------------------------------
@@ -214,10 +244,17 @@ function renderBlock(b, depth) {
       if (b.external && b.src) return `![${esc(b.alt)}](${b.src})`;
       // stub fallback is produced by the skill via upload-image (callout + placeholder); a bare model
       // image with no external src renders as a placeholder callout so nothing is silently dropped.
-      return `<callout icon="🖼"><br>Image (no URL): ${esc(b.alt || b.src || 'image')}\n</callout>`;
+      // Callout payload MUST be a tab-indented line on its own — NEVER an inline <br> right after the
+      // opening tag, which Notion's NFM parser rejects, falling back to escaped literal text (see §1).
+      return `<callout icon="🖼">\n${TAB}Image (no URL): ${esc(b.alt || b.src || 'image')}\n</callout>`;
     }
     case 'table': return renderTable(b);
-    case 'ambiguous': return `<callout icon="❓"><br>Unresolved ${esc(b.kind || 'media')} — see conversion report\n</callout>`;
+    // TOC: native = Notion's auto-updating block; replicate = the source list as plain bullets; omit = drop.
+    case 'toc_native': return '<table_of_contents/>';
+    case 'toc_replicate': return (b.items || []).map((it) => `- ${renderInline(it) || ' '}`).join('\n');
+    case 'toc_omit': return '';
+    // Same callout rule as the image stub: tab-indented body line, no inline <br> after the opening tag.
+    case 'ambiguous': return `<callout icon="❓">\n${TAB}Unresolved ${esc(b.kind || 'media')} — see conversion report\n</callout>`;
     default: return renderInline(b.rich || []) || '<empty-block/>';
   }
 }
@@ -235,7 +272,8 @@ function renderTable(b) {
 }
 
 export function renderNfm(blocks) {
-  return blocks.map((b) => renderBlock(b, 0)).join('\n\n');
+  // Drop empties (e.g. toc_omit) so they don't leave a stray blank paragraph between real blocks.
+  return blocks.map((b) => renderBlock(b, 0)).filter((s) => s !== '' && s != null).join('\n\n');
 }
 
 export function mapToNotion(tree, opts = {}) {
@@ -305,6 +343,55 @@ function selftest() {
   const code = mapToNotion([{ type: 'code', si: 0, language: 'python', code: 'a = [1, 2]' }], {});
   ok(/```python\na = \[1, 2\]\n```/.test(code.nfm), 'code NFM literal, language preserved');
 
+  // callout payloads (image stub + ambiguous) MUST be multi-line tab-indented, never an inline <br>
+  // after the opening tag (the live-dogfood drift: NFM parser rejects <br>, falls back to literal text).
+  const imgStub = mapToNotion([{ type: 'image', si: 0, src: 'diagram.png', alt: 'flow', external: false }], {});
+  ok(/<callout icon="🖼">\n\tImage \(no URL\): flow\n<\/callout>/.test(imgStub.nfm), 'image stub callout: tab-indented, no <br>');
+  ok(!/<callout[^>]*><br>/.test(imgStub.nfm), 'image stub callout: no inline <br> after opening tag');
+  const ambCallout = mapToNotion([{ type: 'ambiguous', si: 0, kind: 'svg', raw: '<svg/>' }], {});
+  // ambiguous renders as the literal placeholder block via renderBlock's 'ambiguous' case
+  const ambNfm = renderNfm(ambCallout.blocks);
+  ok(/<callout icon="❓">\n\tUnresolved svg — see conversion report\n<\/callout>/.test(ambNfm), 'ambiguous callout: tab-indented, no <br>');
+  ok(!/<callout[^>]*><br>/.test(ambNfm), 'ambiguous callout: no inline <br> after opening tag');
+
+  // TOC modes: native → <table_of_contents/>; replicate → bullets; omit → dropped (user-skipped, no output)
+  const tocDoc = [{ type: 'toc', si: 0, items: [[{ t: 'Intro' }], [{ t: 'Body' }]] }, { type: 'paragraph', si: 1, rich: [{ t: 'x' }] }];
+  const tocNative = mapToNotion(tocDoc, { tocMode: 'native' });
+  ok(tocNative.blocks[0].type === 'toc_native' && /<table_of_contents\/>/.test(tocNative.nfm), 'toc native → <table_of_contents/>');
+  ok(tocNative.plan[0].disposition === 'mapped' && tocNative.plan[0].notionType === 'table_of_contents', 'toc native plan: mapped');
+  const tocRep = mapToNotion(tocDoc, { tocMode: 'replicate' });
+  ok(tocRep.blocks[0].type === 'toc_replicate' && /- Intro\n- Body/.test(tocRep.nfm), 'toc replicate → bullet list of entries');
+  const tocOmit = mapToNotion(tocDoc, { tocMode: 'omit' });
+  ok(tocOmit.blocks[0].type === 'toc_omit' && !/Intro|table_of_contents/.test(tocOmit.nfm), 'toc omit → dropped from NFM');
+  ok(tocOmit.plan[0].disposition === 'user-skipped', 'toc omit plan: user-skipped (terminal)');
+
+  // section dividers: inserted before each section heading except the first; only in normal heading mode
+  const secDoc = [
+    { type: 'heading', si: 0, level: 1, rich: [{ t: 'One' }] },
+    { type: 'paragraph', si: 1, rich: [{ t: 'a' }] },
+    { type: 'heading', si: 2, level: 2, rich: [{ t: 'Two' }] },
+    { type: 'paragraph', si: 3, rich: [{ t: 'b' }] },
+  ];
+  const withDiv = mapToNotion(secDoc, { sectionDividers: true });
+  const dividerCount = withDiv.blocks.filter((b) => b.type === 'divider').length;
+  ok(dividerCount === 1, 'section dividers: one divider inserted (before 2nd heading, not the first)');
+  ok(withDiv.blocks[2].type === 'divider' && withDiv.blocks[3].type === 'heading_2', 'section divider sits before the section heading');
+  ok(withDiv.plan.length === 4, 'synthetic dividers stay out of the reconciliation plan');
+  const noDiv = mapToNotion(secDoc, { sectionDividers: false });
+  ok(noDiv.blocks.filter((b) => b.type === 'divider').length === 0, 'section dividers off by default');
+  const togDiv = mapToNotion(secDoc, { sectionDividers: true, headings: 'toggle' });
+  ok(togDiv.blocks.filter((b) => b.type === 'divider').length === 0, 'section dividers suppressed in toggle mode');
+
+  // fit-page-width is emitted on EVERY table (full-width is the default, not per-table opt-in)
+  const multiTable = mapToNotion([
+    { type: 'table', si: 0, header: true, rows: [[[{ t: 'A' }], [{ t: 'B' }]], [[{ t: '1' }], [{ t: '2' }]]] },
+    { type: 'paragraph', si: 1, rich: [{ t: 'gap' }] },
+    { type: 'table', si: 2, header: false, rows: [[[{ t: 'C' }]], [[{ t: '3' }]]] },
+  ], {});
+  const fitCount = (multiTable.nfm.match(/fit-page-width="true"/g) || []).length;
+  const tableCount = (multiTable.nfm.match(/<table /g) || []).length;
+  ok(tableCount === 2 && fitCount === 2, 'fit-page-width="true" on every table (full-width universal)');
+
   console.log(`map-to-notion selftest: ${pass} passed, ${fail} failed`);
   return fail === 0;
 }
@@ -313,12 +400,19 @@ const isMain = import.meta.url === `file://${process.argv[1]}`;
 if (isMain) {
   const args = process.argv.slice(2);
   if (args.includes('--selftest')) process.exit(selftest() ? 0 : 1);
-  let style = 'minimal', headings = 'normal'; const files = [];
-  for (let k = 0; k < args.length; k++) { if (args[k] === '--style') style = args[++k]; else if (args[k] === '--headings') headings = args[++k]; else files.push(args[k]); }
-  if (!files.length) { console.error('usage: map-to-notion.mjs [--style ..] [--headings ..] <parse-doc.json|source-file> | --selftest'); process.exit(64); }
+  let style = 'minimal', headings = 'normal', tocMode = 'native', sectionDividers = false; const files = [];
+  for (let k = 0; k < args.length; k++) {
+    if (args[k] === '--style') style = args[++k];
+    else if (args[k] === '--headings') headings = args[++k];
+    else if (args[k] === '--toc') tocMode = args[++k];
+    else if (args[k] === '--dividers') sectionDividers = true;
+    else if (args[k] === '--no-dividers') sectionDividers = false;
+    else files.push(args[k]);
+  }
+  if (!files.length) { console.error('usage: map-to-notion.mjs [--style ..] [--headings ..] [--toc native|replicate|omit] [--dividers|--no-dividers] <parse-doc.json|source-file> | --selftest'); process.exit(64); }
   const raw = fs.readFileSync(files[0], 'utf8');
   let tree;
   try { const j = JSON.parse(raw); tree = j.blocks || j; } catch { tree = parseDoc(raw, formatFromPath(files[0])).blocks; }
-  const out = mapToNotion(tree, { style, headings });
+  const out = mapToNotion(tree, { style, headings, tocMode, sectionDividers });
   process.stdout.write(JSON.stringify(out, null, 2) + '\n');
 }

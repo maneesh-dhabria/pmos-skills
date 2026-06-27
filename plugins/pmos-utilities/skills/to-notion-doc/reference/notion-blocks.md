@@ -44,13 +44,28 @@ outside code: `\ * ~ \` $ [ ] < > { } | ^`.
 | Paragraph | plain line; blank line ⇒ `<empty-block/>` (bare blank lines are stripped) |
 | Bulleted / numbered / to-do | `- ` / `1. ` / `- [ ] ` / `- [x] `; children tab-indented |
 | Quote | `> Text`; multi-line quote uses `<br>` (never a real newline mid-quote) |
-| Callout | `<callout icon="💡" color="blue_bg">` … `</callout>` (children tab-indented) |
+| Callout | `<callout icon="💡" color="blue_bg">` newline, **tab-indented body line(s)**, newline, `</callout>` |
 | Divider | `---` |
 | Code | ```` ```lang ```` fenced; content literal (no escaping inside) |
 | Equation (block) | `$$` … `$$`; inline `` $`expr`$ `` |
 | Image | `![Caption](URL)` — URL must resolve (external/file-upload); no local paths |
 | Link / bookmark | inline `[text](url)`; a standalone URL line is written as a `[url](url)` paragraph |
 | Table | `<table header-row="true" fit-page-width="true">` with `<tr><td>…</td></tr>` |
+| Table of contents | `<table_of_contents/>` — Notion's native auto-updating outline (self-closing) |
+
+**Callout form — no inline `<br>`.** A callout's body MUST be a tab-indented line *on its own*, between the
+opening tag and `</callout>`:
+
+```
+<callout icon="🖼">
+	Body text here
+</callout>
+```
+
+Writing `<callout icon="…"><br>body</callout>` (the body inline after the tag) makes Notion's NFM parser
+**reject the block and fall back to escaped literal text**, leaving a stray `</callout>` text block — exactly
+the live-dogfood drift caught on pov_v6. `map-to-notion.mjs` emits the multi-line form for callouts (image
+stub, ambiguity placeholder, expressive admonitions); a regression selftest asserts no `<callout…><br>`.
 
 **Inline marks (rich text):** `**bold**`, `*italic*`, `~~strike~~`, `` `code` ``, `[text](url)`, and color
 via `<span color="green">text</span>`. Cells may contain rich text only — never block tags or raw HTML
@@ -59,8 +74,9 @@ formatting tags (use `**` not `<strong>`).
 ## 2. Block catalog the converter emits
 
 `heading_1/2/3` (+ `is_toggleable`), `paragraph`, `bulleted_list_item`, `numbered_list_item`, `to_do`,
-`quote`, `callout`, `code`, `divider`, `table` + `table_row`, `image`, `bookmark`, `equation`. Unmappable
-rich media → an **ambiguity placeholder** (a labelled callout, or NFM `<unknown>`), never a silent drop.
+`quote`, `callout`, `code`, `divider`, `table` + `table_row`, `image`, `bookmark`, `equation`,
+`table_of_contents` (from a source TOC — §8). Unmappable rich media → an **ambiguity placeholder** (a
+labelled callout, or NFM `<unknown>`), never a silent drop.
 
 ## 3. Tables — the fidelity contract (the user's "dropped rows/columns" fix)
 
@@ -76,9 +92,12 @@ The REST `table` block exposes only three fields: `table_width` (column count), 
   first row** width — *not* the max column count, because an over-long stray row must truncate to the table,
   not widen it. Short rows pad; over-long rows truncate and increment `truncated_rows` (surfaced in the report).
 - **Create the table with ≥1 row;** append remaining rows in **≤100-row** batches (chunking, §6).
-- **Full width:** not controllable in the REST block API (drop the intent there). NFM *does* expose
-  `fit-page-width="true"` on `<table>`, so the NFM render sets it — the achievable win remains correct
-  column/row fidelity.
+- **Full width:** `fit-page-width="true"` is THE full-width lever, and the NFM render emits it on **every**
+  table unconditionally (a regression selftest counts `fit-page-width="true"` == number of `<table>`). It is
+  not a per-table opt-in and there is no markup to set "more" than true. Note the Notion *client* may still
+  render a narrow table (few short columns) without visually stretching it edge-to-edge — that is a client
+  layout choice, **not** a missing-attribute bug; every table already carries the maximal full-width hint.
+  (REST block API has no equivalent field — the intent is dropped there; NFM is where the win lives.)
 
 ## 4. Enums (validation gates — §H deterministic)
 
@@ -145,6 +164,34 @@ After writing, re-fetch the page (`notion-fetch` → NFM) and reconcile (`script
   in-enum (§4); all colors in-enum (§4).
 - Emit a **conversion report**: block counts by type, ambiguities resolved, image dispositions, and the
   pass/fail of both passes with the offending source location on any failure.
+
+## 8. Structural fidelity — heading tags, table of contents, section dividers
+
+Three structural behaviours, all grounded in `enhanced-markdown-spec`, that keep a converted page readable
+(the pov_v6 live-dogfood feedback):
+
+- **Heading-tag split (`parse-doc.mjs`).** Decorative inline elements authored *inside* a heading — badges,
+  pills, chips, kickers, status/step tags (class matches `badge|tag|pill|chip|kicker|eyebrow|status|stage|
+  step|…`, or an inline-`background` style), and any `<code>` chip — would otherwise concatenate into the
+  title, producing nonsense like "Query metrics Nowad-hoc/metric-query". The parser detects the first such
+  tag in a heading, keeps the text *before* it as the clean heading title, and lifts the tags into a separate
+  metadata `paragraph` directly below (joined by `  ·  `). Plain headings (no tags) are untouched — no
+  synthetic paragraph.
+
+- **Table of contents.** The parser detects a source TOC — a `<nav>`/`<aside>`/`.toc`/`.contents` container of
+  in-page (`#…`) anchor links, or a `<ul>`/`<ol>` that is ≥60% in-page anchor links with ≥3 items — and emits
+  a single `toc` block (not flattened bullets). The skill (Phase 1) asks how to handle it (`--toc` overrides):
+  - **`native` (recommended)** → Notion's `<table_of_contents/>`, which auto-tracks the page's real headings.
+  - **`replicate`** → re-emit the source entries verbatim as a bullet list.
+  - **`omit`** → drop it (disposition `user-skipped`, terminal — never an unaccounted-for loss).
+  A normal content list (no in-page anchors) is never mistaken for a TOC.
+
+- **Section dividers (preference).** `to_notion_doc.section_dividers` (asked first-run, default **off** = only
+  the source's own dividers; `--dividers`/`--no-dividers` override per run). When on, `map-to-notion.mjs`
+  inserts a synthetic `divider` before each top-level section heading (`heading_1`/`heading_2`) except the
+  first, and never doubles an existing divider. Synthetic dividers carry no source index, so they stay out of
+  the reconciliation plan and the completeness census (§7). Suppressed in `toggle` heading mode (toggle
+  headings already bound their own sections).
 
 ## Sources
 

@@ -301,11 +301,82 @@ function textOf(node) {
 
 const BLOCK_LEVEL = new Set(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'ul', 'ol', 'blockquote', 'pre', 'hr', 'table', 'div', 'section', 'article', 'main', 'header', 'footer', 'figure', 'figcaption', 'details', 'aside', 'nav']);
 
+// --- heading-tag split -----------------------------------------------------
+// Pills/badges/chips/code-chips authored *inside* a heading (a common HTML pattern for kickers, status
+// tags, step numbers) get concatenated into the heading title, producing nonsense like
+// "Query metrics Nowad-hoc/metric-query". Detect such decorative inline tags and lift them to a separate
+// metadata paragraph rendered directly below the heading, leaving the heading title clean.
+const HEADING_TAG_CLASS = /\b(badge|tag|pill|chip|chiclet|label|kicker|eyebrow|meta|status|stage|step|seq|sequence|tagline|chips?)\b/i;
+function isHeadingTag(ch) {
+  if (!ch || ch.tag === '#text') return false;
+  if (ch.tag === 'code') return true; // a <code> chip in a heading is decorative metadata, not the title
+  const cls = ch.attrs?.class || '';
+  const style = ch.attrs?.style || '';
+  if (HEADING_TAG_CLASS.test(cls)) return true;
+  if (/background(-color)?\s*:/i.test(style)) return true; // a styled background ⇒ a visual pill
+  return false;
+}
+function splitHeadingTags(node) {
+  const kids = node.children || [];
+  let firstTag = -1;
+  for (let k = 0; k < kids.length; k++) { if (isHeadingTag(kids[k])) { firstTag = k; break; } }
+  if (firstTag < 0) return { titleRich: inlineFromHtml(node), tagRich: [] };
+  const titleRich = inlineFromHtml({ children: kids.slice(0, firstTag) });
+  const tagSpans = [];
+  for (const tk of kids.slice(firstTag)) {
+    if (tk.tag === '#text' && !(tk.text || '').trim()) continue;
+    const sp = inlineFromHtml({ children: [tk] });
+    if (!sp.length) continue;
+    if (tagSpans.length) tagSpans.push({ t: '  ·  ' });
+    tagSpans.push(...sp);
+  }
+  // fall back to the whole-heading rich text if stripping the tags emptied the title
+  return { titleRich: titleRich.length ? titleRich : inlineFromHtml(node), tagRich: tagSpans };
+}
+
+// --- table-of-contents detection -------------------------------------------
+// A TOC in the source (a <nav>/<aside class="toc">, or an anchor-link list) is re-emitted as a single
+// `toc` block; the skill (Phase 1) asks whether to use Notion's native block, replicate it, or omit it.
+const TOC_CLASS = /\b(toc|table-of-contents|contents)\b/i;
+function hasHashLink(node) {
+  for (const ch of node.children || []) {
+    if (ch.tag === 'a' && /^#/.test(ch.attrs?.href || '')) return true;
+    if (ch.children && hasHashLink(ch)) return true;
+  }
+  return false;
+}
+function collectTocItems(node) {
+  const anchors = [];
+  const walkA = (n) => { for (const ch of n.children || []) { if (ch.tag === 'a') anchors.push(ch); else if (ch.children) walkA(ch); } };
+  walkA(node);
+  const src = anchors.length ? anchors : (node.children || []).filter((c) => c.tag === 'li');
+  const items = [];
+  for (const el of src) { const rich = inlineFromHtml(el); if (rich.length && rich.some((s) => (s.t || '').trim())) items.push(rich); }
+  return items;
+}
+function looksLikeAnchorToc(ulNode) {
+  const lis = (ulNode.children || []).filter((c) => c.tag === 'li');
+  if (lis.length < 3) return false;
+  const anchored = lis.filter((li) => hasHashLink(li)).length;
+  return anchored >= Math.ceil(lis.length * 0.6); // mostly in-page anchor links ⇒ a TOC, not a content list
+}
+
 function htmlToBlocks(node, blocks) {
   for (const ch of node.children || []) {
     const t = ch.tag;
     if (ch.tag === '#text') { if (ch.text && ch.text.trim()) blocks.push({ type: 'paragraph', rich: [{ t: ch.text.replace(/\s+/g, ' ').trim() }] }); continue; }
-    if (/^h[1-6]$/.test(t)) { blocks.push({ type: 'heading', level: Math.min(parseInt(t[1], 10), 3), rich: inlineFromHtml(ch) }); }
+    // TOC detection: a <nav>/<aside> (or any .toc/.contents container) holding in-page anchor links, or an
+    // anchor-link list, becomes a single `toc` block instead of bulleted_list_items.
+    if ((t === 'nav' || t === 'aside' || TOC_CLASS.test((ch.attrs?.class || '') + ' ' + (ch.attrs?.id || ''))) && hasHashLink(ch)) {
+      const items = collectTocItems(ch);
+      if (items.length >= 3) { blocks.push({ type: 'toc', items }); continue; }
+    }
+    if ((t === 'ul' || t === 'ol') && looksLikeAnchorToc(ch)) { blocks.push({ type: 'toc', items: collectTocItems(ch) }); continue; }
+    if (/^h[1-6]$/.test(t)) {
+      const { titleRich, tagRich } = splitHeadingTags(ch);
+      blocks.push({ type: 'heading', level: Math.min(parseInt(t[1], 10), 3), rich: titleRich });
+      if (tagRich.length) blocks.push({ type: 'paragraph', rich: tagRich });
+    }
     else if (t === 'p') { const rich = inlineFromHtml(ch); if (rich.length) blocks.push({ type: 'paragraph', rich }); else htmlToBlocks(ch, blocks); }
     else if (t === 'hr') blocks.push({ type: 'divider' });
     else if (t === 'ul' || t === 'ol') blocks.push(...htmlList(ch, t === 'ol'));
@@ -523,6 +594,31 @@ function selftest() {
   ok(ht && ht.header === true && ht.rows.length === 3, 'html table (header + 2 body rows)');
   ok(h.blocks.some((b) => b.type === 'code' && b.code.includes('const a=1')), 'html code');
   ok(h.blocks.some((b) => b.type === 'ambiguous' && b.kind === 'svg'), 'html inline svg → ambiguous');
+
+  // HTML heading-tag split: a badge span + a <code> chip inside a heading move to a metadata paragraph,
+  // leaving the heading title clean (the "rich tags rendered inside the section header" fix).
+  const htag = parseDoc('<html><body><h3>Query metrics <span class="badge">Now</span> <code>/metric-query</code></h3><p>body</p></body></html>', 'html');
+  const htagHead = htag.blocks.find((b) => b.type === 'heading');
+  ok(htagHead && htagHead.rich.map((s) => s.t).join('').trim() === 'Query metrics', 'heading title stripped of inline tags');
+  const tagIdx = htag.blocks.indexOf(htagHead);
+  const meta = htag.blocks[tagIdx + 1];
+  ok(meta && meta.type === 'paragraph' && /Now/.test(meta.rich.map((s) => s.t).join('')) && /metric-query/.test(meta.rich.map((s) => s.t).join('')), 'lifted tags land in a metadata paragraph below the heading');
+  // a plain heading (no tags) is untouched — no spurious metadata paragraph
+  const plainH = parseDoc('<html><body><h2>Just a title</h2><p>x</p></body></html>', 'html');
+  const plainHead = plainH.blocks.find((b) => b.type === 'heading');
+  ok(plainHead.rich.map((s) => s.t).join('') === 'Just a title' && plainH.blocks[plainH.blocks.indexOf(plainHead) + 1].type === 'paragraph' && plainH.blocks[plainH.blocks.indexOf(plainHead) + 1].rich[0].t === 'x', 'plain heading untouched (no synthetic metadata)');
+
+  // HTML TOC detection: a <nav> of in-page anchor links → a single `toc` block (not bullets)
+  const navToc = parseDoc('<html><body><nav class="toc"><ul><li><a href="#a">Intro</a></li><li><a href="#b">Body</a></li><li><a href="#c">End</a></li></ul></nav><h2>Intro</h2></body></html>', 'html');
+  const tocBlock = navToc.blocks.find((b) => b.type === 'toc');
+  ok(tocBlock && tocBlock.items.length === 3 && tocBlock.items[0][0].t === 'Intro', 'nav of anchor links → toc block with entries');
+  ok(!navToc.blocks.some((b) => b.type === 'bulleted_list_item'), 'toc nav not emitted as bullet list');
+  // an anchor-link <ul> (no nav wrapper) is also detected
+  const ulToc = parseDoc('<html><body><ul><li><a href="#one">One</a></li><li><a href="#two">Two</a></li><li><a href="#three">Three</a></li></ul></body></html>', 'html');
+  ok(ulToc.blocks.some((b) => b.type === 'toc'), 'anchor-link ul → toc block');
+  // a normal content list (no in-page anchors) stays a bullet list
+  const realList = parseDoc('<html><body><ul><li>apples</li><li>oranges</li><li>pears</li></ul></body></html>', 'html');
+  ok(!realList.blocks.some((b) => b.type === 'toc') && realList.blocks.filter((b) => b.type === 'bulleted_list_item').length === 3, 'content list stays bullets (not mistaken for toc)');
 
   // TXT: underlined heading, ALL-CAPS heading, bullets, paragraph
   const txt = ['Big Title', '=========', '', 'SECTION ONE', '', 'a paragraph here', 'continued', '', '- item one', '- item two'].join('\n');

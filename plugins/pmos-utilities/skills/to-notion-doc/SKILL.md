@@ -2,7 +2,7 @@
 name: to-notion-doc
 description: Convert a local document into a faithful Notion page. Use when the user wants to turn a Markdown, HTML, or text file into Notion — or says "/to-notion-doc", "put this doc in Notion", "convert this Markdown to a Notion page", "import this HTML into Notion", "push this file to Notion". Parses .md/.html/.txt into a block tree, maps it to Notion blocks via the Notion MCP (headings, lists, tables, code, callouts, toggles, images), remembers your heading + visual-style preferences, never drops table columns/rows, writes in resumable chunks, can create a new page or update an existing one, and verifies the result block-for-block.
 user-invocable: true
-argument-hint: "<path-to-.md|.html|.txt> [--parent <page>] [--into <page>] [--update-mode rewrite|archive|in-place] [--style minimal|expressive] [--headings toggle|normal] [--image-mode mcp-only|rest-upload] [--non-interactive]"
+argument-hint: "<path-to-.md|.html|.txt> [--parent <page>] [--into <page>] [--update-mode rewrite|archive|in-place] [--style minimal|expressive] [--headings toggle|normal] [--toc native|replicate|omit] [--image-mode mcp-only|rest-upload] [--non-interactive]"
 allowed-tools: Bash, Read
 ---
 
@@ -26,9 +26,10 @@ token and otherwise degrades to a placeholder stub.
 
 These instructions use Claude Code tool names. In other environments:
 
-- **No `AskUserQuestion` tool:** the preference confirm (Phase 0), ambiguity prompts and image-mode ask
-  (Phase 2), and the parent / update-mode picks (Phase 3) degrade to numbered free-form prompts. The
-  non-interactive auto-pick contract below still governs unattended runs.
+- **No `AskUserQuestion` tool:** the preference confirm and section-divider ask (Phase 0), the TOC-mode ask
+  (Phase 1), the ambiguity prompts and image-mode ask (Phase 2), and the parent / update-mode picks (Phase 3)
+  degrade to numbered free-form prompts. The non-interactive auto-pick contract below still governs unattended
+  runs.
 - **No Notion MCP connected:** hard error — this skill writes exclusively through the Notion MCP. Tell the user
   to connect the Notion integration; do not fall back to any REST path.
 - **No Bash tool:** the user runs the four `node scripts/*.mjs` invocations themselves and pastes the JSON back;
@@ -70,13 +71,18 @@ These instructions use Claude Code tool names. In other environments:
 Every option also has a natural-language form — infer it from the request; an explicit flag overrides. The
 contract flags in the argument-hint are: `--parent <page>` (parent for a new page), `--into <page>` (update an
 existing page), `--update-mode rewrite|archive|in-place`, `--style minimal|expressive`,
-`--headings toggle|normal`, `--image-mode mcp-only|rest-upload`, and `--non-interactive`. Two spellings are
-parsed but not advertised:
+`--headings toggle|normal`, `--toc native|replicate|omit` (how to handle a table of contents found in the
+source — skips the Phase 1 prompt), `--image-mode mcp-only|rest-upload`, and `--non-interactive`. These
+spellings are parsed but not advertised:
 
 <!-- nl-sugar -->
 - `--expressive` / `--minimal` — bare aliases for `--style expressive` / `--style minimal`.
 <!-- nl-sugar -->
 - `--toggle` — alias for `--headings toggle` ("make the headings collapsible" ≡ this).
+<!-- nl-sugar -->
+- `--dividers` / `--no-dividers` — override the saved `section_dividers` preference for this run ("put a line
+  between sections" ≡ `--dividers`). Derived from the persisted preference by default; the flag is a per-run
+  override, not the primary control.
 
 ## Track Progress
 
@@ -94,7 +100,9 @@ effects; keep its task visible until the verification pass (Phase 4) confirms th
 1. **Input.** Take the path argument; confirm it exists and ends `.md` / `.html` / `.txt` (format inferred from
    the extension — `scripts/parse-doc.mjs` `formatFromPath`). No path → usage error, exit 64.
 2. **Read preferences.** Read `.pmos/settings.yaml :: to_notion_doc` (keys: `heading_style`, `visual_style`,
-   `image_mode`, `last_parent`, `notion_token_env` (default `NOTION_TOKEN`), `updated`).
+   `image_mode`, `section_dividers`, `last_parent`, `notion_token_env` (default `NOTION_TOKEN`), `updated`).
+   (`toc_mode` is **not** persisted — a table of contents is a per-document trait, so it is resolved at
+   conversion time in Phase 1, not stored as a standing preference.)
 3. **First run (no `to_notion_doc` block)** — ask preferences, then write the block with today's `updated:`
    date. Each ask carries a `(Recommended)` option so unattended runs AUTO-PICK the first-run default:
 
@@ -102,6 +110,11 @@ effects; keep its task visible until the verification pass (Phase 4) confirms th
      body nested under each heading). AUTO-PICK normal.
    - **Visual style** — *Minimal (Recommended)* (plain blocks, no emoji/color/callouts) vs *Expressive* (emoji +
      semantic color + callouts per reference/notion-blocks.md). AUTO-PICK minimal.
+   - **Section dividers** — `AskUserQuestion`: *No section dividers (Recommended)* (faithful — emit only the
+     dividers present in the source) vs *Divider between sections* (insert a horizontal rule before each
+     top-level section heading, so each section reads as visibly closed). AUTO-PICK no-dividers (the
+     conservative, source-faithful default; never injects structure the document didn't have). Persisted as
+     `section_dividers: true|false`.
    - **Image mode** *(only if the source contains local/relative images)* — *MCP-only (Recommended)* (local
      images become a labeled placeholder stub; no token needed) vs *REST upload* (uploads local images via the
      Notion File Upload API — **this requires a Notion integration token** in the env var
@@ -110,21 +123,34 @@ effects; keep its task visible until the verification pass (Phase 4) confirms th
 
 4. **Later runs (block present)** — a single confirm-against-last-run, **not** a re-ask from scratch:
 
-   - `AskUserQuestion`: *Use saved preferences (Recommended)* (show the remembered heading/visual/image values)
-     vs *Edit preferences* (re-opens the three asks above). AUTO-PICK use-saved.
+   - `AskUserQuestion`: *Use saved preferences (Recommended)* (show the remembered
+     heading/visual/section-divider/image values) vs *Edit preferences* (re-opens the asks above). AUTO-PICK
+     use-saved.
 
-5. **Flag overrides.** `--headings` / `--style` / `--image-mode` override for this run **without** rewriting
-   settings, unless the confirm above chose to save. Print the resolved `(heading, visual, image_mode)` to chat.
+5. **Flag overrides.** `--headings` / `--style` / `--image-mode` / `--dividers` / `--no-dividers` override for
+   this run **without** rewriting settings, unless the confirm above chose to save. Print the resolved
+   `(heading, visual, section_dividers, image_mode)` to chat.
 
 ## Phase 1: Parse + map {#parse-map}
 
 1. **Parse:** `node scripts/parse-doc.mjs <path>` → normalized block tree JSON (stable `si` source-indices;
-   unmappable rich media emitted as `ambiguous` nodes carrying the raw source).
-2. **Map:** `node scripts/map-to-notion.mjs --style <minimal|expressive> --headings <normal|toggle> <tree.json>`
-   → `{ blocks, nfm, plan }` (the REST-faithful model, its Notion-flavored-Markdown render, and the
-   per-source-block reconciliation plan). Table fidelity (cells padded/truncated to `table_width`), the
-   code-language enum, and the color enum are all enforced here per reference/notion-blocks.md §3–§4.
-3. **Census:** report block counts by type and the count of `ambiguous` nodes + images headed to Phase 2.
+   unmappable rich media emitted as `ambiguous` nodes carrying the raw source). The parser also detects an
+   in-document **table of contents** (a `<nav>`/`<aside>`/`.toc` of in-page anchor links, or an anchor-link
+   list) and emits it as a single `toc` block rather than flattening it to bullets.
+2. **TOC mode** *(only if the parse emitted a `toc` block)* — ask how to handle the source's table of contents
+   (`--toc` overrides and skips the prompt):
+
+   - `AskUserQuestion`: *Notion table-of-contents block (Recommended)* (replace it with Notion's native
+     auto-updating `<table_of_contents/>`, which tracks the real headings) / *Replicate the source list* (re-emit
+     the entries verbatim as a bullet list) / *Omit it* (drop it — Notion pages have their own outline).
+     AUTO-PICK the native block. Resolves to `toc_mode ∈ {native, replicate, omit}`.
+3. **Map:** `node scripts/map-to-notion.mjs --style <minimal|expressive> --headings <normal|toggle>
+   --toc <native|replicate|omit> [--dividers|--no-dividers] <tree.json>` → `{ blocks, nfm, plan }` (the
+   REST-faithful model, its Notion-flavored-Markdown render, and the per-source-block reconciliation plan).
+   Table fidelity (cells padded/truncated to `table_width`, `fit-page-width="true"` on **every** table), the
+   code-language enum, the color enum, the TOC handling, and section dividers are all applied here per
+   reference/notion-blocks.md §3–§4. Pass `--dividers` when the resolved `section_dividers` preference is on.
+4. **Census:** report block counts by type and the count of `ambiguous` nodes + images headed to Phase 2.
 
 ## Phase 2: Resolve ambiguities + build images {#resolve-media}
 
