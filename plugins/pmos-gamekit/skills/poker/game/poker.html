@@ -42,7 +42,7 @@
   main { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 10px; gap: 8px; }
 
   /* ---- Table ---- */
-  .table-wrap { width: 100%; max-width: 860px; flex: 1; display: flex; align-items: center; justify-content: center; }
+  .table-wrap { width: 100%; max-width: 860px; flex: 1; display: flex; align-items: center; justify-content: center; margin-bottom: 44px; }
   .felt {
     position: relative; width: 100%; max-width: 820px; aspect-ratio: 16 / 10;
     background: radial-gradient(ellipse at 50% 42%, var(--felt-a), var(--felt-b) 72%);
@@ -911,7 +911,7 @@ if (typeof document !== 'undefined') {
   var BOT_NAMES = ['Ava', 'Bao', 'Cleo', 'Dex', 'Esme', 'Finn', 'Gus', 'Hana', 'Ivo', 'Juno', 'Kai', 'Lux'];
   // Six seat slots around the oval (human at slot 0, bottom-center).
   var SLOTS = [
-    { l: 50, t: 92 }, { l: 11, t: 66 }, { l: 9, t: 28 },
+    { l: 50, t: 88 }, { l: 11, t: 66 }, { l: 9, t: 28 },
     { l: 50, t: 8 }, { l: 91, t: 28 }, { l: 89, t: 66 }
   ];
 
@@ -1236,7 +1236,7 @@ if (typeof document !== 'undefined') {
   function newGame(numBotsOpt) {
     if (pendingTimer) { clearTimeout(pendingTimer); pendingTimer = null; }
     var rng = rng32();
-    var numBots = numBotsOpt || (1 + Math.floor(rng() * 5)); // 1..5
+    var numBots = numBotsOpt || (2 + Math.floor(rng() * 4)); // random: 2..5 opponents (3..6 handed)
     var personas = E.randomTable(numBots, rng);
     var names = E.shuffle(BOT_NAMES, rng);
     var seats = [{ seat: 0, name: 'You', isHuman: true, stack: START }];
