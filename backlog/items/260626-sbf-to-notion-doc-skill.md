@@ -9,11 +9,11 @@ priority: should
 route: skill
 dependencies: []
 plugin: pmos-utilities
-status: done
+status: released
 feature_folder: docs/pmos/features/2026-06-26_to-notion-doc/
 plan_doc: docs/pmos/features/2026-06-26_to-notion-doc/stories/260626-sbf/03_plan.html
 tasks: docs/pmos/features/2026-06-26_to-notion-doc/stories/260626-sbf/tasks.yaml
-worktree: .claude/worktrees/feat-260626-sbf
+worktree:
 claimed_by:
 driver_holder:
 build_branch: feat/260626-sbf
