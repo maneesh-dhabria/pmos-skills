@@ -1,6 +1,6 @@
 # Backlog Item Schema
 
-> Binds the shared tracker contract in [`../_shared/tracker-crudl.md`](../_shared/tracker-crudl.md). This file declares backlog's **bindings** (fields, enums, INDEX shape, archive root, claim locks); the shared contract governs the **invariants** (id/slug rules, `created`/`updated`/`schema_version`, INDEX regenerability, archive convention). **This file is the single source of truth for every enum value and default** — SKILL.md cites it and never re-lists enums.
+> Binds the shared tracker contract in [`../_shared/tracker-crudl.md`](../_shared/tracker-crudl.md). This file declares backlog's **bindings** (fields, enums, index-view shape, archive root, claim locks); the shared contract governs the **invariants** (id/slug rules, `created`/`updated`/`schema_version`, derived-on-read index view, archive convention). **This file is the single source of truth for every enum value and default** — SKILL.md cites it and never re-lists enums.
 
 Every backlog item is a markdown file at `backlog/items/{id}-{slug}.md`. An item is either an **epic** or a **story** (`kind:`). The three-loop model (define → build → release) runs over these two levels; see `docs/pmos/reviews/2026-06-10_ops-observations/backlog-three-loop-design.md` for the design rationale and decision log (D1–D30).
 
@@ -191,14 +191,12 @@ docs/pmos/features/2026-06-12_magazine-interop/
 
 Pre-three-loop feature folders keep their flat layout; the `stories/` layout applies only to epics created after this change (no back-migration of shipped folders — they are frozen decision records).
 
-## INDEX.md format
+## Index view format
 
-`backlog/INDEX.md` follows the regenerable-cache contract in `../_shared/tracker-crudl.md` §5 (never the source of truth; regenerated from `items/` on every write op and on `/backlog rebuild-index`; `Last regenerated:` line; empty cells, never `null`). Backlog's binding (grouping/sort/columns):
+The bare-`/backlog` index is a **view derived on read** from `items/*.md` per the contract in `../_shared/tracker-crudl.md` §5 (INV-1/2/3 — never persisted, never written by a handler, no committed `INDEX.md`; empty cells, never `null`). Backlog's binding (grouping/sort/columns), as the inline derived render lays it out:
 
 ```markdown
 # Backlog
-
-Last regenerated: 2026-04-25
 
 ## Epics
 | id | status | route | plugin | stories (done/total) | title |
@@ -220,11 +218,11 @@ Last regenerated: 2026-04-25
 
 The `## Epics` rollup table lists every epic with a **derived** `stories (done/total)` count (non-wontfix stories) — collapses single-story epics into one row; epics are ordered by **`created` desc**. Stories are then grouped by `priority` (must > should > could > maybe), sorted within each group by `score` desc (nulls last), then **`created` desc** as the chronology tiebreak (replacing the former `updated` desc tiebreak). **Sort never keys on `id`** — ids are non-monotonic under the `<YYMMDD>-<rand3>` scheme (`_shared/tracker-crudl.md` §2), so `created:` is the chronology source (the same rationale as §2.2's no-lexical-id-sort rule); `score` remains the primary prioritization signal, unchanged. Archived items are NOT listed. The `spec` / `plan` / `pr` columns show the filename only (not the full path) when set, otherwise blank.
 
-INDEX.md is a **derived artifact** (§5): the only sanctioned writer is the `rebuild-index` regeneration (scan `items/*.md`) — `#add`, `set`, `promote`, and the `define` definition-merge all regenerate rather than hand-appending rows, so INDEX can never drift from the item files or merge into duplicate rows (the root of the 0016 duplicate-id incident — `docs/pmos/features/2026-06-12_concurrency-safe-ids/02_design.html#incident`).
+The index view is a **derived artifact** (§5): there is **no writer** — it is computed fresh from `items/*.md` on every read and never persisted. `#add`, `set`, `promote`, and the `define` definition-merge mutate only the record files; the view recomputes itself on the next read, so it can never drift from the item files or merge into duplicate rows (the root of the 0016 duplicate-id incident — `docs/pmos/features/2026-06-12_concurrency-safe-ids/02_design.html#incident`). The post-`define`-merge integrity guard is `check-id-uniqueness.mjs post-merge <root>/backlog/items` (reads `items/`, not any index).
 
 ## Archive
 
-Backlog archives, per `../_shared/tracker-crudl.md` §6. Binding: archive root `backlog/archive/`, so items land at `backlog/archive/YYYY-QN/{id}-{slug}.md` (full content preserved, mirrors `items/`, never in `INDEX.md`).
+Backlog archives, per `../_shared/tracker-crudl.md` §6. Binding: archive root `backlog/archive/`, so items land at `backlog/archive/YYYY-QN/{id}-{slug}.md` (full content preserved, mirrors `items/`, never included in the derived index view).
 
 ## Migration (run lazily / manually — 8 open items, manual is fine)
 
