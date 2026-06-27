@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-06-27 — pmos-gamekit 0.10.1: /poker layout and random-table fixes
+
+**`/poker` no longer overlaps the hero's seat with the action-bar status text, and random tables always seat at least two opponents.** The felt now keeps clearance between your seat and the status bar across desktop, tablet, and narrow (640px) widths, so cards and chips stay readable. And starting a random table never deals you a heads-up game by accident — random mode now always seats between two and five opponents.
+
 ## 2026-06-27 — pmos-toolkit 2.97.0: /mytasks gets a full web app and a paste-to-import flow
 
 **`/mytasks web` is now a Todoist-class local web app, and you can import a whole outline at once.** Run `/mytasks web` to open a single-page app backed by a zero-dep localhost server: a sidebar of smart views, projects, labels, and people; inline task editing with `@person` / `#project` / `+label` autocomplete; nested, collapsible subtasks; a redesigned LNO importance badge; and inline controls for type, recurrence, check-in cadence, project, due date, and people — every edit writing the same markdown files the terminal verbs use, so the two surfaces never diverge. People are created and edited straight from the web app over the shared `~/.pmos/people/` store, byte-compatible with `/people`. New `/mytasks import`: paste a plain-text outline and it parses the structure (indentation and markers, with an AI fallback for ambiguous trees) into projects, tasks, subtasks, and labels, shows you the tree to confirm, then writes the items. Consistent with the trackers' derive-on-read model, nothing maintains a committed index file.

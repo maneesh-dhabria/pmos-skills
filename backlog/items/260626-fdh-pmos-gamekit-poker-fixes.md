@@ -4,12 +4,13 @@ id: 260626-fdh
 kind: epic
 title: "/poker fixes — hero seat overlaps the action-bar status text; random mode minimum 2 opponents"
 type: feature
-status: defined
+status: released
 priority: should
 labels: [pmos-gamekit, poker, polish, bug]
 route: skill
 created: 2026-06-26
-updated: 2026-06-26
+updated: 2026-06-27
+released: pmos-gamekit/v0.10.1
 defined: 2026-06-26
 source: docs/pmos/features/2026-06-26_poker-fixes/02_design.html
 feature_folder: docs/pmos/features/2026-06-26_poker-fixes/
