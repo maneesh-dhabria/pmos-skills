@@ -9,14 +9,17 @@ priority: should
 route: skill
 dependencies: []
 plugin: pmos-utilities
-status: planned
+status: in-progress
 feature_folder: docs/pmos/features/2026-06-26_to-notion-doc/
 plan_doc: docs/pmos/features/2026-06-26_to-notion-doc/stories/260626-sbf/03_plan.html
 tasks: docs/pmos/features/2026-06-26_to-notion-doc/stories/260626-sbf/tasks.yaml
-worktree:
+worktree: .claude/worktrees/feat-260626-sbf
+claimed_by: build:e385ea38
+driver_holder: build:e385ea38
+build_branch: feat/260626-sbf
 labels: [pmos-utilities, to-notion-doc, notion, mcp, document-conversion, new-skill]
 created: 2026-06-26
-updated: 2026-06-26
+updated: 2026-06-27
 ---
 
 ## Context
