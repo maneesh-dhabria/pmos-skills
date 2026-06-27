@@ -13,6 +13,8 @@ contain a hero with a single primary CTA, the approved sections in order, and th
 - [Julian's 6-criteria review](#julians-6-criteria-review)
 - [Single-CTA / attention ratio](#single-cta--attention-ratio)
 - [Clarity rules](#clarity-rules)
+- [Persona-jargon rule](#persona-jargon-rule)
+- [do > show > tell show-ratio](#show-ratio)
 - [Psychology levers by section](#psychology-levers-by-section)
 - [Anti-pattern avoid-list](#anti-pattern-avoid-list)
 - [Visual self-check](#visual-self-check)
@@ -54,6 +56,26 @@ enforce a **1:1 attention ratio**: strip nav links and competing CTAs so there i
 - Sell **benefits**, not self-congratulation ("we're the leading…").
 - **No wall of text** — scannable; one idea per block.
 - Handle **only major objections** — not every edge case.
+
+## Persona-jargon rule
+
+Calibrate vocabulary to the brief's selected persona(s) and their **jargon tolerance** (`novice` / `fluent`,
+captured in Phase 1 — D2). When **any** selected persona is `novice`, **undefined domain jargon is rejected**:
+a term like *equity*, *GTO*, *idempotent*, *RAG* must be either **inline-defined on first use** (a parenthetical
+or a one-line gloss) or **replaced with plain language**. When **all** selected personas are `fluent`, the
+jargon is allowed unglossed — fluent readers are slowed by over-explanation. The persona list lives in the
+brief; this is the rule that consumes it. A novice-persona page that ships an undefined domain term fails this
+gate — fix it in the draft.
+
+## do > show > tell show-ratio {#show-ratio}
+
+An **advisory (judgment) check, never a hard arithmetic gate** (§H — do not count tokens and threshold). Walk
+the drafted sections against the brief's **signature moments to demonstrate** and the do>show>tell principle
+(`section-scaffolds.md#governing-principles`): flag any section that **tells** a benefit a captured asset
+could **show** — a prose claim ("real-time pot-equity readout") where a screenshot, annotated shot, carousel,
+video, or interactive snippet of that exact moment exists or could be captured. Each flag is a suggestion to
+upgrade tell→show (or show→do), surfaced to the user; it does not block emit. A page that asserts every
+signature moment in prose while showing none is the failure shape this check exists to catch.
 
 ## Psychology levers by section
 
