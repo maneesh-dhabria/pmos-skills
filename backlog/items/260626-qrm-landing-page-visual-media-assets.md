@@ -5,18 +5,20 @@ kind: story
 title: "/landing-page — visual, media & assets"
 type: enhancement
 priority: should
-status: planned
+status: in-progress
 route: skill
 parent: 260626-7s4
 dependencies: [260626-h70]
-worktree:
+worktree: .claude/worktrees/feat-260626-qrm
+build_branch: feat/260626-qrm
 plan_doc: docs/pmos/features/2026-06-26_landing-page-enhancements/stories/260626-qrm-visual-media-assets/03_plan.html
 tasks_file: docs/pmos/features/2026-06-26_landing-page-enhancements/stories/260626-qrm-visual-media-assets/tasks.yaml
-claimed_by:
+claimed_by: build:e385ea38
+driver_holder: build:e385ea38
 pr:
 labels: [landing-page, pmos-toolkit, skill, visual, media]
 created: 2026-06-26
-updated: 2026-06-26
+updated: 2026-06-27
 ---
 
 ## Context
