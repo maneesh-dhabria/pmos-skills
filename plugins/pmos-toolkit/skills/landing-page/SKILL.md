@@ -19,18 +19,19 @@ not restate them):
 
 | Reference | Carries | Cited by |
 |---|---|---|
-| `reference/section-scaffolds.md` | governing equation + 11-row taxonomy + 4 product-type variants + copy-length rule | Phase 2 |
+| `reference/section-scaffolds.md` | governing equation + do>show>tell principle + 12-row taxonomy (incl. "Who this is for / not for") + 4 product-type variants + copy-length rule | Phases 2, 5 |
+| `reference/multi-product.md` | multi-product detection heuristic + 3 organizing principles (suite / hub / single-focus) | Phases 1, 2 |
 | `reference/hero-archetypes.md` | hero elements + 4 archetypes + 5 enforced hero rules | Phase 3 |
 | `reference/style-tokens.json` + `reference/style-tokens.md` | 6 frozen, contrast-safe theme-token sets | Phase 4 |
 | `reference/style-gallery.html` | offline swatch gallery of all 6 styles | Phase 4 |
-| `reference/copy-gates.md` | Julian litmus + Harry Dry 3-test + 6-criteria + single-CTA + psychology levers + anti-patterns + visual self-check | Phase 6 |
+| `reference/copy-gates.md` | Julian litmus + Harry Dry 3-test + 6-criteria + single-CTA + persona-jargon rule + do>show>tell show-ratio + psychology levers + anti-patterns + visual self-check | Phase 6 |
 
 ## Overview
 
 ```
 Phase 0  setup + load learnings + resolve input
-Phase 1  research → cited brief.md          (#research-brief)   — confirm with user
-Phase 2  propose section structure          (#propose-structure) — GATE: approve  (D4)
+Phase 1  research → cited brief.md          (#research-brief)   — persona + signature moments; confirm
+Phase 2  propose ≥3 structure variants      (#propose-structure) — GATE: pick variant (D4)
 Phase 3  explore 2–3 rendered hero folds    (#hero-explore)      — GATE: pick     (D2)
 Phase 4  pick visual style from the gallery (#style-pick)        — GATE: pick     (D1)
 Phase 5  draft the self-contained page      (#draft)
@@ -133,13 +134,29 @@ Build understanding **before** designing (D8). Grounded in `02_design.html#inges
    - **doc / description** → mine it directly.
 3. **Extract source material** into the page folder's `reference/` (the README, a screenshot list, any
    quoted testimonials/metrics) so the brief is auditable and the draft has real assets to bind.
-4. **Write `brief.md`** in the page folder — a cited brief capturing: product name + one-line definition,
-   `product_type` ∈ {B2B SaaS, Consumer app, Dev tool, Info-product} (drives every downstream default,
-   D5), target audience, the core desire, the top objections, available proof, the primary conversion
-   action, and the visual tone. **Cite each fact** back to its source file/line. **Missing fields are
-   asked, never invented** (D6) — list unknowns explicitly in the brief and (interactive) ask, or
-   (non-interactive) leave a clearly-labelled `TODO:` placeholder and log an Open Question.
-5. **Confirm the brief with the user** before proceeding (interactive). Adjust on feedback. This is the
+4. **Detect single- vs multi-product** (D9). Apply `reference/multi-product.md#detection-heuristic` to the
+   research: a monorepo with N user-facing apps, or a plugin exposing N user-facing skills, is
+   **multi-product**; facets/tiers/platforms of one product are **single-product** (the default — do not
+   over-detect). Record `product_count: single | multi` in `brief.md` (+ the product list when multi). The
+   chosen organizing principle is decided at Phase 2.
+5. **Write `brief.md`** in the page folder — a cited brief capturing: product name + one-line definition,
+   `product_type` ∈ {B2B SaaS, Consumer app, Dev tool, Info-product} (drives every downstream default, D5),
+   and:
+   - **Persona(s) (D2):** select **1–2 personas**, each with a **jargon tolerance** (`novice` / `fluent`).
+     These replace a loose "target audience" and calibrate copy (the persona-jargon rule that consumes them
+     lives in `reference/copy-gates.md#persona-jargon-rule` — cited, not restated here). Interactive: ask
+     which personas. Non-interactive: pick the `product_type` default persona and log an Open Question.
+   - **Signature moments to demonstrate (D1):** the **2–4 product moments worth showing** (e.g. a live
+     readout, a key interaction, a result screen) — the raw material for do>show>tell
+     (`reference/section-scaffolds.md#governing-principles`). Phase 2 maps each to a show-surface.
+   - plus the core desire, the top objections, available proof, the primary conversion action, and the
+     visual tone.
+
+   **Cite each fact** back to its source file/line. **Missing fields are asked, never invented** (D6) — list
+   unknowns explicitly in the brief and (interactive) ask, or (non-interactive) leave a clearly-labelled
+   `TODO:` placeholder and log an Open Question. For multi-product inputs, write **one brief slice per
+   product** (persona, signature moments, sections), per `reference/multi-product.md`.
+6. **Confirm the brief with the user** before proceeding (interactive). Adjust on feedback. This is the
    foundation the rest of the page is built on, so it is worth a beat.
 
 <!-- defer-only: free-form -->
@@ -149,24 +166,43 @@ under `--non-interactive` proceed with the brief as written and log it as an Ope
 ## Phase 2: Propose the section structure {#propose-structure}
 
 **Always propose + get approval before drafting (D4).** Grounded in `02_design.html#section-taxonomy`;
-the taxonomy, the product-type variants, the governing equation, and the copy-length rule all live in
-`reference/section-scaffolds.md` — read it and apply it; do not restate it here.
+the taxonomy, the product-type variants, the governing equation, the do>show>tell principle, and the
+copy-length rule all live in `reference/section-scaffolds.md` — read it and apply it; do not restate it here.
 
 1. Start from the **product-type variant** matching the brief's `product_type` (the reference's
-   "Product-type variants" section).
+   "Product-type variants" section). **Multi-product input (D9):** first pick the organizing principle from
+   `reference/multi-product.md` (suite / hub / single-focus) and build the structure per the chosen principle
+   — the gate below carries that pick.
 2. Filter every candidate row through the **governing equation** `Purchase Rate = Desire − (Labor +
    Confusion)` — a section earns its place only if it adds desire or removes labor/confusion. Cut the rest.
-3. Set copy length from the **copy-length rule** (free → short, paid → longer as price rises).
-4. **Present the proposed ordered section list** to the user with a one-line purpose per section and ask
-   for approval / edits before any drafting.
+3. **Map signature moments to show-surfaces (do>show>tell, D1).** For each brief signature moment, pick the
+   best-available surface (interactive snippet / video / carousel / annotated screenshot / plain screenshot)
+   per `reference/section-scaffolds.md#governing-principles`, and attach it to the section that makes the
+   claim — so the draft *shows* rather than *tells*.
+4. **Coherence / dedup pass (D3).** Before presenting, sweep the proposed list: **omit the below-hero
+   social-proof strip when the hero caption already carries those proof values**, and ensure **no section
+   restates the hero's value prop** or duplicates another section's proof (`section-scaffolds.md` dedup note).
+5. Set copy length from the **copy-length rule** (free → short, paid → longer as price rises).
+6. **Propose ≥3 distinct structure variants (D4).** Instead of one ordered list, present **at least three**
+   variants that differ in **section order, framing (problem-led vs outcome-led vs proof-led), and/or copy
+   length**, each with a **one-line summary**, and mark the best fit for the `product_type` as the
+   **recommended default**. (Reuse the Phase-3 rendered-comparison muscle only where cheap; a labelled list
+   is sufficient here.)
 
-Gate (the recommended option is the product-type-default scaffold, so it AUTO-PICKs non-interactively):
+Gate (the recommended option is the product-type-default variant, so it AUTO-PICKs non-interactively; for
+multi-product the recommended carries the single-focus principle per `multi-product.md#non-interactive-default`):
 
 ```
-AskUserQuestion → "Approve this section structure for the page?"
-  • "Use the proposed structure (Recommended)" — the product-type scaffold above, equation-filtered
-  • "Adjust sections" — add/remove/reorder (free-form follow-up)
+AskUserQuestion → "Which page structure should we use?"
+  • "Variant A — <one-line summary> (Recommended)"   — the product-type-default order/framing
+  • "Variant B — <one-line summary>"                  — e.g. problem-led, longer copy
+  • "Variant C — <one-line summary>"                  — e.g. proof-led, compressed
+  • "Adjust sections"                                 — add/remove/reorder (free-form follow-up)
 ```
+
+(Present the actual variant summaries; the three shown are illustrative. The recommended default is first so
+`--non-interactive` AUTO-PICKs it; a multi-product run additionally logs an Open Question naming the other
+detected products.)
 
 ## Phase 3: Explore the hero fold {#hero-explore}
 
@@ -228,18 +264,29 @@ Generate `index.html` in the page folder — the **single self-contained file** 
 1. **Bind the chosen style's token set** from `reference/style-tokens.json` as CSS custom properties in an
    inline `<style>` `:root` block. All color/type/spacing/radius/shadow come from the bound vars — do not
    introduce off-palette values.
-2. **Lay out the approved sections in order** (Phase 2), with the **chosen hero verbatim** (Phase 3) as
-   the first fold.
-3. **Write real copy** grounded in the brief — apply the hero rules and the copy craft from
-   `reference/copy-gates.md` as you write (litmus, Harry Dry 3-test, one isolated CTA, benefits over
-   self-praise, scannable blocks, place psychology levers deliberately by section).
-4. **Use real assets only.** Bind screenshots/testimonials/metrics/logos from the brief's `reference/`. For
+2. **Lay out the approved sections in order** (Phase 2 variant), with the **chosen hero verbatim** (Phase 3)
+   as the first fold. (Multi-product: lay out per the chosen organizing principle — one section per product
+   for a suite page, or emit one page per product + the hub for the product-index principle, per
+   `reference/multi-product.md`.)
+3. **Show the signature moments, don't just tell them (do>show>tell, D1).** Render each brief signature
+   moment on the show-surface chosen in Phase 2 (`reference/section-scaffolds.md#governing-principles`) —
+   a real screenshot / annotated shot / carousel / interactive snippet of that moment — rather than asserting
+   the benefit in prose.
+4. **Write real copy** grounded in the brief — apply the hero rules and the copy craft from
+   `reference/copy-gates.md` as you write (litmus, Harry Dry 3-test, one isolated CTA, persona-calibrated
+   vocabulary, benefits over self-praise, scannable blocks, place psychology levers deliberately by section).
+5. **Use real assets only.** Bind screenshots/testimonials/metrics/logos from the brief's `reference/`. For
    any asset the brief marks unknown, emit a **clearly-labelled placeholder** (e.g. a captioned grey block
    "screenshot: product dashboard — TODO"), never a fabricated proof point (D6).
-5. **Self-contained constraints (D3):** inline CSS + vanilla JS only, **no CDN / no external fetch**; the
+6. **Bake the attribution footer (D11).** Every emitted `index.html` (and each per-product page) carries a
+   small footer line **"Built with pmos-toolkit"** linking to the repo via the **`{{repo_url}}`** token
+   convention (default `https://github.com/maneesh-dhabria/pmos-skills`, the same wordmark/footer token the
+   shared `_shared/html-authoring/template.html` uses). This is **additive** to the section-12 footer — it
+   does not displace the product's own trust/legal/secondary links.
+7. **Self-contained constraints (D3):** inline CSS + vanilla JS only, **no CDN / no external fetch**; the
    page must open from `file://`. Embed small images as `data:` URIs or reference files inside the page
    folder.
-6. **Bake the pmos artifact contract:** include `<meta name="pmos:skill" content="landing-page">` and the
+8. **Bake the pmos artifact contract:** include `<meta name="pmos:skill" content="landing-page">` and the
    inline `<!-- pmos-comments:start -->` … `<script id="pmos-comments" type="application/json">[]</script>`
    … `<!-- pmos-comments:end -->` block (see repo CLAUDE.md "Inline doc comments") so the page is
    annotatable like any pmos artifact.
@@ -250,10 +297,13 @@ Apply the gates and **revise in place before surfacing the page** (D10). All gat
 `reference/copy-gates.md` — run them, do not restate them.
 
 1. **Copy / conversion gates** (`reference/copy-gates.md`): Julian's litmus on the headline; Harry Dry's
-   3-test on every headline/claim; the 6-criteria review; single-CTA / attention-ratio; clarity rules;
-   psychology levers placed (not stacked); and the anti-pattern avoid-list (reject slogans, vague copy,
-   bloated header, abstract stock imagery, unattributed testimonials, low-contrast CTA, wrong copy-length,
-   and any fabricated metric/testimonial/logo). Fix violations in the draft.
+   3-test on every headline/claim; the 6-criteria review; single-CTA / attention-ratio; clarity rules; the
+   **persona-jargon rule** (`#persona-jargon-rule` — a novice persona rejects undefined domain jargon unless
+   inline-defined); the **do>show>tell show-ratio** check (`#show-ratio` — advisory: flag sections that tell
+   a benefit a captured asset could show); psychology levers placed (not stacked); and the anti-pattern
+   avoid-list (reject slogans, vague copy, bloated header, abstract stock imagery, unattributed testimonials,
+   low-contrast CTA, wrong copy-length, and any fabricated metric/testimonial/logo). Fix violations in the
+   draft.
 2. **Visual self-check (D10)** — `reference/copy-gates.md#visual-self-check`: serve the page over
    `http://localhost` (Playwright cannot open `file://` in this repo) and load it; screenshot **desktop +
    mobile** into `working/`; run a reviewer pass (≤ 2-iteration fix loop, the `/wireframes` // `/prototype`
