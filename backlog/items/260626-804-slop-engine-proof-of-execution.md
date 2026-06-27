@@ -4,12 +4,13 @@ id: 260626-804
 kind: epic
 title: "slop-engine proof-of-execution — deterministic slop consumers (/design-crit, /verify) must prove the lane ran, never claim graceful degradation by assertion"
 type: enhancement
-status: defined
+status: released
+released: pmos-toolkit/v2.95.0
 priority: should
 labels: [pmos-toolkit, design-crit, verify, slop-engine, quality-gate, from-feedback]
 route: skill
 created: 2026-06-26
-updated: 2026-06-26
+updated: 2026-06-27
 defined: 2026-06-26
 source: docs/pmos/features/2026-06-26_slop-engine-proof-of-execution/
 feature_folder: docs/pmos/features/2026-06-26_slop-engine-proof-of-execution/

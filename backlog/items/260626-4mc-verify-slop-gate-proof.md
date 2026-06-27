@@ -5,11 +5,11 @@ kind: story
 title: "/verify — Slop gate skip-branch proof-of-execution: surface the runner line, tie ran-vs-skipped to the JSON report + exit code, never narrative"
 type: enhancement
 priority: should
-status: done
+status: released
 route: skill
 parent: 260626-804
 dependencies: []
-worktree: .claude/worktrees/feat-260626-4mc
+worktree:
 plan_doc: docs/pmos/features/2026-06-26_slop-engine-proof-of-execution/stories/260626-4mc/03_plan.html
 tasks_file: docs/pmos/features/2026-06-26_slop-engine-proof-of-execution/stories/260626-4mc/tasks.yaml
 claimed_by:
