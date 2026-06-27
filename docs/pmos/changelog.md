@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-06-27 — pmos-utilities 0.4.0: new /to-notion-doc — publish a local doc to Notion
+
+**New skill: `/to-notion-doc`.** Converts a local Markdown document into a real Notion page — headings, lists, tables, code blocks, callouts, and images all map to native Notion blocks. It writes through the Notion MCP connection (no REST token needed for text), chunks large documents so each write stays within Notion's per-request block limits, and verifies the published page block-for-block against the source so you know the conversion landed faithfully. An opt-in image-upload step (requires a `NOTION_TOKEN`) rehosts local images instead of leaving them as dead links.
+
 ## 2026-06-25 — pmos-toolkit 2.93.0: /backlog grooming no longer false-flags numbered/dash acceptance criteria
 
 **`/backlog` grooming stops nagging about acceptance criteria you already wrote.** The grooming check previously only recognized acceptance criteria written as Markdown checkboxes, so stories whose ACs used numbered lists or dashes read as "ungroomed" and kept surfacing in the groom queue. Detection now accepts checkbox, dash, and numbered formats equally, so a story with real ACs in any common format is correctly treated as groomed.
