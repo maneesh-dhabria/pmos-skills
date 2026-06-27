@@ -4,12 +4,13 @@ id: 260626-j5k
 title: "/learn-list curated-references corpus hygiene — title backfill + tag vocabulary"
 type: tech-debt
 kind: epic
-status: defined
+status: released
 route: skill
 priority: should
 labels: [learn-list, primer, pmos-learnkit, skill, corpus]
 created: 2026-06-26
-updated: 2026-06-26
+updated: 2026-06-27
+released: pmos-learnkit/v0.31.0
 source: "user-driven corpus-quality review of /learn-list library-viewer (2026-06-26); Playwright backfill proven over 50-record sample"
 design_doc: docs/pmos/features/2026-06-26_learn-list-corpus-hygiene/02_design.html
 parent:

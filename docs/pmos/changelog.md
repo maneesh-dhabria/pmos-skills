@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-06-27 — pmos-learnkit 0.31.0: /learn-list curated-references corpus cleanup
+
+**The curated-references library behind `/learn-list` is much cleaner to browse.** Broken and machine-generated titles — error pages, bot walls, and raw URLs that made up about a third of the corpus — have been backfilled with real titles or dropped, cutting junk titles from roughly 34% to under half a percent. The tag list, which had sprawled to over 500 near-duplicate tags, is now a closed vocabulary of 142 tags with a synonym map folding the rest in, so the browse facets are short and consistent. Tag normalization is enforced at import time: an unknown tag now fails the build rather than silently re-growing the sprawl.
+
 ## 2026-06-27 — pmos-gamekit 0.10.1: /poker layout and random-table fixes
 
 **`/poker` no longer overlaps the hero's seat with the action-bar status text, and random tables always seat at least two opponents.** The felt now keeps clearance between your seat and the status bar across desktop, tablet, and narrow (640px) widths, so cards and chips stay readable. And starting a random table never deals you a heads-up game by accident — random mode now always seats between two and five opponents.
