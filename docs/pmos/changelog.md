@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-06-27 — pmos-learnkit 0.32.0: /primer library-viewer reaches full parity with /frameworks
+
+**`/primer`'s library browser now works like `/frameworks`.** The viewer gains the full shared library-viewer experience — multi-select category and audience filters, three view modes, and an in-page iframe reader that opens a primer without leaving the library. A bug that broke card links has been fixed, and the result count now reflects the whole library. Because the change is an additive, default-off seam in the shared viewer engine, `/frameworks` and `/learn-list` render byte-for-byte identically to before.
+
 ## 2026-06-27 — pmos-learnkit 0.31.0: /learn-list curated-references corpus cleanup
 
 **The curated-references library behind `/learn-list` is much cleaner to browse.** Broken and machine-generated titles — error pages, bot walls, and raw URLs that made up about a third of the corpus — have been backfilled with real titles or dropped, cutting junk titles from roughly 34% to under half a percent. The tag list, which had sprawled to over 500 near-duplicate tags, is now a closed vocabulary of 142 tags with a synonym map folding the rest in, so the browse facets are short and consistent. Tag normalization is enforced at import time: an unknown tag now fails the build rather than silently re-growing the sprawl.

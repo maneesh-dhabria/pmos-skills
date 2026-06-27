@@ -4,12 +4,13 @@ id: 260626-z2p
 title: "/primer library-viewer full parity with /frameworks (shared library-viewer interface)"
 type: enhancement
 kind: epic
-status: defined
+status: released
 route: skill
 priority: should
 labels: [primer, frameworks, learn-list, library-viewer, pmos-learnkit, skill]
 created: 2026-06-26
-updated: 2026-06-26
+updated: 2026-06-27
+released: pmos-learnkit/v0.32.0
 source: "user-driven (2026-06-26): fix /primer library-viewer to match /frameworks under the standard library-viewer interface; code audit confirmed primer is a thin substrate consumer with 1 real bug + feature gaps. User decisions: full feature parity; iframe in-page reader"
 design_doc: docs/pmos/features/2026-06-26_primer-viewer-parity/02_design.html
 parent:
