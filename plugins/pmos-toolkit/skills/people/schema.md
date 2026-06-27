@@ -1,6 +1,6 @@
 # /people Record Schema
 
-> Binds the shared tracker contract in [`../_shared/tracker-crudl.md`](../_shared/tracker-crudl.md). This file declares people's **bindings** (fields, enums, INDEX shape); the shared contract governs the **invariants** (`created`/`updated`/`schema_version`, INDEX regenerability). Two deviations from the common case: people is **handle-keyed, not numeric-id** (so §2 does not apply — see below), and people **does not archive** (no §6 store).
+> Binds the shared tracker contract in [`../_shared/tracker-crudl.md`](../_shared/tracker-crudl.md). This file declares people's **bindings** (fields, enums, index-view shape); the shared contract governs the **invariants** (`created`/`updated`/`schema_version`, derived-on-read index view §5 INV-1/2/3). Two deviations from the common case: people is **handle-keyed, not numeric-id** (so §2 does not apply — see below), and people **does not archive** (no §6 store).
 
 Every person record is a markdown file at `~/.pmos/people/{handle}.md`.
 
@@ -60,14 +60,12 @@ Free-form. Context, prefs, history.
 
 The `## Notes` section is optional. The skill never auto-writes to the body; users edit it freely.
 
-## INDEX.md format
+## Index view format
 
-`~/.pmos/people/INDEX.md` follows the regenerable-cache contract in `../_shared/tracker-crudl.md` §5 (never the source of truth; `Last regenerated:` line; empty cells, never `null`). Binding (sort/columns):
+The bare-`/people` at-a-glance directory is an **index view derived on read** from `~/.pmos/people/*.md` — there is **no committed `INDEX.md`** and no writer (per `../_shared/tracker-crudl.md` §5, INV-1/2/3: never persisted; empty cells, never `null`). Binding (sort/columns):
 
 ```markdown
 # People
-
-Last regenerated: 2026-04-25
 
 | handle | name | designation | role | working_relationship | team | email |
 |--------|------|-------------|------|----------------------|------|-------|
@@ -76,4 +74,4 @@ Last regenerated: 2026-04-25
 | sarah-patel | Sarah Patel | | Designer | team-member | design | |
 ```
 
-Sorted by `name` ascending (cell-rendering and `Last regenerated:` line per shared §5).
+Sorted by `name` ascending (cell-rendering per shared §5). Computed fresh from the record files on every read — no `Last regenerated:` line, because there is nothing to regenerate.
