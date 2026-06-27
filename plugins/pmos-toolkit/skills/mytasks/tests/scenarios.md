@@ -2,7 +2,7 @@
 
 Each section describes an expected agent behavior given the matching fixture under `tests/fixtures/`. To verify, the implementer reads the relevant SKILL.md phases and walks through each scenario manually.
 
-> **Mixed-id corpus (deliberate).** The fixtures use a mix of id schemes on purpose so the `_shared/tracker-crudl.md §2.1` triple validator is exercised against both: `with-subtasks` uses the current `<YYMMDD>-<rand3>` scheme (e.g. `260613-a3f`); `with-tasks`, `with-checkins`, `with-archive`, and `with-legacy-workstream` retain **legacy 4-digit serial ids** (e.g. `0001`, `0007`) to prove old files still locate and render after the id-scheme correctness fix. The `with-legacy-workstream` fixture additionally retains the pre-rename `workstream:` frontmatter key to exercise the Phase 12 migration.
+> **Mixed-id corpus (deliberate).** The fixtures use a mix of id schemes on purpose so the `_shared/tracker-crudl.md §2.1` triple validator is exercised against both: `with-subtasks` uses the current `<YYMMDD>-<rand3>` scheme (e.g. `260613-a3f`); `with-tasks`, `with-checkins`, `with-archive`, and `with-legacy-workstream` retain **legacy 4-digit serial ids** (e.g. `0001`, `0007`) to prove old files still locate and render after the id-scheme correctness fix. The `with-legacy-workstream` fixture additionally retains the pre-rename `workstream:` frontmatter key to exercise the load-time workstream→project migration.
 
 ## Fixture: empty-tasks
 
@@ -14,32 +14,24 @@ Expected:
 - Output: `No tasks yet. Capture one with /mytasks <text> or /mytasks add <text>.`
 - No files created.
 
-### Scenario: `/mytasks rebuild-index` (empty fixture)
+### Scenario: `/mytasks` (no args, empty fixture — headless inline fallback)
 
-Expected:
-- Glob returns 0 item files.
-- Write `~/.pmos/tasks/INDEX.md` with header + 3 empty buckets (each bucket has its `## {name}` header + column row, no data rows).
-- Output: `Regenerated INDEX.md: 0 active items (0 completed/dropped excluded).`
+Expected (under `--non-interactive`/headless, the bare command degrades to the inline derived render — INV-2):
+- Glob `~/.pmos/tasks/items/*.md` returns 0 item files.
+- Empty-state is gated on **zero item files**: output `No tasks yet. Capture one with /mytasks <text> or /mytasks add <text>.`
+- No `INDEX.md` is written (the index view is derived on read; there is no `rebuild-index` verb).
 
 ## Fixture: with-tasks
 
 Four items: 0001 (leverage, in-progress, due 2026-05-12), 0002 (neutral, call, pending, due 2026-05-01, next_checkin 2026-05-08), 0003 (overhead, waiting), 0004 (neutral, read, pending).
 
-### Scenario: `/mytasks` (no args, with-tasks fixture)
+### Scenario: `/mytasks` (no args, with-tasks fixture — derived on read)
 
-Expected:
-- Read INDEX.md (skip regen since INDEX is fresh).
-- Render verbatim.
-- Output groups: `## leverage` with 0001, `## neutral` with 0002 and 0004 (sorted by due asc; 0002 first because it has a due date), `## overhead` with 0003.
-
-### Scenario: `/mytasks rebuild-index` (with-tasks fixture)
-
-Expected:
-- Read all 4 items.
+Expected (interactive → launch web; the headless/inline equivalent renders the same buckets via `lib.js renderIndex`):
+- Glob the 4 item files; group by importance fresh per read (no `INDEX.md` consulted or written).
 - Group by importance: leverage (0001), neutral (0002, 0004), overhead (0003).
 - Within neutral: sort by due asc, no-due last → 0002 (due 2026-05-01), then 0004 (no due).
-- Write INDEX.md with the expected shape.
-- Output: `Regenerated INDEX.md: 4 active items (0 completed/dropped excluded).`
+- Output groups: `## leverage` with 0001, `## neutral` with 0002 and 0004 (0002 first because it has a due date), `## overhead` with 0003. No `Last regenerated:` line (nothing is regenerated).
 
 ## Fixture: empty-tasks (continued — quick capture)
 
@@ -55,7 +47,7 @@ Expected single tool-call sequence (no blocking, no questions):
 7. Slug: `call-sarah-about-q3-okrs`.
 8. Write `~/.pmos/tasks/items/0001-call-sarah-about-q3-okrs.md` with frontmatter only (no body).
 9. Frontmatter: `id: 0001`, `title: Call sarah about Q3 OKRs`, `type: call`, `importance: neutral`, `status: pending`, `due: 2026-05-01`, `created`/`updated` = today, all other optional fields as bare keys.
-10. Apply Phase 12 (rebuild INDEX).
+10. The index view is derived on read (Phase 1) — no regeneration step.
 11. Output: `Captured #0001 (call, neutral): "Call sarah about Q3 OKRs" — due 2026-05-01.`
 
 ### Scenario: `/mytasks Sync with @sarah on roadmap` (with-people fixture sibling exists; sarah → sarah-chen via alias)
@@ -142,7 +134,7 @@ Expected interactive flow per `_shared/interactive-prompts.md`:
 9. Prompt `checkin` (enum): `daily`, `weekly`, `biweekly`, `monthly`, `none` (default). User picks `weekly`. Skill auto-sets `next_checkin: today + 7 days`.
 10. Build slug from title: `prep-board-deck`.
 11. Write `~/.pmos/tasks/items/0001-prep-board-deck.md` with collected fields.
-12. Apply Phase 12 (rebuild INDEX).
+12. The index view is derived on read (Phase 1) — no regeneration step.
 13. Output: `Added #0001 (execution, leverage): "Prep board deck" — due {Friday-date}, project board-q2, people: mark-davis, lisa, checkin weekly (next 2026-05-02).`
 
 ### Scenario: `/mytasks add Quick standalone task` (skip everything optional)
@@ -163,7 +155,7 @@ Expected:
 ### Scenario: `/mytasks list` (no flags)
 
 Expected:
-- Read INDEX.md.
+- Derive the view from the item files (no INDEX.md is consulted).
 - Render flat sorted list (importance leverage > neutral > overhead → due asc → updated desc).
 - Output table columns: id, type, status, due, next_checkin, title, project.
 - Order: 0001, 0002, 0004, 0003.
@@ -172,7 +164,7 @@ Expected:
 
 Expected:
 - Filter to `status: pending`. From with-tasks: 0002, 0004 (0001 is in-progress, 0003 is waiting).
-- Source: INDEX.md (status is an INDEX column).
+- Source: the item files, derived on read (status is a derived-view column).
 - Render flat sorted: 0002 first (has due), 0004 second.
 
 ### Scenario: `/mytasks list --project platform-q3 --importance leverage`
@@ -182,20 +174,20 @@ Expected:
 Expected:
 - AND filter: project platform-q3 AND importance leverage.
 - Match: 0001 only.
-- Source: INDEX.md (both filters map to INDEX columns; importance is the bucket).
+- Source: the item files, derived on read (both filters map to derived-view columns; importance is the bucket).
 - Output: single-row table.
 
-### Scenario: `/mytasks list --label reading` (label not in INDEX)
+### Scenario: `/mytasks list --label reading` (label requires item files)
 
 Expected:
-- Filter requires reading item files (labels not in INDEX).
+- Filter reads the item files (labels are not a derived-view column).
 - Read all items, filter to those whose `labels:` contains `reading`. Match: 0004.
 - Output: single row.
 
-### Scenario: `/mytasks list --person sarah-chen` (people not in INDEX)
+### Scenario: `/mytasks list --person sarah-chen` (people require item files)
 
 Expected:
-- Filter requires reading item files (people not in INDEX).
+- Filter requires reading item files (people require item files).
 - Read all items, filter to those whose `people:` contains `sarah-chen`. Match: 0001, 0002.
 - Output: two-row table, sorted by importance bucket (0001 leverage first, then 0002 neutral).
 
@@ -203,7 +195,7 @@ Expected:
 
 Expected:
 - Equivalent to `/mytasks list --due today`.
-- INDEX.md filter: `due: 2026-05-01`. Match: 0002.
+- Filter on `due:` (derived from item files): `due: 2026-05-01`. Match: 0002.
 - Output: single row.
 
 ### Scenario: `/mytasks week` (assume today = 2026-04-25)
@@ -211,7 +203,7 @@ Expected:
 Expected:
 - Equivalent to `/mytasks list --due this-week`.
 - "this-week" window: today through today + 7 days, i.e., 2026-04-25 to 2026-05-02.
-- INDEX.md filter: `due` in window. Match: 0002 (due 2026-05-01).
+- Filter on `due` window (derived from item files). Match: 0002 (due 2026-05-01).
 - Output: single row.
 
 ### Scenario: `/mytasks overdue` (assume today = 2026-06-01)
@@ -245,7 +237,7 @@ Expected:
 
 Expected:
 - Equivalent to `/mytasks list --project platform-q3` (the named view is `in <project>` as of story 260613-044, renamed from `in <workstream>`).
-- INDEX.md filter on `project`. Match: 0001, 0002.
+- Filter on the `project:` field (derived from item files). Match: 0001, 0002.
 
 ### Scenario: `/mytasks list --status open` (invalid enum value)
 
@@ -273,7 +265,7 @@ Expected:
 Expected:
 - Validate `leverage` against importance enum. Pass.
 - Load 0002 file, update `importance: leverage`, set `updated:` to today, write back.
-- Apply Phase 12.
+- The index view is derived on read (Phase 1) — no regeneration step.
 - Output: `Updated #0002: importance = leverage.`
 
 ### Scenario: `/mytasks set 2 status=invalid_status`
@@ -296,7 +288,7 @@ Expected:
 - Edit `title:`.
 - ALSO rename file: `0002-call-sarah-on-roadmap.md` → `0002-call-sarah-on-q3-roadmap.md` (preserve id prefix; recompute slug from new title).
 - Set `updated:` to today.
-- Apply Phase 12.
+- The index view is derived on read (Phase 1) — no regeneration step.
 - Output: `Updated #0002: title = Call sarah on Q3 roadmap. Renamed to 0002-call-sarah-on-q3-roadmap.md.`
 
 ### Scenario: `/mytasks refine 1` (with-tasks fixture)
@@ -310,7 +302,7 @@ Expected interactive flow per `_shared/interactive-prompts.md`, same field order
 6. Prompt people (current: `sarah-chen`). User: `sarah-chen, mark-davis`. Skill resolves both via /people find.
 7. Prompt checkin (current: empty/none). User: `weekly`. Skill auto-sets `next_checkin: today + 7 days`.
 8. Write back, set `updated:` to today.
-9. Apply Phase 12.
+9. The index view is derived on read (Phase 1) — no regeneration step.
 10. Output: `Refined #0001.`
 
 ### Scenario: `/mytasks done 1 wrapped this up` (with-checkins fixture, today = 2026-04-25)
@@ -319,7 +311,7 @@ Expected:
 - Locate 0001.
 - Set `status: completed`, `completed: 2026-04-25`, `updated: 2026-04-25`.
 - Append note to `## Notes` (creating section if absent): `- 2026-04-25: wrapped this up`.
-- Apply Phase 12 (item leaves INDEX since completed).
+- The completed item drops out of the derived index view on the next read — no regeneration step.
 - Output: `Completed #0001: "Weekly 1on1 prep".`
 
 ### Scenario: `/mytasks done 1` (no note)
@@ -332,7 +324,7 @@ Expected:
 - Locate 0002.
 - Set `status: dropped`, `completed: 2026-04-25`, `updated: 2026-04-25`.
 - Append to `## Notes`: `- 2026-04-25: dropped — vendor never responded`.
-- Apply Phase 12.
+- The index view is derived on read (Phase 1) — no regeneration step.
 - Output: `Dropped #0002: "SSL cert renewal blocked on vendor".`
 
 ## Fixture: with-checkins (continued — checkin mechanics)
@@ -345,7 +337,7 @@ Expected:
 - Advance `next_checkin: 2026-05-02` (today + 7 days).
 - Status was `in-progress`, NOT `waiting` → no transition prompt.
 - Set `updated: 2026-04-25`.
-- Apply Phase 12.
+- The index view is derived on read (Phase 1) — no regeneration step.
 - Output: `Checked in on #0001. Next checkin: 2026-05-02.`
 
 ### Scenario: `/mytasks checkin 2 still no response from vendor` (today = 2026-04-25, status: waiting)
@@ -356,7 +348,7 @@ Expected:
 - Advance `next_checkin: 2026-05-02`.
 - Status was `waiting` → prompt: `Move to in-progress? [Y/n]`. User says `Y`.
 - Set `status: in-progress`, `updated: 2026-04-25`.
-- Apply Phase 12.
+- The index view is derived on read (Phase 1) — no regeneration step.
 - Output: `Checked in on #0002. Status: waiting → in-progress. Next checkin: 2026-05-02.`
 
 ### Scenario: `/mytasks checkin 1` (no note, weekly cadence)
@@ -388,7 +380,7 @@ Expected:
 - 0013: in-progress → NOT eligible.
 - Move 0011 to `~/.pmos/tasks/archive/2026-Q1/0011-old-done-task.md`.
 - Move 0012 to `~/.pmos/tasks/archive/2026-Q1/0012-old-dropped-task.md`.
-- Apply Phase 12 (INDEX unchanged since archived items were already excluded).
+- Archived items are excluded from the derived index view either way — no regeneration step.
 - Output: `Archived 2 items: #0011 → 2026-Q1, #0012 → 2026-Q1.`
 
 ### Scenario: `/mytasks archive --quarter 2026-Q2` (today = 2026-04-25)
@@ -417,14 +409,14 @@ Expected:
 - Locate `~/.pmos/tasks/items/260613-c31-*.md`. Found.
 - Render the file verbatim, fenced as markdown. The rendered frontmatter shows `parent: 260613-a3f` (this is a subtask) and `project: launch`.
 
-### Scenario: `/mytasks rebuild-index` (with-subtasks fixture)
+### Scenario: `/mytasks` (no args, with-subtasks fixture — derived index view)
 
-Expected:
-- No `workstream:` keys present → migration step is a silent no-op (no `migrated …` line).
+Expected (the derived render via `lib.js renderIndex`; no `INDEX.md` written):
+- No `workstream:` keys present → the load-time migration is a silent no-op.
 - Group by importance: leverage (`260613-a3f`), neutral (`260613-c31`, `260613-9x2`).
-- INDEX rows carry the `project` column (`launch` for the two launch tasks, empty for `260613-9x2`) and the `parent` column (`260613-a3f` on the `260613-c31` row, empty otherwise). Subtasks stay **flat** — `260613-c31` is an ordinary neutral-bucket row, not nested under its parent.
+- The derived rows carry the `project` column (`launch` for the two launch tasks, empty for `260613-9x2`) and the `parent` column (`260613-a3f` on the `260613-c31` row, empty otherwise). Subtasks stay **flat** — `260613-c31` is an ordinary neutral-bucket row, not nested under its parent.
 - Within neutral: sort by due asc → `260613-9x2` (due 2026-06-15) before `260613-c31` (due 2026-06-16).
-- Output: `Regenerated INDEX.md: 3 active items (0 completed/dropped excluded).`
+- 3 active items rendered; 0 completed/dropped. No `Last regenerated:` line.
 
 ### Scenario: completing a parent does NOT auto-complete its subtask
 
@@ -442,20 +434,18 @@ Expected (recurrence contract, schema.md — the `complete`-time spawn lands wit
 
 One item: `0007` (legacy 4-digit serial id) whose frontmatter still has the pre-rename `workstream: platform-q3` key (`schema_version: 1`).
 
-### Scenario: `/mytasks rebuild-index` (migration — workstream→project)
+### Scenario: any read of `0007` triggers the workstream→project migration
 
-Expected (Phase 12 step 0):
-- The migration step finds `0007-quarterly-review.md` still carrying a `workstream:` key.
-- Rename the **key only**: `workstream: platform-q3` → `project: platform-q3` (value preserved). No other field, id, or slug changes.
-- Log: `migrated 1 items workstream→project`.
-- Then regenerate INDEX with `0007` in the neutral bucket, `project` column = `platform-q3`.
-- Output: `Regenerated INDEX.md: 1 active items (0 completed/dropped excluded).` (preceded by the migration log line).
+Expected (load-time normalization in `lib.js loadAllItems` — `migrateWorkstreamKey`; runs on every read, web request or `renderIndex`):
+- The first read finds `0007-quarterly-review.md` still carrying a `workstream:` key.
+- Rename the **key only**: `workstream: platform-q3` → `project: platform-q3` (value preserved), written back to the file. No other field, id, or slug changes.
+- The derived index view then shows `0007` in the neutral bucket with `project` column = `platform-q3`. There is no `rebuild-index` verb and no `INDEX.md`; the migration is automatic, not a command.
 
-### Scenario: `/mytasks rebuild-index` run a second time (idempotent)
+### Scenario: a second read is idempotent
 
 Expected:
-- No `workstream:` keys remain → migration step is a no-op; **no** `migrated …` line printed.
-- INDEX regenerates identically. Safe to re-run.
+- No `workstream:` key remains on `0007` after the first read → the migration is a no-op and rewrites nothing.
+- The derived view is identical. Safe to read repeatedly.
 
 ### Scenario: `/mytasks show 7` (legacy-serial id locate — triple validator)
 
@@ -547,7 +537,7 @@ Expected (Phase 6 step 5):
 ### Scenario: `/mytasks list --recurring`
 
 Expected:
-- Reads item files (recur not in INDEX); match only tasks with non-empty `recur:` → `260613-9x2`.
+- Reads item files (recur not a derived-view column); match only tasks with non-empty `recur:` → `260613-9x2`.
 - Table includes the `recur` column showing `weekly`.
 
 ### Scenario: `/mytasks list --parent 260613-a3f`

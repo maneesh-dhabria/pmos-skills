@@ -3,7 +3,7 @@
 //
 // Zero-dep, deterministic. Exits non-zero on any failure (the per-skill quality
 // gate, like /logo run.mjs + /solitaire). Covers: frontmatter round-trip,
-// recurrence date math + spawn, INDEX regen, and the live HTTP API (CRUD,
+// recurrence date math + spawn, the derived-on-read index view + migration, and the live HTTP API (CRUD,
 // quick-add tokens, optimistic-concurrency 409, atomic write, complete-spawn).
 //
 //   node tests/run.mjs --selftest
@@ -124,18 +124,43 @@ function testSpawn() {
   ok('non-recurring returns null', r2 === null);
 }
 
-// ── 4. INDEX regen ──
+// ── 4. Index view (derived on read; never persisted) ──
 function testIndex() {
   const dir = mkTmp();
   writeItem(dir, base('260613-001', 'Top task', { importance: 'leverage', due: '2026-06-20' }));
   writeItem(dir, base('260613-002', 'Done task', { status: 'completed' }));
   writeItem(dir, base('260613-003', 'Inbox neutral', {}));
-  lib.regenerateIndex(dir, { today: '2026-06-13' });
-  const idx = fs.readFileSync(path.join(dir, 'INDEX.md'), 'utf8');
+  const idx = lib.renderIndex(dir); // returns the bucketed md string; writes nothing
   ok('index has buckets', /## leverage/.test(idx) && /## neutral/.test(idx) && /## overhead/.test(idx));
   ok('index excludes completed', !/Done task/.test(idx));
   ok('index has leverage task', /Top task/.test(idx));
-  ok('index has Last regenerated', /Last regenerated: 2026-06-13/.test(idx));
+  ok('index view is not persisted', !fs.existsSync(path.join(dir, 'INDEX.md')));
+  ok('index view has no Last regenerated line', !/Last regenerated/.test(idx));
+  fs.rmSync(dir, { recursive: true, force: true });
+}
+
+// ── 4b. workstream→project migration runs on every read (D6, story 260626-3d4) ──
+// The migration was relocated out of the retired rebuild-index step into load-time
+// normalization in loadAllItems; assert it still fires (no migration regression).
+function testMigration() {
+  const dir = mkTmp();
+  const legacy = base('0007', 'Quarterly review', { schema_version: 1 });
+  delete legacy.project;            // legacy v1 shape: no project key…
+  legacy.workstream = 'platform-q3'; // …carries the pre-rename workstream key instead
+  writeItem(dir, legacy);
+  const fname = fs.readdirSync(path.join(dir, 'items')).find((f) => f.startsWith('0007'));
+  const before = fs.readFileSync(path.join(dir, 'items', fname), 'utf8');
+  ok('legacy file starts with workstream', /workstream: platform-q3/.test(before) && !/project:/.test(before));
+  // loadAllItems folds the key on read…
+  const it = lib.loadAllItems(dir).find((x) => x.id === '0007');
+  eq('migrated project value', it.fm.project, 'platform-q3');
+  ok('migrated drops workstream in memory', !('workstream' in it.fm));
+  // …and persists the rename one-shot (key only, value preserved)
+  const after = fs.readFileSync(path.join(dir, 'items', fname), 'utf8');
+  ok('migrated file gained project key', /project: platform-q3/.test(after));
+  ok('migrated file dropped workstream key', !/workstream:/.test(after));
+  // idempotent: a second read is a no-op (nothing left to migrate)
+  ok('idempotent second read', lib.loadAllItems(dir).find((x) => x.id === '0007').fm.project === 'platform-q3');
   fs.rmSync(dir, { recursive: true, force: true });
 }
 function base(id, title, extra) {
@@ -225,8 +250,8 @@ async function testApi() {
     eq('drop status', r.json.task.status, 'dropped');
     ok('drop kept file', fs.readdirSync(path.join(dir, 'items')).some((f) => f.startsWith(dropMe.id)));
 
-    // INDEX regenerated after mutation
-    ok('INDEX.md exists after mutations', fs.existsSync(path.join(dir, 'INDEX.md')));
+    // No committed INDEX.md is ever written — the index is derived on read (§5 INV-1)
+    ok('no INDEX.md written by any mutation', !fs.existsSync(path.join(dir, 'INDEX.md')));
 
     // cross-origin write rejected
     r = await new Promise((resolve) => {
@@ -247,6 +272,7 @@ async function main() {
   testDateMath();
   testSpawn();
   testIndex();
+  testMigration();
   await testApi();
   console.log(`\nmytasks web selftest: ${pass} passed, ${fail} failed`);
   if (fail) { console.error('FAILURES:\n  - ' + failures.join('\n  - ')); process.exit(1); }

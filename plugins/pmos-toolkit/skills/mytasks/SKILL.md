@@ -2,7 +2,7 @@
 name: mytasks
 description: Persistent personal task tracker — distinct from Claude Code's session-scoped TaskCreate/TaskList tools. Use for real-world tasks (LNO importance, due dates, people, check-ins, projects, subtasks, recurrence). Lives at ~/.pmos/tasks/. Use when the user says "add a task", "what's on my plate", "tasks for sarah", "what's due this week", "check in on X", "/mytasks", or names a task to capture.
 user-invocable: true
-argument-hint: "[ | <text> | add <text> [--parent <id>] | list [filters] | today | week | overdue | waiting | checkins | for <handle> | in <project> | show <id> | set <id> <field>=<value> | refine <id> | done <id> [note] | drop <id> [reason] | checkin <id> [note] | archive [--quarter <YYYY-QN>] | rebuild-index | web] [--non-interactive | --interactive]"
+argument-hint: "[ | <text> | add <text> [--parent <id>] | list [filters] | today | week | overdue | waiting | checkins | for <handle> | in <project> | show <id> | set <id> <field>=<value> | refine <id> | done <id> [note] | drop <id> [reason] | checkin <id> [note] | archive [--quarter <YYYY-QN>] | web] [--non-interactive | --interactive]"
 ---
 
 # My Tasks
@@ -37,12 +37,12 @@ These instructions use Claude Code tool names. In other environments:
 
 ## References
 
-- `schema.md` — item file shape, **single source for enum values**, `INDEX.md` format (binds `_shared/tracker-crudl.md`)
-- `_shared/tracker-crudl.md` — shared tracker contract (id/slug §2, `created`/`updated`/`schema_version` §3, INDEX regenerability §5, archive §6)
+- `schema.md` — item file shape, **single source for enum values**, index-view format (binds `_shared/tracker-crudl.md`)
+- `_shared/tracker-crudl.md` — shared tracker contract (id/slug §2, `created`/`updated`/`schema_version` §3, derived-on-read index view §5 INV-1/2/3, archive §6)
 - `inference-heuristics.md` — quick-capture keyword + date + person + `#project`/`+label` token rules (`project` is never auto-inferred — only an explicit `#project` token / prompt / `set` sets it)
 - `output-formats.md` — exact capture report templates and unknown-person prompt copy
 - `_shared/interactive-prompts.md` — interactive prompting protocol (used by `add`, `refine`, unknown-person flow)
-- `scripts/serve.js` — zero-dep localhost server + JSON API behind the web UI (adapts the `comments` substrate serve.js); `scripts/lib.js` (frontmatter round-trip, validation, INDEX regen, quick-add token parse), `scripts/recur.js` (the `#recur-spawn` routine, shared by CLI + web), `scripts/webapp/` (the single-file app), `scripts/mytasks-open.{command,sh,bat}` (launcher trio)
+- `scripts/serve.js` — zero-dep localhost server + JSON API behind the web UI (adapts the `comments` substrate serve.js); `scripts/lib.js` (frontmatter round-trip, validation, `renderIndex` derived-on-read index view + load-time `workstream→project` normalization, quick-add token parse), `scripts/recur.js` (the `#recur-spawn` routine, shared by CLI + web), `scripts/webapp/` (the single-file app), `scripts/mytasks-open.{command,sh,bat}` (launcher trio)
 - Sibling skill `/people` — fuzzy-match person lookup via `/people find`
 
 ---
@@ -67,7 +67,6 @@ Parse the user's argument to determine the subcommand. Be liberal with the form 
 | `drop <id> [reason]` | Phase 9 (status → dropped shortcut) |
 | `checkin <id> [note]` | Phase 10 (check-in mechanics) |
 | `archive [--quarter Q]` | Phase 11 (archive completed/dropped) |
-| `rebuild-index` | Phase 12 (regenerate INDEX.md) |
 | `web` | Phase 13 (launch the web UI) |
 | (any other to-do-shaped free text) | Phase 2 (quick capture) |
 
@@ -105,23 +104,13 @@ Parse the user's argument to determine the subcommand. Be liberal with the form 
 
 ## Phase 1: Default Daily View {#default-view}
 
-Triggered by `/mytasks` with no arguments.
+Triggered by `/mytasks` with no arguments. The at-a-glance index is a **view derived on read** from `~/.pmos/tasks/items/*.md` — there is no committed `INDEX.md` and no freshness check (per `_shared/tracker-crudl.md` §5, INV-1/2/3).
 
-1. If `~/.pmos/tasks/INDEX.md` does not exist (or `~/.pmos/tasks/` is missing entirely), output `No tasks yet. Capture one with /mytasks <text> or /mytasks add <text>.` and exit.
-2. Freshness check per `_shared/tracker-crudl.md` §5: if any `~/.pmos/tasks/items/*.md` mtime is newer than INDEX's `Last regenerated:` date, regenerate (`#rebuild-index`) before rendering.
-3. Output the contents of `~/.pmos/tasks/INDEX.md` verbatim (it is already grouped per `schema.md`). If it contains zero items, output `No active tasks. Capture one with /mytasks <text>.`
+1. **Default → launch the web viewer** (INV-2): start `scripts/serve.js` and open the browser, exactly as `#web` (Phase 13). The web UI derives its buckets from the item files on every request.
+2. **Headless fallback → inline derived render.** Under `--non-interactive`, a headless environment, or when no browser/server can run, degrade to the inline view: `node -e "process.stdout.write(require('<skill>/scripts/lib.js').renderIndex('~/.pmos/tasks'))"` (or glob `items/*.md` and group per `schema.md` "Index view format"). `renderIndex` derives the buckets fresh and writes nothing.
+3. **Empty-state** is gated on **zero item files** (never a missing index): if `~/.pmos/tasks/items/` has no `*.md`, output `No tasks yet. Capture one with /mytasks <text> or /mytasks add <text>.`. If item files exist but all are `completed`/`dropped` (zero active), output `No active tasks. Capture one with /mytasks <text>.`
 
----
-
-## Phase 12: Rebuild Index {#rebuild-index}
-
-Triggered by `/mytasks rebuild-index`. Defined early because every mutating subcommand (Phases 2, 3, 7, 8, 9, 10, 11) applies it after writing.
-
-0. **Migration — `workstream:` → `project:` (idempotent).** Before globbing for the index, rename the frontmatter key `workstream:` to `project:` in every `~/.pmos/tasks/items/**.md` AND `~/.pmos/tasks/archive/**.md` that still has a `workstream:` key. Rename the **key only** — the value is preserved verbatim; a `workstream:` with no value becomes a bare `project:` (the task lands in Inbox). This is a one-time data move folded into rebuild-index: it is a **no-op when no `workstream:` keys remain**, so it is safe to re-run on every rebuild. Never touch ids, slugs, or other fields. If ≥1 file was migrated this run, log one line: `migrated {N} items workstream→project`; if zero, stay silent. (The `<YYMMDD>-<rand3>` id scheme needs no migration — legacy 4-digit ids stay valid under the `_shared/tracker-crudl.md §2.1` triple validator and are never rewritten.)
-1. Glob `~/.pmos/tasks/items/*.md`; parse frontmatter. Skip files with malformed frontmatter (one-line warning per skip; do not abort).
-2. Exclude `completed`/`dropped` items and everything under `archive/` (the status-exclusion binding in `schema.md`).
-3. Overwrite `~/.pmos/tasks/INDEX.md` with the exact format, grouping, and sort defined in `schema.md` "INDEX.md format" (importance buckets; `due` asc, no-due last → `updated` desc; missing `importance:` defaults to `neutral`; empty buckets keep their header + column row; the `project` and `parent` columns per the post-migration format — subtasks stay flat with their `parent:` id in the `parent` cell).
-4. Report — if invoked directly: `Regenerated INDEX.md: {N active items} ({completed_excluded} completed/dropped excluded).` (when a migration ran this invocation, the `migrated {N} items workstream→project` line precedes this). If invoked from another phase: silent on success, warn on failure.
+> **Migration is automatic (no verb).** The legacy `workstream:` → `project:` key rename runs as a one-shot load-time normalization inside `lib.js loadAllItems` — it fires on every read (web request or `renderIndex`) and is a no-op once no `workstream:` key remains. There is no `rebuild-index` command: nothing is cached, so there is nothing to rebuild.
 
 ---
 
@@ -143,7 +132,7 @@ Triggered by `/mytasks <text>` where `<text>` does not start with a recognized v
    `project` is still **never auto-inferred from repo context** (design D3) — only an explicit `#project` token sets it; absent ⇒ Inbox. `parent`/`order`/`recur` are never set at quick-capture (bare keys).
 4. Build the slug from the final title per `_shared/tracker-crudl.md` §2.2; prefer truncating at a hyphen boundary.
 5. Write `~/.pmos/tasks/items/{id}-{slug}.md` — frontmatter only, no body, per `schema.md` "Defaults on quick-capture". Optional fields with no value are written as bare keys (e.g., `start:`), not omitted.
-6. Regenerate INDEX inline (`#rebuild-index`). If regeneration fails, the item file is still written — warn suggesting `/mytasks rebuild-index`, but DO NOT roll back.
+6. Nothing else to write — the at-a-glance index is derived on read (Phase 1), so there is no index to regenerate after capture.
 7. Report per `output-formats.md` "Quick-capture report" — one line with id, type, importance, final title, and any inferred fields; one indented `⚠ unresolved:` line per unresolved `@token` with the exact fix command.
 
 ---
@@ -162,7 +151,7 @@ Triggered by `/mytasks add <text>`. Interactive — collects rich attributes upf
    6. **`recur`** — recurrence rule; default none. Validated against the closed grammar in `schema.md` ("Recurrence"). Skippable (most tasks are one-shot).
    7. **`checkin`** — enum; default `none`. Non-`none` cadence also sets `next_checkin: today + cadence` per `#checkin` cadence math.
 3. Build the slug from `<text>` and write the item file as in `#quick-capture` steps 4–5, with all collected values (skipped fields as bare keys — including `parent:`, `order:`, `recur:`).
-4. Regenerate INDEX (`#rebuild-index`); same fail-soft semantics as `#quick-capture`.
+4. Write the item file — that is the source of truth; the index view is derived on read (Phase 1), nothing to regenerate.
 5. Report per `output-formats.md` "Rich-capture report" (the report names `parent` when the task is a subtask and `recur` when set).
 
 ---
@@ -184,10 +173,10 @@ Triggered by `/mytasks list ...` or any read-shaped request. Filters are inferre
 
 > **Field rename — `workstream` → `project`.** The membership filter is `--project <slug>` and the named view is `in <project>` (Phase 5), both filtering the `project:` field (schema v2). The pre-rename `--workstream` / `in <workstream>` spellings are **retired** — `--workstream` is no longer parsed (a user typing it gets the unknown-filter error pointing at `--project`).
 
-1. **Source.** INDEX.md answers most filters; person/label filters, `--parent`, `--recurring`, and `--include-done` need the item files (`--include-done` also globs `archive/**/*.md`). `--project <slug>` matches the `project:` field (INDEX carries it as the `project` column).
+1. **Source.** Glob `~/.pmos/tasks/items/*.md` and parse — every filter derives from the item files (`--include-done` also globs `archive/**/*.md`). `--project <slug>` matches the `project:` field. There is no `INDEX.md` to read; the list is computed fresh per invocation (the load-time `workstream→project` normalization in `lib.js loadAllItems` applies here too).
 2. **Validate** filter values against the enums in `schema.md`. Reject unknown values with the allowed list, e.g. `Unknown status 'open'. Allowed: pending, in-progress, waiting, completed, dropped.` No render.
 3. **Date windows:** `today` → `due == today` · `this-week` → `today <= due <= today + 7` · `overdue` → `due < today` AND `status` NOT in (completed, dropped) · `next-30` → `today <= due <= today + 30`.
-4. **Render** a markdown table sorted `due` asc (no-due last) → `updated` desc. Columns: `id | type | status | due | next_checkin | title | project | parent`; add a `people` or `labels` column when filtering on it; add a `recur` column under `--recurring`. **Subtask nesting (view-layer only):** when a listed task's `parent:` is also present in the result set, render the child immediately under its parent with its `title` indented (two spaces + `↳ `); a child whose parent is NOT in the result set renders as an ordinary top-level row (its `parent` cell still shows the id). Nesting never changes the stored files (they stay flat — `schema.md` INDEX format). Zero matches: `No items match.`
+4. **Render** a markdown table sorted `due` asc (no-due last) → `updated` desc. Columns: `id | type | status | due | next_checkin | title | project | parent`; add a `people` or `labels` column when filtering on it; add a `recur` column under `--recurring`. **Subtask nesting (view-layer only):** when a listed task's `parent:` is also present in the result set, render the child immediately under its parent with its `title` indented (two spaces + `↳ `); a child whose parent is NOT in the result set renders as an ordinary top-level row (its `parent` cell still shows the id). Nesting never changes the stored files (they stay flat — `schema.md` index-view format). Zero matches: `No items match.`
 
 ---
 
@@ -238,7 +227,7 @@ Triggered by `/mytasks set <id> <field>=<value>`.
    - **`order`** — a non-negative integer (`^\d+$`). Violation: `order must be a non-negative integer (got '{value}').` Empty clears.
    - **`recur`** — validated against the closed recurrence grammar in `schema.md` ("Recurrence") — `daily`/`weekly`/`biweekly`/`monthly`, `every <N> days|weeks|months`, `every <weekday>` (case-insensitive). Violation: `Unknown recurrence rule '{value}'. Allowed: daily, weekly, biweekly, monthly, every <N> days|weeks|months, every <weekday>.` Empty clears (the task becomes one-shot). No write on violation.
    - Free strings (`title`, `project`). Empty `project` clears it (the task returns to Inbox).
-4. Load the item, update only the named field, set `updated:` to today, write back. If `title` changed, ALSO rename the file to the new slug (preserve id prefix; slug rules as in `#quick-capture` step 4). Apply `#rebuild-index`. Output: `Updated #{id}: {field} = {value}.` — appending ` Renamed to {new-filename}.` on title change. For a cleared field (empty value), the output reads `Updated #{id}: {field} cleared.`
+4. Load the item, update only the named field, set `updated:` to today, write back. If `title` changed, ALSO rename the file to the new slug (preserve id prefix; slug rules as in `#quick-capture` step 4). The index view is derived on read (Phase 1) — no regeneration step. Output: `Updated #{id}: {field} = {value}.` — appending ` Renamed to {new-filename}.` on title change. For a cleared field (empty value), the output reads `Updated #{id}: {field} cleared.`
 
 ---
 
@@ -249,7 +238,7 @@ Triggered by `/mytasks refine <id>`. Interactive — pre-filled walk through all
 1. Locate the item via `#show` normalize-and-locate; if not found, error and exit.
 2. Walk the same field order as `#rich-capture` step 2, with **`title`** added as the first prompt and each field pre-filled with its current value. Refine-flow defaults and `<enter>`/`clear` semantics per `_shared/interactive-prompts.md`. For `people`, resolve each token via `/people find` with the same disambiguation flow as `#rich-capture`. For `checkin`, a non-`none` cadence also prompts whether to recompute `next_checkin: today + cadence` (default yes).
 3. Write back only changed fields; rename the file if `title` changed (as in `#set` step 4); set `updated:` to today.
-4. Apply `#rebuild-index`. Output: `Refined #{id}.` (plus ` Renamed to {new-filename}.` if title changed).
+4. Write back. The index view is derived on read (Phase 1) — no regeneration step. Output: `Refined #{id}.` (plus ` Renamed to {new-filename}.` if title changed).
 
 ---
 
@@ -261,7 +250,7 @@ Triggered by `/mytasks done <id> [note]` (status → completed) or `/mytasks dro
 2. Set `status:` (`completed` or `dropped`), `completed:` = today, `updated:` = today.
 3. If a note/reason was provided, append to `## Notes` (creating the section at the END of the body if absent): `- {today}: {note}` for `done`; `- {today}: dropped — {reason}` for `drop`.
 4. **Recurrence-on-complete spawn (`done` only, when the just-completed item has a non-empty `recur:`).** Run the `#recur-spawn` routine below to mint the next instance. (`drop` never spawns — dropping ends the series.)
-5. Apply `#rebuild-index` (the completed/dropped item leaves INDEX; a spawned next instance joins it). Output: `Completed #{id}: "{title}".` or `Dropped #{id}: "{title}".` — when a recurrence spawned, append ` Next instance #{new_id} due {new_due}.`
+5. Write back. The index view is derived on read (Phase 1) — the completed/dropped item drops out of the derived buckets and any spawned next instance appears automatically; nothing to regenerate. Output: `Completed #{id}: "{title}".` or `Dropped #{id}: "{title}".` — when a recurrence spawned, append ` Next instance #{new_id} due {new_due}.`
 
 ### Recurrence spawn routine {#recur-spawn}
 
@@ -302,18 +291,18 @@ Triggered by `/mytasks checkin <id> [note]`. Appends a check-in entry, advances 
    <!-- defer-only: ambiguous -->
    (Use `_shared/interactive-prompts.md` primary path with a yes/no choice if `AskUserQuestion` is available; otherwise plain text prompt.) `Y`/`<enter>` → `status: in-progress`; `n` → stays `waiting`. Other statuses: never prompt.
 
-5. Set `updated:` to today. Apply `#rebuild-index`. Output: `Checked in on #{id}. Next checkin: {next_checkin or "not scheduled"}.` — inserting ` Status: waiting → in-progress.` after the id clause when the transition happened.
+5. Set `updated:` to today and write back. The index view is derived on read (Phase 1) — no regeneration step. Output: `Checked in on #{id}. Next checkin: {next_checkin or "not scheduled"}.` — inserting ` Status: waiting → in-progress.` after the id clause when the transition happened.
 
 ---
 
 ## Phase 11: Archive {#archive}
 
-Triggered by `/mytasks archive [--quarter Q]`. Archive semantics (move-not-delete, quarter layout, never in INDEX) per `_shared/tracker-crudl.md` §6.
+Triggered by `/mytasks archive [--quarter Q]`. Archive semantics (move-not-delete, quarter layout, never in the derived index view) per `_shared/tracker-crudl.md` §6.
 
 1. Target quarter: if `--quarter <Q>` is provided (validated `^[0-9]{4}-Q[1-4]$`), use it for ALL eligible items. Otherwise derive per-item from the item's `updated:` date (months 1-3 → Q1, 4-6 → Q2, 7-9 → Q3, 10-12 → Q4).
 2. Eligible: `status` in (`completed`, `dropped`) AND (today − `updated:`) > 30 days.
 3. Move each eligible item to `~/.pmos/tasks/archive/{quarter}/{file}` (`mkdir -p`; prefer `git mv` if `~/.pmos/` is a git repo).
-4. Apply `#rebuild-index` (refreshes `Last regenerated:`). Output: `Archived {N} items: {comma-separated "#{id} → {quarter}"}.` or `Archived 0 items: nothing eligible.`
+4. The archived items move out of `items/`, so they drop out of the derived index view on the next read (Phase 1) — no regeneration step. Output: `Archived {N} items: {comma-separated "#{id} → {quarter}"}.` or `Archived 0 items: nothing eligible.`
 
 ---
 

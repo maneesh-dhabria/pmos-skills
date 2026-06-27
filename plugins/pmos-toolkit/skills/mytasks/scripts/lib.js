@@ -4,10 +4,11 @@
 // Pure, side-effect-light helpers shared by serve.js (the API server) and
 // tests/run.mjs (the behavioral gate). The markdown task FILES are the source of
 // truth (design §3); this module round-trips their exact on-disk shape, validates
-// against schema.md enums, regenerates INDEX.md, and parses the quick-add token
-// grammar. It NEVER deletes a task file.
+// against schema.md enums, renders the derived-on-read index view (never persisted —
+// _shared/tracker-crudl.md §5), and parses the quick-add token grammar. It NEVER
+// deletes a task file.
 //
-// Field/enum/INDEX contracts are owned by ../schema.md (the §K single home); this
+// Field/enum/index-view contracts are owned by ../schema.md (the §K single home); this
 // file implements them. Recurrence date math is re-used by ./recur.js.
 //
 // CommonJS so serve.js can `require` it; tests/run.mjs reaches it via createRequire.
@@ -314,10 +315,31 @@ function findItemFile(tasksDir, id) {
   return hit ? path.join(dir, hit) : null;
 }
 
+// ── Load-time normalization: `workstream:` → `project:` (one-shot, idempotent) ──
+// Relocated here from the retired `rebuild-index` migration (story 260626-3d4, D6):
+// legacy schema_version:1 files carry a `workstream:` key. We rename the key only —
+// value preserved — and write the file back, so the migration still runs on every
+// read (loadAllItems) yet is a no-op once no `workstream:` key remains. Never touches
+// ids, slugs, or other fields. Returns true iff this file was migrated this call.
+function migrateWorkstreamKey(it) {
+  if (!Object.prototype.hasOwnProperty.call(it.fm, 'workstream')) return false;
+  const val = it.fm.workstream;
+  delete it.fm.workstream;
+  const cur = it.fm.project;
+  if (cur === undefined || cur === null || cur === '') it.fm.project = val;
+  writeItemAtomic(it.file, serializeItem(it.fm, it.body));
+  it.version = versionOf(fs.readFileSync(it.file));
+  return true;
+}
+
 function loadAllItems(tasksDir) {
   const out = [];
   for (const f of listItemFiles(tasksDir)) {
-    try { out.push(readItem(f)); } catch (_) { /* skip malformed */ }
+    try {
+      const it = readItem(f);
+      migrateWorkstreamKey(it); // D6: workstream→project on every read (idempotent)
+      out.push(it);
+    } catch (_) { /* skip malformed */ }
   }
   return out;
 }
@@ -328,9 +350,12 @@ function writeItemAtomic(file, content) {
   fs.renameSync(tmp, file);
 }
 
-// ── INDEX.md regeneration (schema.md "INDEX.md format") ──
-function regenerateIndex(tasksDir, opts = {}) {
-  const today = opts.today || isoToday();
+// ── Index view (derived on read; never persisted — _shared/tracker-crudl.md §5) ──
+// Returns the bucketed Markdown string. Writes nothing: the at-a-glance index is a
+// view computed fresh per read (INV-1/INV-3), so there is no INDEX.md and no
+// `Last regenerated:` line (nothing is regenerated). Consumes already-normalized
+// items (loadAllItems folds workstream→project).
+function renderIndex(tasksDir) {
   const items = loadAllItems(tasksDir)
     .filter((it) => !['completed', 'dropped'].includes(it.fm.status));
   const buckets = { leverage: [], neutral: [], overhead: [] };
@@ -347,7 +372,7 @@ function regenerateIndex(tasksDir, opts = {}) {
     const ua = a.fm.updated || '', ub = b.fm.updated || '';
     return ua < ub ? 1 : ua > ub ? -1 : 0; // updated desc
   };
-  let md = `# My Tasks\n\nLast regenerated: ${today}\n`;
+  let md = `# My Tasks\n`;
   for (const bucket of ['leverage', 'neutral', 'overhead']) {
     md += `\n## ${bucket}\n`;
     md += `| id | type | status | due | next_checkin | title | project | parent |\n`;
@@ -357,7 +382,6 @@ function regenerateIndex(tasksDir, opts = {}) {
       md += `| ${cell(f.id)} | ${cell(f.type)} | ${cell(f.status)} | ${cell(f.due)} | ${cell(f.next_checkin)} | ${cell(f.title)} | ${cell(f.project)} | ${cell(f.parent)} |\n`;
     }
   }
-  writeItemAtomic(path.join(tasksDir, 'INDEX.md'), md);
   return md;
 }
 function cell(v) { return (v === undefined || v === null) ? '' : String(v); }
@@ -415,5 +439,5 @@ module.exports = {
   addDays, addMonthsClamp, nextWeekday, advanceByRecur, isValidRecur,
   validateField, parseNLDate, inferType, parseQuickAdd,
   itemsDir, listItemFiles, readItem, findItemFile, loadAllItems,
-  writeItemAtomic, regenerateIndex, isoToday, appendToSection, listSort,
+  writeItemAtomic, renderIndex, migrateWorkstreamKey, isoToday, appendToSection, listSort,
 };
