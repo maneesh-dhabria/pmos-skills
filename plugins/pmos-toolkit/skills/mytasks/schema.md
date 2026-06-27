@@ -136,3 +136,18 @@ Items grouped by `importance` (`leverage`, `neutral`, `overhead`). Within each g
 ## Archive
 
 mytasks archives, per `../_shared/tracker-crudl.md` §6. Binding: archive root `~/.pmos/tasks/archive/`, so tasks land at `~/.pmos/tasks/archive/YYYY-QN/{id}-{slug}.md` (full content preserved, mirrors `items/`, never in `INDEX.md`).
+
+## Projects/labels registry (`registry.json`)
+
+`~/.pmos/tasks/registry.json` is an **optional, add-only visibility cache** for the web sidebar — created on first write, never required to exist. Shape:
+
+```json
+{ "projects": ["marketing-plan"], "labels": ["q3"] }
+```
+
+Both lists hold slug-normalized, deduped, sorted entries. Its sole purpose is to let an **empty, freshly-created** project or label appear in the web sidebar before any task uses it (the web `POST /api/projects` / `POST /api/labels` add here). It is **strictly additive**:
+
+- The task markdown files remain the source of truth for which projects/labels actually exist. `GET /api/meta` returns the **union** of registry entries and the values derived by scanning task frontmatter, so a registry entry only ever *adds* a name — it never hides or overrides a task-derived one, and removing the last task in a registry-listed project does not drop the project from the sidebar.
+- The terminal verbs are **registry-agnostic** (D5): `/mytasks` CLI never reads or writes `registry.json` and derives projects/labels purely from task files. Deleting `registry.json` loses only the empty-container hints; no task data is affected.
+
+It is an optional, additive convenience cache (empty-container hints only), not a record of truth — distinct from the at-a-glance index view, which is never persisted and is always derived on read (§5 INV-1).
