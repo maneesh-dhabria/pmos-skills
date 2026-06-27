@@ -5,16 +5,17 @@ kind: story
 title: "/landing-page — visual, media & assets"
 type: enhancement
 priority: should
-status: in-progress
+status: done
 route: skill
 parent: 260626-7s4
 dependencies: [260626-h70]
 worktree: .claude/worktrees/feat-260626-qrm
 build_branch: feat/260626-qrm
+build_commit: c70ebaf2
 plan_doc: docs/pmos/features/2026-06-26_landing-page-enhancements/stories/260626-qrm-visual-media-assets/03_plan.html
 tasks_file: docs/pmos/features/2026-06-26_landing-page-enhancements/stories/260626-qrm-visual-media-assets/tasks.yaml
-claimed_by: build:e385ea38
-driver_holder: build:e385ea38
+claimed_by:
+driver_holder:
 pr:
 labels: [landing-page, pmos-toolkit, skill, visual, media]
 created: 2026-06-26
@@ -51,3 +52,41 @@ Acceptance criteria are the standing skill contract: conform to `skill-patterns.
 
 `/plan` scoped by (design_doc anchors D5/D6/D7/D8/D10 + these ACs). `tasks.yaml :: spec:` → `../../02_design.html`.
 Claim-time: merge `feat/260626-h70` into this worktree before building (D9 transitive-dep merge).
+
+## Build outcome (Loop 2, 2026-06-27)
+
+BUILT on `feat/260626-qrm` (impl commit `c70ebaf2`, worktree kept). route:skill inner pipeline
+(skill-tier-resolve T2 → execute → skill-eval → verify). Story B of epic 260626-7s4 — **COMPLETES the
+epic** (2/2). Claim-time merged `feat/260626-h70` (D9) so this builds on top of A's SKILL.md edits, not a
+stale base. Procedure-only skill revision — edits the downstream visual/media/asset phases of
+`/landing-page`; one fact, one home (rules land in `reference/*`, SKILL.md body cites them).
+
+- **Phase 0 (`#setup`)** — detects media capabilities once (`ffmpeg` via `command -v`; headless browser +
+  localhost serve) and caches `media_caps` for Phases 4.5/6 [AC1]; degrade decisions cite
+  `media-strategy.md`, not inlined.
+- **Phase 1.5 (`#logo`, new)** — detect existing brand mark in researched assets → gate offering a
+  no-heavy-op **wordmark (Recommended)** / `/logo` / skip; AUTO-PICKs the wordmark non-interactively (never
+  spawns a heavy skill, C4); binds header + favicon in Phase 5 [AC2].
+- **Phase 4 (`#style-pick`)** — new `#style-preview` step renders the chosen hero in 2–3 candidate styles
+  side-by-side into `working/style-options.html` (live decision surface; gallery stays the reference) [AC3].
+- **Phase 4.5 (`#media-strategy`, new)** + **new `reference/media-strategy.md`** — per-moment/page format
+  gate (**static device-framed = Recommended**, never blocks on capture); reference carries the format menu,
+  capability detection, the **Playwright `recordVideo` → ffmpeg** video pipeline, the degrade ladder
+  (no ffmpeg → WebP; no headless → captioned still + logged skip), and embed rules (`data:`/relative, never
+  remote). Video is **captured from the real product, never mocked** (C3) [AC4/AC5/AC6].
+- **`copy-gates.md` (`#asset-fidelity`, new)** — preserve native aspect ratio (`object-fit`, never
+  stretch/skew), device frames, mobile-appropriate crop/alt image; cited from Phase 5 + media-strategy [AC7].
+- **`copy-gates.md` `#visual-self-check`** — **mobile is now a HARD pass dimension** (overflow / CTA-below-fold
+  / skew-clip block emit within the ≤2-iteration loop); degraded no-headless fallback preserved + logged [AC8].
+- **Phase 5/6 (D10)** — Phase 5 reads host `DESIGN.md` if present (canonical `wireframes/...design-md-resolver.md`)
+  to bias tokens/spacing; Phase 6 grades against the shared `design-crit/reference/eval.md` (§V/§G/§A)
+  checklist rather than re-deriving layout rules (cite, don't restate, C2) [AC9].
+
+Gates: landing-page **selftest 215/0** (extended for media-strategy + asset-fidelity + mobile-hard);
+skill-eval `--target claude-code` **[D] 21/21 EXIT0** (zero residuals); 4 hygiene lints + audit-recommended
+all PASS (audit: **5 gate calls, all Recommended** — the original 3 + new logo/media gates); every new anchor
+(`#logo`, `#media-strategy`, `#style-preview`, `#asset-fidelity`, `#format-menu`, `#degrade-ladder`) resolves;
+no orphaned cites; no rule duplicated body-vs-reference (C2). All 11 ACs satisfied [AC10/AC11]. 0 new deps;
+no contract flags added (new behavior is gate-driven, argument-hint unchanged).
+
+**Epic 260626-7s4: FULLY BUILT 2/2** (h70 content + qrm visual). → Loop-3 `/complete-dev --epic 260626-7s4`.
