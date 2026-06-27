@@ -24,24 +24,27 @@ not restate them):
 | `reference/hero-archetypes.md` | hero elements + 4 archetypes + 5 enforced hero rules | Phase 3 |
 | `reference/style-tokens.json` + `reference/style-tokens.md` | 6 frozen, contrast-safe theme-token sets | Phase 4 |
 | `reference/style-gallery.html` | offline swatch gallery of all 6 styles | Phase 4 |
-| `reference/copy-gates.md` | Julian litmus + Harry Dry 3-test + 6-criteria + single-CTA + persona-jargon rule + do>show>tell show-ratio + psychology levers + anti-patterns + visual self-check | Phase 6 |
+| `reference/media-strategy.md` | media format menu + capability detection + video pipeline (Playwright + ffmpeg) + degrade ladder + embed rules | Phases 0, 4.5 |
+| `reference/copy-gates.md` | Julian litmus + Harry Dry 3-test + 6-criteria + single-CTA + persona-jargon rule + do>show>tell show-ratio + asset-fidelity rules + psychology levers + anti-patterns + visual self-check (mobile a hard dimension) | Phases 5, 6 |
 
 ## Overview
 
 ```
-Phase 0  setup + load learnings + resolve input
-Phase 1  research → cited brief.md          (#research-brief)   — persona + signature moments; confirm
-Phase 2  propose ≥3 structure variants      (#propose-structure) — GATE: pick variant (D4)
-Phase 3  explore 2–3 rendered hero folds    (#hero-explore)      — GATE: pick     (D2)
-Phase 4  pick visual style from the gallery (#style-pick)        — GATE: pick     (D1)
-Phase 5  draft the self-contained page      (#draft)
-Phase 6  self-review (copy gates + visual)  (#self-review)       — revise in place (D10)
-Phase 7  capture learnings                  (#capture-learnings)
+Phase 0   setup + load learnings + resolve input + media-capability detect (#setup)
+Phase 1   research → cited brief.md          (#research-brief)    — persona + signature moments; confirm
+Phase 1.5 logo (optional)                    (#logo)              — GATE: detect → wordmark/​/logo/​skip (D5)
+Phase 2   propose ≥3 structure variants      (#propose-structure) — GATE: pick variant (D4)
+Phase 3   explore 2–3 rendered hero folds    (#hero-explore)      — GATE: pick     (D2)
+Phase 4   pick visual style (live preview)   (#style-pick)        — GATE: pick     (D1) + #style-preview (D8)
+Phase 4.5 media-strategy per moment/page     (#media-strategy)    — GATE: format (D6)
+Phase 5   draft the self-contained page      (#draft)
+Phase 6   self-review (copy gates + visual)  (#self-review)       — revise in place (D10), mobile a hard gate
+Phase 7   capture learnings                  (#capture-learnings)
 ```
 
-The three gates (Phases 2/3/4) are where the user steers. Under `--non-interactive` each AUTO-PICKs its
-`(Recommended)` option (the product-type-driven default, D5) and logs an Open Question — see the inline
-contract block in Phase 0.
+The steering gates are Phases 1.5/2/3/4/4.5. Under `--non-interactive` each AUTO-PICKs its `(Recommended)`
+option (the product-type-driven or no-heavy-op-safe default, D5/D6) and logs an Open Question — see the
+inline contract block in Phase 0.
 
 ## Platform Adaptation
 
@@ -89,6 +92,17 @@ your approach for this run. Skill body wins on conflict; surface any conflict to
    natural-language form ("also research X online", "pull in their docs") enables it for this run.
    <!-- nl-sugar -->
    `--research` / `--no-research` are parsed as silent aliases for that toggle (default off).
+4. **Detect media capabilities once, cache for Phases 4.5 + 6 (D6).** Probe the host environment a single
+   time so the downstream media and visual-check phases never re-detect or block on a missing tool:
+   - **ffmpeg** — `command -v ffmpeg >/dev/null 2>&1` (the repo's standard probe, as in
+     `explainer-video/scripts/narrate.sh`). Gates the video trim/compress/poster step.
+   - **headless browser** — Playwright / a headless Chromium available **and** a way to serve over
+     `http://localhost` (`command -v npx` for `http-server`, or `python3 -m http.server`). Gates both video
+     capture (Phase 4.5) and the visual self-check (Phase 6); `file://` is blocked for Playwright in this repo.
+
+   Cache the two booleans (`media_caps: { ffmpeg, headless_browser }`) for Phase 4.5 and Phase 6. **Do not
+   inline the degrade decisions here** — the format-by-capability ladder lives once in
+   `reference/media-strategy.md#degrade-ladder` (cited by 4.5/6), not restated in this body (C2).
 
 <!-- non-interactive-block:start -->
 1. **Mode resolution.** Compute `(mode, source)` with precedence: `cli_flag > parent_marker > settings.default_mode > builtin-default ("interactive")` (FR-01).
@@ -162,6 +176,34 @@ Build understanding **before** designing (D8). Grounded in `02_design.html#inges
 <!-- defer-only: free-form -->
 Brief confirmation is a free-form review, not a fixed-option pick — present the brief and invite edits;
 under `--non-interactive` proceed with the brief as written and log it as an Open Question.
+
+## Phase 1.5: Logo (optional) {#logo}
+
+A landing page reads as more credible with a real brand mark. This **optional** phase sources one without
+ever blocking an unattended run (D5). Grounded in `02_design.html` (D5).
+
+1. **Detect an existing logo.** Scan the researched assets in the page folder's `reference/` (and the brief)
+   for a brand mark — an `svg`/`png` named like a logo, a favicon, a README badge, a wordmark in the
+   product's own site. If one is found, **bind it** in Phase 5 (and skip the gate below).
+2. **If none is found, offer to make one** via the gate. The **`(Recommended)`** option is a
+   **no-heavy-op-safe default** — a **simple text wordmark** the draft can render from the product name +
+   the bound style's display font (no external skill, no image generation). So under `--non-interactive` the
+   gate AUTO-PICKs the wordmark and **never spawns a heavy skill** (C4).
+
+   ```
+   AskUserQuestion → "No brand mark found. How should the page handle the logo?"
+     • "Simple text wordmark (Recommended)"   — render from product name + display font; zero heavy ops
+     • "Generate a logo with /logo"            — run the /logo skill for an SVG/favicon/monochrome set
+     • "Skip — no logo"                        — header reads as plain product name
+   ```
+
+   On **Generate**: invoke `/pmos-toolkit:logo` (prepend `[mode: …]` + `[output_format: …]`); capture its
+   SVG + favicon + monochrome variants into the page folder's `reference/`.
+3. **Bind in Phase 5.** Whichever path ran, the resolved mark (wordmark text, sourced asset, or `/logo`
+   output) is bound into the **header** and the **attribution footer** in Phase 5 (favicon as a `data:` URI
+   or page-folder-relative file — never remote, C1). Skip → header shows the plain product name.
+
+Record the logo decision + bound asset path in `brief.md`.
 
 ## Phase 2: Propose the section structure {#propose-structure}
 
@@ -241,20 +283,56 @@ selftest, §H — this skill does no contrast arithmetic).
 1. **Show the gallery.** Point the user at `reference/style-gallery.html` (open it / serve it) so they see
    all 6 styles as labelled swatches. The 6: Clean minimal SaaS, Dark developer tool, Bold playful
    illustration, Editorial / typographic, Warm consumer lifestyle, Enterprise trust.
-2. **Recommend the default for the brief's `product_type`** (e.g. Dev tool → Dark developer tool; B2B SaaS
+2. **Render a live in-style preview of _this_ hero (D8) {#style-preview}.** The gallery shows abstract
+   swatches; this shows the actual decision. Take the **chosen Phase-3 hero** and render it in the **2–3
+   candidate styles** (the recommended default + the 1–2 next-best for the `product_type`) into
+   `working/style-options.html` — the styled hero blocks stacked **side-by-side**, each labelled with its
+   style name and bound to that style's token set. This reuses the same show-don't-ask render mechanism Phase
+   3 uses for hero options (`reference/hero-archetypes.md` Phase-3 mechanism). The gallery stays the **full
+   reference**; this rendered preview is the **decision surface** the user picks from.
+3. **Recommend the default for the brief's `product_type`** (e.g. Dev tool → Dark developer tool; B2B SaaS
    → Clean minimal SaaS / Enterprise trust; Info-product → Bold playful illustration / Editorial;
-   Consumer → Warm consumer lifestyle) — D5.
-3. **User picks one.** The pick's `id` selects the token set bound in Phase 5.
+   Consumer → Warm consumer lifestyle) — D5. The recommended style is rendered first in the preview.
+4. **User picks one.** The pick's `id` selects the token set bound in Phase 5.
 
 Gate (recommended = the product-type-default style, AUTO-PICKs non-interactively):
 
 ```
-AskUserQuestion → "Which visual style? (preview: reference/style-gallery.html)"
+AskUserQuestion → "Which visual style? (live preview: working/style-options.html · full gallery: reference/style-gallery.html)"
   • "<product-type default style> (Recommended)"
   • "<style 2>"  • "<style 3>"  • "<style 4>"
 ```
 
 (Present all 6 in the interactive prompt; the four shown here are illustrative.)
+
+## Phase 4.5: Media strategy {#media-strategy}
+
+Decide **how each signature moment is shown** before drafting — a static device-framed image, a carousel, or
+a short video — so Phase 5 binds real media rather than prose (D6). The format menu, the capability detection,
+the video pipeline, the degrade ladder, and the embed rules all live in `reference/media-strategy.md` — apply
+it; do not restate it here (C2).
+
+1. **Read the cached `media_caps`** from Phase 0 (`ffmpeg`, `headless_browser`). The available formats follow
+   from them via `reference/media-strategy.md#degrade-ladder` — never re-detect.
+2. **Per signature moment (and per page), pick a format.** Map each brief signature moment to a surface from
+   the menu (`#format-menu`): **static device-framed image** (the default), **carousel**, or **video**. Video
+   content is **captured from the real product** (Playwright `recordVideo` of an actual flow → ffmpeg
+   trim/compress/poster), **never mocked or fabricated** (C3). Embeds are `data:` URI or page-folder-relative,
+   **never remote** (C1).
+3. **Gate — recommended = static device-framed** (the cheapest always-available format; it never blocks on a
+   capture or a missing tool, so it AUTO-PICKs non-interactively without ever spawning a recording, C4):
+
+   ```
+   AskUserQuestion → "How should the signature moments be shown?"
+     • "Static device-framed images (Recommended)"  — screenshots in device frames; no capture needed
+     • "Carousel of stills"                          — multiple framed stills per moment
+     • "Captured product video"                      — Playwright recordVideo → ffmpeg; needs the caps above
+   ```
+
+   Under `--non-interactive` the static default is taken and an Open Question logs which moments could be
+   upgraded to video on a later interactive run. If a moment is chosen for video but `media_caps` can't
+   support it, the **degrade ladder** (`#degrade-ladder`) picks the best available format and **logs** the
+   downgrade — it never silently drops the moment.
 
 ## Phase 5: Draft the page {#draft}
 
@@ -263,11 +341,17 @@ Generate `index.html` in the page folder — the **single self-contained file** 
 
 1. **Bind the chosen style's token set** from `reference/style-tokens.json` as CSS custom properties in an
    inline `<style>` `:root` block. All color/type/spacing/radius/shadow come from the bound vars — do not
-   introduce off-palette values.
+   introduce off-palette values. **Bias toward the host `DESIGN.md` when one exists (D10):** resolve it via
+   `plugins/pmos-toolkit/skills/wireframes/reference/design-md-resolver.md` (the canonical resolver `/wireframes`
+   and `/verify`'s drift-check share); if present, nudge the bound palette/spacing toward its brand tokens so
+   the page reads as part of the host product rather than a generic theme. Absent → use the bundled style
+   as-is. (Read-if-present; never required — cite, don't restate the resolver, C2.)
 2. **Lay out the approved sections in order** (Phase 2 variant), with the **chosen hero verbatim** (Phase 3)
-   as the first fold. (Multi-product: lay out per the chosen organizing principle — one section per product
-   for a suite page, or emit one page per product + the hub for the product-index principle, per
-   `reference/multi-product.md`.)
+   as the first fold. **Bind the Phase 1.5 logo** (`#logo`): the resolved mark (text wordmark, sourced asset,
+   or `/logo` SVG) in the **header**, and a **favicon** (`/logo` favicon variant or a derived one) as a
+   `data:` URI or page-folder-relative `<link rel="icon">` — never remote (C1). (Multi-product: lay out per
+   the chosen organizing principle — one section per product for a suite page, or emit one page per product +
+   the hub for the product-index principle, per `reference/multi-product.md`.)
 3. **Show the signature moments, don't just tell them (do>show>tell, D1).** Render each brief signature
    moment on the show-surface chosen in Phase 2 (`reference/section-scaffolds.md#governing-principles`) —
    a real screenshot / annotated shot / carousel / interactive snippet of that moment — rather than asserting
@@ -275,9 +359,13 @@ Generate `index.html` in the page folder — the **single self-contained file** 
 4. **Write real copy** grounded in the brief — apply the hero rules and the copy craft from
    `reference/copy-gates.md` as you write (litmus, Harry Dry 3-test, one isolated CTA, persona-calibrated
    vocabulary, benefits over self-praise, scannable blocks, place psychology levers deliberately by section).
-5. **Use real assets only.** Bind screenshots/testimonials/metrics/logos from the brief's `reference/`. For
-   any asset the brief marks unknown, emit a **clearly-labelled placeholder** (e.g. a captioned grey block
-   "screenshot: product dashboard — TODO"), never a fabricated proof point (D6).
+5. **Use real assets only, at full fidelity (D7).** Bind screenshots/testimonials/metrics/logos from the
+   brief's `reference/`, and the signature-moment media chosen in Phase 4.5 (`reference/media-strategy.md`).
+   Apply the **asset-fidelity rules** (`reference/copy-gates.md#asset-fidelity`) as you place them — preserve
+   native aspect ratio (`object-fit`, never stretch/skew), frame product shots in a device frame, and provide
+   a mobile-appropriate crop/alt image for narrow viewports. For any asset the brief marks unknown, emit a
+   **clearly-labelled placeholder** (e.g. a captioned grey block "screenshot: product dashboard — TODO"),
+   never a fabricated proof point (D6).
 6. **Bake the attribution footer (D11).** Every emitted `index.html` (and each per-product page) carries a
    small footer line **"Built with pmos-toolkit"** linking to the repo via the **`{{repo_url}}`** token
    convention (default `https://github.com/maneesh-dhabria/pmos-skills`, the same wordmark/footer token the
@@ -308,7 +396,12 @@ Apply the gates and **revise in place before surfacing the page** (D10). All gat
    `http://localhost` (Playwright cannot open `file://` in this repo) and load it; screenshot **desktop +
    mobile** into `working/`; run a reviewer pass (≤ 2-iteration fix loop, the `/wireframes` // `/prototype`
    pattern) confirming hero + single CTA + sections + style render correctly — no overflow, CTA visible
-   above the fold, contrast holds — fixing issues in place.
+   above the fold, contrast holds — fixing issues in place. **Mobile is a hard pass dimension** (see the
+   reference). **Grade against the shared design checklist, don't re-derive layout rules (D10):** apply the
+   shared visual / responsive / contrast checklist that `/wireframes`, `/prototype`, and `/design-crit` all
+   honour — `plugins/pmos-toolkit/skills/design-crit/reference/eval.md` (§V visual hierarchy, §G layout, §A
+   WCAG-AA accessibility incl. the contrast + target-size subset) — rather than inventing a second set of
+   layout rules here (cite, don't restate — C2).
    **Degraded fallback (no headless browser):** run the text gates + a structural-HTML check (hero, one
    primary CTA, approved sections in order, bound style tokens all present in the markup) and **log** the
    skipped visual pass to chat (never silent). See Platform Adaptation.

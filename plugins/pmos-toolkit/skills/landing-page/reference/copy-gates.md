@@ -15,6 +15,7 @@ contain a hero with a single primary CTA, the approved sections in order, and th
 - [Clarity rules](#clarity-rules)
 - [Persona-jargon rule](#persona-jargon-rule)
 - [do > show > tell show-ratio](#show-ratio)
+- [Asset fidelity](#asset-fidelity)
 - [Psychology levers by section](#psychology-levers-by-section)
 - [Anti-pattern avoid-list](#anti-pattern-avoid-list)
 - [Visual self-check](#visual-self-check)
@@ -77,6 +78,26 @@ video, or interactive snippet of that exact moment exists or could be captured. 
 upgrade tell→show (or show→do), surfaced to the user; it does not block emit. A page that asserts every
 signature moment in prose while showing none is the failure shape this check exists to catch.
 
+## Asset fidelity {#asset-fidelity}
+
+Applied in **Phase 5** as the draft binds screenshots / product shots / logos, and re-checked in the Phase 6
+visual self-check. An image that is stretched, skewed, or illegible on a phone undoes the credibility a real
+screenshot buys (D7):
+
+- **Preserve native aspect ratio — never stretch or skew.** Store each asset's intrinsic width/height and
+  render with `object-fit: contain` (show the whole shot) or `object-fit: cover` (fill a fixed frame, cropping
+  evenly) inside any fixed-size frame. Never set both `width` and `height` to values that distort the image.
+- **Frame product shots.** Place app/site screenshots in a **device frame** (browser chrome or phone bezel)
+  so they read as the real product, not a floating rectangle.
+- **Mobile-appropriate assets.** A wide desktop screenshot is often illegible on a phone — provide a
+  **portrait crop or an alternate image** for narrow viewports (e.g. a `<picture>` source or a CSS
+  `background-image` swap), rather than scaling the wide shot down to an unreadable strip.
+- **Captured media follows the same rules.** Video posters and carousel stills (`media-strategy.md`) preserve
+  aspect ratio and use device frames too — this is the one home for the fidelity rules they cite.
+
+A draft that stretches an asset, omits a device frame on a product shot, or ships a desktop-only image that
+clips on mobile fails this gate — fix it in the draft.
+
 ## Psychology levers by section
 
 Place deliberately, never stacked indiscriminately:
@@ -102,5 +123,16 @@ invented proof point.
 After the text gates, the skill renders `index.html` headless (Playwright), screenshots desktop + mobile
 into `working/`, and runs a reviewer pass (≤2-iteration fix loop, the `/wireframes` // `/prototype`
 pattern) confirming hero/CTA/sections/style render correctly — no overflow, contrast OK, CTA visible above
-the fold — fixing issues in place. **Graceful degradation:** with no headless browser, fall back to the
-text gates + a structural-HTML check and **log** the skipped visual pass (never silently drop it).
+the fold — fixing issues in place.
+
+**Mobile is a HARD pass dimension, not informational (D7).** The mobile screenshot must pass, or the page is
+**not emitted** until it does (within the existing ≤2-iteration fix loop). A mobile **failure** is any of:
+horizontal overflow / a scrollbar; the primary CTA not visible above the fold; or any image skewed, clipped,
+or stretched (the `#asset-fidelity` rules). Desktop and mobile are both blocking; a page that looks right on
+desktop but overflows on a phone does not ship. If two iterations cannot clear a mobile failure, surface it
+loudly with the offending screenshot rather than emitting silently.
+
+**Graceful degradation:** with no headless browser, fall back to the text gates + a structural-HTML check
+(hero, one primary CTA, approved sections in order, bound style tokens, and the responsive/asset markup —
+`<picture>`/`object-fit`/viewport meta — present) and **log** the skipped visual pass (never silently drop
+it). The mobile gate is then best-effort-structural; the skip is logged so the user knows it was not rendered.

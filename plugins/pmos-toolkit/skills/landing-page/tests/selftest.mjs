@@ -128,6 +128,25 @@ if (gates) {
   has(gates, "von Restorff", "copy-gates single-CTA");
   for (const lever of ["social proof", "authority", "reciprocity", "scarcity", "commitment", "liking", "unity"]) has(gates, lever, "copy-gates psychology lever");
   has(gates, "anti-pattern", "copy-gates anti-pattern avoid-list");
+  // qrm: asset fidelity (AC7) + mobile-hard visual self-check (AC8)
+  has(gates, "{#asset-fidelity}", "copy-gates asset-fidelity anchor");
+  has(gates, "object-fit", "copy-gates asset-fidelity object-fit rule");
+  has(gates, "device frame", "copy-gates asset-fidelity device frame");
+  has(gates, "aspect ratio", "copy-gates asset-fidelity aspect-ratio rule");
+  has(gates, "HARD pass dimension", "copy-gates mobile is a hard visual dimension");
+}
+
+// ===== qrm AC4/AC5/AC6 — media strategy reference =====
+const media = read(path.join(REF, "media-strategy.md"));
+if (media) {
+  has(media, "## Format menu", "media-strategy format-menu heading (#format-menu)");
+  has(media, "## Degrade ladder", "media-strategy degrade-ladder heading (#degrade-ladder)");
+  for (const fmt of ["device-framed", "carousel", "video"]) has(media, fmt, "media-strategy format menu entry");
+  has(media, "recordVideo", "media-strategy Playwright recordVideo");
+  has(media, "ffmpeg", "media-strategy ffmpeg pipeline");
+  has(media, "command -v ffmpeg", "media-strategy ffmpeg capability probe");
+  has(media, "real product", "media-strategy real-product-only (no fabrication)");
+  ok(!/\bsrc\s*=\s*["']https?:\/\//i.test(media), "media-strategy embed rules forbid remote src");
 }
 
 // ===== D7 — Story B (pe2) owns SKILL.md; in the shipped tree it must be present =====
