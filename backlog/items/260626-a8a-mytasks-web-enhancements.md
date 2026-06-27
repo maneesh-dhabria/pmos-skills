@@ -4,12 +4,13 @@ id: 260626-a8a
 kind: epic
 title: "/mytasks web UI enhancements — inline-everything interaction overhaul (sidebar projects/labels/people, inline task editing + @/#/+ autocomplete, nested subtasks, type/recur/checkin controls, redesigned LNO badge) + /mytasks import"
 type: enhancement
-status: defined
+status: released
 priority: should
 labels: [pmos-toolkit, mytasks, web-ui, from-feedback]
 route: skill
 created: 2026-06-26
-updated: 2026-06-26
+updated: 2026-06-27
+released: pmos-toolkit/v2.97.0
 defined: 2026-06-26
 source: docs/pmos/features/2026-06-26_mytasks-web-enhancements/
 feature_folder: docs/pmos/features/2026-06-26_mytasks-web-enhancements/

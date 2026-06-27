@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-06-27 — pmos-toolkit 2.97.0: /mytasks gets a full web app and a paste-to-import flow
+
+**`/mytasks web` is now a Todoist-class local web app, and you can import a whole outline at once.** Run `/mytasks web` to open a single-page app backed by a zero-dep localhost server: a sidebar of smart views, projects, labels, and people; inline task editing with `@person` / `#project` / `+label` autocomplete; nested, collapsible subtasks; a redesigned LNO importance badge; and inline controls for type, recurrence, check-in cadence, project, due date, and people — every edit writing the same markdown files the terminal verbs use, so the two surfaces never diverge. People are created and edited straight from the web app over the shared `~/.pmos/people/` store, byte-compatible with `/people`. New `/mytasks import`: paste a plain-text outline and it parses the structure (indentation and markers, with an AI fallback for ambiguous trees) into projects, tasks, subtasks, and labels, shows you the tree to confirm, then writes the items. Consistent with the trackers' derive-on-read model, nothing maintains a committed index file.
+
 ## 2026-06-27 — pmos-toolkit 2.96.0: trackers derive their index on read; /people gains a web viewer
 
 **`/backlog`, `/mytasks`, and `/people` no longer keep a committed index file.** Each tracker's at-a-glance index is now computed fresh from the underlying record files every time you view it, instead of being stored as an `INDEX.md` that had to be regenerated on every change. That removes a frequent source of merge conflicts and stale views — the index can never be out of date because nothing is persisted. Bare `/backlog`, `/mytasks`, and `/people` default to their web viewer, with an inline text fallback when there's no browser. And `/people` gains that local web viewer for the first time — a read-only directory view of your people records.
