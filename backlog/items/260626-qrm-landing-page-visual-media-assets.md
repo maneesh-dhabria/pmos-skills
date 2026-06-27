@@ -5,11 +5,11 @@ kind: story
 title: "/landing-page — visual, media & assets"
 type: enhancement
 priority: should
-status: done
+status: released
 route: skill
 parent: 260626-7s4
 dependencies: [260626-h70]
-worktree: .claude/worktrees/feat-260626-qrm
+worktree:
 build_branch: feat/260626-qrm
 build_commit: c70ebaf2
 plan_doc: docs/pmos/features/2026-06-26_landing-page-enhancements/stories/260626-qrm-visual-media-assets/03_plan.html

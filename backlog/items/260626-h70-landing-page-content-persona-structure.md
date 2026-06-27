@@ -5,11 +5,11 @@ kind: story
 title: "/landing-page — content, persona & structure"
 type: enhancement
 priority: should
-status: done
+status: released
 route: skill
 parent: 260626-7s4
 dependencies: []
-worktree: .claude/worktrees/feat-260626-h70
+worktree:
 build_branch: feat/260626-h70
 build_commit: 120d7904
 plan_doc: docs/pmos/features/2026-06-26_landing-page-enhancements/stories/260626-h70-content-persona-structure/03_plan.html

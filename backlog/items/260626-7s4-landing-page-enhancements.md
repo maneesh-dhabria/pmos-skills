@@ -4,12 +4,13 @@ id: 260626-7s4
 title: "/landing-page enhancements — show-balance, persona, media, multi-product"
 type: enhancement
 kind: epic
-status: defined
+status: released
+released: pmos-toolkit/v2.94.0
 route: skill
 priority: should
 labels: [landing-page, pmos-toolkit, skill, idea]
 created: 2026-06-26
-updated: 2026-06-26
+updated: 2026-06-27
 source: "user feedback from poker-coach landing-page run (2026-06-26)"
 design_doc: docs/pmos/features/2026-06-26_landing-page-enhancements/02_design.html
 parent:
