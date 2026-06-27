@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-06-27 — pmos-toolkit 2.96.0: trackers derive their index on read; /people gains a web viewer
+
+**`/backlog`, `/mytasks`, and `/people` no longer keep a committed index file.** Each tracker's at-a-glance index is now computed fresh from the underlying record files every time you view it, instead of being stored as an `INDEX.md` that had to be regenerated on every change. That removes a frequent source of merge conflicts and stale views — the index can never be out of date because nothing is persisted. Bare `/backlog`, `/mytasks`, and `/people` default to their web viewer, with an inline text fallback when there's no browser. And `/people` gains that local web viewer for the first time — a read-only directory view of your people records.
+
 ## 2026-06-27 — pmos-toolkit 2.95.0: /verify and /design-crit must prove the slop pre-pass actually ran
 
 **The design-slop gate can no longer be skipped by assertion.** Both `/design-crit` and `/verify` run a deterministic design-slop pre-pass over the HTML they review. Previously a run could quietly skip that pass and rationalize it as "graceful degradation," letting mechanical design tells slip through. Now each skill must surface proof that the slop engine actually executed this run — the captured findings, drawn from this run's output — before it can claim the lane passed. If the engine genuinely cannot run, that is reported honestly as a failure to execute, never disguised as a clean result.
