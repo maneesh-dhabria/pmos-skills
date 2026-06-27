@@ -2,7 +2,7 @@
 name: design-crit
 description: Critique an existing application, wireframes, or prototype on overall user experience — identifies journeys, captures flow screenshots via packaged Playwright script, evaluates against a Nielsen + WCAG 2.2 + visual-hierarchy + Gestalt + journey-friction rubric, then runs a PSYCH pass and synthesises prioritized UX recommendations. Standalone utility — does not require the requirements→spec→plan pipeline. Use when the user says "critique this UI", "design review", "audit this app", "UX review", "review the wireframes", "evaluate this prototype", "what's wrong with this UX", or provides a URL/HTML files and asks for a design crit.
 user-invocable: true
-argument-hint: "<URL or path-to-wireframes-folder or path-to-prototype-folder> [--feature <slug>] [--journeys <id1,id2>] [--storage-state <path>] [--out <dir>] [--depth shallow|standard|deep] [--non-interactive | --interactive]"
+argument-hint: "<URL or path-to-wireframes-folder or path-to-prototype-folder> [--feature <slug>] [--journeys <id1,id2>] [--storage-state <path>] [--out <dir>] [--depth shallow|standard|deep] [--report-only] [--non-interactive | --interactive]"
 ---
 
 # Design Crit
@@ -28,7 +28,7 @@ It captures screenshots, applies a hybrid rubric (`reference/eval.md`), runs a P
 
 ## Flags & natural language
 
-Every option also has a natural-language form — infer it from the request; an explicit flag overrides. Canonical phrasings: "go deep / show me everything" ≡ `--depth deep`, "quick pass / top issues only" ≡ `--depth shallow`. `--journeys` takes journey ids — the kebab-cased labels of the journeys proposed in Phase 2 and saved in `journeys.{ext}` — so re-runs and parent invocations can skip the approval prompt. One flag stays parsed for back-compat but is deliberately not advertised:
+Every option also has a natural-language form — infer it from the request; an explicit flag overrides. Canonical phrasings: "go deep / show me everything" ≡ `--depth deep`, "quick pass / top issues only" ≡ `--depth shallow`, "just give me the crit / go through the flows and share your critique" ≡ `--report-only` (write the report and run the gate, but skip the per-finding disposition Q&A — see Phase 4). `--journeys` takes journey ids — the kebab-cased labels of the journeys proposed in Phase 2 and saved in `journeys.{ext}` — so re-runs and parent invocations can skip the approval prompt. One flag stays parsed for back-compat but is deliberately not advertised:
 
 <!-- nl-sugar -->
 - `--format <html|md|both>` — output-format override; `md`/`both` are retired values, treated as `html` (see Phase 0).
@@ -191,7 +191,14 @@ node {skill_dir}/assets/capture.mjs \
   --viewport 1440x900
 ```
 
-### 3c. Verify capture quality
+### 3c. Stateful app / SPA / game mode (interactive driver)
+
+When the target is a stateful app, single-page app, or canvas/WebGL game, the journey is **not** a static file list or a crawlable route set — it is a chain of in-canvas interactions (navigate → click/drag/key → screenshot → repeat) where each screen only exists after the prior interaction. Drive it with an **interactive driver**: the Playwright MCP (`browser_navigate` / `browser_click` / `browser_take_screenshot`), or a click-stepped Playwright script in `--mode journey` whose config lists the interaction steps. Capture one screenshot per reached state into `{out_dir}/screenshots/`, naming each by the state it represents.
+
+- **Storage-reset for cold-open capture.** To capture genuine first-run / onboarding state, reset client storage before the first navigation — `indexedDB.deleteDatabase(<db>)` and `localStorage.clear()` / `sessionStorage.clear()` (via the MCP's `browser_evaluate` or a script step) — so a returning-user cache doesn't mask the cold-open UX. Note in the report when a capture was taken cold vs. warm.
+- **Composition with the Phase 3.5 gate (A1).** The deterministic pre-pass is **not** bypassed in this mode: `#slop-prepass` STILL runs against the **live URL** once each state is reached (one `slop-prepass.mjs --source <live-url>` run per captured state), and its verbatim evidence line is surfaced before Phase 4 — exactly as in URL mode. An interactive/SPA capture earns no exemption from proof-of-execution.
+
+### 3d. Verify capture quality
 
 Read `{out_dir}/screenshots/manifest.json`. Check:
 
@@ -205,9 +212,9 @@ If anything failed, surface the error to the user and decide together: retry wit
 
 ## Phase 3.5: Deterministic slop pre-pass {#slop-prepass}
 
-Before the LLM critique, run the **deterministic slop engine** over the captured source — a machine lane that flags known generated-design tells (side-tab accents, gradient text, monotonous spacing, bounce easing, "theater" framing copy, …) with zero judgement and zero network. This lane runs **first** and stays **distinct** from the LLM heuristic/PSYCH lanes that follow (D-STACK): a reader can always tell a machine-flagged tell from a judged UX issue. It **complements, never replaces**, the LLM critique in Phases 4–5.
+Before the LLM critique, run the **deterministic slop engine** over the captured source — a machine lane that flags known generated-design tells (side-tab accents, gradient text, monotonous spacing, bounce easing, "theater" framing copy, …) with zero judgement and zero network. This lane runs **first** and stays **distinct** from the LLM heuristic/PSYCH lanes that follow (D-STACK): a reader can always tell a machine-flagged tell from a judged UX issue. It **complements, never replaces**, the LLM critique in Phases 4–5. **This phase is a hard gate (proof-of-execution, §H): the pre-pass MUST run and its literal evidence line MUST be surfaced before Phase 4 may proceed — it is not an optional pre-pass that may be skipped by assertion.**
 
-Run the packaged helper **once per captured target** — loop the journey's file list in wireframes/prototype mode (one run per captured screen), or run once against the live URL in URL mode. It drives the same Playwright/Chromium path `assets/capture.mjs` already uses, injects the vendored engine at `_shared/slop-engine/browser.js`, calls `window.pmosDesignScan()`, and reads the `.pmos-slop-*` findings from the **live DOM — programmatically, never from a screenshot**:
+**You MUST run** the packaged helper **once per captured target** — loop the journey's file list in wireframes/prototype mode (one run per captured screen), or run once against the live URL in URL mode. It drives the same Playwright/Chromium path `assets/capture.mjs` already uses, injects the vendored engine at `_shared/slop-engine/browser.js`, calls `window.pmosDesignScan()`, and reads the `.pmos-slop-*` findings from the **live DOM — programmatically, never from a screenshot**:
 
 ```
 node {skill_dir}/assets/slop-prepass.mjs \
@@ -216,15 +223,19 @@ node {skill_dir}/assets/slop-prepass.mjs \
   [--viewport 1440x900]
 ```
 
-Output: `{out_dir}/slop-findings.json` — an object `{ generated, source, engine, overlaysRendered, findings: [{ id, category, severity, snippet, selector, section }] }`, where each `snippet` carries the offending text/CSS in the engine's straight-double-quote convention (a `skipped: true` + empty `findings` shape is written on graceful degradation, below). The `findings` array feeds the report's first lane in Phase 6 ({#synthesise-report}), ahead of the LLM recommendations.
+Output: `{out_dir}/slop-findings.json` — an object `{ generated, source, engine, overlaysRendered, findings: [{ id, category, severity, snippet, selector, section }] }`, where each `snippet` carries the offending text/CSS in the engine's straight-double-quote convention (a `skipped: true` + `reason` + empty `findings` shape is written on graceful degradation, below). The `findings` array feeds the report's first lane in Phase 6 ({#synthesise-report}), ahead of the LLM recommendations.
 
-**Graceful degradation (Inv-5).** The engine lane is purely additive. If the engine bundle is missing/unreadable or the scan errors, the helper logs a single stderr skip note, writes an empty `slop-findings.json`, and exits 0 — `/design-crit` then proceeds **exactly as today** from Phase 4 onward with no machine lane and no regression. A missing Playwright install is a dependency error (exit 3) — the same class `assets/capture.mjs` already surfaces in Phase 3; resolve it there. Never let an empty or absent engine lane roll back or alter the capture → LLM critique flow.
+**Surface the evidence, then proceed (the hard gate).** After each run you MUST surface the helper's own literal line VERBATIM in chat before Phase 4 may begin — either the success line `[slop-prepass] N deterministic finding(s), M overlay node(s) → <file>` (stdout) or the skip-note `[slop-prepass] slop-engine unavailable — skipping deterministic pre-pass: <reason>` (stderr). Whether the pre-pass **ran or skipped** is keyed to `slop-findings.json` (the presence of `findings` vs. `skipped: true`) **and** the exit code — never to narrative. Phase 4 may not start until a `slop-findings.json` produced THIS run exists for every captured target. The full helper-output contract — the two literal lines, the JSON shape, and exit codes `0`/`1`/`3` — has one home in `assets/slop-prepass.mjs`'s header (and epic design §5, `02_design.html#helper-output`); cite it, don't restate it here (§K).
+
+**Graceful degradation (Inv-5) — earned, not asserted.** Degradation never flips a correct crit to a failure, but a skip is only *claimable* from the helper's own emitted evidence: it logs the single stderr skip-note above and writes `slop-findings.json` with `skipped: true` + `reason` (exit 0), or it exits non-zero. You may record "engine unavailable / pre-pass skipped" ONLY from that evidence — **never by asserting the engine is absent or "not wired in" without running the helper** (it resolves the engine at `_shared/slop-engine/browser.js` and records the resolved path in `slop-findings.json :: engine`; if you believe it is absent, run it and show the skip-note). A missing Playwright install is a dependency error (exit 3) — the same class `assets/capture.mjs` already surfaces in Phase 3; resolve it there. The machine lane only ever adds findings or an earned skip — it never rolls back or alters the capture → LLM critique flow.
 
 **Determinism + provenance (Inv-3/Inv-4).** The lane makes no LLM or network call; the engine is referenced only by its pmos-native path and the `window.pmosDesignScan` / `.pmos-slop-*` globals.
 
 ---
 
 ## Phase 4: Heuristic evaluation against the rubric {#heuristic-eval}
+
+**Gate precondition (A1).** Do not begin the heuristic eval until Phase 3.5 (`#slop-prepass`) produced a `slop-findings.json` for every captured target THIS run and you surfaced its verbatim evidence line. The pre-pass is a hard gate, not an optional lane — a missing this-run JSON means the gate did not run; go back and run it.
 
 Read `reference/eval.md` (canonical rubric) into context.
 
@@ -239,6 +250,8 @@ Save raw output to `{out_dir}/eval-findings.json`.
 **Theater-check escape.** A per-journey pass that reports **no friction** while the per-screen / per-component passes produced ≥3 findings on that journey's screens is suspect — sycophantic "the flow is smooth" theater. Re-dispatch that one journey's pass **once**, instructing the reviewer to re-walk it as an impatient user with alternatives, seconds to spare, and no goodwill toward this UI — where do they hesitate, mis-click, backtrack, or give up? Accept the second result as genuine even if still empty; no second retry.
 
 ### Findings dispositions
+
+**`--report-only` (NL: "just give me the crit").** When set, **skip the per-finding disposition loop entirely** — issue no `AskUserQuestion`; every surfaced finding (within the resolved cap) flows straight into the report as a recommendation. The rest of the pipeline is unchanged: the Phase 3.5 slop pre-pass STILL runs (it is a hard gate, orthogonal to disposition), the report is STILL written, and the mandated `<N_surfaced> … <M_unsurfaced>` chat line below STILL fires. `--report-only` is orthogonal to `--non-interactive` (it suppresses the disposition Q&A specifically, where `--non-interactive` auto-picks every prompt); either, both, or neither compose. Resolve the cap as below, then jump past the disposition loop to the surfaced/unsurfaced line.
 
 After the reviewer returns, resolve the cap: if `--depth` was set, it applies as-is; if `N_returned ≤ 5`, nothing would be capped; otherwise run the depth gate from Phase 0 (one `AskUserQuestion` — Top 5 / **Top 12 (Recommended)** / all N; non-interactive auto-picks standard).
 
@@ -271,6 +284,7 @@ There is no separate MSF scoring pass — journey friction is already covered wi
 
 - **Asset prefix:** `assets/` when `{out_dir}` is a top-level feature-folder write; `../assets/` when nested under a feature folder (`{feature_folder}/design-crit/` shares the substrate with sibling artifacts).
 - **Index regeneration:** only when `{out_dir}` is a sub-folder of a pipeline feature folder, regenerate `{feature_folder}/index.html` per `index-generator.md`. Standalone `--out` invocations outside the pipeline do NOT regenerate an index.
+- **Markdown fallback — substrate-unreachability ONLY (A4).** Attempt the HTML emit via `_shared/html-authoring/` first. If and only if that substrate path **cannot be resolved or read** (e.g. the plugin-cache path is missing/unreadable — a real resolution failure, not a preference), write a self-contained markdown `design-crit.md` instead and log one loud stderr note naming the unresolved path: `html-authoring substrate unresolvable at <path>; wrote markdown fallback design-crit.md`. This is a degradation guard mirroring the engine's Inv-5 shape (earned by a genuine failure, surfaced loudly) — it is **NOT** a return of the retired `md`/`both` output-format preference (those values still resolve to `html` per Phase 0; the fallback is keyed strictly off reachability, never off `--format` or settings). <!-- follow-up: the cleaner long-term fix is to make `_shared/html-authoring/` reliably resolvable from the plugin cache so this fallback never fires; track separately. -->
 
 Keep the report concise; recommendations are the deliverable, raw findings are appendices. Structure:
 
@@ -325,7 +339,7 @@ Findings the user chose to defer; logged for future review.
 Pointer to `eval-findings.json`.
 ```
 
-Render the **Deterministic slop findings** table from `{out_dir}/slop-findings.json` (Phase 3.5): one row per finding — rule `id`, its `section`, and `snippet`. If the lane was skipped (`skipped: true`) or empty (`findings: []`), replace the table with a single line — `No deterministic slop tells flagged.` or `Engine lane skipped — <reason>.` — and continue. Never merge engine tells into the LLM recommendation sections below: they are a distinct lane (D-STACK), so the machine lane stays machine-only and the LLM lane stays judgement-only.
+Render the **Deterministic slop findings** table strictly FROM the `slop-findings.json` produced THIS run (Phase 3.5) — never from narrative, memory, or the LLM lane (A1): one row per finding — rule `id`, its `section`, and `snippet` — and head the lane with the JSON's resolved `engine` path + `findings.length`. If the lane was skipped (`skipped: true`) or empty (`findings: []`), replace the table with a single line — `No deterministic slop tells flagged.` or `Engine lane skipped — <reason>.` (the `<reason>` read from the JSON) — and continue. If no this-run `slop-findings.json` exists, the Phase 3.5 gate did not run — go back and run it; do not synthesise the lane. Never merge engine tells into the LLM recommendation sections below: they are a distinct lane (D-STACK), so the machine lane stays machine-only and the LLM lane stays judgement-only.
 
 Each recommendation must:
 
@@ -368,6 +382,8 @@ This phase is mandatory whenever Phase 0 loaded a workstream — do not skip it 
 - **Critiquing many journeys at once.** Beyond ~5 the rubric pass goes shallow — recommend splitting into sessions.
 - **Treating analytical-only friction as live-walk friction.** If Playwright capture failed and you're inferring friction from the HTML alone, label the report accordingly and warn the user the numbers are estimates.
 - **Silently capping findings.** Even at `standard` depth, the FR-DC-DEPTH-07 surfaced/unsurfaced chat line MUST fire so the user can decide whether to re-run at `deep` — the original design's silent cap-at-12 is what motivated the depth control in the first place.
+- **Asserting the slop engine is absent / "not wired in" without running the helper.** Phase 3.5 (`#slop-prepass`) is a hard gate (proof-of-execution): "skipped / engine unavailable" is claimable ONLY from the helper's own skip-note (`slop-findings.json :: skipped == true`, or a non-zero exit) — never from narrative or belief. The helper resolves and records the engine path in `slop-findings.json :: engine`; if you think the engine is missing, run the helper and surface the skip-note. This — a deterministic pre-pass skipped-by-assertion and rationalised as "engine not wired in" — is the exact failure this gate exists to close.
+- **Filling the report's slop lane from prose.** The Phase 6 Deterministic-slop table is populated FROM the this-run `slop-findings.json` (engine path + `findings.length`, or `skipped`+`reason`), never from recollection or the LLM critique. No this-run JSON ⇒ the gate did not run.
 
 ---
 
