@@ -9,18 +9,18 @@ priority: should
 route: skill
 dependencies: []
 plugin: pmos-gamekit
-status: planned
+status: done
 feature_folder: docs/pmos/features/2026-06-26_poker-fixes/
 plan_doc: docs/pmos/features/2026-06-26_poker-fixes/stories/260626-vpj/03_plan.html
 tasks: docs/pmos/features/2026-06-26_poker-fixes/stories/260626-vpj/tasks.yaml
-worktree:
+worktree: .claude/worktrees/feat-260626-vpj
 claimed_by:
 driver_holder:
-build_branch:
-build_commit:
+build_branch: feat/260626-vpj
+build_commit: f603bc86
 labels: [pmos-gamekit, poker, polish, bug]
 created: 2026-06-26
-updated: 2026-06-26
+updated: 2026-06-27
 ---
 
 <!-- status: planned at define (Loop 1); tasks.yaml authored, route:skill. Build via /skill-sdlc build --story 260626-vpj -->
@@ -53,3 +53,42 @@ The whole epic (260626-fdh) is one story: both fixes edit the single self-contai
 - **AC6 (skill conformance):** `SKILL.md` + game conform to `skill-patterns.md §A–§L` and host `CLAUDE.md` (canonical
   skill path `plugins/pmos-gamekit/skills/poker`, gamekit launch contract). No version-bump / changelog / README
   tasks here — those are `/complete-dev`'s. (D6)
+
+## Build outcome (Loop 2, 2026-06-27)
+
+BUILT on `feat/260626-vpj` (impl commit `f603bc86`, worktree kept). route:skill inner pipeline
+(skill-tier-resolve T1 → execute → skill-eval → verify). **Singleton epic 260626-fdh — COMPLETES the epic
+(1/1).** Both fixes are presentation/UI-config only, confined to the one self-contained game file
+`game/poker.html`; the pure `PokerEngine` and the engine selftest are untouched (Inv-1/Inv-2/Inv-5).
+
+Three edits (`game/poker.html`):
+- **F1 lever 1 — clearance below the felt:** `.table-wrap { … margin-bottom: 44px }` (design D2; starting
+  ~30px raised to 44px during the 3-width self-check for comfortable clearance — the margin sits below the
+  width-driven aspect-ratio felt so it never shrinks/clips the felt).
+- **F1 lever 2 — pull hero up:** `SLOTS[0].t` `92 → 88` (the hero's fixed-height face-up block overhangs the
+  felt's bottom edge; pulling the anchor up reduces the overhang).
+- **F2 — random floor:** `newGame()` `numBots = numBotsOpt || (2 + Math.floor(rng()*4))` → random ∈ {2,3,4,5}
+  opponents (3-to-6-handed), never heads-up; cap stays 5 (D3, FR2.1/2.2). Explicit count buttons pass
+  `numBotsOpt` and short-circuit the floor (FR2.3); plural log wording correct across the range (FR2.4).
+
+Verification (offline, no engine change so the gate is a rendered/Playwright check per D4):
+- **F1 (AC1/AC4):** Playwright bounding-rect measurement, game dealt, hero-seat-bottom vs actionbar-top, at
+  **640 / 834 / 1280** + an intermediate sweep (750/790/800/820/860). **Zero hero↔actionbar overlap at every
+  width**; stable clearance **21px** (640–860) rising to **45px** at 1280; felt never clipped or off-screen;
+  references panel + opponent seats intact. (Two transient sub-21 readings on fresh page-load resolved to 21px
+  once the flex layout settled, and were still positive/no-overlap mid-transition.) Narrow-width screenshot
+  evidence at `stories/260626-vpj/dogfood/f1-narrow-640.png` (also shows the live "New game — 4 opponents …"
+  log line — F2 proven in the same shot).
+- **F2 (AC2/AC3):** 200k-sample range check → observed set exactly `{2,3,4,5}`, min 2 / max 5; plural wording
+  correct for all values; explicit-button path (`newGame(picked || undefined)`) confirmed to honour counts
+  1–5 and bypass the floor.
+- **AC5:** `node plugins/pmos-gamekit/skills/poker/tests/run.mjs --selftest` → **47/47 green** (engine
+  untouched; one-line UI default per D5, no helper needed). `SKILL.md` unchanged — neither fix alters controls
+  or rules, so no user-facing copy changed.
+- **AC6:** skill-eval `--target claude-code` **[D] EXIT 0** (17 checks pass); the 4 hygiene lints
+  (non-interactive-inline, flags-vs-hints, phase-refs) + audit-recommended all **PASS** (poker has 0
+  `AskUserQuestion` calls — correct for a launch-only skill). No release-prereq tasks (D6).
+
+All 6 ACs satisfied. 0 new deps; no contract flags added; canonical skill path intact.
+
+**Epic 260626-fdh: FULLY BUILT 1/1** → Loop-3 `/complete-dev --epic 260626-fdh`.
