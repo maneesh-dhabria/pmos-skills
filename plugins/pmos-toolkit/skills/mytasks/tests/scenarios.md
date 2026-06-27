@@ -549,3 +549,62 @@ Expected:
 
 Expected:
 - When `260613-a3f` and `260613-c31` both appear, `260613-c31` renders immediately under `260613-a3f` with its title indented (`  ↳ Draft hero copy`). The stored files stay flat — nesting is view-only.
+
+---
+
+## Import (`/mytasks import`) — structure-first parse (story 260626-j9v)
+
+These document the expected parsed **tree** for `#import` step 2 (`scripts/import-parse.js` `parseOutline`). The unit assertions live in `run.mjs :: testImport`; the cases below are the human-readable fixtures. `today = 2026-06-27` (a Saturday).
+
+### Scenario: pure-indentation outline (depth → subtask)
+
+Input:
+```
+Plan launch
+  Draft copy
+  Review copy
+    Get legal sign-off
+```
+Expected: 4 task nodes. `Plan launch` is top-level (`parentIndex: null`); `Draft copy` and `Review copy` are its children; `Get legal sign-off` is a child of `Review copy`. No projects.
+
+### Scenario: marker-based list (`-`, `*`, `- [ ]`)
+
+Input:
+```
+- Buy milk
+* Call plumber
+- [ ] File taxes
+- [x] Already done
+```
+Expected: 4 top-level task nodes, markers stripped (titles `Buy milk`, `Call plumber`, `File taxes`, `Already done`). The `+` bullet is NOT a marker (it is `+label`).
+
+### Scenario: explicit tokens (`#project` header, `+label`, `@handle`, trailing date)
+
+Input:
+```
+#q3-launch
+  Email the list @sarah +urgent by friday
+  Write the post +content
+```
+Expected: project `q3-launch` registered; the header is **not** a task. Both tasks carry `project: q3-launch`. `Email the list` → person `sarah`, label `urgent`, `due: 2026-07-03` (next Friday, stripped from the title). Labels collected globally: `urgent`, `content`.
+
+### Scenario: messy/mixed input requiring inference
+
+Input:
+```
+Project: Home Reno
+  - Demo the kitchen
+  - Order cabinets
+Standalone #errands Pick up keys
+```
+Expected: `Project: Home Reno` → container slug `home-reno` holding two tasks; the dedented `Pick up keys` leaves the container, is top-level, and its inline `#errands` token sets `project: errands`. Both `home-reno` and `errands` registered.
+
+### Scenario: structure-wins-on-conflict
+
+Input:
+```
+#alpha
+  Parent task
+    Child #beta task
+```
+Expected: `Child task` is a subtask of `Parent task` (**indentation sets the parent**); its `project` is `alpha` (**the container overrides the inline `#beta` token**). The overridden `#beta` token is discarded — only `alpha` is registered.

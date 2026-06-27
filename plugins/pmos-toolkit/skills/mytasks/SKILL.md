@@ -2,7 +2,7 @@
 name: mytasks
 description: Persistent personal task tracker — distinct from Claude Code's session-scoped TaskCreate/TaskList tools. Use for real-world tasks (LNO importance, due dates, people, check-ins, projects, subtasks, recurrence). Lives at ~/.pmos/tasks/. Use when the user says "add a task", "what's on my plate", "tasks for sarah", "what's due this week", "check in on X", "/mytasks", or names a task to capture.
 user-invocable: true
-argument-hint: "[ | <text> | add <text> [--parent <id>] | list [filters] | today | week | overdue | waiting | checkins | for <handle> | in <project> | show <id> | set <id> <field>=<value> | refine <id> | done <id> [note] | drop <id> [reason] | checkin <id> [note] | archive [--quarter <YYYY-QN>] | web] [--non-interactive | --interactive]"
+argument-hint: "[ | <text> | add <text> [--parent <id>] | list [filters] | today | week | overdue | waiting | checkins | for <handle> | in <project> | show <id> | set <id> <field>=<value> | refine <id> | done <id> [note] | drop <id> [reason] | checkin <id> [note] | archive [--quarter <YYYY-QN>] | web | import [<text>]] [--non-interactive | --interactive]"
 ---
 
 # My Tasks
@@ -42,7 +42,7 @@ These instructions use Claude Code tool names. In other environments:
 - `inference-heuristics.md` — quick-capture keyword + date + person + `#project`/`+label` token rules (`project` is never auto-inferred — only an explicit `#project` token / prompt / `set` sets it)
 - `output-formats.md` — exact capture report templates and unknown-person prompt copy
 - `_shared/interactive-prompts.md` — interactive prompting protocol (used by `add`, `refine`, unknown-person flow)
-- `scripts/serve.js` — zero-dep localhost server + JSON API behind the web UI (adapts the `comments` substrate serve.js); `scripts/lib.js` (frontmatter round-trip, validation, `renderIndex` derived-on-read index view + load-time `workstream→project` normalization, quick-add token parse), `scripts/registry.js` (projects/labels registry → `registry.json`, design D5), `scripts/people.js` (web CRUD over the shared `~/.pmos/people/` store, design D6 — derived on read, never writes a committed `INDEX.md`), `scripts/recur.js` (the `#recur-spawn` routine, shared by CLI + web), `scripts/webapp/` (the single-file app), `scripts/mytasks-open.{command,sh,bat}` (launcher trio). The JSON API surface is documented at `#web-api` (contract home: design §5).
+- `scripts/serve.js` — zero-dep localhost server + JSON API behind the web UI (adapts the `comments` substrate serve.js); `scripts/lib.js` (frontmatter round-trip, validation, `renderIndex` derived-on-read index view + load-time `workstream→project` normalization, quick-add token parse), `scripts/registry.js` (projects/labels registry → `registry.json`, design D5), `scripts/people.js` (web CRUD over the shared `~/.pmos/people/` store, design D6 — derived on read, never writes a committed `INDEX.md`), `scripts/recur.js` (the `#recur-spawn` routine, shared by CLI + web), `scripts/import-parse.js` (the structure-first outline tokenizer behind `#import` — pure, reuses `lib.parseQuickAdd`), `scripts/webapp/` (the single-file app), `scripts/mytasks-open.{command,sh,bat}` (launcher trio). The JSON API surface is documented at `#web-api` (contract home: design §5).
 - Sibling skill `/people` — fuzzy-match person lookup via `/people find`
 
 ---
@@ -68,6 +68,7 @@ Parse the user's argument to determine the subcommand. Be liberal with the form 
 | `checkin <id> [note]` | Phase 10 (check-in mechanics) |
 | `archive [--quarter Q]` | Phase 11 (archive completed/dropped) |
 | `web` | Phase 13 (launch the web UI) |
+| `import [<text>]` | Phase 14 (bulk import an outline) |
 | (any other to-do-shaped free text) | Phase 2 (quick capture) |
 
 ---
@@ -153,6 +154,64 @@ Triggered by `/mytasks add <text>`. Interactive — collects rich attributes upf
 3. Build the slug from `<text>` and write the item file as in `#quick-capture` steps 4–5, with all collected values (skipped fields as bare keys — including `parent:`, `order:`, `recur:`).
 4. Write the item file — that is the source of truth; the index view is derived on read (Phase 1), nothing to regenerate.
 5. Report per `output-formats.md` "Rich-capture report" (the report names `parent` when the task is a subtask and `recur` when set).
+
+---
+
+## Phase 14: Import an outline (`import`) {#import}
+
+Triggered by `/mytasks import [<text>]`. Turns a pasted text outline into a tree of projects → tasks → subtasks and writes them in one pass. **Agent-driven (design §7, I5)** — there is no server endpoint; the model parses the blob (structure-first, AI-inferring only the ambiguous remainder), confirms the tree, then writes via the same `lib.js` + `mint-id.mjs` path the capture phases use. **No new task fields** (I2).
+
+### Step 1 — Get the text
+
+The text is taken **inline** — everything after `import` on the command line. If absent and `mode == interactive`, prompt for it (`Paste the outline to import (projects, tasks, subtasks — one per line):`) per `_shared/interactive-prompts.md`. If absent and `mode == non-interactive`, there is nothing to import: print `import: no text supplied` and exit cleanly.
+
+### Step 2 — Parse structure-first (D3)
+
+Run the **deterministic structure pass** — `scripts/import-parse.js` `parseOutline(text, today)` — which returns `{ nodes, projects, labels }`. It honors, **in this order** (structure always wins on conflict):
+
+1. **`#project` header line** (a line whose whole content is a bare `#slug`, or `Project: Name`) → opens a **project container**; every more-indented line below it belongs to that project until the indentation dedents back to/above the header.
+2. **Indentation / nesting depth** → a line is a **subtask of the nearest shallower task line** (the `parentIndex` the parser returns). Mixed tabs/spaces nest by relative depth.
+3. **Bullet & checkbox markers** (`-`, `*`, `- [ ]`, `- [x]`) → **task lines** (the marker is stripped). The `+` bullet is intentionally not a marker — it would collide with `+label`.
+4. **`#project` / `+label` / `@handle` tokens and trailing natural-language dates** on a task line → fields, via the **same `#quick-capture` step-3 strip rules** (`lib.parseQuickAdd`; strip order type → date → `@` → `#` → `+`). Cited, not restated (§K) — see `#quick-capture` and `inference-heuristics.md`.
+
+**AI fallback (A3).** Only the remainder the structure pass cannot resolve is inferred by the model — e.g. a flat list whose first line reads like a project header without a `#`, or "subtasks of X" phrasing instead of indentation. **Structure always wins on conflict:** when a task sits inside a `#project` container *and* carries an inline `#other` token, the container wins (the parser already overrides the token); when indentation and a token disagree about nesting, indentation wins. State any inference you applied in the confirm preview so the user can correct it.
+
+> **Worked example.** Input:
+> ```
+> #q3-launch
+>   Email the announcement @sarah +urgent by friday
+>     Draft the copy
+>   Publish the blog post
+> ```
+> parses to project `q3-launch` containing two tasks — *Email the announcement* (people `sarah`, label `urgent`, due = next Friday) with a subtask *Draft the copy*, and *Publish the blog post*.
+
+### Step 3 — Confirm before writing (A4)
+
+Print the parsed tree as an **indented preview** — project → task → subtask, showing each inferred `label`/`person`/`due`/`type` — so the user sees exactly what will be created. Then resolve any **genuine ambiguity** the parse or the AI fallback could not settle with `AskUserQuestion`, each carrying a `(Recommended)` default, e.g.:
+
+```
+question: "'Q3 launch' is the first line with children under it — is it a project or a task?"
+header: "Q3 launch"
+options:
+  - Project (Recommended)      # treat as a container; its children become its tasks
+  - Task                       # treat as a task; its children become subtasks
+```
+
+**Nothing is written until the tree is confirmed.** Under `--non-interactive` the canonical non-interactive block applies: the classifier **AUTO-PICKs the `(Recommended)` reading** of each ambiguity and **records the deferred ambiguities as open questions** (no blocking prompt) — the import still proceeds with the recommended interpretation. The confirm step itself, when there are zero ambiguities, is a single "Create N tasks across M projects?" confirmation (`Create (Recommended)` / `Cancel`).
+
+### Step 4 — Write (A5)
+
+On confirm, for each task node in `nodes`:
+
+1. **Mint an id** — `node <pmos-toolkit>/skills/backlog/scripts/mint-id.mjs` per task/subtask (one call each; the same minter `#quick-capture` step 2 uses).
+2. **Set fields** — `title`, `type`, `due`, `project`, `labels`, `people` from the parse; **`parent`** = the minted id of `nodes[parentIndex]` for a subtask (write the parent before its children so the id exists). Resolve each `@handle` via **`/people find`** — single match adds the handle; multi-/no-match leaves the token unresolved and flags it in the report (**never invent a person**). All other optional fields are bare keys (`schema.md` empty-optional binding).
+3. **Write** the item file via `lib.writeItemAtomic` + `lib.serializeItem` (the atomic capture write path).
+4. **Register new containers** — for every new `project` / `label` not already derived from existing task files, call the registry `addRegistryEntry` (`scripts/registry.js`, design D5 — the dependency from story 260626-71x) so an otherwise-empty new project still shows in the web sidebar.
+5. **No INDEX write.** The at-a-glance index is a view derived on read (`_shared/tracker-crudl.md` §5 INV-1) — there is nothing to regenerate after a batch import. Fail-soft semantics still apply per `#quick-capture`: a write that fails leaves the already-written item files in place (warn, do not roll back).
+
+### Step 5 — Report (A6)
+
+Per `output-formats.md` style: list **every created task/subtask** with its `id`, `project`, and inferred fields (mirroring the quick-capture report line); then the **new projects/labels** created; then one indented `⚠ unresolved:` line per unresolved `@handle` with the exact `/people add … ` + `set` fix command (same copy as the quick-capture report). State the totals (`Imported N tasks (S subtasks) across M projects.`).
 
 ---
 
