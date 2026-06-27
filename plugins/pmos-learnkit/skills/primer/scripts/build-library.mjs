@@ -2,16 +2,19 @@
 // build-library.mjs — primers-index.json (the committed corpus) + any user-generated
 // primers found beside the output page → a single self-contained, offline (file://)
 // filterable library.html. Modeled on /frameworks' build-library.mjs (committed corpus,
-// gitignored output), adapted for /primer: each card LINKS OUT to a standalone primer HTML
-// (we do not inline primer bodies). Renders BOTH populations on one page, distinguished by
-// a Collection facet: the shipped corpus (Collection=Curated) and the user's own primers in
-// the output directory (Collection=Yours). Zero external deps; Node ESM; no external asset
+// gitignored output), adapted for /primer. Each primer is a standalone HTML document, so a
+// card OPENS the primer IN-PAGE in the substrate's sidebar reader using its lazy iframe mode
+// (reader.mode:'iframe') — closest to /frameworks' read-without-leaving feel — with an
+// "Open in new tab" affordance retained. Renders BOTH populations on one page, distinguished
+// by a Collection facet: the shipped corpus (Collection=Curated) and the user's own primers
+// in the output directory (Collection=Yours). Zero external deps; Node ESM; no external asset
 // refs (inline CSS + JS only) so it opens from file://.
 //
-// The faceting / filtering / search / sort / view / masthead chrome comes from the shared
-// _shared/library-viewer/ substrate (frozen S2 API). This script supplies only the primer
-// corpus adapter (record → card fields) and the skill-specific extras the substrate's card
-// hook exposes: dual-population badge, link-out titles, and the metarow pill set.
+// The faceting / filtering / search / sort / three-view / sidebar-reader / masthead chrome
+// comes from the shared _shared/library-viewer/ substrate (frozen API). This script is THIN:
+// it supplies only the primer corpus adapter (record → card fields, a single named toCard +
+// ALLOWED whitelist) and the skill-specific extras the substrate's card hook exposes:
+// dual-population badge + the metarow pill set, plus the super_category display-label map.
 //
 // Usage:
 //   node build-library.mjs --out <library.html> [--index <primers-index.json>] [--skill-dir <dir>]
@@ -35,26 +38,54 @@ function hrefFrom(outDir, targetAbs) {
   return relative(outDir, targetAbs).split(sep).join('/');
 }
 
+// The strict card-field allowlist — the ONLY fields a primer card is permitted to carry.
+// toCard() reads each one explicitly (never spreads), so no stray index/scan field can reach
+// the emitted DOM. Mirrors /learn-list's toCard + ALLOWED adapter shape (D6).
+const ALLOWED = ['collection', 'id', 'title', 'super_category', 'category', 'audience', 'depth', 'sources_count', 'word_count', 'date', 'href', 'exists'];
+
+// adapter: a raw primer record (from either loader) → a normalized viewer card. WHITELIST
+// ONLY — every card field is derived field-by-field from an ALLOWED key; a record is never
+// spread. Both loadCurated() and scanUserPrimers() feed their raw records through this.
+function toCard(rec) {
+  rec = rec || {};
+  const id = typeof rec.id === 'string' ? rec.id : '';
+  return {
+    collection: rec.collection === 'Yours' ? 'Yours' : 'Curated',
+    id,
+    title: typeof rec.title === 'string' && rec.title ? rec.title : (id || 'Untitled'),
+    super_category: typeof rec.super_category === 'string' && rec.super_category ? rec.super_category : 'Uncategorized',
+    category: typeof rec.category === 'string' && rec.category ? rec.category : 'Uncategorized',
+    audience: typeof rec.audience === 'string' && rec.audience ? rec.audience : '—',
+    depth: typeof rec.depth === 'string' && rec.depth ? rec.depth : '—',
+    sources_count: typeof rec.sources_count === 'number' ? rec.sources_count : null,
+    word_count: typeof rec.word_count === 'number' ? rec.word_count : null,
+    date: typeof rec.date === 'string' ? rec.date : '',
+    href: typeof rec.href === 'string' ? rec.href : '',
+    exists: rec.exists === true,
+  };
+}
+void ALLOWED; // documentation/contract constant — toCard enumerates the same field set explicitly
+
 // ---- Curated corpus (the shipped 61-primer index) -------------------------------------
 export function loadCurated(indexPath, skillDir, outDir) {
   const arr = JSON.parse(readFileSync(indexPath, 'utf8'));
   if (!Array.isArray(arr)) throw new Error(`index is not an array: ${indexPath}`);
   return arr.map((e) => {
     const primerAbs = resolve(skillDir, e.html);            // e.html = "data/primers/<id>.html"
-    return {
+    return toCard({
       collection: 'Curated',
       id: e.id,
       title: e.title || e.id,
-      super_category: e.super_category || 'Uncategorized',
-      category: e.category || 'Uncategorized',
-      audience: e.audience || '—',
-      depth: e.depth || '—',
-      sources_count: typeof e.sources_count === 'number' ? e.sources_count : null,
-      word_count: typeof e.word_count === 'number' ? e.word_count : null,
+      super_category: e.super_category,
+      category: e.category,
+      audience: e.audience,
+      depth: e.depth,
+      sources_count: e.sources_count,
+      word_count: e.word_count,
       date: e.generated_date || '',
       href: hrefFrom(outDir, primerAbs),
       exists: existsSync(primerAbs),
-    };
+    });
   });
 }
 
@@ -75,7 +106,7 @@ export function scanUserPrimers(outDir, outBasename) {
         if (raw) title = raw.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').trim();
       } catch { /* unreadable → keep filename-derived title */ }
       const dm = f.match(/^(\d{4}-\d{2}-\d{2})_/);
-      return {
+      return toCard({
         collection: 'Yours',
         id: f,
         title,
@@ -83,20 +114,28 @@ export function scanUserPrimers(outDir, outBasename) {
         category: 'Your primers',
         audience: '—',
         depth: '—',
-        sources_count: null,
-        word_count: null,
         date: dm ? dm[1] : '',
         href: f,
         exists: true,
-      };
+      });
     });
 }
 
-// Primer-specific extras supplied through the substrate's skill-agnostic card hook:
-// a Curated/Yours badge, a link-out title (plain text when the target file is missing),
-// and the metarow pill set. The substrate owns facets/filter/search/sort/view/masthead.
+// D4 — presentation-only super_category display labels. Applied wherever a super_category is
+// SHOWN (the Area filter <option> labels + the applied-bar Area chip) via the substrate's
+// single-select `valueLabels` seam. The filter VALUE stored in state and compared in passes()
+// stays the raw super_category, so matching, grouping, and facet counts are unchanged.
+// Unmapped values (e.g. 'Your primers', 'Uncategorized') fall back to the raw string.
+export const PRIMER_SUPER_CATEGORY_LABELS = {
+  'Cross Functional Skills': 'Cross-Functional Skills',
+  'Product Management Tactics': 'PM Tactics',
+};
+
+// Primer-specific extras supplied through the substrate's skill-agnostic card hook: a
+// Curated/Yours badge + the metarow pill set. Cards OPEN the in-page iframe reader (no
+// card.link → the substrate renders reader-opening cards, not link-out titles). The substrate
+// owns facets / filter / search / sort / three-view / sidebar-reader / masthead.
 const PRIMER_CARD = {
-  link: { hrefField: 'href', existsField: 'exists' },
   badge: { field: 'collection' },
   pills: [
     { field: 'audience', skip: ['—'] },
@@ -108,13 +147,10 @@ const PRIMER_CARD = {
   ],
 };
 
-// Primer-specific styling for the card hook + a single-view, link-out catalogue feel.
-const PRIMER_CSS = `.viewswitch{display:none}
-.card{cursor:default}
-.card .top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:2px}
+// Primer-specific styling layered over the substrate BASE_CSS (badge + pill chrome only —
+// the three-view switch is inherited from the substrate, not hidden).
+const PRIMER_CSS = `.card .top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:2px}
 .card h4.name{margin:2px 0 0}
-.card h4.name a{color:var(--ink)}
-.card h4.name a:hover{color:var(--accent)}
 .badge{font-size:10px;text-transform:uppercase;letter-spacing:.05em;border-radius:999px;padding:2px 8px;font-weight:700}
 .badge.curated{background:rgba(14,165,164,.16);color:#5fe3df;border:1px solid #1f6b69}
 .badge.yours{background:rgba(110,168,254,.16);color:var(--accent);border:1px solid #345}
@@ -129,7 +165,11 @@ export function buildHtml(records) {
   const recs = records.slice().sort((a, b) => (b.date || '').localeCompare(a.date || '') || a.title.localeCompare(b.title));
   const curatedN = recs.filter((r) => r.collection === 'Curated').length;
   const yoursN = recs.length - curatedN;
-  const sub = `${curatedN} curated${yoursN ? ` · ${yoursN} of yours` : ''} — search or filter the library`;
+  // Dynamic library count: the {count} token is replaced by the substrate with a runtime
+  // #subtitleCount span (DATA.length = curated + yours), so the count is never baked-in.
+  const sub = yoursN
+    ? `{count} primers — ${curatedN} curated · ${yoursN} of yours`
+    : `{count} primers — search or filter the library`;
 
   // facet extraction (counts) over the merged record array — the substrate engine owns the rest.
   const { facets } = extractFacets(recs, [
@@ -143,25 +183,28 @@ export function buildHtml(records) {
   return emitHtml({
     cards: recs,
     facets: [
-      { key: 'collection', field: 'collection', kind: 'single-select', controlId: 'f-collection', label: 'Collection', chipLabel: 'Collection', values: facets.collection.values },
-      { key: 'super_category', field: 'super_category', kind: 'single-select', controlId: 'f-super', label: 'Area', chipLabel: 'Area', values: facets.super_category.values },
-      { key: 'category', field: 'category', kind: 'single-select', controlId: 'f-category', label: 'Category', chipLabel: 'Category', values: facets.category.values },
-      { key: 'audience', field: 'audience', kind: 'single-select', controlId: 'f-audience', label: 'Audience', chipLabel: 'Audience', values: facets.audience.values },
-      { key: 'depth', field: 'depth', kind: 'single-select', controlId: 'f-depth', label: 'Depth', chipLabel: 'Depth', values: facets.depth.values },
+      // collection, area, depth stay single-select; area gets the valueLabels display-rename (D4).
+      { key: 'collection', field: 'collection', kind: 'single-select', controlId: 'f-collection', label: 'Collection', allLabel: 'All collections', ariaLabel: 'Filter by collection', chipLabel: 'Collection', values: facets.collection.values },
+      { key: 'super_category', field: 'super_category', kind: 'single-select', controlId: 'f-super', label: 'Area', allLabel: 'All areas', ariaLabel: 'Filter by area', chipLabel: 'Area', valueLabels: PRIMER_SUPER_CATEGORY_LABELS, values: facets.super_category.values },
+      // category — multi-select dropdown + type-to-filter search (10 areas warrant search).
+      { key: 'category', field: 'category', kind: 'multi-dropdown', itemAttr: 'cat', triggerLabel: 'Category', chipLabel: 'Category', label: 'category', search: true, searchInputId: 'catSearch', checklistId: 'catChecklist', searchPlaceholder: 'Filter categories…', searchAria: 'Type to filter the category list', values: facets.category.values },
+      // audience — multi-select dropdown.
+      { key: 'audience', field: 'audience', kind: 'multi-dropdown', itemAttr: 'aud', triggerLabel: 'Audience', chipLabel: 'Audience', label: 'audience', values: facets.audience.values },
+      { key: 'depth', field: 'depth', kind: 'single-select', controlId: 'f-depth', label: 'Depth', allLabel: 'All depths', ariaLabel: 'Filter by depth', chipLabel: 'Depth', values: facets.depth.values },
     ],
     config: {
-      idField: 'id', nameField: 'title', categoryField: 'category', summaryField: 'summary',
+      idField: 'id', nameField: 'title', categoryField: 'category',
       searchFields: ['title', 'category', 'super_category'],
       searchPlaceholder: 'Search primers by title or category…',
       searchAria: 'Search primers',
       skillMeta: 'primer',
-      views: [{ id: 'detailed', default: true }],
       groupBy: [
         { value: 'collection', label: 'Collection', field: 'collection' },
         { value: 'category', label: 'Category', field: 'category' },
       ],
       defaultGroupValue: 'collection',
-      reader: { columns: [] },          // unused: primer titles link out, no in-page reader
+      // In-page reader = a lazy sandboxed iframe of the primer's own standalone HTML (D3).
+      reader: { mode: 'iframe', iframeField: 'href' },
       card: PRIMER_CARD,
     },
     masthead: { wordmark: 'PMOS', title: 'Primer Library', subtitleTemplate: sub },
@@ -188,8 +231,22 @@ function runSelftest() {
   assert(html.startsWith('<!DOCTYPE html>'), 'no doctype');
   assert(/<meta name="pmos:skill" content="primer">/.test(html), 'missing pmos:skill meta');
   assert(/<link rel="icon" href="data:,">/.test(html), 'missing data: favicon (offline zero-request)');
-  assert(html.includes('id="f-collection"') && html.includes('id="f-super"') && html.includes('id="f-category"')
-    && html.includes('id="f-audience"') && html.includes('id="f-depth"'), 'a facet control is missing');
+  // single-select facet controls present (collection / area / depth)
+  assert(html.includes('id="f-collection"') && html.includes('id="f-super"') && html.includes('id="f-depth"'), 'a single-select facet control is missing');
+  // D4 — category + audience are multi-select dropdowns (data-dd trigger + native checkboxes), not <select>s
+  assert(/data-dd="category"[^>]*aria-expanded/.test(html) || /aria-expanded[^>]*data-dd="category"/.test(html), 'category multi-dropdown trigger missing');
+  assert(/data-dd="audience"[^>]*aria-expanded/.test(html) || /aria-expanded[^>]*data-dd="audience"/.test(html), 'audience multi-dropdown trigger missing');
+  assert(html.includes('data-cat="AI"'), 'category checkbox (data-cat) missing');
+  assert(html.includes('data-aud="all-pms"'), 'audience checkbox (data-aud) missing');
+  assert(html.includes('id="catSearch"'), 'category type-to-filter search input missing');
+  assert(!html.includes('id="f-category"') && !html.includes('id="f-audience"'), 'old single-select category/audience <select> controls should be gone');
+  // D4 — area valueLabels rename: display label shown, RAW super_category kept as the value
+  assert(html.includes('<option value="Cross Functional Skills">Cross-Functional Skills</option>'), 'area option must use the valueLabels display label with the raw value');
+  assert(html.includes('value="Cross Functional Skills"') && !html.includes('<option value="Cross-Functional Skills"'), 'area option VALUE must stay the raw super_category (rename is presentation-only)');
+  // D5 — three views present and NOT CSS-hidden (the .viewswitch{display:none} hack is gone)
+  assert(html.includes('data-view="compact"') && html.includes('data-view="detailed"') && html.includes('data-view="list"'), 'three view-switch controls missing');
+  assert(!/\.viewswitch\{display:none\}/.test(html), 'the .viewswitch{display:none} hide hack must be removed');
+  assert(/data-view="list"[^>]*class="active"/.test(html), 'list view must be the default (substrate default)');
   assert(/<div id="groups"><\/div>/.test(html), 'groups container should be empty (cards render client-side)');
   // self-contained / offline: no external asset refs (curated hrefs are relative file paths)
   assert(!/(?:src|href)\s*=\s*["']https?:\/\//i.test(html), 'external http(s) asset/link reference found');
@@ -197,12 +254,24 @@ function runSelftest() {
   // data round-trips the synthetic user record (substrate embeds it in the lv-data block)
   assert(html.includes('"collection":"Yours"'), 'user record not embedded');
   assert(html.includes('>Curated<') && html.includes('>Yours<'), 'collection facet options missing');
-  // dual-population presentation: substrate sections by collection + the primer card hook + subtitle
+  // dual-population presentation: substrate sections by collection
   assert(html.includes('"defaultGroupValue":"collection"'), 'page is not sectioned by collection');
-  assert(/"card":\{"link":\{"hrefField":"href"/.test(html), 'primer link-out card hook not plumbed');
+  // D3 — in-page iframe reader plumbed (NOT link-out cards): reader.mode in CFG + iframe runtime + lazy src
+  assert(/"reader":\{[^}]*"mode":"iframe"/.test(html), 'reader.mode:"iframe" not plumbed into the client CFG');
+  assert(/"iframeField":"href"/.test(html), 'reader.iframeField not plumbed');
+  assert(/"card":\{"link":null/.test(html), 'cards must no longer be link-out (card.link must normalize to null → in-page reader opens)');
+  assert(html.includes('class="reader-frame"') || html.includes("'reader-frame'") || html.includes('reader-frame'), 'iframe reader element missing');
+  assert(html.includes('sandbox="allow-popups allow-popups-to-escape-sandbox"') || html.includes('allow-popups allow-popups-to-escape-sandbox'), 'iframe sandbox attribute missing/incorrect');
+  assert(!/sandbox="[^"]*allow-same-origin[^"]*allow-scripts/.test(html), 'iframe must not combine allow-same-origin + allow-scripts');
+  assert(/fr\.src\s*=\s*f\[CFG\.reader\.iframeField\]/.test(html), 'iframe src must be set lazily from the iframeField on open');
+  assert(/Open in new tab/.test(html), '"Open in new tab" affordance missing from the iframe reader');
+  assert(/reader-empty/.test(html), 'iframe reader empty-state missing');
+  // F6/bug-fix — dynamic subtitle count: {count} → an id="subtitleCount" span set from DATA.length
+  assert(html.includes('id="subtitleCount"'), 'subtitle count must live in an id="subtitleCount" span ({count} token)');
+  assert(/subtitleCount[^;]*DATA\.length/.test(html) || html.includes('subtitleCount.textContent=DATA.length'), 'subtitle count must be set from DATA.length at runtime');
   assert(/· 1 of yours/.test(html), 'masthead subtitle does not report the Yours count');
 
-  console.log(`build-library --selftest: PASS (${curated.length} curated + 1 synthetic user; substrate-driven facets, single-file/offline, link-out cards, dual-population)`);
+  console.log(`build-library --selftest: PASS (${curated.length} curated + 1 synthetic user; multi-select facets + valueLabels, three views, in-page iframe reader, dynamic {count}, single-file/offline, dual-population)`);
 }
 
 function main() {

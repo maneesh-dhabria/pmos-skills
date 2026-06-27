@@ -52,15 +52,45 @@ forbid '<script[^>]+src='                 # no external script
 forbid '(href|src)="https?://'            # no remote refs
 forbid '<img '                            # no images (cards are text)
 
-# facet controls + search + applied bar present
+# facet controls + search + applied bar present.
+# collection / area / depth stay single-select <select> controls; category + audience are
+# now multi-select dropdowns (D4) → assert their data-dd triggers + checkbox item attrs.
 need 'id="search"'
 need 'id="f-collection"'
 need 'id="f-super"'
-need 'id="f-category"'
-need 'id="f-audience"'
 need 'id="f-depth"'
+need 'data-dd="category"'
+need 'data-dd="audience"'
+need 'id="catSearch"'
 need 'id="applied"'
 need 'meta name="pmos:skill" content="primer"'
+# the retired single-select category/audience <select>s must be gone
+forbid 'id="f-category"'
+forbid 'id="f-audience"'
+
+# D4 — area valueLabels rename: display label shown, RAW super_category kept as the value
+need '<option value="Cross Functional Skills">Cross-Functional Skills</option>'
+forbid '<option value="Cross-Functional Skills"'
+
+# D5 — three views present and NOT CSS-hidden (the .viewswitch{display:none} hack is gone)
+need 'data-view="compact"'
+need 'data-view="detailed"'
+need 'data-view="list"'
+forbid '\.viewswitch\{display:none\}'
+
+# D3 — in-page iframe reader (not link-out cards): reader.mode plumbed + lazy src + open-in-new-tab + empty-state
+need '"mode":"iframe"'
+need '"iframeField":"href"'
+need 'sandbox="allow-popups allow-popups-to-escape-sandbox"'
+forbid 'sandbox="[^"]*allow-same-origin[^"]*allow-scripts'
+need 'fr.src=f\[CFG.reader.iframeField\]'
+need 'Open in new tab'
+need 'reader-empty'
+need '"card":{"link":null'
+
+# bug fix — dynamic subtitle count: {count} → an id="subtitleCount" span set from DATA.length
+need 'id="subtitleCount"'
+forbid '<title>[^<]*[0-9]+ curated'
 
 # cards render client-side from an embedded data block (static container is empty)
 need '<div id="groups"></div>'
@@ -76,12 +106,19 @@ const data = JSON.parse(m[1]);
 let bad = 0;
 const curated = data.filter(r => r.collection === 'Curated');
 if (curated.length !== indexN) { console.error(`  FAIL: curated cards ${curated.length} != index ${indexN}`); bad = 1; }
-// every distinct facet value appears as an <option>
-for (const key of ['super_category','category','audience','depth']) {
+const escAttr = (v) => v.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+// single-select facets (area / depth): every distinct value appears as an <option> (raw value)
+for (const key of ['super_category','depth']) {
   const vals = [...new Set(curated.map(r => r[key]).filter(Boolean))];
   for (const v of vals) {
-    const opt = '<option value="' + v.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') + '"';
-    if (!h.includes(opt)) { console.error(`  FAIL: facet ${key} value not an option: ${v}`); bad = 1; break; }
+    if (!h.includes('<option value="' + escAttr(v) + '"')) { console.error(`  FAIL: single-select facet ${key} value not an option: ${v}`); bad = 1; break; }
+  }
+}
+// multi-select dropdowns (category / audience): every distinct value appears as a data-<attr> checkbox
+for (const [key, attr] of [['category','data-cat'],['audience','data-aud']]) {
+  const vals = [...new Set(curated.map(r => r[key]).filter(Boolean))];
+  for (const v of vals) {
+    if (!h.includes('<input type="checkbox" ' + attr + '="' + escAttr(v) + '">')) { console.error(`  FAIL: multi-dropdown facet ${key} value not a checkbox: ${v}`); bad = 1; break; }
   }
 }
 // every curated href resolves on disk relative to the out dir

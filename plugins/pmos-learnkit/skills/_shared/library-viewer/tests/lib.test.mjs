@@ -8,6 +8,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import {
   esc, renderMarkdown, parseBlocks, renderBody,
   extractFacets, buildIndex, filterEngine, sortGroups, emitHtml,
@@ -229,4 +230,62 @@ test('emitHtml — config.card hook: link-out titles + badge + metarow pills (de
     masthead: { wordmark: 'PMOS', title: 'T', subtitleTemplate: '{count}' },
   });
   assert.match(plain, /"card":null/, 'no card config → card:null (back-compat)');
+});
+
+// Shared fixture for the iframe-reader seam tests below — a non-iframe (columns) consumer
+// exercising single-select(+valueLabels), multi-dropdown(+search), groupBy, reader columns, and
+// the {count} subtitle. The committed golden was captured from the engine BEFORE the iframe seam
+// landed; an absent-mode emit must still reproduce it byte-for-byte (INV-1, additive default-off).
+function fixtureEmit(readerExtra) {
+  const cards = [
+    { id: 'a1', name: 'Alpha', category: 'Cat A', super_category: 'SC1', kind: 'k1', tags: ['x', 'y'], summary: 'first', when: 'use a', body_html: '<p>A body</p>', body_md: '- a' },
+    { id: 'b2', name: 'Beta', category: 'Cat B', super_category: 'SC2', kind: 'k2', tags: ['y'], summary: 'second', when: 'use b', body_html: '<p>B body</p>', body_md: '- b' },
+  ];
+  const catV = extractFacets(cards, [{ key: 'cat', field: 'category' }]).facets.cat.values;
+  const scV = extractFacets(cards, [{ key: 'sc', field: 'super_category' }]).facets.sc.values;
+  const kV = extractFacets(cards, [{ key: 'k', field: 'kind' }]).facets.k.values;
+  const tagV = extractFacets(cards, [{ key: 'tags', field: 'tags', array: true }]).facets.tags.values;
+  return emitHtml({
+    cards,
+    facets: [
+      { key: 'sc', field: 'super_category', kind: 'single-select', controlId: 'f-sc', label: 'Area', chipLabel: 'Area', valueLabels: { SC1: 'Area One' }, values: scV },
+      { key: 'cat', field: 'category', kind: 'single-select', controlId: 'f-cat', label: 'Cat', chipLabel: 'Cat', values: catV },
+      { key: 'k', field: 'kind', kind: 'multi-dropdown', itemAttr: 'k', triggerLabel: 'Kind', chipLabel: 'Kind', values: kV },
+      { key: 'tags', field: 'tags', array: true, kind: 'multi-dropdown', itemAttr: 'tag', triggerLabel: 'Tags', chipLabel: 'Tag', search: true, searchInputId: 'tagSearch', checklistId: 'tagChecklist', values: tagV },
+    ],
+    config: {
+      idField: 'id', nameField: 'name', summaryField: 'summary', categoryField: 'category', bodyHtmlField: 'body_html',
+      searchFields: ['name', 'summary', { field: 'tags', array: true }],
+      groupBy: [{ value: 'category', label: 'Cats', field: 'category' }, { value: 'tags', label: 'Tags', field: 'tags', array: true, emptyLabel: '(untagged)' }],
+      defaultGroupValue: 'category', skillMeta: 'fixture',
+      views: [{ id: 'compact' }, { id: 'detailed' }, { id: 'list', default: true }],
+      reader: { metaPrimaryField: 'category', columns: [{ field: 'when', label: 'When' }], refsField: 'references', markdownBodyField: 'body_md', ...(readerExtra || {}) },
+    },
+    masthead: { wordmark: 'PMOS', title: 'Fixture Library', subtitleTemplate: '{count} items — browse' },
+  });
+}
+
+test('emitHtml — columns-mode output is byte-identical to the committed golden (INV-1: additive default-off)', () => {
+  const golden = readFileSync(new URL('./golden/columns-emit.golden.html', import.meta.url), 'utf8');
+  assert.equal(fixtureEmit(null), golden, 'a consumer that does not set reader.mode must emit byte-identically to pre-seam output');
+});
+
+test('emitHtml — reader.mode:iframe seam: lazy sandboxed iframe reader, open-in-new-tab, empty-state (default-off)', () => {
+  const html = fixtureEmit({ mode: 'iframe', iframeField: 'href' });
+  // baked client config carries the opt-in reader mode
+  assert.match(html, /"mode":"iframe"/, 'reader.mode plumbed into client config');
+  assert.match(html, /"iframeField":"href"/, 'iframeField plumbed (default href)');
+  // a sandboxed iframe reader element with reading-only sandbox tokens
+  assert.match(html, /class="reader-frame" sandbox="allow-popups allow-popups-to-escape-sandbox"/, 'sandboxed iframe reader element');
+  assert.doesNotMatch(html, /allow-same-origin[^"]*allow-scripts/, 'never allow-same-origin + allow-scripts together (escape risk)');
+  // lazy src: the iframe carries NO eager src attribute — the runtime sets fr.src on open only
+  assert.doesNotMatch(html, /<iframe[^>]*\ssrc=/, 'iframe has no eager src (lazy-loaded on open)');
+  assert.match(html, /fr\.src=f\[CFG\.reader\.iframeField\]/, 'src is set lazily from iframeField on card-open');
+  // open-in-new-tab affordance + empty-state when nothing/no source is selected
+  assert.match(html, /Open in new tab/, 'open-in-new-tab affordance retained');
+  assert.match(html, /class="reader-empty"/, 'empty-state element present');
+  // card-open routes to the iframe reader (cardLinkOut stays false → in-page openReader fires)
+  assert.match(html, /openReader=function\(id\)\{/, 'iframe runtime overrides openReader');
+  // injected only in iframe mode — the columns fixture above proves it is byte-absent otherwise
+  assert.match(html, /\.reader-frame\{/, 'iframe reader CSS injected when opted in');
 });
