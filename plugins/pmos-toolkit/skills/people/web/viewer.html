@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>People viewer</title>
+<style>
+  :root {
+    --bg: #f7f8fa; --panel: #fff; --ink: #1c2330; --muted: #6b7480; --line: #e3e7ec;
+    --chip: #eef1f5; --accent: #2563eb;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: var(--ink); background: var(--bg); }
+  header { background: var(--panel); border-bottom: 1px solid var(--line); padding: 12px 20px; position: sticky; top: 0; z-index: 5; }
+  .titlerow { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  h1 { font-size: 17px; margin: 0; }
+  .repo { color: var(--muted); font-size: 13px; }
+  .gen { color: var(--muted); font-size: 12px; margin-left: auto; }
+  .legend { color: var(--muted); font-size: 12px; margin-top: 5px; }
+  .filterbar { display: flex; gap: 16px; align-items: flex-start; margin-top: 12px; flex-wrap: wrap; }
+  .facet { display: flex; flex-direction: column; gap: 3px; }
+  .facet > .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  .facet .opts { display: flex; gap: 4px; flex-wrap: wrap; }
+  .ftag { border: 1px solid var(--line); background: var(--panel); border-radius: 12px; padding: 2px 9px; font-size: 12px; cursor: pointer; user-select: none; }
+  .ftag.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .search { border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; font: inherit; min-width: 200px; }
+  .bar-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+  .count { color: var(--muted); font-size: 12px; }
+  .btn { border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: 5px 12px; cursor: pointer; font: inherit; }
+  .btn:hover { background: var(--chip); }
+  main { padding: 18px 20px; max-width: 1100px; }
+  table { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  thead th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 9px 12px; border-bottom: 1px solid var(--line); background: #fafbfc; cursor: pointer; user-select: none; white-space: nowrap; }
+  thead th .arrow { color: var(--accent); font-size: 10px; }
+  tbody td { padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr:hover { background: #fafbfc; }
+  .handle { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; color: var(--muted); }
+  .name { font-weight: 600; }
+  .rel { display: inline-block; background: var(--chip); border-radius: 4px; padding: 1px 7px; font-size: 11px; color: var(--muted); }
+  .email a { color: var(--accent); text-decoration: none; }
+  .email a:hover { text-decoration: underline; }
+  .muted-cell { color: #b3bac3; }
+  .empty { color: var(--muted); padding: 40px 0; text-align: center; }
+  .banner { background: #fff4d6; border: 1px solid #f0d98a; color: #6b5310; padding: 14px 18px; border-radius: 8px; margin: 18px 20px; }
+  code { font-family: ui-monospace, Menlo, monospace; }
+</style>
+</head>
+<body>
+<header>
+  <div class="titlerow">
+    <h1>People viewer</h1>
+    <span class="repo" id="repo"></span>
+    <span class="gen" id="gen"></span>
+  </div>
+  <div class="legend">Shared person directory · derived live from <code>~/.pmos/people/*.md</code> on every refresh · read-only</div>
+  <div class="filterbar" id="filterbar"></div>
+</header>
+<main id="main"><div class="empty">Loading…</div></main>
+
+<script>
+"use strict";
+const COLUMNS = [
+  { key: "handle", label: "handle" },
+  { key: "name", label: "name" },
+  { key: "designation", label: "designation" },
+  { key: "role", label: "role" },
+  { key: "working_relationship", label: "relationship" },
+  { key: "team", label: "team" },
+  { key: "email", label: "email" },
+];
+const STATE = { model: null, filters: { team: new Set(), working_relationship: new Set() }, q: "", sort: { key: "name", dir: 1 } };
+
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+
+function visiblePeople() {
+  const m = STATE.model;
+  if (!m) return [];
+  const q = STATE.q.trim().toLowerCase();
+  let rows = m.people.filter((p) => {
+    if (STATE.filters.team.size && !STATE.filters.team.has(p.team)) return false;
+    if (STATE.filters.working_relationship.size && !STATE.filters.working_relationship.has(p.working_relationship)) return false;
+    if (q) {
+      const hay = COLUMNS.map((c) => p[c.key] || "").join(" ").toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+  const { key, dir } = STATE.sort;
+  rows = rows.slice().sort((a, b) => {
+    const av = (a[key] || "").toLowerCase();
+    const bv = (b[key] || "").toLowerCase();
+    if (av < bv) return -1 * dir;
+    if (av > bv) return 1 * dir;
+    return 0;
+  });
+  return rows;
+}
+
+function renderFilters() {
+  const m = STATE.model;
+  const bar = document.getElementById("filterbar");
+  const facets = [
+    ["team", m.facets.teams, "team"],
+    ["working_relationship", m.facets.relationships, "relationship"],
+  ];
+  let html = `<div class="facet"><span class="lbl">search</span>
+    <input class="search" id="search" type="search" placeholder="name, role, team…" value="${esc(STATE.q)}" /></div>`;
+  for (const [key, vals, label] of facets) {
+    if (!vals || !vals.length) continue;
+    html += `<div class="facet"><span class="lbl">${label}</span><div class="opts">`;
+    for (const v of vals) {
+      const on = STATE.filters[key].has(v) ? " on" : "";
+      html += `<span class="ftag${on}" data-facet="${key}" data-val="${esc(v)}">${esc(v)}</span>`;
+    }
+    html += `</div></div>`;
+  }
+  html += `<div class="bar-actions"><span class="count" id="count"></span>
+    <button class="btn" id="clear">Clear filters</button>
+    <button class="btn" id="refresh">↻ Refresh</button></div>`;
+  bar.innerHTML = html;
+  bar.querySelectorAll(".ftag").forEach((el) =>
+    el.addEventListener("click", () => {
+      const set = STATE.filters[el.dataset.facet];
+      const v = el.dataset.val;
+      set.has(v) ? set.delete(v) : set.add(v);
+      render();
+    })
+  );
+  const search = document.getElementById("search");
+  search.addEventListener("input", () => { STATE.q = search.value; renderTable(); });
+  document.getElementById("clear").addEventListener("click", () => {
+    for (const k of Object.keys(STATE.filters)) STATE.filters[k].clear();
+    STATE.q = "";
+    render();
+  });
+  document.getElementById("refresh").addEventListener("click", load);
+}
+
+function renderTable() {
+  const rows = visiblePeople();
+  const main = document.getElementById("main");
+  const countEl = document.getElementById("count");
+  if (countEl) countEl.textContent = `${rows.length} ${rows.length === 1 ? "person" : "people"}`;
+  if (!rows.length) {
+    main.innerHTML = `<div class="empty">${STATE.model.people.length ? "No people match the current filters." : "No people yet. Add one with /people add &lt;name&gt;."}</div>`;
+    return;
+  }
+  const head = COLUMNS.map((c) => {
+    const arrow = STATE.sort.key === c.key ? ` <span class="arrow">${STATE.sort.dir === 1 ? "▲" : "▼"}</span>` : "";
+    return `<th data-sort="${c.key}">${esc(c.label)}${arrow}</th>`;
+  }).join("");
+  const body = rows.map((p) => {
+    const cell = (key) => {
+      const v = p[key] || "";
+      if (!v) return `<td class="muted-cell">—</td>`;
+      if (key === "handle") return `<td class="handle">${esc(v)}</td>`;
+      if (key === "name") return `<td class="name">${esc(v)}</td>`;
+      if (key === "working_relationship") return `<td><span class="rel">${esc(v)}</span></td>`;
+      if (key === "email") return `<td class="email"><a href="mailto:${esc(v)}">${esc(v)}</a></td>`;
+      return `<td>${esc(v)}</td>`;
+    };
+    return `<tr>${COLUMNS.map((c) => cell(c.key)).join("")}</tr>`;
+  }).join("");
+  main.innerHTML = `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+  main.querySelectorAll("th[data-sort]").forEach((el) =>
+    el.addEventListener("click", () => {
+      const k = el.dataset.sort;
+      if (STATE.sort.key === k) STATE.sort.dir *= -1;
+      else STATE.sort = { key: k, dir: 1 };
+      renderTable();
+    })
+  );
+}
+
+function render() {
+  if (!STATE.model) return;
+  renderFilters();
+  renderTable();
+}
+
+async function load() {
+  try {
+    const res = await fetch("/api/people", { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const model = await res.json();
+    STATE.model = model;
+    document.getElementById("repo").textContent = model.repo ? "· " + model.repo : "";
+    document.getElementById("gen").textContent = "as of " + (model.generated_at || "").replace("T", " ").replace(/\..*$/, "");
+    render();
+  } catch (e) {
+    showOffline();
+  }
+}
+
+function showOffline() {
+  document.getElementById("filterbar").innerHTML = "";
+  document.getElementById("main").innerHTML = "";
+  const b = document.createElement("div");
+  b.className = "banner";
+  b.innerHTML =
+    "<strong>No people server.</strong> This viewer reads live data from a local server. " +
+    "Start it with <code>/people web</code> (or <code>node people/scripts/serve-web.mjs</code>) and open the printed " +
+    "<code>http://127.0.0.1:&lt;port&gt;/</code> URL. Opening this file directly from disk (<code>file://</code>) can only show this message.";
+  document.querySelector("main").before(b);
+}
+
+window.addEventListener("focus", () => { if (STATE.model) load(); });
+load();
+</script>
+</body>
+</html>

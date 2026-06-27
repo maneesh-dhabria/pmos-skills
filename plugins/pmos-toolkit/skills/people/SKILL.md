@@ -2,7 +2,7 @@
 name: people
 description: Shared person/contact directory for the pmos-toolkit. Stores handle, name, designation, role, working relationship, team, email, workstreams, aliases at ~/.pmos/people/. Consumed by /mytasks (and future people-aware skills). Use when the user says "add a person", "find someone", "who is X", "list people", or "/people".
 user-invocable: true
-argument-hint: "[ | add <name> | list [filters] | show <handle-or-name> | find <text> | set <handle> <field>=<value> | refine <handle>] [--non-interactive | --interactive]"
+argument-hint: "[ | web | add <name> | list [filters] | show <handle-or-name> | find <text> | set <handle> <field>=<value> | refine <handle>] [--non-interactive | --interactive]"
 ---
 
 # People
@@ -23,6 +23,7 @@ These instructions use Claude Code tool names. In other environments:
 - `_shared/tracker-crudl.md` — shared tracker contract (`created`/`updated`/`schema_version` §3, derived-on-read index view §5 INV-1/2/3; handle-keyed, no archive)
 - `lookup.md` — fuzzy-match algorithm, handle derivation rules, caller behavior on multi-match
 - `_shared/interactive-prompts.md` — interactive prompting protocol
+- `scripts/serve-web.mjs` + `scripts/serve-web-lib.mjs` + `web/viewer.html` — the zero-dependency local web viewer (Node stdlib only). The server derives the people listing fresh per request directly from `~/.pmos/people/*.md` (never reads or writes an `INDEX` — INV-3); the payload is limited to the `schema.md` index-view whitelist (`PERSON_WHITELIST` — no `aliases`/`workstreams`/Notes-body leak). Launched by the `web` verb (Phase 1).
 
 ---
 
@@ -32,7 +33,8 @@ Parse the user's argument to determine the subcommand.
 
 | Argument shape | Subcommand |
 |---|---|
-| empty | Phase 1 (inline derived index view) |
+| empty | Phase 1 (web-default; inline derived index view on fallback) |
+| `web` | Phase 1 (launch the web viewer explicitly) |
 | `add <name>` | Phase 3 (proactive create — interactive) |
 | `list [flags]` | Phase 5 (filtered list) |
 | `show <handle-or-name>` | Phase 4 (render record) |
@@ -75,13 +77,14 @@ Parse the user's argument to determine the subcommand.
 8. **End-of-skill summary.** Print to stderr at exit: `pmos-toolkit: /<skill> finished — outcome=<clean|deferred|error>, open_questions=<N>` (NFR-07).
 <!-- non-interactive-block:end -->
 
-## Phase 1: Show Index View (derived on read) {#show-index}
+## Phase 1: Directory View (web-default; derived on read) {#show-index}
 
-Triggered by `/people` with no arguments. The at-a-glance directory is an **index view derived on read** from the record files — there is no committed `INDEX.md` (per `_shared/tracker-crudl.md` §5, INV-1/2/3). Bare `/people` renders this view inline (the web viewer becomes the default surface in a later story; until then the inline derived render is the bare-command surface — INV-2's fallback path).
+Triggered by `/people` with no arguments, or by `/people web`. The at-a-glance directory is an **index view derived on read** from the record files — there is no committed `INDEX.md` (per `_shared/tracker-crudl.md` §5, INV-1/2/3). At parity with `/backlog` and `/mytasks`, bare `/people` **defaults to the web viewer**; under `--non-interactive` / headless / no browser it degrades to the inline derived render (INV-2's fallback path).
 
-1. If `~/.pmos/people/` is missing entirely or contains no `*.md` record files, output `No people yet. Add a person with /people add <name>.` and exit. Empty-state is gated on **the absence of record files**, never on a missing index file.
-2. Glob `~/.pmos/people/*.md`; parse frontmatter; skip malformed files with a one-line warning (do not abort). Sort by `name` ascending, case-insensitive.
-3. Render the derived table inline — the same format and columns defined in `schema.md` "Index view format" (empty cells per `_shared/tracker-crudl.md` §5), identical to the `#list` render. Never write the derived view back to disk; never print a stored index blob.
+1. **Empty-state (both surfaces).** If `~/.pmos/people/` is missing entirely or contains no `*.md` record files, output `No people yet. Add a person with /people add <name>.` and exit. Empty-state is gated on **the absence of record files**, never on a missing index file.
+2. **Web-default launch (interactive).** Launch the zero-dependency local viewer: run `node {skill_dir}/scripts/serve-web.mjs` (it binds loopback on an ephemeral port, derives the listing fresh per request from `~/.pmos/people/*.md`, and opens the default browser). The server reads the records live and writes nothing — no `INDEX` is consulted or produced (INV-3). The payload is limited to the `schema.md` index-view whitelist, so `aliases`/`workstreams`/the Notes body never reach the browser. Print the `http://127.0.0.1:<port>/` URL; the viewer runs until Ctrl-C.
+   - **Node absent**, the launch fails, or the run is `--non-interactive` / headless / no browser → fall through to the inline render in step 3 (the same derived view). Do not block on the web surface.
+3. **Inline derived render (fallback).** Glob `~/.pmos/people/*.md`; parse frontmatter; skip malformed files with a one-line warning (do not abort). Sort by `name` ascending, case-insensitive. Render the derived table inline — the same format and columns defined in `schema.md` "Index view format" (empty cells per `_shared/tracker-crudl.md` §5), identical to the `#list` render and to the web payload's whitelist. Never write the derived view back to disk; never print a stored index blob.
 
 ---
 
