@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Plan — 260629-t8z · /landing-page substance-depth fixes</title>
+<style>
+  :root { --ink:#1a1a1a; --mut:#666; --line:#e2e2e2; --accent:#2b6cb0; --code:#f5f5f5; }
+  body { font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; color:var(--ink); max-width:860px; margin:0 auto; padding:2.5rem 1.25rem 6rem; }
+  h1 { font-size:1.6rem; margin:0 0 .25rem; } h2 { font-size:1.2rem; margin:2.2rem 0 .5rem; border-bottom:2px solid var(--line); padding-bottom:.3rem; }
+  .sub { color:var(--mut); margin:.2rem 0 1.4rem; }
+  table { border-collapse:collapse; width:100%; margin:1rem 0; font-size:.92rem; }
+  th,td { border:1px solid var(--line); padding:.45rem .6rem; text-align:left; vertical-align:top; }
+  th { background:var(--code); } code { background:var(--code); padding:.1rem .3rem; border-radius:3px; font-size:.88em; }
+  ul { padding-left:1.3rem; } li { margin:.3rem 0; }
+</style>
+</head>
+<body>
+<h1>Plan — <code>/landing-page</code> substance-depth fixes</h1>
+<p class="sub">Story <strong>260629-t8z</strong> · epic 260629-xrz · route: skill · execution_mode: inline · one <code>/execute</code> run</p>
+
+<h2 id="surface">Surface &amp; reference</h2>
+<p>Four files in <code>plugins/pmos-toolkit/skills/landing-page/</code>: <code>SKILL.md</code> (Phases 1/2/5/6),
+<code>reference/multi-product.md</code> (FR-1), <code>reference/section-scaffolds.md</code> (FR-4),
+<code>reference/copy-gates.md</code> (FR-3/FR-5/FR-6). All edits are documentation / contract — one-fact-one-home,
+the rule lands in its canonical reference and <code>SKILL.md</code> cites it. Reference:
+<code>../../02_design.html</code> (D1–D6, FR-1..FR-6, INV-1..INV-5) +
+<code>feature-sdlc/reference/skill-patterns.md §A–§L</code> (esp. §H: deterministic = hard, judgment = advisory,
+never model-arithmetic; §K one-fact-one-home) + host <code>CLAUDE.md</code>.</p>
+
+<h2 id="waves">Task waves</h2>
+<table>
+  <tr><th>Task</th><th>FR / AC</th><th>What</th><th>Deps</th></tr>
+  <tr><td><strong>T1</strong></td><td>study</td><td>Pin insertion points across the 4 files; confirm the existing show-surface menu + the advisory <code>#show-ratio</code> wording (grounds FR-2/FR-3); confirm the single-product persona path stays intact (FR-1); identify the frozen non-interactive block + the byte-frozen untouched references.</td><td>—</td></tr>
+  <tr><td><strong>T2</strong></td><td>FR-1 / AC1</td><td>Per-product persona override in <code>multi-product.md</code> (one primary persona per product, overriding the 1–2 cap when multi) + Phase 1 step 5 emits one brief slice per product as a Phase-2 precondition. Single-product path unchanged.</td><td>T1</td></tr>
+  <tr><td><strong>T3</strong></td><td>FR-4 / AC4</td><td>Add the embed-the-real-artifact rung (top of the do&gt;show&gt;tell ladder) in <code>section-scaffolds.md#governing-principles</code> with the load-on-open <code>&lt;details&gt;</code>+<code>data-src</code> pattern and the page-folder-relative/<code>file://</code>/never-remote constraint; cross-ref from Phase 2 step 3 + Phase 5 step 3. (Foundational — FR-2/FR-5 reference the show-surface menu.)</td><td>T2</td></tr>
+  <tr><td><strong>T4</strong></td><td>FR-2 / AC2</td><td>Widen Phase 2 step 3 show-surface map from "brief signature moments" to <em>every feature/value claim</em>; make a complete map a drafting precondition (unmapped → demote or flag tell-only).</td><td>T3</td></tr>
+  <tr><td><strong>T5</strong></td><td>FR-3 / AC3</td><td>Rewrite <code>copy-gates.md#show-ratio</code> advisory→HARD asset-gated binary-presence gate (§H-clean, N/A+logged escape); Phase 6 step 1 marks it blocking (drop "advisory: flag …").</td><td>T4</td></tr>
+  <tr><td><strong>T6</strong></td><td>FR-5 / AC5</td><td>Add value-coverage (HARD structural, multi-product) + asset-claim-match (ADVISORY judgment) sections in <code>copy-gates.md</code>; wire both into Phase 6 step 2 visual self-check.</td><td>T5</td></tr>
+  <tr><td><strong>T7</strong></td><td>FR-6 / AC6</td><td>Add the dev-tool hero-subhead buyer+category rule to <code>copy-gates.md</code> clarity/headline rules; Phase 6 step 1 enforces it as a presence check.</td><td>T6</td></tr>
+  <tr><td><strong>T8</strong></td><td>AC7</td><td>Conformance: skill-eval <code>[D]</code> (target claude-code), 3 repo lints + audit-recommended, INV byte-checks (untouched references / no <code>_shared/</code> / no script change; argument-hint + user-invocable unchanged; no arithmetic ratio anywhere; frozen NI block byte-match; anchors resolve).</td><td>T7</td></tr>
+</table>
+<p>T2–T7 edit overlapping files (<code>copy-gates.md</code> + <code>SKILL.md Phase 6</code> recur across FR-3/5/6) →
+strictly sequential (<code>parallel: false</code>); the interlock (FR-2's claim-map feeds FR-3's gate; FR-4's rung
+is consumed by FR-2/FR-5) is what forces the single story (D24 litmus).</p>
+
+<h2 id="risks">Risks &amp; mitigations</h2>
+<ul>
+  <li><strong>§H violation — turning a judgment check into arithmetic.</strong> The tempting wrong fix for FR-3 is a
+    token-count show-ratio threshold. INV-3 forbids it: the hard gate rides a <em>binary presence</em> condition
+    (≥1 show-surface for a claimed feature), and the vision-dependent asset-claim-match stays <strong>advisory</strong>.
+    T5/T6 must state presence/structural conditions, never counts. T8 greps for any ratio/threshold language.</li>
+  <li><strong>Breaking the page's self-contained constraint.</strong> FR-4's embed rung must stay
+    page-folder-relative + <code>file://</code>-openable + lazy; a remote iframe <code>src</code> would break the
+    skill's own D3. T3 wording pins the constraint; T8 confirms.</li>
+  <li><strong>Over-blocking the single-product path.</strong> FR-1 changes only the <code>product_count: multi</code>
+    branch; the single-product 1–2-persona path must stay byte-equivalent in intent. T2 keeps the single path
+    untouched.</li>
+  <li><strong>Anchor drift.</strong> New cross-references must cite resolvable anchors (<code>#governing-principles</code>,
+    <code>#show-ratio</code>, the phase slugs). T8 runs <code>lint-phase-refs.sh</code>.</li>
+</ul>
+
+<h2 id="final-verify">Final verification</h2>
+<ul>
+  <li>AC1–AC6 each satisfied by the corresponding reference + SKILL.md edit (spot-read each file).</li>
+  <li>AC7: <code>skill-eval-check.sh --target claude-code</code> clean (or residuals proven pre-existing on main);
+    <code>lint-flags-vs-hints.sh</code> + <code>lint-phase-refs.sh</code> + <code>lint-non-interactive-inline.sh</code>
+    + <code>audit-recommended.sh</code> green; <code>git diff</code> empty for the untouched references, all
+    <code>_shared/</code>, and <code>scripts/</code>; <code>argument-hint</code> + <code>user-invocable</code>
+    unchanged; no arithmetic ratio language anywhere.</li>
+  <li>Then <code>/skill-eval</code> (build Loop) re-scores <code>[D]</code>+<code>[J]</code> before <code>/verify</code>.</li>
+</ul>
+
+<!-- pmos-comments:start -->
+<script id="pmos-comments" type="application/json">{"version":1,"threads":[]}</script>
+<!-- pmos-comments:end -->
+</body>
+</html>

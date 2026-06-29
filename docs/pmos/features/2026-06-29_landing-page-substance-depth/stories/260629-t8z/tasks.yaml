@@ -1,0 +1,197 @@
+schema_version: 1
+story: 260629-t8z
+epic: 260629-xrz
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+execution_mode: inline
+skill_dir: plugins/pmos-toolkit/skills/landing-page
+# Revision of the existing /landing-page skill — applies 5 /reflect substance-depth findings (F1..F5 → FR-1..FR-6).
+# Surface: plugins/pmos-toolkit/skills/landing-page/ ONLY —
+#   SKILL.md (Phase 1 #research-brief, Phase 2 #propose-structure, Phase 5 #draft, Phase 6 #self-review)
+#   + reference/multi-product.md (FR-1) + reference/section-scaffolds.md (FR-4)
+#   + reference/copy-gates.md (FR-3 advisory→hard #show-ratio, FR-5 two new checks, FR-6 dev-tool subhead rule).
+# All edits are documentation/contract. One-fact-one-home (§K): the rule lands in its canonical reference;
+#   SKILL.md cites it, never restates.
+# Reference: ../../02_design.html (D1–D6, FR-1..FR-6, finding→FR map, INV-1..INV-5) +
+#   feature-sdlc/reference/skill-patterns.md §A–§L (esp. §H deterministic=hard / judgment=advisory / never
+#   model-arithmetic; §I no new flags; §K one-fact-one-home) + host CLAUDE.md (canonical skill path; flag/phase-ref
+#   lints; recommended-audit; non-interactive inline-block byte-match). Cite refs, never restate.
+# INV-1 untouched references byte-unchanged: style-tokens.json, style-tokens.md, style-gallery.html,
+#   hero-archetypes.md, media-strategy.md; no _shared/ change, no script change.
+# INV-2 NO new flag; argument-hint unchanged; user-invocable: true preserved.
+# INV-3 §H respected — both new HARD gates ride binary-presence/structural conditions, NEVER an arithmetic ratio or
+#   token count; the vision-dependent asset-claim-match stays ADVISORY.
+# INV-4 the page's self-contained constraint (the skill's own D3: inline CSS/JS, no CDN, file://) preserved by the
+#   embed rung — page-folder-relative, lazy, never remote.
+# INV-5 skill-patterns §A–§L preserved; phase anchors (#research-brief/#propose-structure/#draft/#self-review) +
+#   reference anchors (#governing-principles/#show-ratio) stay stable so cross-refs resolve.
+# NO release-prereq tasks (version bump, changelog, README, manifest sync) — /complete-dev owns those (§G).
+tasks:
+  - id: T1
+    title: "Study: SKILL.md Phases 1/2/5/6, multi-product.md, section-scaffolds.md #governing-principles, copy-gates.md #show-ratio"
+    ac: [AC1, AC2, AC3, AC4, AC5, AC6, AC7]
+    deps: []
+    parallel: false
+    detail: >
+      Read plugins/pmos-toolkit/skills/landing-page/SKILL.md in full — pin the exact insertion points:
+      (a) Phase 1 #research-brief step 5 — the "select 1–2 personas (D2)" line + the "one brief slice per product"
+      sentence (FR-1 targets); (b) Phase 2 #propose-structure step 3 — "Map signature moments to show-surfaces"
+      (FR-2 + FR-4 xref target); (c) Phase 5 #draft step 3 — "Show the signature moments" (FR-4 xref target);
+      (d) Phase 6 #self-review step 1 (the copy-gates list incl. the do>show>tell show-ratio "advisory: flag …"
+      clause — FR-3 + FR-6 target) and step 2 (visual self-check reviewer pass — FR-5 target).
+      Read reference/multi-product.md — the detection heuristic, the "own brief slice" language, and the
+      non-interactive default (FR-1 lands a per-product persona override here).
+      Read reference/section-scaffolds.md#governing-principles — the do>show>tell ladder
+      (interactive snippet > video/carousel/screenshot > prose) where FR-4 adds the embed rung on top.
+      Read reference/copy-gates.md — #show-ratio (advisory wording FR-3 rewrites), the Headline litmus / Clarity
+      rules (FR-6 lands the dev-tool subhead rule), and the Visual self-check (FR-5 wires the two new checks).
+      Confirm the byte-frozen regions: the 5 untouched references, all _shared/, scripts/, and the SKILL.md
+      argument-hint. Produce NO edits — confirm all insertion points + frozen regions before any change.
+    verify: >
+      All insertion points pinned across the 4 files; the existing show-surface ladder + the advisory #show-ratio
+      wording confirmed (grounds FR-2/FR-3/FR-4); the single-product persona path identified (FR-1 must leave it
+      intact); the frozen references / _shared / scripts / argument-hint identified before editing.
+
+  - id: T2
+    title: "FR-1 (D1) — per-product persona override in multi-product.md + Phase 1 one-brief-slice-per-product precondition"
+    ac: [AC1]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Edit reference/multi-product.md: under the organizing-principles / brief-slice material, add an explicit
+      persona-derivation override — "When product_count: multi, the global '1–2 personas' cap (Phase 1, D2) is
+      OVERRIDDEN: each detected product gets ONE primary persona (with its own jargon tolerance) and its own
+      signature moments, written as a distinct brief slice. A single global persona across N products is the failure
+      this overrides." Keep the one-fact-one-home discipline (the rule lives here; SKILL.md cites it). Then edit
+      SKILL.md Phase 1 #research-brief step 5: where it says "For multi-product inputs, write one brief slice per
+      product", strengthen it to a PRECONDITION — Phase 2 may not run until one brief slice per product exists
+      (persona + jargon tolerance + signature moments), citing multi-product.md for the per-product persona rule.
+      Leave the single-product "select 1–2 personas" path unchanged.
+    verify: >
+      multi-product.md carries the per-product persona override (one primary persona per product when multi,
+      overriding the 1–2 cap); SKILL.md Phase 1 step 5 emits one brief slice per product as a Phase-2 precondition
+      and cites multi-product.md; the single-product path is unchanged.
+
+  - id: T3
+    title: "FR-4 (D4) — embed-the-real-artifact rung in section-scaffolds.md ladder + Phase 2/5 cross-refs"
+    ac: [AC4]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Edit reference/section-scaffolds.md#governing-principles (the do>show>tell ladder). Add a new TOP "do" rung:
+      "embed the real self-contained artifact (iframe, page-folder-relative)" — the strongest proof for a repo whose
+      value is producing real openable artifacts (iframe a real primer, embed a playable game). Document the
+      LOAD-ON-OPEN pattern so the embed does not bloat initial paint/scroll: wrap it in <details> with a
+      data-src attribute that a tiny vanilla-JS toggle handler swaps into the iframe src on first open. Pin the
+      constraint: the embedded artifact is PAGE-FOLDER-RELATIVE and opens from file:// — never a remote URL/CDN
+      (honours the page's self-contained rule, the skill's D3 / INV-4). Then add a one-clause cross-reference in
+      SKILL.md Phase 2 #propose-structure step 3 and Phase 5 #draft step 3 naming the embed as the top show-surface
+      (cite section-scaffolds.md, do not restate the pattern).
+    verify: >
+      section-scaffolds.md#governing-principles lists the iframe-embed rung at the top of the ladder with the
+      load-on-open <details>+data-src pattern and the page-folder-relative/file:///never-remote constraint;
+      SKILL.md Phase 2 step 3 + Phase 5 step 3 cross-reference it as the strongest show-surface.
+
+  - id: T4
+    title: "FR-2 (D2) — Phase 2 maps every feature/value claim to a show-surface as a drafting precondition"
+    ac: [AC2]
+    deps: [T3]
+    parallel: false
+    detail: >
+      Edit SKILL.md Phase 2 #propose-structure step 3 ("Map signature moments to show-surfaces"). Widen the scope
+      from "each brief signature moment" to EVERY page-level feature or value claim the chosen structure intends to
+      make — each mapped to a concrete show-surface (the section-scaffolds.md ladder, embed-first per FR-4). Make a
+      COMPLETE map a drafting precondition: a claim with no available show-surface is either DEMOTED (cut from the
+      page) or explicitly flagged tell-only; drafting (Phase 5) may NOT begin while feature claims remain unmapped.
+      Keep §H discipline — this is a presence/completeness precondition (every claim has a mapping decision), not an
+      arithmetic ratio.
+    verify: >
+      Phase 2 step 3 maps every feature/value claim (not only brief signature moments) to a show-surface and makes a
+      complete map a drafting precondition (unmapped claim → demote or flag tell-only; no drafting otherwise); no
+      arithmetic ratio is introduced.
+
+  - id: T5
+    title: "FR-3 (D3) — copy-gates.md #show-ratio advisory→HARD asset-gated binary-presence gate + Phase 6 step 1 blocking"
+    ac: [AC3]
+    deps: [T4]
+    parallel: false
+    detail: >
+      Edit reference/copy-gates.md#show-ratio. Rewrite the section from advisory to a HARD gate, framed as
+      BINARY PRESENCE (§H-clean — no ratio, no token count): "A page that makes feature claims AND has at least one
+      capturable/embeddable show-surface available MUST show at least one claimed feature (a screenshot, annotated
+      shot, carousel, video, or — strongest — an embedded real artifact per section-scaffolds.md#governing-principles).
+      A page that tells every signature moment in prose while showing none does NOT emit. This is a hard gate, not a
+      suggestion." Add the escape: "When no asset can exist for any claim (nothing capturable/embeddable), the gate
+      is N/A — log the skip and proceed; it never over-blocks a genuinely show-less page." Keep the §H note that the
+      hardness rides presence, never an arithmetic threshold. Then edit SKILL.md Phase 6 #self-review step 1: change
+      the do>show>tell clause from "advisory: flag sections that tell a benefit a captured asset could show" to the
+      blocking gate (cite #show-ratio); keep it in the gate list that revises in place before emit.
+    verify: >
+      copy-gates.md#show-ratio is a HARD asset-gated binary-presence gate (feature-claim page with >=1 available
+      surface MUST show >=1 claim, else no emit) with an explicit N/A+logged escape and a §H "presence not ratio"
+      note; SKILL.md Phase 6 step 1 marks it blocking (no longer "advisory: flag …"); no arithmetic ratio anywhere.
+
+  - id: T6
+    title: "FR-5 (D5) — value-coverage (HARD structural) + asset-claim-match (ADVISORY) in copy-gates.md + Phase 6 step 2"
+    ac: [AC5]
+    deps: [T5]
+    parallel: false
+    detail: >
+      Edit reference/copy-gates.md. Add two new sections with stable anchors:
+      (a) "## Value-coverage (multi-product) {#value-coverage}" — HARD STRUCTURAL: for a multi-product page, the
+      hero/overview fold MUST name each detected product with a DISTINCT value line; a product missing from the
+      hero blocks emit. Frame as structural presence (each of the N products represented), not arithmetic.
+      (b) "## Asset-claim-match {#asset-claim-match}" — ADVISORY JUDGMENT: each embedded visual must DEPICT the thing
+      its caption names (the Hooked-model-SVG-captioned-as-pipeline mismatch is the failure this catches); needs
+      vision, so per §H it stays advisory — surfaced LOUDLY in the reviewer pass, never silently, but does not block.
+      Then edit SKILL.md Phase 6 #self-review step 2 (visual self-check reviewer pass): wire both checks in — cite
+      #value-coverage (hard, multi-product) and #asset-claim-match (advisory) so the reviewer pass adds a judgment
+      layer on top of the deterministic render checks.
+    verify: >
+      copy-gates.md has a #value-coverage section (HARD structural, multi-product hero names each product with a
+      distinct value line, else block) and an #asset-claim-match section (ADVISORY judgment, surfaced loudly, no
+      block); SKILL.md Phase 6 step 2 wires both into the visual self-check; §H honoured (value-coverage structural,
+      asset-claim-match advisory).
+
+  - id: T7
+    title: "FR-6 (D6) — dev-tool hero-subhead buyer+category rule in copy-gates.md + Phase 6 step 1 enforcement"
+    ac: [AC6]
+    deps: [T6]
+    parallel: false
+    detail: >
+      Edit reference/copy-gates.md (the Headline litmus / Clarity rules region). Add a rule: "When product_type is a
+      dev tool, the hero SUBHEAD must name the buyer (the brief's persona) AND the category explicitly in the
+      headline region — the disambiguator may NOT be deferred to body copy. A dev-tool hero whose subhead omits the
+      buyer or the category fails this gate — fix it in the draft." (This is the specific shape the weak first-pass
+      hero violated: the disambiguator landed in the explanation para, not the headline.) Then edit SKILL.md Phase 6
+      #self-review step 1 to enforce it as a presence check on the subhead (cite the copy-gates rule).
+    verify: >
+      copy-gates.md carries the dev-tool hero-subhead rule (subhead names buyer + category in the headline region,
+      not deferred to body); SKILL.md Phase 6 step 1 enforces it as a presence check; cited, not restated.
+
+  - id: T8
+    title: "Conformance: skill-eval [D], 3 repo lints, audit-recommended, INV byte-checks"
+    ac: [AC7]
+    deps: [T7]
+    parallel: false
+    detail: >
+      Run the deterministic skill gate: bash plugins/pmos-toolkit/skills/feature-sdlc/tools/skill-eval-check.sh
+      --target claude-code plugins/pmos-toolkit/skills/landing-page (expect a clean [D]; if pre-existing residuals
+      exist, confirm they are byte-identical on pristine main — same range-untouched stance as prior runs).
+      Run the repo hygiene lints: tools/lint-flags-vs-hints.sh, tools/lint-phase-refs.sh,
+      tools/lint-non-interactive-inline.sh against the skill (or repo). Run tools/audit-recommended.sh.
+      Assert the invariants by git diff: reference/style-tokens.json, reference/style-tokens.md,
+      reference/style-gallery.html, reference/hero-archetypes.md, reference/media-strategy.md show ZERO changes;
+      no _shared/ change; no scripts/ change (INV-1); argument-hint in SKILL.md frontmatter unchanged and no new
+      flag introduced, user-invocable: true preserved (INV-2); grep the diff for any arithmetic show-ratio/threshold
+      language and confirm NONE was added (INV-3); confirm the embed rung wording stays page-folder-relative/file://
+      (INV-4); the SKILL.md still contains exactly one byte-identical non-interactive inline block; the new
+      cross-references resolve (lint-phase-refs covers #governing-principles/#show-ratio/#value-coverage/
+      #asset-claim-match + the phase slugs). Fix any new lint/audit/eval failure introduced by T2–T7.
+    verify: >
+      skill-eval-check.sh [D] clean (or residuals proven pre-existing on main); lint-flags-vs-hints, lint-phase-refs,
+      lint-non-interactive-inline, audit-recommended all green; git diff shows the 5 untouched references, all
+      _shared/, and scripts/ unchanged; argument-hint + user-invocable unchanged, no new flag; no arithmetic ratio
+      language added; embed rung stays page-folder-relative/file://; the frozen non-interactive block byte-matches;
+      all new anchors resolve.
