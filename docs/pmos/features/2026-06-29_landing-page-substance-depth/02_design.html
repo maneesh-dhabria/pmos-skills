@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Epic design — /landing-page substance-depth fixes (260629-xrz)</title>
+<style>
+  :root { --ink:#1a1a1a; --mut:#666; --line:#e2e2e2; --accent:#2b6cb0; --bg:#fff; --code:#f5f5f5; }
+  body { font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; color:var(--ink); background:var(--bg); max-width:860px; margin:0 auto; padding:2.5rem 1.25rem 6rem; }
+  h1 { font-size:1.7rem; line-height:1.25; margin:0 0 .25rem; }
+  h2 { font-size:1.25rem; margin:2.4rem 0 .6rem; padding-bottom:.3rem; border-bottom:2px solid var(--line); }
+  h3 { font-size:1.05rem; margin:1.5rem 0 .4rem; }
+  .sub { color:var(--mut); margin:.2rem 0 1.5rem; }
+  table { border-collapse:collapse; width:100%; margin:1rem 0; font-size:.93rem; }
+  th,td { border:1px solid var(--line); padding:.5rem .6rem; text-align:left; vertical-align:top; }
+  th { background:var(--code); font-weight:600; }
+  code { background:var(--code); padding:.1rem .3rem; border-radius:3px; font-size:.88em; }
+  pre { background:var(--code); padding:.8rem 1rem; border-radius:6px; overflow:auto; font-size:.85rem; }
+  .pill { display:inline-block; font-size:.72rem; font-weight:600; padding:.1rem .5rem; border-radius:99px; background:#eef4fb; color:var(--accent); vertical-align:middle; }
+  .fr { font-weight:600; color:var(--accent); }
+  ul { padding-left:1.3rem; } li { margin:.3rem 0; }
+  blockquote { border-left:3px solid var(--accent); margin:1rem 0; padding:.3rem 0 .3rem 1rem; color:#333; }
+</style>
+</head>
+<body>
+
+<h1>Epic design — <code>/landing-page</code> substance-depth fixes</h1>
+<p class="sub">Epic <strong>260629-xrz</strong> · route: skill · plugin: pmos-toolkit · <span class="pill">define / Loop 1</span> · source: <code>/reflect</code> retro (/landing-page, 1 run on the pmos-skills marketplace page, 2026-06-29)</p>
+
+<h2 id="why">Why this epic</h2>
+<p>A single <code>/landing-page</code> run shipped a clean, valid, self-contained page on the first pass — every
+<em>deterministic</em> gate (structure, single-CTA, mobile-overflow, asset-fidelity) went green. But the build was
+<strong>shallow on substance</strong>: it collapsed a 5-plugin marketplace into one "product builder" persona,
+undersold learnkit, used an unrelated framework SVG to stand in for the delivery pipeline, and <em>told</em>
+(named skills, listed features) where it should have <em>shown</em>. The user pushed back hard, twice, forcing a
+deep rebuild (parallel research agents, per-plugin personas, real artifact screenshots) and a third pass that added
+live interactive embeds.</p>
+<p>The through-line: the skill's gates verify <strong>form</strong> (does a hero exist, is there one CTA, does it
+overflow on mobile) but never <strong>substance</strong> (does the hero convey each product's distinct value, is a
+claim shown or merely asserted, does a captioned visual depict what it claims). The five findings are all
+<strong>substance-depth</strong> gaps — two blockers, two friction, one nit. Every fix lands in the
+<code>/landing-page</code> skill: <code>SKILL.md</code> plus three of its bundled references
+(<code>multi-product.md</code>, <code>section-scaffolds.md</code>, <code>copy-gates.md</code>). No substrate change.</p>
+
+<h2 id="scope">Scope &amp; shape</h2>
+<p>This is a <strong>singleton skill epic</strong> (D18 wrap, same shape as 260629-pd2 / bm9 / 9ne): every fix
+edits the same skill — <code>plugins/pmos-toolkit/skills/landing-page/{SKILL.md, reference/*}</code> — and the FRs
+interlock (the Phase-2 claim-mapping feeds the Phase-6 hard gate; the new ladder rung feeds both), so the D24
+litmus (a task in one story depending on a task in another) fails any multi-story split. <strong>One story</strong>
+(<code>260629-t8z</code>, route: skill). No <code>_shared/</code> change, no script change, no new flag — every fix
+is a doc/contract edit inside the skill's own files, honouring CLAUDE.md §K one-fact-one-home (the rule lands in its
+canonical reference home; <code>SKILL.md</code> cites it, never restates).</p>
+
+<h2 id="decisions">Decisions (maintainer-approved, this define run)</h2>
+<table>
+  <tr><th>ID</th><th>Decision</th><th>Provenance</th></tr>
+  <tr>
+    <td><strong>D1</strong></td>
+    <td><strong>Per-product persona derivation overrides the global 1–2 persona cap; one primary persona per
+      product.</strong> When <code>product_count: multi</code>, the global "select 1–2 personas" rule is
+      <em>overridden</em>: each detected product gets <strong>one primary persona</strong> (with its own jargon
+      tolerance) and its own signature moments, written as a distinct <strong>brief slice</strong>. Phase 1 emits
+      one brief slice per product <em>before</em> Phase 2 may run — a drafting precondition, not a post-hoc note.
+      This kills the global-collapse failure without the 5×3 = 15-persona explosion a full triad-per-product would
+      cause.</td>
+    <td>F1 [blocker]; grilled via AskUserQuestion (chose "one primary persona per product" over "full triad per product" / "capped by product count").</td>
+  </tr>
+  <tr>
+    <td><strong>D2</strong></td>
+    <td><strong>Phase 2 maps every feature/value claim to a show-surface before drafting is permitted.</strong>
+      The existing Phase-2 map covers only the brief's <em>signature moments</em>; it is widened so that
+      <strong>every</strong> page-level feature or value claim the structure intends to make is mapped to a concrete
+      show-surface (embed / interactive snippet / video / carousel / annotated or plain screenshot — best-available
+      first) <em>before</em> the draft is allowed. A claim with no available surface is either demoted (cut from the
+      page) or explicitly flagged as tell-only — drafting cannot start with unmapped claims.</td>
+    <td>F2 [blocker]; adopted (the Phase-2 half of the fix).</td>
+  </tr>
+  <tr>
+    <td><strong>D3</strong></td>
+    <td><strong>do&gt;show&gt;tell becomes a HARD Phase-6 gate — asset-gated binary-presence, §H-clean.</strong>
+      The <code>copy-gates.md#show-ratio</code> check is promoted from advisory to a <strong>hard gate</strong>:
+      a page that makes feature claims <strong>AND</strong> has at least one capturable/embeddable show-surface
+      available MUST <em>show</em> at least one claimed feature — a page that tells every signature moment in prose
+      while showing none does <strong>not emit</strong>. The hardness rides a <em>binary presence</em> condition
+      (≥1 show-surface present for a claimed feature), never an arithmetic ratio or token count (§H: deterministic =
+      hard, arithmetic = script — so no counting). When no asset can exist for any claim, the gate is
+      <strong>N/A and logged</strong>, so it never over-blocks a genuinely show-less page.</td>
+    <td>F2 [blocker]; grilled via AskUserQuestion (chose "hard binary-presence gate, asset-gated" over "keep advisory, escalate to blocking prompt").</td>
+  </tr>
+  <tr>
+    <td><strong>D4</strong></td>
+    <td><strong>Embed-the-real-artifact is the top "do" rung of the do&gt;show&gt;tell ladder.</strong>
+      <code>section-scaffolds.md#governing-principles</code> gains <em>"embed the real self-contained artifact
+      (iframe, page-folder-relative)"</em> as a first-class show-surface — the strongest proof for a repo whose
+      value <em>is</em> producing real openable artifacts (iframe a real primer, embed a playable game). It ships
+      with the <strong>load-on-open</strong> pattern (<code>&lt;details&gt;</code> + a <code>data-src</code> that
+      swaps into the iframe <code>src</code> on first open) so the embed does not bloat initial paint or scroll.
+      It honours the skill's self-contained constraint (D3 of the page): the embedded artifact is
+      <strong>page-folder-relative and opens from <code>file://</code></strong> — never a remote URL/CDN.</td>
+    <td>F3 [friction]; adopted.</td>
+  </tr>
+  <tr>
+    <td><strong>D5</strong></td>
+    <td><strong>Phase 6 gains a judgment layer: two new checks in <code>copy-gates.md</code>.</strong>
+      (a) <strong>Value-coverage — HARD structural for multi-product:</strong> a multi-product suite/overview hero
+      fold MUST name each detected product with a <em>distinct</em> value line; a product missing from the hero
+      blocks emit (structural presence — deterministic). (b) <strong>Asset-claim-match — ADVISORY judgment:</strong>
+      each embedded visual must depict the thing its caption names (the Hooked-model-SVG-as-pipeline mismatch); this
+      needs vision/judgment, so per §H it stays advisory — surfaced loudly in the reviewer pass, never silently, but
+      does not block.</td>
+    <td>F4 [friction]; grilled via AskUserQuestion (chose "hard structural for multi-product value-coverage; asset-claim-match stays advisory").</td>
+  </tr>
+  <tr>
+    <td><strong>D6</strong></td>
+    <td><strong>Dev-tool hero subhead must name the buyer and the category explicitly.</strong> A clarity-rule
+      addition in <code>copy-gates.md</code>: when <code>product_type</code> is a dev tool, the hero subhead must
+      name <em>who it's for</em> (the buyer/persona) and <em>what category it is</em> in the headline region — the
+      disambiguator may <strong>not</strong> be deferred to body copy (which is exactly where it landed on the weak
+      first pass). Enforced in Phase 6 as a presence check on the subhead.</td>
+    <td>F5 [nit]; adopted.</td>
+  </tr>
+</table>
+
+<h2 id="frs">Functional requirements</h2>
+<ul>
+  <li><span class="fr">FR-1</span> (D1) — <code>reference/multi-product.md</code> gains a per-product
+    persona-derivation override (one primary persona per product, overriding the global 1–2 cap when
+    <code>product_count: multi</code>); <code>SKILL.md</code> Phase 1 step 5 emits one brief slice per product
+    (persona + jargon tolerance + signature moments) as a precondition before Phase 2.</li>
+  <li><span class="fr">FR-2</span> (D2) — <code>SKILL.md</code> Phase 2 step 3 widens the show-surface map from
+    "brief signature moments" to <em>every feature/value claim</em>, and makes a complete map a drafting
+    precondition (unmapped claim → demote or flag tell-only; drafting cannot start otherwise).</li>
+  <li><span class="fr">FR-3</span> (D3) — <code>reference/copy-gates.md#show-ratio</code> is rewritten from advisory
+    to a <strong>hard, asset-gated binary-presence gate</strong> (§H-clean: presence, not ratio); <code>SKILL.md</code>
+    Phase 6 step 1 marks it a blocking gate and states the N/A-when-no-asset logged escape.</li>
+  <li><span class="fr">FR-4</span> (D4) — <code>reference/section-scaffolds.md#governing-principles</code> adds the
+    iframe-embed rung to the do&gt;show&gt;tell ladder with the load-on-open <code>&lt;details&gt;</code>+<code>data-src</code>
+    pattern and the page-folder-relative/<code>file://</code> constraint; <code>SKILL.md</code> Phase 2 step 3 and
+    Phase 5 step 3 cross-reference it as the top show-surface.</li>
+  <li><span class="fr">FR-5</span> (D5) — <code>reference/copy-gates.md</code> gains a value-coverage section (HARD
+    structural, multi-product) and an asset-claim-match section (ADVISORY judgment); <code>SKILL.md</code> Phase 6
+    step 2 wires both into the visual self-check reviewer pass.</li>
+  <li><span class="fr">FR-6</span> (D6) — <code>reference/copy-gates.md</code> clarity/headline rules gain the
+    dev-tool hero-subhead buyer+category rule; <code>SKILL.md</code> Phase 6 step 1 enforces it.</li>
+</ul>
+
+<h2 id="finding-map">Finding → FR map</h2>
+<table>
+  <tr><th>Retro finding</th><th>Sev</th><th>FR</th></tr>
+  <tr><td>Multi-product persona cap collapses N products into one persona / one brief</td><td>blocker</td><td>FR-1</td></tr>
+  <tr><td>do&gt;show&gt;tell defaulted to tell; show-ratio advisory never fired</td><td>blocker</td><td>FR-2, FR-3</td></tr>
+  <tr><td>Section taxonomy a ceiling — interactive embeds not in the show-surface menu</td><td>friction</td><td>FR-4</td></tr>
+  <tr><td>Phase-6 all deterministic — no hero-value-coverage / asset-claim-match judgment</td><td>friction</td><td>FR-5</td></tr>
+  <tr><td>Weak hero one-liner/subhead despite passing the Julian/Harry-Dry gates</td><td>nit</td><td>FR-6</td></tr>
+</table>
+
+<h2 id="invariants">Invariants (cross-cutting; the build must not break)</h2>
+<ul>
+  <li><strong>INV-1</strong> — the untouched references are byte-unchanged: <code>style-tokens.json</code>,
+    <code>style-tokens.md</code>, <code>style-gallery.html</code>, <code>hero-archetypes.md</code>,
+    <code>media-strategy.md</code>. Only <code>SKILL.md</code> + <code>multi-product.md</code> +
+    <code>section-scaffolds.md</code> + <code>copy-gates.md</code> change.</li>
+  <li><strong>INV-2</strong> — no new flag; <code>argument-hint</code> unchanged; <code>user-invocable: true</code>
+    preserved. All changes are doc/contract edits inside the skill's own files.</li>
+  <li><strong>INV-3</strong> — §H is respected: the two new hard gates (do&gt;show&gt;tell, value-coverage) ride
+    <em>binary-presence / structural</em> conditions, never arithmetic ratios or token counts; the check that
+    genuinely needs vision (asset-claim-match) stays <strong>advisory</strong>. No model arithmetic a script could
+    do.</li>
+  <li><strong>INV-4</strong> — the page's self-contained constraint (the skill's own D3: inline CSS/JS, no CDN, opens
+    from <code>file://</code>) is preserved by the new embed rung — embeds are page-folder-relative and lazy-loaded,
+    never remote.</li>
+  <li><strong>INV-5</strong> — skill-patterns §A–§L conformance preserved: one-fact-one-home (each fix in its
+    canonical reference; SKILL.md cites, never restates); phase anchors (<code>#research-brief</code>,
+    <code>#propose-structure</code>, <code>#draft</code>, <code>#self-review</code>) and reference anchors
+    (<code>#governing-principles</code>, <code>#show-ratio</code>) stay stable so cross-references resolve;
+    the canonical "No&nbsp;X → do&nbsp;Y" Platform-Adaptation shape is untouched.</li>
+</ul>
+
+<h2 id="story-split">Story split</h2>
+<p>One story — <strong>260629-t8z</strong> (route: skill, planned). The six FRs interlock across the same four
+files (FR-2's claim-map feeds FR-3's hard gate; FR-4's ladder rung is consumed by FR-2 and FR-5), so the D24
+litmus forces a single story. Build is one <code>/execute</code> run → <code>/skill-eval</code> →
+<code>/verify</code>.</p>
+
+<h2 id="non-goals">Non-goals</h2>
+<ul>
+  <li>No change to the six bundled visual styles, the style-token sets, or the hero archetypes.</li>
+  <li>No promotion of any new check into a shared cross-skill substrate — every gate is scoped to
+    <code>/landing-page</code>'s own <code>reference/copy-gates.md</code>.</li>
+  <li>No automatic fan-out of the multi-product hub principle (still gated/chosen at Phase 2); FR-1 changes
+    persona depth, not the suite/hub/single-focus choice.</li>
+  <li>No new flag; <code>argument-hint</code> stays as-is. The hard gates are contract text, not CLI surface.</li>
+  <li>No arithmetic show-ratio threshold — INV-3 forbids it; the gate is binary-presence only.</li>
+</ul>
+
+<!-- pmos-comments:start -->
+<script id="pmos-comments" type="application/json">{"version":1,"threads":[]}</script>
+<!-- pmos-comments:end -->
+</body>
+</html>
