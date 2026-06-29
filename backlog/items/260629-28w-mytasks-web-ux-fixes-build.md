@@ -9,13 +9,13 @@ priority: should
 route: skill
 dependencies: []
 plugin: pmos-toolkit
-status: planned
+status: in-progress
 feature_folder: docs/pmos/features/2026-06-29_mytasks-web-ux-fixes/
 plan_doc: docs/pmos/features/2026-06-29_mytasks-web-ux-fixes/stories/260629-28w/03_plan.html
 tasks: docs/pmos/features/2026-06-29_mytasks-web-ux-fixes/stories/260629-28w/tasks.yaml
-worktree:
-claimed_by:
-driver_holder:
+worktree: feat/260629-28w
+claimed_by: build:b0c61220-0a97-4ab0-afcb-144a7c4df518
+driver_holder: build:b0c61220-0a97-4ab0-afcb-144a7c4df518
 build_branch:
 build_commit:
 labels: [pmos-toolkit, mytasks, web, ux, skill, from-feedback]
