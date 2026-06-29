@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Plan — 260629-6j0 · /artifact-critique emit-pathway fixes</title>
+<style>
+  :root { --ink:#1a1a1a; --mut:#666; --line:#e2e2e2; --accent:#2b6cb0; --code:#f5f5f5; }
+  body { font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; color:var(--ink); max-width:860px; margin:0 auto; padding:2.5rem 1.25rem 6rem; }
+  h1 { font-size:1.6rem; margin:0 0 .25rem; } h2 { font-size:1.2rem; margin:2.2rem 0 .5rem; border-bottom:2px solid var(--line); padding-bottom:.3rem; }
+  .sub { color:var(--mut); margin:.2rem 0 1.4rem; }
+  table { border-collapse:collapse; width:100%; margin:1rem 0; font-size:.92rem; }
+  th,td { border:1px solid var(--line); padding:.45rem .6rem; text-align:left; vertical-align:top; }
+  th { background:var(--code); } code { background:var(--code); padding:.1rem .3rem; border-radius:3px; font-size:.88em; }
+  ul { padding-left:1.3rem; } li { margin:.3rem 0; }
+</style>
+</head>
+<body>
+<h1>Plan — <code>/artifact-critique</code> emit-pathway fixes</h1>
+<p class="sub">Story <strong>260629-6j0</strong> · epic 260629-9ne · route: skill · execution_mode: inline · one <code>/execute</code> run</p>
+
+<h2 id="surface">Surface &amp; reference</h2>
+<p>Single file: <code>plugins/pmos-toolkit/skills/artifact-critique/SKILL.md</code> — <code>## Platform Adaptation</code>
+(FR-1/FR-2/FR-4 bullets) and <code>## Phase 7</code> (FR-1/FR-2 cross-refs + FR-3 Tier-2 always-emit line). All edits
+are documentation / contract. Reference: <code>../../02_design.html</code> (D1–D4, FR-1..FR-4, INV-1..INV-5) +
+<code>feature-sdlc/reference/skill-patterns.md §A–§L</code> (canonical Platform-Adaptation degradation shape) +
+host <code>CLAUDE.md</code>.</p>
+
+<h2 id="waves">Task waves</h2>
+<table>
+  <tr><th>Task</th><th>FR / AC</th><th>What</th><th>Deps</th></tr>
+  <tr><td><strong>T1</strong></td><td>study</td><td>Pin the 4 insertion points in SKILL.md; confirm the html-authoring multi-file emit reality (grounds FR-1 wording); identify the frozen non-interactive block + rubric/substrate/script byte-frozen regions.</td><td>—</td></tr>
+  <tr><td><strong>T2</strong></td><td>FR-1 / AC1</td><td>Self-contained-HTML fallback bullet in Platform Adaptation + Phase 7 <code>#emit</code> cross-reference. Findings block retained; multi-file substrate stays default.</td><td>T1</td></tr>
+  <tr><td><strong>T3</strong></td><td>FR-2 / AC2</td><td>Node-unavailable gate-protocol bullet + Phase 7 Tier-1 cross-reference (skip <code>critique-eval.mjs</code> → manual E-check validation → <code>## Limits</code> → proceed).</td><td>T2</td></tr>
+  <tr><td><strong>T4</strong></td><td>FR-3 / AC3</td><td>Phase 7 Tier-2 always-surfaced reviewer line + fold into the final chat-print instruction.</td><td>T3</td></tr>
+  <tr><td><strong>T5</strong></td><td>FR-4 / AC4</td><td>No-stderr Phase-0 surfacing bullet in Platform Adaptation.</td><td>T4</td></tr>
+  <tr><td><strong>T6</strong></td><td>AC5</td><td>Conformance: skill-eval <code>[D]</code> (target claude-code), 4 repo lints, audit-recommended, INV byte-checks (rubric / html-authoring / critique-eval.mjs unchanged; argument-hint unchanged; frozen NI block byte-match).</td><td>T5</td></tr>
+</table>
+<p>T2–T5 all edit the same file → strictly sequential (<code>parallel: false</code>); the D24 litmus is what forces
+the single story.</p>
+
+<h2 id="risks">Risks &amp; mitigations</h2>
+<ul>
+  <li><strong>Drift into the shared substrate.</strong> FR-1 is tempting to "fix" by editing
+    <code>_shared/html-authoring/</code>. INV-2 forbids it — the fallback is a per-skill platform-adaptation only.
+    T6 asserts the dir is byte-unchanged.</li>
+  <li><strong>Phase-ref / flag lints.</strong> New cross-references must cite resolvable anchors; no new flags may be
+    added (INV-5). T6 runs <code>lint-phase-refs.sh</code> + <code>lint-flags-vs-hints.sh</code>.</li>
+  <li><strong>Frozen non-interactive block.</strong> FR-4 surfaces the Phase-0 lines; it must NOT edit the byte-frozen
+    inline block. T1 identifies it; T6 byte-checks it.</li>
+</ul>
+
+<h2 id="final-verify">Final verification</h2>
+<ul>
+  <li>AC1–AC4 each satisfied by the corresponding bullet / contract edit (spot-read SKILL.md).</li>
+  <li>AC5: <code>skill-eval-check.sh --target claude-code</code> clean; 3 lints + audit green;
+    <code>git diff</code> empty for <code>_shared/critique-rubric/</code>, <code>_shared/html-authoring/</code>,
+    <code>scripts/critique-eval.mjs</code>; <code>argument-hint</code> unchanged.</li>
+  <li>Then <code>/skill-eval</code> (build Loop) re-scores <code>[D]</code>+<code>[J]</code> before <code>/verify</code>.</li>
+</ul>
+
+<!-- pmos-comments:start -->
+<script id="pmos-comments" type="application/json">{"version":1,"threads":[]}</script>
+<!-- pmos-comments:end -->
+</body>
+</html>
