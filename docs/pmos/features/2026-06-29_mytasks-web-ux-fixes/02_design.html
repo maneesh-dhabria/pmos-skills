@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<meta name="pmos:artifact" content="design">
+<title>Design — /mytasks web UX fixes (epic 260629-pd2)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: Georgia, "Times New Roman", serif; max-width: 52rem; margin: 0 auto; padding: 2rem 1.25rem; line-height: 1.6; color: #1a1a1a; background: #fbfaf6; }
+  h1, h2, h3 { font-family: -apple-system, system-ui, sans-serif; line-height: 1.25; }
+  h1 { font-size: 2rem; } h2 { font-size: 1.3rem; margin-top: 2.2rem; border-bottom: 1px solid #ddd; padding-bottom: .3rem; } h3 { font-size: 1.05rem; }
+  code, pre { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  code { background: #efece3; padding: .1em .35em; border-radius: 3px; font-size: .9em; }
+  pre { background: #efece3; padding: .9rem; border-radius: 6px; overflow-x: auto; font-size: .82rem; line-height: 1.45; }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; margin: 1rem 0; }
+  th, td { border: 1px solid #d6d2c6; padding: .45rem .6rem; text-align: left; vertical-align: top; }
+  th { background: #efece3; font-family: system-ui, sans-serif; }
+  .tag { display: inline-block; font: 600 .72rem system-ui; padding: .1em .5em; border-radius: 3px; background: #e3dcc9; }
+  .sev-high { background: #e9b8b0; } .sev-med { background: #e8d9a8; } .sev-low { background: #cdd9c2; }
+  blockquote { border-left: 3px solid #c9b98c; margin: 1rem 0; padding: .3rem 1rem; color: #555; background: #f4f1e8; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #1a1816; color: #e8e4da; } code, pre, th { background: #2a2724; } th, td { border-color: #3a3530; }
+    h2 { border-color: #3a3530; } blockquote { background: #232019; color: #c9c2b2; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Design — /mytasks web UX fixes</h1>
+<p><strong>Epic:</strong> 260629-pd2 &middot; <strong>Route:</strong> skill &middot; <strong>Plugin:</strong> pmos-toolkit &middot; <strong>Skill:</strong> <code>/mytasks</code> &middot; <strong>Tier:</strong> 2</p>
+<p><strong>Source:</strong> <code>/design-crit</code> of the live <code>/mytasks</code> web SPA — <code>…/personal/docs/docs/2026-06-29_mytasks-web/design-crit/design-crit.html</code> (4 journeys, 7 screens, 13 LLM findings F-01–F-13 + 5 deterministic contrast failures; all 12 surfaced findings dispositioned <em>Fix as proposed</em>).</p>
+
+<h2 id="context">Context</h2>
+<p>The recent <code>/mytasks</code> web overhaul (epic 260626-a8a, story tf4) shipped an inline-everything client-only SPA. A <code>/design-crit</code> of the running app surfaced a coherent set of UX gaps. They are <strong>not</strong> independent bugs — three cross-cutting themes drive almost all of them, and a few shared conventions fix many findings at once.</p>
+<p><strong>Surfaces touched</strong> (all under <code>plugins/pmos-toolkit/skills/mytasks/scripts/</code>):</p>
+<ul>
+  <li><code>webapp/app.js</code> (536 L) — client SPA logic: views, quick-add parse, row render, editor, completion.</li>
+  <li><code>webapp/app.css</code> (118 L) — colour tokens, contrast, due-date semantics, layout, hit areas.</li>
+  <li><code>webapp/index.html</code> — shell (toast host, panel structure).</li>
+  <li><code>serve.js</code> / <code>people.js</code> — only for the F-05 person auto-create (the <code>POST /api/people</code> endpoint already exists from story 71x; the work is wiring the client call, not new server capability).</li>
+</ul>
+<p>The CLI / terminal <code>/mytasks</code> behaviour and the on-disk task/people schema are <strong>out of scope</strong> — this epic is web-UI-only (see Invariants).</p>
+
+<h2 id="decisions">Decisions (maintainer-approved)</h2>
+<table>
+  <tr><th>#</th><th>Decision</th><th>Rationale</th></tr>
+  <tr><td><strong>D1</strong></td><td><strong>@ opens a filtered people picker</strong> (F-05, grill-refined). Typing <code>@</code> opens a dropdown of existing people, filtered live as the user types; selecting one assigns it. The dropdown carries an explicit <strong>+ Add "&lt;handle&gt;"</strong> button that mints a new person via <code>POST /api/people</code> — so a new person is created only on a deliberate click, never silently from a typo. The added/selected person then shows in the editor People field <em>and</em> the PEOPLE sidebar.</td><td>Closes the silent-drop AND the typo-junk risk in one affordance; the picker doubles as the @ autocomplete (FR-1). Uses the existing people CRUD + endpoint — no schema change.</td></tr>
+  <tr><td><strong>D2</strong></td><td><strong>One friendly date format everywhere</strong> (F-04, grill-refined): <em>relative</em> for near dates — <code>Today</code> / <code>Tomorrow</code> / <code>Yesterday</code> (±1 day), weekday alone for the rest of this week (e.g. <code>Fri</code>) — and <em>absolute</em> beyond (<code>Fri Jul 3</code>; add year only when not current-year). Applied to lists, rows, editor display, and toasts. The native <code>&lt;input type="date"&gt;</code> stays for picking; its rendered <em>display</em> text is overridden to this form.</td><td>Most scannable; unambiguous; kills the ISO-vs-DD/MM split. Relative words recomputed on render so "Today" never drifts.</td></tr>
+  <tr><td><strong>D3</strong></td><td><strong>Count badges + overdue-on-Today</strong> (N1/F-02): every smart view gets a trailing count badge (e.g. <code>Overdue (1)</code>); the Today view additionally surfaces overdue items so a cold open never reads empty while work is due. Today remains the landing view.</td><td>Returning user immediately sees what needs attention; no surprising landing-view change.</td></tr>
+  <tr><td><strong>D4</strong></td><td><strong>Full scope</strong>: all 12 surfaced findings + the low-severity unsurfaced <strong>F-13</strong> (hit areas / hover) + the 5 deterministic contrast failures ship in this one story.</td><td>The fixes share the same 3 files; deferring the low item would only fragment a single colour/affordance pass.</td></tr>
+  <tr><td><strong>D5</strong></td><td><strong>One shared "optimistic-action + toast + undo" convention</strong> (cross-cutting CC1). A single helper renders a transient toast naming the result, with an Undo affordance where reversible. <strong>Undo lives on the toast window only</strong> (grill-refined) — once the toast dismisses, the action is final; no persistent undo stack. Reused by quick-add (F-03) and completion (F-11).</td><td>One convention fixes the invisible-feedback findings; toast-window scope keeps the undo state trivial.</td></tr>
+  <tr><td><strong>D6</strong></td><td><strong>One colour-token pass</strong> (CC3): a single accessible gray (≥4.5:1 on white, e.g. <code>#6b6e7a</code>), red reserved for genuinely-overdue / destructive only (≥4.5:1), upcoming dates neutral/amber + icon (F-08).</td><td>Centralizes the 5 contrast misses + the red-for-all-dates issue into the token layer.</td></tr>
+  <tr><td><strong>D7</strong></td><td><strong>One representation per data type</strong> (CC2): dates (D2), labels rendered as chips everywhere (F-10), task metadata (project/label/person) shown as inline chips on the row and in the editor (F-07).</td><td>Stops representation drift between surfaces.</td></tr>
+</table>
+
+<h2 id="frs">Findings → functional requirements</h2>
+<p>Every surfaced finding maps to exactly one FR. The crit's verbatim proposed fix is the FR's acceptance bar.</p>
+<table>
+  <tr><th>FR</th><th>Findings</th><th>Sev</th><th>Requirement</th></tr>
+  <tr><td><strong>FR-1 Quick-add visibility</strong></td><td>F-03 (N1/S4)</td><td><span class="tag sev-high">high</span></td><td>While typing in quick-add, render live token chips for parsed <code>@person #project +label</code> and a due date; <code>@</code>/<code>#</code>/<code>+</code> open the filtered autocomplete dropdowns (the <code>@</code> one is the D1 people picker); on submit show a toast naming the destination view + parsed fields (D5).</td></tr>
+  <tr><td><strong>FR-2 People picker + add</strong></td><td>F-05 (N1)</td><td><span class="tag sev-high">high</span></td><td>Typing <code>@</code> (in quick-add or the editor) opens a live-filtered dropdown of existing people with an explicit <strong>+ Add "&lt;handle&gt;"</strong> button (D1). Selecting assigns; Add mints the record (<code>POST /api/people</code>) and it appears in the editor People field and the PEOPLE sidebar. No silent creation. Cross-journey: also fixes the empty sidebar during <em>organize</em>.</td></tr>
+  <tr><td><strong>FR-3 Date format unification</strong></td><td>F-04 (N4)</td><td><span class="tag sev-high">high</span></td><td>Friendly format (D2) — relative for near (Today/Tomorrow/Yesterday/weekday), absolute beyond (Fri Jul 3) — in lists, rows, editor display, toasts. No DD/MM, no raw ISO shown to the user.</td></tr>
+  <tr><td><strong>FR-4 Default-view signal</strong></td><td>F-02, N1 (F-02)</td><td><span class="tag sev-high">high</span></td><td>Count badges on smart views + overdue surfaced on Today (D3). Cold open never reads "Nothing here." while items are due.</td></tr>
+  <tr><td><strong>FR-5 Empty states</strong></td><td>F-01 (S1)</td><td><span class="tag sev-high">high</span></td><td>Explanatory empty states with a CTA (e.g. "No tasks due today — you have 1 Overdue" + link). Replaces bare "Nothing here." / "Select a task…".</td></tr>
+  <tr><td><strong>FR-6 Detail-panel layout</strong></td><td>F-06 (V1/G4)</td><td><span class="tag sev-med">med</span></td><td>Collapse the detail panel until a task is selected; let the list reclaim the freed width. Empty-state placeholder no longer reserves a permanent empty quarter.</td></tr>
+  <tr><td><strong>FR-7 Row metadata chips</strong></td><td>F-07 (F1)</td><td><span class="tag sev-med">med</span></td><td>Task rows carry inline chips for project / label / assignee (D7) — set attributes visible without opening the editor.</td></tr>
+  <tr><td><strong>FR-8 Due-date colour semantics</strong></td><td>F-08 (V4/A6)</td><td><span class="tag sev-med">med</span></td><td>Red for overdue only; upcoming dates neutral/amber + an icon (D6).</td></tr>
+  <tr><td><strong>FR-9 Recurrence field</strong></td><td>F-09 (V5/G3)</td><td><span class="tag sev-med">med</span></td><td>Recurrence row is full-width and shown only when Recur ≠ none; no clipping/overflow in the panel.</td></tr>
+  <tr><td><strong>FR-10 Labels chip input</strong></td><td>F-10 (C4/N4)</td><td><span class="tag sev-med">med</span></td><td>Labels edited as a tokenized chip input with autocomplete (D7) — matches the chip display used elsewhere.</td></tr>
+  <tr><td><strong>FR-11 Completion feedback</strong></td><td>F-11 (N3/S4)</td><td><span class="tag sev-med">med</span></td><td>Completing a task shows a toast with toast-window Undo (D5); the detail panel updates/clears rather than showing a stale "pending" task with live controls.</td></tr>
+  <tr><td><strong>FR-12 Open affordance</strong></td><td>F-12 (N1)</td><td><span class="tag sev-med">med</span></td><td>A row click outside the title opens the detail panel; a clear, distinct control handles rename (title inline-edit no longer the only "open").</td></tr>
+  <tr><td><strong>FR-13 Hit areas</strong></td><td>F-13 (A2/C3)</td><td><span class="tag sev-low">low</span></td><td>Row glyph controls (N badge, ☐, ▸, ✎) have ≥24×24 px hit areas and a visible hover state. (Accessible names already present.)</td></tr>
+  <tr><td><strong>FR-14 Contrast tokens</strong></td><td>slop 1–5</td><td><span class="tag sev-high">high</span></td><td>All AA contrast failures fixed via the token pass (D6): section labels, + Add… links, placeholder/helper text ≥4.5:1; active-nav / due-date red ≥4.5:1 against its background.</td></tr>
+</table>
+
+<h2 id="cross-cutting">Cross-cutting conventions</h2>
+<ul>
+  <li><strong>CC1 — Invisible feedback (D5).</strong> Quick-add (FR-1), completion (FR-11), and assignment (FR-2) all succeed silently today. One optimistic-action + toast/undo helper drives the quick-add + completion feedback; assignment gets explicit feedback through the people picker (FR-2). Toast-window undo only.</li>
+  <li><strong>CC2 — Representation drift (D7).</strong> Pick one representation per data type and reuse it: dates (FR-3), labels (FR-10), metadata chips (FR-7).</li>
+  <li><strong>CC3 — Contrast &amp; colour-semantics (D6).</strong> One accessible gray + red-reserved-for-overdue/destructive token pass (FR-14, FR-8).</li>
+</ul>
+
+<h2 id="invariants">Invariants</h2>
+<ul>
+  <li><strong>INV-1 — CLI unchanged.</strong> The terminal <code>/mytasks</code> command flow and all non-web SKILL.md phases behave byte-identically; this epic edits only the webapp client + the F-05 client→<code>/api/people</code> wiring.</li>
+  <li><strong>INV-2 — No schema / data-format change.</strong> No new fields on the task or person records; person auto-create uses the existing person schema and endpoint. On-disk files written by prior versions still load.</li>
+  <li><strong>INV-3 — Zero new dependencies.</strong> No npm packages; vanilla JS/CSS only (the webapp's standing constraint).</li>
+  <li><strong>INV-4 — Tests green, no regressions.</strong> Existing <code>scripts/tests</code> suites (lib, people, serve, registry, import-parse, recur) stay green; new assertions cover the parse-preview, person auto-create, friendly-date formatter, and completion/undo paths.</li>
+  <li><strong>INV-5 — Skill conformance.</strong> Conforms to <code>skill-patterns.md §A–§L</code>; passes <code>skill-eval.md</code> (<code>[D]</code>+<code>[J]</code>); the inline non-interactive block stays byte-identical; 4 hygiene lints + audit-recommended green. SKILL.md doc updates reflect any new web behaviour.</li>
+</ul>
+
+<h2 id="out-of-scope">Out of scope</h2>
+<ul>
+  <li>Terminal CLI rendering, inference heuristics, output formats, schema changes.</li>
+  <li>New task fields, new views beyond surfacing existing data, or import/export changes.</li>
+  <li>Server-side people model changes (auto-create reuses the existing endpoint + schema).</li>
+  <li>Release prerequisites (version bump, changelog, README row, manifest sync) — <code>/complete-dev</code> owns these per §G; they are listed under the plan's <em>Release prerequisites</em>, never in a build wave.</li>
+</ul>
+
+<h2 id="story-split">Story split</h2>
+<p><strong>One story (260629-28w), route: skill.</strong> All 14 FRs revise the same 3–4 files (<code>app.js</code>, <code>app.css</code>, <code>index.html</code>, + the F-05 client wiring). The D24 litmus — would a task in one story depend on a task in another? — fails any multi-story split here: the toast helper (CC1), the colour tokens (CC3), and the chip renderer (CC2) are shared dependencies of multiple findings, so splitting would force cross-story coupling on the same lines. One <code>/execute</code> run, one PR. (Same shape as the recent singleton skill epic 260629-bm9.)</p>
+
+</body>
+</html>
