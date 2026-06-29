@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<meta name="pmos:artifact" content="design">
+<title>Design — /to-notion-doc fidelity fixes (epic 260629-7hm)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: Georgia, "Times New Roman", serif; max-width: 50rem; margin: 0 auto; padding: 2rem 1.25rem; line-height: 1.6; color: #1a1a1a; background: #fbfaf6; }
+  h1, h2, h3 { font-family: -apple-system, system-ui, sans-serif; line-height: 1.25; }
+  h1 { font-size: 2rem; } h2 { font-size: 1.3rem; margin-top: 2.2rem; border-bottom: 1px solid #ddd; padding-bottom: .3rem; } h3 { font-size: 1.05rem; }
+  code, pre { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  code { background: #efece3; padding: .1em .35em; border-radius: 3px; font-size: .9em; }
+  pre { background: #efece3; padding: .9rem; border-radius: 6px; overflow-x: auto; font-size: .82rem; line-height: 1.45; }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; margin: 1rem 0; }
+  th, td { border: 1px solid #d6d2c6; padding: .45rem .6rem; text-align: left; vertical-align: top; }
+  th { background: #efece3; font-family: system-ui, sans-serif; }
+  .tag { display: inline-block; font: 600 .72rem system-ui; padding: .1em .5em; border-radius: 3px; background: #e3dcc9; }
+  .sev-blocker { background: #e9b8b0; } .sev-friction { background: #e8d9a8; } .sev-nit { background: #cdd9c2; }
+  blockquote { border-left: 3px solid #c9b98c; margin: 1rem 0; padding: .3rem 1rem; color: #555; background: #f4f1e8; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #1a1816; color: #e8e4da; } code, pre, th { background: #2a2724; } th, td { border-color: #3a3530; }
+    h2 { border-color: #3a3530; } blockquote { background: #232019; color: #c9c2b2; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Design — <code>/to-notion-doc</code> fidelity fixes</h1>
+<p><strong>Epic</strong> 260629-7hm · <strong>Plugin</strong> pmos-utilities · <strong>Route</strong> skill ·
+<strong>Status</strong> defining · <strong>Date</strong> 2026-06-29</p>
+<p>This is the cross-cutting design contract for a single-story revision epic. It applies seven findings from
+the first real production run of <code>/to-notion-doc</code> (converting a 242-block POV HTML into a Notion
+page across two context windows). The conversion itself was structurally correct — verification passed 242/242
+— but three post-conversion feedback sessions surfaced an honesty gap in the report, output-quality bugs in
+the image-stub pipeline, and several source structures the parser did not recognize as conversion candidates.
+Three architectural choices resolved with the maintainer during this define run are marked
+<span class="tag">resolved</span>.</p>
+
+<h2 id="problem">1. Problem &amp; charter fit</h2>
+<p>The skill's claimed contract is "convert a local <code>.md</code>/<code>.html</code>/<code>.txt</code> file
+into a Notion page that preserves structure, remembers preferences, never drops content, writes in resumable
+chunks, and verifies the result block-for-block." The production run held that contract on completeness — but
+fell short on three softer obligations the contract implies:</p>
+<ol>
+  <li><strong>Honest reporting.</strong> Two limitations are <em>deterministic and always present</em>
+  (in-page anchor links degrade to plain text because block UUIDs are unknown at write time;
+  <code>fit-page-width="true"</code> only renders full-width once the page-level "Full width" toggle is on).
+  The Phase 5 report declared "clean · Open questions: 0", so the user discovered both with confusion. A
+  faithful converter must <em>disclose what it cannot do</em>, not just what it did.</li>
+  <li><strong>Output quality of the media stubs.</strong> The image-stub pipeline has two owners writing the
+  same block (map-script render + orchestrator injection) → duplicate markers and broken nesting; and the
+  stub's shape surprised users.</li>
+  <li><strong>Structure recognition.</strong> Attribute/description sections (<code>&lt;dl&gt;</code> and
+  label→description div subtrees) and sibling "Annexure"-prefixed sections carry obvious semantic shape the
+  parser flattened to paragraphs / a flat heading run, forcing ~19 post-hoc <code>update_content</code> calls.</li>
+</ol>
+<p>All three serve the same charter ("help me maintain a faithful conversion") — this epic closes the gap
+between "structurally complete" and "faithful + honest". No new skill, no new charter; a revision of the
+existing pmos-utilities skill.</p>
+
+<h2 id="findings">2. Findings → fixes</h2>
+<table>
+  <thead><tr><th>#</th><th>Sev</th><th>Finding (one line)</th><th>Surface touched</th><th>FRs</th></tr></thead>
+  <tbody>
+    <tr><td>F1</td><td><span class="tag sev-blocker">blocker</span></td><td>Phase 5 report omitted two deterministic post-conversion limitations</td><td><code>SKILL.md</code> Phase 5</td><td>FR-1.x</td></tr>
+    <tr><td>F2</td><td><span class="tag sev-friction">friction</span></td><td>Image/SVG stub injected by two owners → duplicate markers + wrong nesting</td><td><code>map-to-notion.mjs</code>, <code>upload-image.mjs</code>, <code>SKILL.md</code> Phase 2</td><td>FR-2.x</td></tr>
+    <tr><td>F3</td><td><span class="tag sev-friction">friction</span></td><td>Stub format surprised users — expected an upload field, expectation set too late</td><td><code>SKILL.md</code> Phase 2, <code>notion-blocks.md</code> §5</td><td>FR-3.x</td></tr>
+    <tr><td>F4</td><td><span class="tag sev-friction">friction</span></td><td>Caption fell outside the toggle — emitted as a separate de-nesting block</td><td><code>map-to-notion.mjs</code> / <code>upload-image.mjs</code></td><td>FR-3.x</td></tr>
+    <tr><td>F5</td><td><span class="tag sev-friction">friction</span></td><td><code>dl</code>/label-description div sections not recognized as table candidates</td><td><code>parse-doc.mjs</code>, <code>SKILL.md</code> Phase 1</td><td>FR-5.x</td></tr>
+    <tr><td>F6</td><td><span class="tag sev-nit">nit</span></td><td>≥3 sibling "Annexure"/"Appendix" sections rendered flat; grouping not offered</td><td><code>parse-doc.mjs</code>, <code>SKILL.md</code> Phase 1</td><td>FR-6.x</td></tr>
+    <tr><td>F7</td><td><span class="tag sev-nit">nit</span></td><td>No per-phase status banner — a compacted continuation re-read all context to orient</td><td><code>SKILL.md</code> all phases</td><td>FR-7.x</td></tr>
+  </tbody>
+</table>
+
+<h2 id="decisions">3. Decisions</h2>
+<table>
+  <thead><tr><th>D</th><th>Decision</th><th>Rationale</th></tr></thead>
+  <tbody>
+    <tr><td>D1 <span class="tag">resolved</span></td><td><strong>Image/SVG stub: <code>map-to-notion.mjs</code> is the single positional owner.</strong> The map script emits the correctly-nested stub callout (with a fillable caption slot) for every image and ambiguous-media node; Phase 2 only fills the resolved caption/asset path into that block — it never hand-injects a second callout.</td><td>The 3-tab indentation bug and the duplicate "Unresolved svg" callout both originated from the orchestrator hand-editing NFM the script had already rendered. One owner that controls nesting deterministically makes duplication structurally impossible (F2, F4).</td></tr>
+    <tr><td>D2 <span class="tag">resolved</span></td><td><strong>Stub shape: one callout, caption inline.</strong> <code>🖼 [filename] · Caption: [original caption]</code> in a single callout body (plus the copied file path + a "drag into an image block to fill" hint). No separate placeholder block. Phase 2 announces up front that the Notion MCP has no native image-upload field.</td><td>A single block cannot de-nest from a toggle (F4); embedding the caption keeps it attached to its image (F4); the up-front banner sets the "callout, not upload box" expectation <em>before</em> the user sees output (F3).</td></tr>
+    <tr><td>D3 <span class="tag">resolved</span></td><td><strong>dl / label-description divs auto-convert to 2-column tables, flagged in the census.</strong> No per-cluster prompt; the Phase 1 census reports "N sections detected as table candidates → converted (Attribute | Description)".</td><td>The attribute/description shape <em>is</em> a table; auto-conversion is the faithful default and the census makes it auditable. The user can still override post-hoc (F5).</td></tr>
+    <tr><td>D4</td><td><strong>Phase 5 gains a mandatory "Post-conversion actions" section</strong> that always emits the two deterministic limitations with counts + manual-fix instructions, regardless of whether the run was otherwise clean.</td><td>These limitations are deterministic, not edge cases — a faithful report discloses them every time, not only when something failed (F1).</td></tr>
+    <tr><td>D5</td><td><strong>Annexure grouping is a one-question detect-and-ask in Phase 1</strong> (threshold ≥3 sibling top-level sections sharing a leading token like "Annexure"/"Appendix"), Recommended = group under a single parent toggle. Not a general restructuring engine.</td><td>Grouping is the user's semantic intent, not a faithful-conversion default — so it is offered, not auto-applied; one prompt, not per-section (F6).</td></tr>
+    <tr><td>D6</td><td><strong>Per-phase status banner</strong> — each phase ends by printing a one-line, compaction-surviving banner (<code>Phase N complete — &lt;key counts&gt;. Phase N+1 starting.</code>) to chat.</td><td>The banner survives a context compaction so a continuation orients from the chat tail without re-reading tool output history (F7). It complements, does not replace, the existing <code>.write-cursor.json</code> resume mechanism.</td></tr>
+    <tr><td>D7</td><td><strong>Single story, single <code>/execute</code> run.</strong> All seven findings touch one skill and its scripts; the image findings (F2–F4) share the stub pipeline and the report finding depends on the deterministic facts. Splitting would create cross-story task dependencies (violating the D24 litmus).</td><td>1-skill-1-story default; the findings are interdependent within one SKILL.md + three scripts.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="frs">4. Functional requirements</h2>
+
+<h3>FR-1 — honest Phase 5 report (F1, D4)</h3>
+<ul>
+  <li><strong>FR-1.1</strong> Phase 5 always emits a <strong>Post-conversion actions</strong> section (even when verification is clean), containing: (a) the count of in-page anchor links that were written as plain text, with the reason (block UUIDs unknown at write time) and the manual-fix instruction; (b) confirmation that <code>fit-page-width="true"</code> is set on all N tables, plus the note that the page-level "Full width" toggle must be enabled for visual full-width.</li>
+  <li><strong>FR-1.2</strong> The "Open questions" / "Run outcome: clean" line must not contradict the Post-conversion actions section — a clean run still lists its standing limitations. The counts (anchor-links-as-text N, tables M) are derived from the map plan, not hard-coded.</li>
+</ul>
+
+<h3>FR-2 — single-owner stub injection (F2, D1)</h3>
+<ul>
+  <li><strong>FR-2.1</strong> <code>map-to-notion.mjs</code> emits exactly one stub callout per image node and per ambiguous-media node, at the correct list/toggle nesting depth, carrying a fillable caption slot. No second callout is rendered for the same source index.</li>
+  <li><strong>FR-2.2</strong> Phase 2 (SKILL.md) <strong>fills</strong> the resolved caption + copied-asset path into the map-emitted stub; it MUST NOT inject an additional callout or hand-edit nesting. The dual-write path is removed from the SKILL.md.</li>
+  <li><strong>FR-2.3</strong> A selftest in <code>map-to-notion.mjs</code> asserts that an image node and an ambiguous-svg node each produce exactly one callout in the NFM (no duplicate "Unresolved svg" + stub pair) and that the callout body is tab-indented at the node's depth.</li>
+</ul>
+
+<h3>FR-3 — stub shape + expectation-setting (F3, F4, D2)</h3>
+<ul>
+  <li><strong>FR-3.1</strong> <code>upload-image.mjs</code> <code>buildStub()</code> returns a <strong>single</strong> callout block whose body is <code>🖼 [filename] · Caption: [original caption]</code> followed by the copied relative path and a "drag into an image block to fill" hint. The separate empty image-placeholder block is removed. Caption defaults to alt text, then filename, when absent.</li>
+  <li><strong>FR-3.2</strong> Phase 2 prints an explicit up-front banner whenever ≥1 local image is headed to the stub rung: "Notion MCP cannot create a native image-upload field — local images become callout stubs naming the copied file path, with the caption inline; drag the file into an image block to fill." Shown <em>before</em> output, not after.</li>
+  <li><strong>FR-3.3</strong> <code>notion-blocks.md</code> §5 is updated to describe the single-callout stub shape (no placeholder pair) so the reference stays the one home for the fact.</li>
+</ul>
+
+<h3>FR-5 — attribute/description → table (F5, D3)</h3>
+<ul>
+  <li><strong>FR-5.1</strong> <code>parse-doc.mjs</code> detects <code>&lt;dl&gt;</code>/<code>&lt;dt&gt;</code>/<code>&lt;dd&gt;</code> structures and <code>&lt;div&gt;</code> subtrees that alternate a short label element with a description element, and emits each as a 2-column table node (header <code>Attribute | Description</code>) instead of paragraphs. Conservative: a div subtree qualifies only when it is a clean alternating label/description pair list (no mixed content), so prose is never mis-tabled.</li>
+  <li><strong>FR-5.2</strong> The Phase 1 census reports detected candidates: "<em>N</em> sections detected as table candidates → converted to 2-column tables". Counts derived from the parser output.</li>
+  <li><strong>FR-5.3</strong> Detected tables flow through the existing §3 table-fidelity contract (cell padding to <code>table_width</code>, <code>fit-page-width="true"</code>), so they are never partially dropped.</li>
+</ul>
+
+<h3>FR-6 — annexure grouping (F6, D5)</h3>
+<ul>
+  <li><strong>FR-6.1</strong> <code>parse-doc.mjs</code> detects ≥3 sibling top-level sections whose headings share a common leading token (case-insensitive, e.g. "Annexure", "Appendix") and flags them as a groupable cluster.</li>
+  <li><strong>FR-6.2</strong> Phase 1 asks once (Recommended = group): "Group all N &lt;prefix&gt; sections under a single parent toggle?" On accept, the sections are nested under one toggle heading; on decline, they stay flat. AUTO-PICK group under <code>--non-interactive</code> (carries a Recommended option). This is the only structural restructuring offered — it does not generalize.</li>
+</ul>
+
+<h3>FR-7 — per-phase status banner (F7, D6)</h3>
+<ul>
+  <li><strong>FR-7.1</strong> Each SKILL.md phase ends by printing a single-line banner to chat: <code>Phase N complete — &lt;key counts for that phase&gt;. Phase N+1 starting.</code> (e.g. Phase 2: "2 stubs resolved, 0 user-skipped"). The banner is chat text (survives compaction), not a file write.</li>
+  <li><strong>FR-7.2</strong> The banner content is the phase's salient state, chosen so a fresh continuation can orient without re-reading tool output. It does not replace <code>.write-cursor.json</code> (the durable resume cursor) — the two coexist.</li>
+</ul>
+
+<h2 id="invariants">5. Invariants</h2>
+<ul>
+  <li><strong>INV-1 — conversion completeness is never weakened.</strong> Every source <code>si</code> still reaches a terminal disposition <code>{mapped, stubbed, user-skipped}</code>; Phase 4 verify still fails loudly on any unaccounted-for block. The new table/grouping nodes are accounted-for like any other.</li>
+  <li><strong>INV-2 — every script keeps its embedded <code>--selftest</code> green.</strong> <code>parse-doc</code>, <code>map-to-notion</code>, <code>upload-image</code>, <code>chunk-blocks</code>, <code>verify-page</code> selftests pass after the edits; new behavior (single-owner stub, dl→table, annexure detect, caption-inline stub) gets new selftest assertions. Deterministic work stays in scripts (§H — never have the model do arithmetic/parsing a script can do).</li>
+  <li><strong>INV-3 — <code>notion-blocks.md</code> stays the one home</strong> for every Notion-API / NFM fact; SKILL.md cites, never restates (§K). The stub-shape change lands in §5; the table-fidelity facts in §3 are unchanged.</li>
+  <li><strong>INV-4 — no regression to the happy path.</strong> A source with no images, no <code>dl</code>/label-divs, and no annexure clusters converts byte-identically to before (the new detectors are additive and fire only on their signals).</li>
+  <li><strong>INV-5 — non-interactive contract preserved.</strong> The new Phase 1 annexure ask carries a Recommended option (AUTO-PICK group); the Phase 2 banner is informational (no prompt). The frozen <code>non-interactive-block</code> stays byte-identical; <code>allowed-tools</code> stays <code>Bash, Read</code> (no <code>AskUserQuestion</code> added to the frontmatter list — the existing asks already degrade per Platform Adaptation).</li>
+</ul>
+
+<h2 id="conformance">6. Conformance</h2>
+<p>The produced skill must conform to <code>skill-patterns.md §A–§L</code> and pass <code>skill-eval.md</code>
+(both the <code>[D]</code> deterministic and <code>[J]</code> judge halves). Repo policy from
+<code>CLAUDE.md</code> applies: canonical skill path
+(<code>plugins/pmos-utilities/skills/to-notion-doc/SKILL.md</code>), the non-interactive inline-block byte
+match (<code>tools/lint-non-interactive-inline.sh</code>), the recommended-option audit
+(<code>tools/audit-recommended.sh</code>), and the flag/phase-ref lints
+(<code>tools/lint-flags-vs-hints.sh</code>, <code>tools/lint-phase-refs.sh</code>). Release prerequisites
+(version bump, changelog, manifest sync) are <code>/complete-dev</code>'s job at Loop 3 — not tasks in this
+story's waves (§G).</p>
+
+<h2 id="stories">7. Story</h2>
+<p>One story — <strong>260629-sch</strong> (<code>route: skill</code>, plugin pmos-utilities, no dependencies):
+all seven findings in one <code>/execute</code> run over <code>SKILL.md</code> + <code>parse-doc.mjs</code> +
+<code>map-to-notion.mjs</code> + <code>upload-image.mjs</code> + <code>notion-blocks.md</code>. Its ACs are the
+seven findings' fixes (the FRs above), verbatim. See the story item and
+<code>stories/260629-sch/03_plan.html</code>.</p>
+
+<h2 id="open">8. Open questions</h2>
+<p>None blocking. The three architectural forks (stub owner, stub shape, dl→table policy) were resolved with
+the maintainer during this define run. The dl/label-div detector heuristic (FR-5.1) is deliberately
+conservative — if it proves too narrow or too broad in the next real run, tune the qualifying predicate, not
+the architecture.</p>
+
+</body>
+</html>

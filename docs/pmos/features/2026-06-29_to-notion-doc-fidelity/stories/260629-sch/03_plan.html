@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<meta name="pmos:artifact" content="plan">
+<title>Plan — /to-notion-doc fidelity fixes (260629-sch)</title>
+<style>
+  :root { --ink:#1d2438; --muted:#5b6680; --accent:#2563eb; --panel:#f4f7ff; }
+  body { font-family: Georgia, 'Times New Roman', serif; color: var(--ink); max-width: 820px; margin: 0 auto; padding: 2.5rem 1.25rem 6rem; line-height: 1.6; }
+  h1,h2,h3 { font-family: -apple-system, Helvetica, Arial, sans-serif; line-height: 1.25; }
+  h1 { font-size: 1.9rem; } h2 { font-size: 1.35rem; margin-top: 2.2rem; border-bottom: 2px solid var(--panel); padding-bottom: .3rem; } h3 { font-size: 1.08rem; margin-top: 1.5rem; }
+  code { font-family: ui-monospace, Menlo, monospace; background: var(--panel); padding: .1em .35em; border-radius: 4px; font-size: .9em; }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-family: -apple-system, Helvetica, Arial, sans-serif; font-size: .92rem; }
+  th,td { border: 1px solid #d7def0; padding: .5rem .6rem; text-align: left; vertical-align: top; }
+  th { background: var(--panel); }
+  .muted { color: var(--muted); } .tag { display:inline-block; font:600 .72rem -apple-system,sans-serif; padding:.1em .5em; border-radius:3px; background:#e3e9fb; }
+  @media (prefers-color-scheme: dark) { body{background:#15171c;color:#e6e9f0;} code,th{background:#23262e;} th,td{border-color:#333a46;} }
+</style>
+</head>
+<body>
+
+<h1 id="title">Plan — <code>/to-notion-doc</code> fidelity fixes</h1>
+<p class="muted">Story <strong>260629-sch</strong> · Epic 260629-7hm · route: skill · plugin pmos-utilities ·
+no dependencies · execution_mode: inline</p>
+<p>Authoritative task DAG is <code>tasks.yaml</code> (this is its readable mirror). Design contract:
+<a href="../../02_design.html"><code>02_design.html</code></a> (D1–D7, FR-1..FR-7, INV-1..INV-5).</p>
+
+<h2 id="scope">Scope</h2>
+<p>Revise the existing skill at <code>plugins/pmos-utilities/skills/to-notion-doc/</code> to apply seven
+findings from its first production run. Surfaces: <code>SKILL.md</code> + <code>scripts/parse-doc.mjs</code> +
+<code>scripts/map-to-notion.mjs</code> + <code>scripts/upload-image.mjs</code> +
+<code>reference/notion-blocks.md</code>. Deterministic work stays in the zero-dep Node scripts with embedded
+<code>--selftest</code> (§H); <code>SKILL.md</code> orchestrates and cites <code>notion-blocks.md</code>
+(§K/INV-3). No release-prerequisite tasks here — <code>/complete-dev</code> owns those at Loop 3 (§G).</p>
+
+<h2 id="tasks">Task DAG</h2>
+<table>
+  <thead><tr><th>Task</th><th>What</th><th>ACs</th><th>Deps</th><th>Files</th></tr></thead>
+  <tbody>
+    <tr><td><strong>T1</strong> <span class="tag">study</span></td><td>Read design, SKILL.md, 3 scripts + reference, skill-patterns; pin the dual-write path and the buildStub two-block shape</td><td>all</td><td>—</td><td>(read-only)</td></tr>
+    <tr><td><strong>T2</strong></td><td>F3/F4 — <code>buildStub()</code> → single caption-inline callout (<code>🖼 [file] · Caption: …</code> + path + drag hint); update <code>notion-blocks.md</code> §5</td><td>AC3</td><td>T1</td><td><code>upload-image.mjs</code>, <code>notion-blocks.md</code></td></tr>
+    <tr><td><strong>T3</strong></td><td>F5/F6 — parser detectors: <code>dl</code>/label-div → 2-col <code>Attribute&nbsp;|&nbsp;Description</code> table (conservative); ≥3-sibling annexure-cluster signal (no auto-group)</td><td>AC4, AC5</td><td>T1</td><td><code>parse-doc.mjs</code></td></tr>
+    <tr><td><strong>T4</strong></td><td>F2 — <code>map-to-notion</code> is the single positional owner: exactly one stub callout per image/ambiguous node at correct depth; reconcile the two render paths; selftest no-duplicate</td><td>AC2</td><td>T2, T3</td><td><code>map-to-notion.mjs</code></td></tr>
+    <tr><td><strong>T5</strong></td><td>SKILL.md — Phase 5 mandatory Post-conversion actions (F1); Phase 2 fill-not-inject + up-front no-upload-field banner (F2/F3); Phase 1 census table-candidate report + annexure ask (F5/F6); per-phase status banner (F7)</td><td>AC1, AC2, AC3, AC5, AC6</td><td>T2, T3, T4</td><td><code>SKILL.md</code></td></tr>
+    <tr><td><strong>T6</strong></td><td>Conformance — 5 selftests green; byte-identical no-regression on a plain source; skill-eval [D]; 4 hygiene lints + recommended-audit</td><td>AC7, AC8</td><td>T5</td><td>(verify)</td></tr>
+  </tbody>
+</table>
+
+<h3>Wave view</h3>
+<ul>
+  <li><strong>Wave 1:</strong> T1 (study).</li>
+  <li><strong>Wave 2:</strong> T2 (upload-image + reference) → T3 (parse-doc detectors). Distinct files, but
+  both feed T4, so sequence them then converge.</li>
+  <li><strong>Wave 3:</strong> T4 (map-to-notion single owner) — depends on the buildStub shape (T2) and the
+  new node types (T3).</li>
+  <li><strong>Wave 4:</strong> T5 (SKILL.md orchestration) — cites the now-final scripts/reference.</li>
+  <li><strong>Wave 5:</strong> T6 (conformance + regression + skill-eval + lints).</li>
+</ul>
+
+<h2 id="risks">Risks &amp; mitigations</h2>
+<table>
+  <thead><tr><th>Risk</th><th>Mitigation</th></tr></thead>
+  <tbody>
+    <tr><td>The <code>dl</code>/label-div detector mis-tables prose divs (false positives)</td><td>Conservative predicate (FR-5.1): qualify only a clean alternating short-label→description pair list with no mixed content; selftest asserts a prose div produces NO table (T3 verify).</td></tr>
+    <tr><td>Reconciling the two map render paths (image no-URL + ambiguous svg) breaks a currently-passing selftest</td><td>T4 adds the single-callout-per-node assertion and keeps chunk/verify selftests green; the no-regression byte-diff in T6 catches any happy-path drift (INV-4).</td></tr>
+    <tr><td>The new Phase-1 annexure ask trips the recommended-audit or non-interactive lints</td><td>The ask carries a (Recommended) option and AUTO-PICKs group under <code>--non-interactive</code> (no defer-only tag); <code>allowed-tools</code> and the frozen non-interactive block stay byte-identical (INV-5); T6 runs the 4 lints.</td></tr>
+    <tr><td>Phase 5 Post-conversion counts drift from reality (hard-coded)</td><td>FR-1.2: counts derive from the map plan (anchor-links-as-text, table count), never hard-coded.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="verification">Final verification checklist</h2>
+<ul>
+  <li>All five script <code>--selftest</code> suites exit 0 (INV-2).</li>
+  <li>A no-image / no-dl / no-annexure source converts byte-identically (INV-4 no-regression).</li>
+  <li><code>skill-eval-check.sh --target claude-code</code> [D] half exits 0 (or residuals explicitly accepted).</li>
+  <li>4 hygiene lints + recommended-audit green; <code>allowed-tools: Bash, Read</code> and the non-interactive
+  block unchanged.</li>
+  <li>Manual: a source with images + a <code>dl</code> + 3 "Annexure" siblings produces one stub callout per
+  image (caption inline), 2-col tables flagged in the census, and a one-question grouping offer.</li>
+</ul>
+
+</body>
+</html>

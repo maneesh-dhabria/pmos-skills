@@ -1,0 +1,157 @@
+schema_version: 1
+story: 260629-sch
+epic: 260629-7hm
+route: skill
+plugin: pmos-utilities
+spec: ../../02_design.html
+execution_mode: inline
+skill_dir: plugins/pmos-utilities/skills/to-notion-doc
+# Revision of the existing /to-notion-doc skill — applies 7 findings (F1–F7) from the first production run.
+# Surfaces: SKILL.md + scripts/{parse-doc,map-to-notion,upload-image}.mjs + reference/notion-blocks.md.
+# Reference: ../../02_design.html (D1–D7, FR-1..FR-7, INV-1..INV-5) + feature-sdlc/reference/skill-patterns.md
+#   §A–§L + host CLAUDE.md (canonical skill path plugins/pmos-utilities/skills/to-notion-doc; non-interactive
+#   inline-block byte-match; recommended-audit; flag/phase-ref lints).
+# Deterministic work stays in zero-dep Node scripts with embedded --selftest (§H). SKILL.md orchestrates
+# MCP calls + AskUserQuestion gates + settings.yaml I/O; cites notion-blocks.md, never restates (§K/INV-3).
+# NO release-prereq tasks (version bump, changelog, README, manifest sync) — /complete-dev owns those (§G).
+# INV-4 no-regression: every new detector/owner-change is ADDITIVE and fires only on its signal — a source
+#   with no images / no dl-or-label-divs / no annexure clusters must convert byte-identically.
+tasks:
+  - id: T1
+    title: "Study: design doc, current SKILL.md + 3 scripts + reference, skill-patterns, the dual-write path"
+    ac: [AC1, AC2, AC3, AC4, AC5, AC6, AC7, AC8]
+    deps: []
+    parallel: false
+    detail: >
+      Read ../../02_design.html (the finding→fix map, D1–D7, FR-1..FR-7, INV-1..INV-5). Read the current
+      plugins/pmos-utilities/skills/to-notion-doc/SKILL.md (the six-phase flow), scripts/parse-doc.mjs
+      (block-tree emit, formatFromPath, the existing ambiguous/toc detection), scripts/map-to-notion.mjs (the
+      renderBlock paths — note the `ambiguous` → "Unresolved svg" callout at ~line 257 AND the `image` no-URL
+      callout at ~line 249 — these are the two places that currently double up with the orchestrator's Phase 2
+      injection), scripts/upload-image.mjs (buildStub at ~line 56 — the current TWO-block callout+placeholder
+      shape), and reference/notion-blocks.md §3 (table fidelity / fit-page-width) + §5 (image ladder). Read
+      feature-sdlc/reference/skill-patterns.md §A–§L and skills/_shared/non-interactive.md (the frozen block —
+      do NOT alter it). Produce NO code — capture the exact single-owner stub contract (who renders the one
+      callout, what slot Phase 2 fills), the buildStub single-callout shape, and the parse-doc node shapes for
+      a 2-col table node and a grouped-toggle node, to drive the selftests.
+    verify: >
+      The dual-write path is pinned to specific lines in map-to-notion.mjs and the SKILL.md Phase 2 injection
+      it pairs with; the buildStub two-block shape and its selftest (~upload-image.mjs:128–129) are located;
+      the §3 table contract and §5 stub paragraph in notion-blocks.md are identified as the edit targets;
+      skill-patterns §A–§L acceptance criteria and the non-interactive block located before any code.
+
+  - id: T2
+    title: "F3/F4 — upload-image buildStub: single caption-inline callout; notion-blocks.md §5 updated"
+    ac: [AC3]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Edit scripts/upload-image.mjs buildStub() (~line 56). Replace the TWO-block return
+      (callout + empty image placeholder, ~lines 61–64) with a SINGLE callout whose body is, in order:
+      `🖼 [basename] · Caption: [caption]` on the first line, then the copied relative path
+      `./to-notion-doc-assets/<slug>/<basename>`, then a "drag into an image block to fill" hint — all inside
+      one callout (no second block), tab-indented per the §5 NFM rule (no inline <br>). Caption resolves
+      alt → basename when absent (design D2/FR-3.1). Keep the returned {kind:'stub', assetRelPath, copy,
+      blocks, nfm} shape but blocks is now length 1. Update the embedded --selftest: the stub callout names the
+      copied path, embeds "Caption:", contains the basename, and blocks.length === 1 (drop the old
+      blocks[1].type === 'image' placeholder assertion). Then edit reference/notion-blocks.md §5 (the
+      "Local-extract stub" rung, ~lines 122–125) to describe the single caption-inline callout shape (no
+      placeholder pair) — INV-3: this reference stays the one home for the fact.
+    verify: >
+      node scripts/upload-image.mjs --selftest exits 0 with the new single-callout assertions; the §5 prose in
+      notion-blocks.md matches the new shape (no "placeholder block" pair language); buildStub returns one
+      block whose nfm embeds the caption inline.
+
+  - id: T3
+    title: "F5/F6 — parse-doc: dl/label-div → 2-col table detector + ≥3-sibling annexure-cluster detector"
+    ac: [AC4, AC5]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Edit scripts/parse-doc.mjs (additive — fire only on signal, INV-4). (1) F5/FR-5.1: detect
+      <dl>/<dt>/<dd> and <div> subtrees that are a CLEAN alternating label→description pair list (a short
+      label element followed by a description element, repeated; reject subtrees with mixed/prose content so
+      paragraphs are never mis-tabled). Emit each as a table node: header row ['Attribute','Description'],
+      one body row per pair, so it flows through map-to-notion's §3 table-fidelity path (cell padding,
+      fit-page-width) unchanged (FR-5.3). Tag the node so the census can count it (e.g. a `detectedAs:
+      'table-candidate'` marker). (2) F6/FR-6.1: detect ≥3 sibling top-level sections whose headings share a
+      common leading token (case-insensitive first word, e.g. "Annexure"/"Appendix"); emit a groupable-cluster
+      signal (the prefix + the section si range) WITHOUT auto-grouping — the Phase-1 ask (T4) decides. Add
+      selftest cases: a <dl> and a label/description div each yield a 2-col table node with the right header;
+      a prose div does NOT; 3 "Annexure N" siblings yield one cluster signal, 2 siblings yield none.
+    verify: >
+      node scripts/parse-doc.mjs --selftest exits 0 with the new table-candidate and annexure-cluster
+      assertions; a prose div and a 2-sibling case both produce NO table/cluster (conservative predicate
+      holds); the table node shape is what map-to-notion's table path consumes.
+
+  - id: T4
+    title: "F2 — map-to-notion is the single positional owner of the image/ambiguous-media stub callout"
+    ac: [AC2]
+    deps: [T2, T3]
+    parallel: false
+    detail: >
+      Edit scripts/map-to-notion.mjs so EXACTLY ONE stub callout is rendered per image node and per
+      ambiguous-media node, at the node's correct nesting depth, carrying a fillable caption slot in the
+      single-callout shape T2 established (design D1/FR-2.1). Reconcile the two existing render paths (the
+      `image` no-URL callout ~line 249 and the `ambiguous` "Unresolved svg" callout ~line 257) so they emit
+      that one canonical stub — they must NOT both fire for the same source index, and the SKILL.md no longer
+      injects a second one (the fill-not-inject contract is enforced in T5). The map emits the stub with the
+      caption slot; Phase 2 fills it. Add a selftest: an image node and an ambiguous-svg node each produce
+      exactly ONE callout in the NFM (assert a single `<callout` per node, no duplicate "Unresolved" + stub
+      pair) and the callout body is tab-indented at the node depth (FR-2.3). Ensure the grouped-toggle and
+      2-col-table nodes from T3 map correctly (tables via the §3 path; a grouped cluster, when Phase 1 chose
+      grouping, nests its sections under one toggle heading).
+    verify: >
+      node scripts/map-to-notion.mjs --selftest exits 0 with the single-callout-per-node assertions; an
+      image+svg fixture renders exactly two callouts total (one each), never four; node scripts/chunk-blocks.mjs
+      --selftest and node scripts/verify-page.mjs --selftest still exit 0 (downstream model unaffected, INV-1).
+
+  - id: T5
+    title: "SKILL.md — Phase 5 honest report, Phase 2 fill-not-inject + banner, Phase 1 census + annexure ask, per-phase banner"
+    ac: [AC1, AC2, AC3, AC5, AC6]
+    deps: [T2, T3, T4]
+    parallel: false
+    detail: >
+      Edit plugins/pmos-utilities/skills/to-notion-doc/SKILL.md (cite the updated scripts/reference, never
+      restate — INV-3/§K). (AC1/F1) Phase 5: add a mandatory "Post-conversion actions" subsection that ALWAYS
+      emits — even on a clean run — (a) the count of in-page anchor links written as plain text + reason
+      (block UUIDs unknown at write time) + the manual-fix instruction, and (b) confirmation that
+      fit-page-width="true" is on all N tables + the page-level "Full width" toggle note; counts come from the
+      map plan, not hard-coded; the "Run outcome: clean" line must not contradict this section (FR-1.2).
+      (AC2/AC3/F2/F3) Phase 2: change the image/ambiguous handling to FILL the map-emitted stub's caption slot
+      (no second-callout injection — the dual-write is gone), and print an up-front banner whenever ≥1 local
+      image hits the stub rung: "Notion MCP cannot create a native image-upload field — local images become
+      callout stubs naming the copied file path, with the caption inline; drag the file into an image block to
+      fill." (AC4 census + AC5 annexure ask)/F5/F6 Phase 1: the census reports "N sections detected as table
+      candidates → converted to 2-column tables"; and when parse-doc emits an annexure-cluster signal, ask
+      once — `AskUserQuestion`: "Group all N <prefix> sections under a single parent toggle? (Recommended)" /
+      "Keep them flat" — Recommended = group, AUTO-PICK group under --non-interactive (carries Recommended →
+      no defer-only tag; keeps the recommended-audit green). (AC6/F7) every phase ends with a one-line banner
+      to chat: `Phase N complete — <key counts>. Phase N+1 starting.` Keep allowed-tools: Bash, Read unchanged
+      and the non-interactive block byte-identical (INV-5).
+    verify: >
+      Phase 5 renders the Post-conversion actions section on a clean run; Phase 2 no longer injects a second
+      callout and prints the no-upload-field banner before output; Phase 1 census + annexure ask present with
+      a Recommended option; each phase emits its banner. Frontmatter allowed-tools and the non-interactive
+      block are byte-identical to before. The new annexure ask has a (Recommended) option (audit-recommended).
+
+  - id: T6
+    title: "Conformance + no-regression + skill-eval + lints"
+    ac: [AC7, AC8]
+    deps: [T5]
+    parallel: false
+    detail: >
+      Run all five script selftests (parse-doc, map-to-notion, upload-image, chunk-blocks, verify-page) — all
+      exit 0 (INV-2). No-regression (INV-4): construct a minimal source with NO images, NO dl/label-divs, NO
+      annexure clusters and confirm the parse+map output is byte-identical to the pre-change output (diff the
+      map NFM). Run skill-eval: bash plugins/pmos-toolkit/skills/feature-sdlc/tools/skill-eval-check.sh
+      --target claude-code plugins/pmos-utilities/skills/to-notion-doc (the [D] half; [J] half is the
+      Phase-6a judge). Run the four hygiene lints from repo root: tools/lint-non-interactive-inline.sh,
+      tools/lint-flags-vs-hints.sh, tools/lint-phase-refs.sh, tools/audit-recommended.sh (all scoped to or
+      covering the skill). Confirm CLAUDE.md policy: canonical skill path, no release-prereq edits in this
+      story (§G). Fix any failures, re-run until green. Do NOT add version-bump / changelog / README /
+      manifest tasks — /complete-dev owns those at Loop 3.
+    verify: >
+      All five selftests exit 0; the no-image/no-dl/no-annexure source converts byte-identically; skill-eval
+      [D] exits 0 (or residuals explicitly accepted per the Phase-6a contract); all four lints + the
+      recommended-audit green; allowed-tools and the non-interactive block unchanged.
