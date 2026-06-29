@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<meta name="pmos:artifact" content="design">
+<title>Design — /interview-feedback robustness (epic 260629-bm9)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: Georgia, "Times New Roman", serif; max-width: 50rem; margin: 0 auto; padding: 2rem 1.25rem; line-height: 1.6; color: #1a1a1a; background: #fbfaf6; }
+  h1, h2, h3 { font-family: -apple-system, system-ui, sans-serif; line-height: 1.25; }
+  h1 { font-size: 2rem; } h2 { font-size: 1.3rem; margin-top: 2.2rem; border-bottom: 1px solid #ddd; padding-bottom: .3rem; } h3 { font-size: 1.05rem; }
+  code, pre { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  code { background: #efece3; padding: .1em .35em; border-radius: 3px; font-size: .9em; }
+  pre { background: #efece3; padding: .9rem; border-radius: 6px; overflow-x: auto; font-size: .82rem; line-height: 1.45; }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; margin: 1rem 0; }
+  th, td { border: 1px solid #d6d2c6; padding: .45rem .6rem; text-align: left; vertical-align: top; }
+  th { background: #efece3; font-family: system-ui, sans-serif; }
+  .tag { display: inline-block; font: 600 .72rem system-ui; padding: .1em .5em; border-radius: 3px; background: #e3dcc9; }
+  .sev-blocker { background: #e9b8b0; } .sev-friction { background: #e8d9a8; } .sev-nit { background: #cdd9c2; }
+  blockquote { border-left: 3px solid #c9b98c; margin: 1rem 0; padding: .3rem 1rem; color: #555; background: #f4f1e8; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #1a1816; color: #e8e4da; } code, pre, th { background: #2a2724; } th, td { border-color: #3a3530; }
+    h2 { border-color: #3a3530; } blockquote { background: #232019; color: #c9c2b2; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Design — <code>/interview-feedback</code> robustness</h1>
+<p><strong>Epic</strong> 260629-bm9 · <strong>Plugin</strong> pmos-managerkit · <strong>Route</strong> skill ·
+<strong>Status</strong> defining · <strong>Date</strong> 2026-06-29</p>
+<p>The cross-cutting design contract for a single-story revision epic. It applies five findings from the first
+production run of <code>/interview-feedback</code> (scoring one candidate from a Google Drive recording, a
+Google Docs transcript, a local case-docs folder, and a post-interview PDF submission). The skill's core
+contract — two grounded artifacts with evidence-tier citations verified verbatim — was <em>eventually</em>
+delivered, but only after two external-URL workarounds, a manual transcript-rescue operation, and two rounds of
+user-prompted correction to how the written submission was assessed. This epic closes those gaps so the skill
+is robust on the inputs a real interview round actually carries. One architectural enrichment resolved with the
+maintainer during this define run is marked <span class="tag">resolved</span>.</p>
+
+<h2 id="problem">1. Problem &amp; charter fit</h2>
+<p>The claimed contract is "turn one round's inputs — recording or transcript, notes, scorecard, brief — into a
+filled scorecard and per-interviewer effectiveness notes, every subjective claim evidence-tier-tagged and
+transcript citations verified verbatim." The run held the <em>grounding</em> contract but fell short on three
+obligations the contract implies for real inputs:</p>
+<ol>
+  <li><strong>Input robustness.</strong> Two of the four inputs were Google URLs that 401'd. The skill emitted
+  no detection and no fallback — it silently fell through to a phase that later failed, and the user had to
+  notice and proactively supply a local copy. A skill that accepts an input must tell the user when it
+  <em>cannot read</em> that input, before proceeding.</li>
+  <li><strong>Data safety.</strong> <code>transcribe.sh</code> overwrote a speaker-attributed 1020-line Gemini
+  transcript with a 767-line timestamped-only whisper file — silent destruction of the better grounding source,
+  requiring a manual <code>mv</code> + restore. A tool must never clobber a better artifact that already
+  exists.</li>
+  <li><strong>Analytical completeness on the written submission.</strong> The post-interview PDF was not
+  factored into the recommendation at all (a No-Hire produced without referencing it), and when added it was
+  scored <em>in isolation</em> (3.60/4.00) rather than in the context of the interview that preceded it —
+  forcing two full rewrites. A faithful assessment reads a written submission <em>against</em> what the
+  interview seeded, and the right lens depends on whether the submission was produced after a live session or
+  prepared before one.</li>
+</ol>
+<p>All three serve the same charter ("help me produce a grounded, defensible scorecard") — this is a revision of
+the existing pmos-managerkit skill. No new skill, no new charter.</p>
+
+<h2 id="findings">2. Findings → fixes</h2>
+<table>
+  <thead><tr><th>#</th><th>Sev</th><th>Finding (one line)</th><th>Surface touched</th><th>FRs</th></tr></thead>
+  <tbody>
+    <tr><td>F1</td><td><span class="tag sev-blocker">blocker</span></td><td>Google Drive/Docs URL inputs 401 with no detection or fallback path</td><td><code>SKILL.md</code> Phase [Resolve]</td><td>FR-1.x</td></tr>
+    <tr><td>F2</td><td><span class="tag sev-blocker">blocker</span></td><td><code>transcribe.sh</code> overwrites an existing better transcript with whisper output</td><td><code>transcribe.sh</code>, <code>SKILL.md</code> Phases [Transcribe]/[Ground]</td><td>FR-2.x</td></tr>
+    <tr><td>F3</td><td><span class="tag sev-friction">friction</span></td><td>Post-interview written submission not factored into the recommendation at all</td><td><code>SKILL.md</code> Phase [Score], <code>fill-scorecard.mjs</code></td><td>FR-3.x</td></tr>
+    <tr><td>F4</td><td><span class="tag sev-friction">friction</span></td><td>Written submission scored in isolation, not cross-referenced against what the interview seeded</td><td><code>SKILL.md</code> Phase [Score], <code>fill-scorecard.mjs</code></td><td>FR-4.x</td></tr>
+    <tr><td>F5</td><td><span class="tag sev-nit">nit</span></td><td><code>check-citations.mjs</code> pass/fail is invisible in the artifacts and terminal</td><td><code>check-citations.mjs</code>, <code>SKILL.md</code> Phases [Score]/[Coach]</td><td>FR-5.x</td></tr>
+  </tbody>
+</table>
+
+<h2 id="decisions">3. Decisions</h2>
+<table>
+  <thead><tr><th>D</th><th>Decision</th><th>Rationale</th></tr></thead>
+  <tbody>
+    <tr><td>D1</td><td><strong>URL inputs are probed at the top of Phase [Resolve]; auth-walled or unreachable ones stop-and-ask, never fall through.</strong> Known auth-walled hosts (<code>drive.google.com</code>, <code>docs.google.com</code>) are recognized up front; any other URL is probed with a lightweight request. On 401/403/404/timeout (or a known auth-walled host), emit the exact line and stop that input.</td><td>The skill is local-first; a URL it cannot read is a dead end. Detecting it at Resolve — before transcription/scoring — turns a late silent failure into an early, actionable message (F1).</td></tr>
+    <tr><td>D2</td><td><strong><code>transcribe.sh</code> never clobbers an existing transcript by default.</strong> If <code>transcript.refined.txt</code> already exists, whisper output is written to <code>transcript.whisper.txt</code> and a signal names both files; Phase [Ground] selects the better tier (speaker-attributed &gt; timestamped-only). A new <code>--force-transcribe</code> flag (and its NL form) restores overwrite.</td><td>Silent destruction of the better grounding source is the worst failure mode for a grounding-first skill. Preserve-by-default + let Ground choose is safe and loses nothing; <code>--force-transcribe</code> is the explicit escape (F2).</td></tr>
+    <tr><td>D3 <span class="tag">resolved</span></td><td><strong>The written submission is assessed by scenario, never in isolation.</strong> Two scenarios, classified once (inferred default + a <code>--submission-type</code> flag): <em>(A) post-live</em> — submitted after a live session; <em>(B) pre-live-then-present</em> — prepared first, then presented/defended live. Each drives a different assessment lens (§FR-4). The assessment block is mandatory in the scorecard whenever a submission is present and feeds the overall reco.</td><td>A written submission's signal is only legible against the interview that preceded it. For (A), the question is whether the candidate used the live context to structure and complete the missing parts — a submission that merely re-presents what was discussed, however polished, is a weak signal. For (B), the question is the intrinsic quality of the first submission <em>plus</em> how the candidate defends it, reacts to probes, and adjusts live. Scoring the document alone answers neither (F3, F4; maintainer enrichment).</td></tr>
+    <tr><td>D4</td><td><strong>The citation gate becomes visible.</strong> On pass, <code>check-citations.mjs</code> prints one stdout line <code>✓ citations: N transcript, M notes</code> and the skill appends a one-line HTML comment at the top of each output file. The gate stays a hard fail on a non-verbatim transcript-tier citation.</td><td>A hard gate the user never sees is indistinguishable from no gate. A single stdout line + an in-artifact comment makes the verification auditable without cluttering the visible artifact (F5).</td></tr>
+    <tr><td>D5</td><td><strong>Written-submission claims are grounded like every other claim</strong> — a new <code>submission</code> evidence tier, verified verbatim (≥40 chars) by <code>check-citations.mjs</code> against the submission file (a third positional). The three-bucket / quality-plus-defense analysis cites the transcript for "what the interview seeded" and the submission for "what the candidate wrote".</td><td>The fix must not open a grounding hole: the new analysis introduces a new source, so the gate must cover it. Reusing the existing verbatim mechanism keeps grounding enforced, not asserted (F3/F4 + INV-1).</td></tr>
+  </tbody>
+</table>
+
+<h2 id="frs">4. Functional requirements</h2>
+
+<h3>FR-1 — URL-input detection &amp; fallback (F1, D1)</h3>
+<ul>
+  <li><strong>FR-1.1</strong> At the start of Phase [Resolve], every input token that is an <code>http(s)</code>
+  URL is classified before any other input handling. A known auth-walled host
+  (<code>drive.google.com</code>, <code>docs.google.com</code>) is treated as inaccessible without probing;
+  any other URL is probed with a lightweight request (HEAD/GET).</li>
+  <li><strong>FR-1.2</strong> On 401/403/404/timeout or a known auth-walled host, emit <em>exactly</em>:
+  <code>Can't access &lt;url&gt; — please provide a local file path or paste the content.</code> and stop
+  processing that input. Do <strong>not</strong> fall through to Transcribe/Ground/Score with a missing input.
+  A reachable, fetchable URL is downloaded into <code>inputs/</code> verbatim and proceeds normally.</li>
+  <li><strong>FR-1.3</strong> Under <code>--non-interactive</code> an inaccessible URL <strong>DEFERs</strong>
+  (free-form: a local path cannot be guessed) — log the open question and continue with the inputs that did
+  resolve; never fabricate or silently drop.</li>
+</ul>
+
+<h3>FR-2 — non-clobbering transcription (F2, D2)</h3>
+<ul>
+  <li><strong>FR-2.1</strong> Before writing <code>transcript.refined.txt</code>, <code>transcribe.sh</code>
+  checks whether that file already exists. If it does, whisper output is written to
+  <code>transcript.whisper.txt</code> instead (the existing file is never overwritten), and the script emits a
+  signal on stdout naming both files and which carries speaker attribution (a <code>Name:</code> line-prefix
+  pattern).</li>
+  <li><strong>FR-2.2</strong> <code>--force-transcribe</code> (NL: "re-transcribe / overwrite the transcript")
+  restores the overwrite-<code>transcript.refined.txt</code> behavior. Default is preserve.</li>
+  <li><strong>FR-2.3</strong> Phase [Ground] selects the grounding source: when both a speaker-attributed
+  transcript and a timestamped-only one exist, prefer the speaker-attributed file and say so. The selection is
+  surfaced to the user, not silent.</li>
+</ul>
+
+<h3>FR-3 — written submission factored into the reco (F3, D3)</h3>
+<ul>
+  <li><strong>FR-3.1</strong> Phase [Score] detects a post-interview / prepared written submission among the
+  inputs (by filename pattern — e.g. <code>submission</code>, <code>writeup</code>, <code>case</code>,
+  <code>assignment</code>, or a non-transcript/non-scorecard document — or the explicit
+  <code>--written-submission &lt;path&gt;</code> flag).</li>
+  <li><strong>FR-3.2</strong> When a submission is present, the filled scorecard MUST carry a
+  <strong>written-submission assessment block</strong> and the overall recommendation MUST reference it. A
+  checklist gate closes Phase [Score] only when all are true: <em>"Written submission present in inputs? →
+  classified by scenario? → assessed in context? → referenced in reco? — Y/N."</em> A No-Hire/Hire produced
+  without the submission block, when a submission was supplied, fails the gate.</li>
+</ul>
+
+<h3>FR-4 — scenario-aware contextual assessment (F4, D3)</h3>
+<ul>
+  <li><strong>FR-4.1</strong> The submission is classified into one scenario, once: <em>(A) post-live</em> —
+  produced after a live session — or <em>(B) pre-live-then-present</em> — prepared before a live session and
+  then presented/defended. Default inferred from timing/filename/the round brief; overridable with
+  <code>--submission-type post-live|pre-live</code>. Under <code>--non-interactive</code> the inferred default
+  is AUTO-PICKed (carries a Recommended option); ambiguity is logged as an open question.</li>
+  <li><strong>FR-4.2 — Scenario A (post-live).</strong> Cross-reference each scored dimension against the
+  transcript and bucket the submission's content as: (a) <em>discussed in the interview</em>, (b) <em>directed
+  by the interviewer's closing brief</em>, (c) <em>independently reached</em> by the candidate. The assessment
+  judges whether the candidate <em>used the live-discussion context to appropriately structure and complete the
+  missing parts</em>. A submission that mainly restates (a)/(b) — however well presented — is explicitly flagged
+  as a weak signal, not a strong one.</li>
+  <li><strong>FR-4.3 — Scenario B (pre-live-then-present).</strong> Assess (i) the intrinsic quality of the
+  first submission and the clarity of thought it shows, <em>and</em> (ii) from the transcript, how well the
+  candidate defends that thinking, reacts to the interviewer's probes, and adjusts on the fly during the live
+  session. Both halves feed the dimension scores.</li>
+  <li><strong>FR-4.4</strong> The submission is <strong>never</strong> scored as a standalone number divorced
+  from interview context. The assessment block surfaces the scenario, the buckets (A) or the quality+defense
+  split (B), and how each shaped the contributing dimension scores and the overall reco.</li>
+</ul>
+
+<h3>FR-5 — visible citation gate + submission grounding (F5, D4, D5)</h3>
+<ul>
+  <li><strong>FR-5.1</strong> On pass, <code>check-citations.mjs</code> prints exactly one stdout line:
+  <code>✓ citations: N transcript, M notes</code> (counts of verified citations by tier; the submission tier is
+  included in the line when present, e.g. <code>K submission</code>). On fail it keeps its current loud
+  non-zero exit + offending-citation report.</li>
+  <li><strong>FR-5.2</strong> The skill appends a one-line HTML comment at the top of each output file on pass:
+  <code>&lt;!-- citations verified: N transcript-tier, M notes-tier[, K submission-tier], &lt;YYYY-MM-DD&gt; --&gt;</code>.
+  Visible in source, invisible in render — no clutter.</li>
+  <li><strong>FR-5.3</strong> <code>check-citations.mjs</code> gains a <code>submission</code> known tier and an
+  optional third positional (the submission file). A <code>data-cite-tier="submission"</code> citation is
+  verified as a verbatim ≥40-char substring of the submission file (same normalization as the transcript tier);
+  a submission-tier citation with no submission file provided, or not found verbatim, fails the gate. Selftest
+  coverage added.</li>
+</ul>
+
+<h2 id="invariants">5. Invariants</h2>
+<ul>
+  <li><strong>INV-1 — grounding stays enforced, not asserted.</strong> Every subjective claim still carries an
+  evidence-tier citation; <code>check-citations.mjs</code> still hard-fails a non-verbatim transcript-tier
+  citation. The new <code>submission</code> tier is verified verbatim too — the written-submission analysis does
+  not open a grounding hole (§FR-5.3 / D5).</li>
+  <li><strong>INV-2 — non-interactive contract preserved.</strong> The new asks carry a Recommended option
+  (submission-scenario classification) or are explicitly defer-only free-form (the URL-fallback "provide a local
+  path"); the frozen <code>non-interactive-block</code> stays byte-identical; the existing scoped tier-3
+  questionnaire refusal marker is untouched. No new entry is added to a frontmatter <code>allowed-tools</code>
+  list (the skill declares none; its asks already degrade per Platform Adaptation).</li>
+  <li><strong>INV-3 — scripts keep their <code>--selftest</code> green.</strong> <code>check-citations.mjs</code>
+  and <code>fill-scorecard.mjs</code> selftests pass after the edits with new assertions added (submission tier,
+  written-submission block); <code>transcribe.sh</code>'s preserve-guard is covered by a case in
+  <code>tests/run-tests.sh</code>. Deterministic work stays in scripts (§H).</li>
+  <li><strong>INV-4 — no regression to the happy path.</strong> A run with a local transcript, no written
+  submission, and no URL inputs behaves byte-identically: the URL probe fires only on URL tokens, the
+  preserve-guard only when a transcript pre-exists, and the submission block only when a submission is present.</li>
+  <li><strong>INV-5 — confidentiality unchanged.</strong> Candidate data stays local; the gitignore guard is
+  intact; the written submission and any downloaded URL content are copied into <code>inputs/</code> verbatim
+  and never committed, never sent to an external service (the URL probe is a read of a user-supplied URL only).</li>
+</ul>
+
+<h2 id="conformance">6. Conformance</h2>
+<p>The revised skill must conform to <code>skill-patterns.md §A–§L</code> and pass <code>skill-eval.md</code>
+(both the <code>[D]</code> deterministic and <code>[J]</code> judge halves). Repo policy from
+<code>CLAUDE.md</code> applies: canonical skill path
+(<code>plugins/pmos-managerkit/skills/interview-feedback/SKILL.md</code>), the non-interactive inline-block byte
+match (<code>tools/lint-non-interactive-inline.sh</code>), the recommended-option audit
+(<code>tools/audit-recommended.sh</code>), and the flag/phase-ref lints
+(<code>tools/lint-flags-vs-hints.sh</code>, <code>tools/lint-phase-refs.sh</code> — note the new contract flags
+<code>--force-transcribe</code> and <code>--submission-type</code> + <code>--written-submission</code> must be
+both in <code>argument-hint</code> and handled in the body, or NL-sugar-marked). Release prerequisites (version
+bump, changelog, manifest sync, README row) are <code>/complete-dev</code>'s job at Loop 3 — not tasks in this
+story's waves (§G).</p>
+
+<h2 id="stories">7. Story</h2>
+<p>One story — <strong>260629-jfz</strong> (<code>route: skill</code>, plugin pmos-managerkit, no dependencies):
+all five findings in one <code>/execute</code> run over <code>SKILL.md</code> + <code>transcribe.sh</code> +
+<code>check-citations.mjs</code> + <code>fill-scorecard.mjs</code>. Its ACs are the five findings' fixes (the
+FRs above), with F3 and F4 fused into the written-submission assessment feature. See the story item and
+<code>stories/260629-jfz/03_plan.html</code>. Single-story epic (singleton wrap): the findings are
+interdependent within one <code>SKILL.md</code> + three scripts; splitting would create cross-story task
+dependencies (D24 litmus).</p>
+
+<h2 id="open">8. Open questions</h2>
+<p>None blocking. The submission-scenario enrichment (post-live vs pre-live-then-present) was resolved with the
+maintainer during this define run. Two heuristics are deliberately conservative and should be tuned on the next
+real run, not re-architected: the submission-detection filename predicate (FR-3.1) and the auth-walled-host list
+(FR-1.1) — if a real input is mis-classified, widen the predicate/list, not the design.</p>
+
+</body>
+</html>
