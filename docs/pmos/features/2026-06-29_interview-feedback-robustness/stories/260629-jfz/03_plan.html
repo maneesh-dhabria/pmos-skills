@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<meta name="pmos:artifact" content="plan">
+<title>Plan — /interview-feedback robustness (260629-jfz)</title>
+<style>
+  :root { --ink:#1d2438; --muted:#5b6680; --accent:#2563eb; --panel:#f4f7ff; }
+  body { font-family: Georgia, 'Times New Roman', serif; color: var(--ink); max-width: 820px; margin: 0 auto; padding: 2.5rem 1.25rem 6rem; line-height: 1.6; }
+  h1,h2,h3 { font-family: -apple-system, Helvetica, Arial, sans-serif; line-height: 1.25; }
+  h1 { font-size: 1.9rem; } h2 { font-size: 1.35rem; margin-top: 2.2rem; border-bottom: 2px solid var(--panel); padding-bottom: .3rem; } h3 { font-size: 1.08rem; margin-top: 1.5rem; }
+  code { font-family: ui-monospace, Menlo, monospace; background: var(--panel); padding: .1em .35em; border-radius: 4px; font-size: .9em; }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-family: -apple-system, Helvetica, Arial, sans-serif; font-size: .92rem; }
+  th,td { border: 1px solid #d7def0; padding: .5rem .6rem; text-align: left; vertical-align: top; }
+  th { background: var(--panel); }
+  .muted { color: var(--muted); } .tag { display:inline-block; font:600 .72rem -apple-system,sans-serif; padding:.1em .5em; border-radius:3px; background:#e3e9fb; }
+  @media (prefers-color-scheme: dark) { body{background:#15171c;color:#e6e9f0;} code,th{background:#23262e;} th,td{border-color:#333a46;} }
+</style>
+</head>
+<body>
+
+<h1 id="title">Plan — <code>/interview-feedback</code> robustness</h1>
+<p class="muted">Story <strong>260629-jfz</strong> · Epic 260629-bm9 · route: skill · plugin pmos-managerkit ·
+no dependencies · execution_mode: inline</p>
+<p>Authoritative task DAG is <code>tasks.yaml</code> (this is its readable mirror). Design contract:
+<a href="../../02_design.html"><code>02_design.html</code></a> (D1–D5, FR-1..FR-5, INV-1..INV-5).</p>
+
+<h2 id="scope">Scope</h2>
+<p>Revise the existing skill at <code>plugins/pmos-managerkit/skills/interview-feedback/</code> to apply five
+findings from its first production run. Surfaces: <code>SKILL.md</code> (Phases Resolve/Transcribe/Ground/Score/
+Coach) + <code>scripts/transcribe.sh</code> + <code>scripts/check-citations.mjs</code> +
+<code>scripts/fill-scorecard.mjs</code>. Deterministic work stays in the scripts with <code>--selftest</code> /
+<code>tests/run-tests.sh</code> (§H); <code>SKILL.md</code> orchestrates and cites the references (§K). No
+release-prerequisite tasks here — <code>/complete-dev</code> owns those at Loop 3 (§G).</p>
+
+<h2 id="tasks">Task DAG</h2>
+<table>
+  <thead><tr><th>Task</th><th>What</th><th>ACs</th><th>Deps</th><th>Files</th></tr></thead>
+  <tbody>
+    <tr><td><strong>T1</strong> <span class="tag">study</span></td><td>Read design, SKILL.md, 3 scripts + tests, skill-patterns; pin the clobber line, KNOWN_TIERS, the reco-composition point</td><td>all</td><td>—</td><td>(read-only)</td></tr>
+    <tr><td><strong>T2</strong></td><td>F2 — <code>transcribe.sh</code> never clobbers an existing transcript (route whisper to <code>transcript.whisper.txt</code>); <code>--force-transcribe</code>; speaker-attribution signal</td><td>AC2</td><td>T1</td><td><code>transcribe.sh</code>, <code>tests/run-tests.sh</code></td></tr>
+    <tr><td><strong>T3</strong></td><td>F5/D5 — <code>check-citations.mjs</code>: <code>submission</code> tier + verbatim 3rd-source check + <code>✓ citations:</code> pass line</td><td>AC5</td><td>T1</td><td><code>check-citations.mjs</code></td></tr>
+    <tr><td><strong>T4</strong></td><td>F3/F4 — <code>fill-scorecard.mjs</code>: scenario-aware written-submission block (A: 3-bucket vs transcript; B: quality + live defend/probe/adjust) feeding the reco</td><td>AC3, AC4</td><td>T1</td><td><code>fill-scorecard.mjs</code>, <code>scorecard-skeleton.html</code></td></tr>
+    <tr><td><strong>T5</strong></td><td>SKILL.md — Resolve URL-probe + exact can't-access line (F1); Transcribe/Ground preserve+select (F2); Score submission detect + scenario ask + checklist gate (F3/F4); citation-visible comment (F5); 3 new flags in argument-hint</td><td>AC1, AC2, AC3, AC4, AC5</td><td>T2, T3, T4</td><td><code>SKILL.md</code></td></tr>
+    <tr><td><strong>T6</strong></td><td>Conformance — selftests + tests green; byte-identical no-regression on a plain run; skill-eval [D]; 4 hygiene lints + recommended-audit</td><td>AC6, AC7</td><td>T5</td><td>(verify)</td></tr>
+  </tbody>
+</table>
+
+<h3>Wave view</h3>
+<ul>
+  <li><strong>Wave 1:</strong> T1 (study).</li>
+  <li><strong>Wave 2:</strong> T2 (transcribe.sh), T3 (check-citations.mjs), T4 (fill-scorecard.mjs) — three
+  distinct files, independent of each other; can run in parallel after T1.</li>
+  <li><strong>Wave 3:</strong> T5 (SKILL.md orchestration) — cites the now-final scripts (the preserve-guard,
+  the submission tier, the assessment block).</li>
+  <li><strong>Wave 4:</strong> T6 (conformance + regression + skill-eval + lints).</li>
+</ul>
+
+<h2 id="risks">Risks &amp; mitigations</h2>
+<table>
+  <thead><tr><th>Risk</th><th>Mitigation</th></tr></thead>
+  <tbody>
+    <tr><td>The submission-detection filename predicate (FR-3.1) mis-classifies a real input (false +/−).</td><td>Conservative predicate + the explicit <code>--written-submission</code> override; tune the predicate, not the design, on the next real run (Open question §8).</td></tr>
+    <tr><td>The new <code>submission</code> grounding tier opens a hole if the submission file isn't passed.</td><td>FR-5.3: a submission-tier citation with no submission file is a hard FAILURE, asserted in <code>--selftest</code> (INV-1).</td></tr>
+    <tr><td>SKILL.md edits drift the frozen non-interactive block or the tier-3 refusal marker.</td><td>T5 + T6 assert both byte-identical; <code>lint-non-interactive-inline.sh</code> is the backstop (INV-2).</td></tr>
+    <tr><td>A change regresses the plain happy path.</td><td>T6 byte-identical diff on a no-submission / no-URL fixture; every change fires only on its signal (INV-4).</td></tr>
+  </tbody>
+</table>
+
+<h2 id="verification">Final verification checklist</h2>
+<ul>
+  <li>An auth-walled / 401 URL input produces the exact <code>Can't access …</code> line and stops that input —
+  no silent fall-through (AC1).</li>
+  <li>A pre-existing <code>transcript.refined.txt</code> survives a transcribe run byte-identical; whisper lands
+  in <code>transcript.whisper.txt</code>; <code>--force-transcribe</code> overwrites (AC2).</li>
+  <li>A submission-present run renders the scenario-labelled assessment block and the reco references it; a
+  restate-only post-live submission is flagged a weak signal (AC3, AC4).</li>
+  <li><code>check-citations.mjs</code> prints <code>✓ citations: N transcript, M notes[, K submission]</code> on
+  pass and the output carries the <code>&lt;!-- citations verified: … --&gt;</code> comment; a submission-tier
+  citation is verified verbatim (AC5).</li>
+  <li>No-submission / no-URL fixture converts byte-identically; all selftests + <code>tests/run-tests.sh</code>
+  green (AC6).</li>
+  <li>skill-eval <code>[D]</code> exits 0 (or residuals accepted per Phase-6a); 4 hygiene lints +
+  recommended-audit green; non-interactive block + refusal marker byte-identical (AC7).</li>
+</ul>
+
+</body>
+</html>

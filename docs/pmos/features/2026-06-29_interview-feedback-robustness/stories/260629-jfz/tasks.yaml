@@ -1,0 +1,173 @@
+schema_version: 1
+story: 260629-jfz
+epic: 260629-bm9
+route: skill
+plugin: pmos-managerkit
+spec: ../../02_design.html
+execution_mode: inline
+skill_dir: plugins/pmos-managerkit/skills/interview-feedback
+# Revision of the existing /interview-feedback skill — applies 5 findings (F1–F5) from the first production run.
+# Surfaces: SKILL.md (Phases Resolve/Transcribe/Ground/Score/Coach) + scripts/{transcribe.sh,check-citations.mjs,
+#   fill-scorecard.mjs}. Reference: ../../02_design.html (D1–D5, FR-1..FR-5, INV-1..INV-5) +
+#   feature-sdlc/reference/skill-patterns.md §A–§L + host CLAUDE.md (canonical skill path
+#   plugins/pmos-managerkit/skills/interview-feedback; non-interactive inline-block byte-match; recommended-audit;
+#   flag/phase-ref lints — new contract flags --force-transcribe, --submission-type, --written-submission must be
+#   in argument-hint AND handled in the body).
+# Deterministic work stays in scripts with --selftest (§H). SKILL.md orchestrates phases + AskUserQuestion gates;
+#   cites reference docs, never restates (§K). NO release-prereq tasks (version bump, changelog, README, manifest
+#   sync) — /complete-dev owns those (§G).
+# INV-4 no-regression: every change is ADDITIVE and fires only on its signal — a run with a local transcript,
+#   no written submission, and no URL inputs must behave byte-identically.
+# Confidentiality (INV-5): never commit candidate content; tests use synthetic fixtures only.
+tasks:
+  - id: T1
+    title: "Study: design doc, current SKILL.md + 3 scripts + tests, skill-patterns, the clobber + isolation paths"
+    ac: [AC1, AC2, AC3, AC4, AC5, AC6, AC7]
+    deps: []
+    parallel: false
+    detail: >
+      Read ../../02_design.html (finding→fix map, D1–D5, FR-1..FR-5, INV-1..INV-5). Read the current
+      plugins/pmos-managerkit/skills/interview-feedback/SKILL.md — the verb dispatch and the score-path phases
+      Resolve → Transcribe → Ground → Score → Coach (note: Resolve currently has NO URL-input handling; Score
+      fills from the transcript only with no written-submission concept; the scoped tier-3 questionnaire refusal
+      marker must stay byte-identical). Read scripts/transcribe.sh (find the unconditional
+      `transcript.refined.txt` write — the clobber point), scripts/check-citations.mjs (KNOWN_TIERS =
+      {transcript,notes,recalled}, MIN_TRANSCRIPT_LEN, the normalize() + substring check, the --selftest), and
+      scripts/fill-scorecard.mjs (anchor parse → dimensions/scales/flags → filled-scorecard.html; where the reco
+      is composed). Read tests/run-tests.sh and reference/scorecard-skeleton.html (the data-* anchor contract).
+      Read feature-sdlc/reference/skill-patterns.md §A–§L and skills/_shared/non-interactive.md (the frozen block
+      — do NOT alter it). Produce NO code — pin the exact clobber line in transcribe.sh, the KNOWN_TIERS set +
+      arg parsing in check-citations.mjs, and the reco-composition + scorecard-emit points in fill-scorecard.mjs.
+    verify: >
+      The unconditional transcript.refined.txt write is located in transcribe.sh; the KNOWN_TIERS set and the
+      two-positional usage in check-citations.mjs are identified as edit targets; the reco-composition point in
+      fill-scorecard.mjs is located; the score-path phases and the frozen non-interactive block are identified
+      before any code.
+
+  - id: T2
+    title: "F2 — transcribe.sh: never clobber an existing transcript; --force-transcribe; speaker-attribution signal"
+    ac: [AC2]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Edit scripts/transcribe.sh. Before writing transcript.refined.txt, test whether it already exists. If it
+      does (and --force-transcribe is NOT set), write the whisper output to transcript.whisper.txt instead and
+      print a signal line on stdout naming both files and which carries speaker attribution — detect attribution
+      with a `Name:` line-prefix pattern (e.g. a line matching `^[A-Z][A-Za-z .'-]{1,40}:`). Add a
+      --force-transcribe flag that restores the overwrite-transcript.refined.txt behavior (default = preserve;
+      D2/FR-2.1/FR-2.2). Keep the existing graceful-degrade signals (degrade:tier2/tier3) and the ffmpeg/whisper
+      resolution unchanged. Add a case to tests/run-tests.sh: with a pre-existing speaker-attributed
+      transcript.refined.txt present, a transcribe run writes transcript.whisper.txt and leaves the original
+      untouched; with --force-transcribe it overwrites; with no pre-existing file it writes refined as before.
+    verify: >
+      tests/run-tests.sh passes including the new clobber-guard case; a transcribe run against a directory with
+      an existing transcript.refined.txt leaves it byte-identical and produces transcript.whisper.txt; the
+      attribution-signal line is emitted on stdout; --force-transcribe overwrites; no-pre-existing-file path is
+      unchanged (INV-4).
+
+  - id: T3
+    title: "F5/D5 — check-citations.mjs: submission tier + verbatim 3rd-source check + visible pass line"
+    ac: [AC5]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Edit scripts/check-citations.mjs. (1) Add `submission` to KNOWN_TIERS. (2) Accept an optional THIRD
+      positional — the written-submission file: `node check-citations.mjs <output.html> <transcript.txt>
+      [<submission.txt>]`. A data-cite-tier="submission" citation is verified as a verbatim >=40-char substring
+      of the submission file using the SAME normalize() (collapse whitespace, trim) as the transcript tier; a
+      submission-tier citation when no submission file was provided, or not found verbatim, is a FAILURE (D5/
+      FR-5.3 — closes the grounding hole, INV-1). (3) On PASS, print exactly one stdout line:
+      `✓ citations: N transcript, M notes` and append `, K submission` only when ≥1 submission-tier citation was
+      verified (FR-5.1). Keep the loud non-zero exit + offending-citation report on FAIL unchanged. Extend
+      --selftest: a verbatim submission-tier citation against a provided submission passes; a non-verbatim one
+      fails; a submission-tier citation with no submission file fails; the pass-line format is asserted.
+    verify: >
+      node scripts/check-citations.mjs --selftest exits 0 with the new submission-tier assertions; a passing run
+      prints the `✓ citations:` line with correct per-tier counts; a submission-tier citation with no submission
+      file or a non-verbatim quote fails loudly; transcript/notes/recalled behavior is unchanged (INV-4).
+
+  - id: T4
+    title: "F3/F4 — fill-scorecard.mjs: scenario-aware written-submission assessment block feeding the reco"
+    ac: [AC3, AC4]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Edit scripts/fill-scorecard.mjs (and reference/scorecard-skeleton.html if a new anchor is needed). When a
+      written submission is supplied, render a mandatory written-submission assessment block in
+      filled-scorecard.html that (a) names the classified scenario — (A) post-live or (B) pre-live-then-present;
+      (b) for scenario A, surfaces the three buckets — content discussed in the interview / directed by the
+      interviewer's closing brief / independently reached — and the judgment of whether the candidate used the
+      live context to structure & complete the missing parts, flagging a restate-only submission as a WEAK
+      signal (FR-4.2); for scenario B, surfaces the intrinsic submission quality + clarity-of-thought AND the
+      live defend/probe-response/adjust-on-the-fly assessment from the transcript (FR-4.3); (c) shows how the
+      block shaped the contributing dimension scores and the overall reco — the submission is NEVER a standalone
+      number divorced from interview context (FR-4.4). Each claim carries its evidence-tier cite
+      (transcript for "what the interview seeded", submission for "what the candidate wrote"). The overall reco
+      composition references the block. Extend --selftest: a fixture with a submission renders the block with the
+      scenario + buckets and the reco references it; a fixture with no submission renders byte-identically to
+      before (INV-4).
+    verify: >
+      node scripts/fill-scorecard.mjs --selftest exits 0; a submission-present fixture renders the
+      written-submission block (scenario label + buckets/quality-split) and the reco references it; a
+      no-submission fixture is byte-identical to the pre-change output; all rendered submission claims carry a
+      transcript or submission cite tier.
+
+  - id: T5
+    title: "SKILL.md — Resolve URL-probe (F1), Transcribe/Ground preserve+select (F2), Score submission gate (F3/F4), citation-visible comment (F5)"
+    ac: [AC1, AC2, AC3, AC4, AC5]
+    deps: [T2, T3, T4]
+    parallel: false
+    detail: >
+      Edit plugins/pmos-managerkit/skills/interview-feedback/SKILL.md (cite the updated scripts, never restate —
+      §K). (AC1/F1) Phase [Resolve]: add a URL-classification step at the top — http(s) tokens are probed;
+      known auth-walled hosts (drive.google.com, docs.google.com) are treated as inaccessible without probing;
+      on 401/403/404/timeout/auth-wall emit EXACTLY `Can't access <url> — please provide a local file path or
+      paste the content.` and stop that input (do not fall through); a reachable URL downloads into inputs/
+      verbatim; under --non-interactive an inaccessible URL DEFERs (free-form — add the `<!-- defer-only:
+      free-form -->` tag on that ask, no Recommended). (AC2/F2) Phase [Transcribe]: wire the transcribe.sh
+      preserve-guard + --force-transcribe (NL: "re-transcribe / overwrite the transcript"); Phase [Ground]:
+      when both a speaker-attributed and a timestamped-only transcript exist, select the speaker-attributed one
+      and surface the choice. (AC3/AC4/F3/F4) Phase [Score]: detect a written submission (filename predicate or
+      --written-submission <path>); classify the scenario once — `AskUserQuestion`: "Was this submission produced
+      after the live session (post-live) or prepared before it and then presented (pre-live)? (Recommended:
+      <inferred>)" with --submission-type override; require the written-submission assessment block + the
+      checklist gate ("present? → classified? → assessed in context? → referenced in reco?") before closing
+      Score; never score the submission in isolation. (AC5/F5) Phases [Score]/[Coach]: after check-citations.mjs
+      passes, surface its `✓ citations:` stdout line and append the one-line `<!-- citations verified: … -->`
+      comment at the top of each output; pass the submission file as the 3rd positional when present. Add the
+      three new contract flags to argument-hint (--force-transcribe, --submission-type <post-live|pre-live>,
+      --written-submission <path>) and document them in Flags & natural language. Keep the non-interactive block
+      and the tier-3 questionnaire refusal marker byte-identical (INV-2).
+    verify: >
+      Phase Resolve emits the exact can't-access line on an auth-walled/401 URL and stops that input (no
+      fall-through); Phase Transcribe wires the preserve-guard + --force-transcribe; Phase Ground selects the
+      speaker-attributed transcript when both exist; Phase Score detects the submission, classifies the scenario
+      with a Recommended option, requires the assessment block + checklist gate, and references it in the reco;
+      the citation `✓` line + HTML comment surface on pass. argument-hint lists the three new flags and the body
+      handles them (lint-flags-vs-hints). The non-interactive block + refusal marker are byte-identical. The
+      URL-fallback ask carries a defer-only tag; the scenario ask carries a (Recommended) option
+      (audit-recommended).
+
+  - id: T6
+    title: "Conformance + no-regression + skill-eval + lints"
+    ac: [AC6, AC7]
+    deps: [T5]
+    parallel: false
+    detail: >
+      Run the script selftests: node scripts/check-citations.mjs --selftest, node scripts/fill-scorecard.mjs
+      --selftest, and tests/run-tests.sh — all green (INV-3). No-regression (INV-4): run the score path against a
+      synthetic fixture with a local transcript, NO written submission, NO URL inputs and confirm the
+      filled-scorecard + interviewer-notes output is byte-identical to the pre-change output. Run skill-eval:
+      bash plugins/pmos-toolkit/skills/feature-sdlc/tools/skill-eval-check.sh --target claude-code
+      plugins/pmos-managerkit/skills/interview-feedback (the [D] half; [J] half is the Phase-6a judge). Run the
+      four hygiene lints from repo root: tools/lint-non-interactive-inline.sh, tools/lint-flags-vs-hints.sh
+      (the three new flags must be hinted + handled), tools/lint-phase-refs.sh, tools/audit-recommended.sh (the
+      scenario ask has a Recommended option; the URL-fallback ask is defer-only-tagged). Confirm CLAUDE.md
+      policy: canonical skill path, non-interactive block byte-identical, NO release-prereq edits in this story
+      (§G). Use only synthetic fixtures — never commit candidate content (INV-5). Fix any failure, re-run until
+      green.
+    verify: >
+      All script selftests + tests/run-tests.sh exit 0; the no-submission/no-URL fixture converts
+      byte-identically; skill-eval [D] exits 0 (or residuals explicitly accepted per the Phase-6a contract); all
+      four lints + the recommended-audit green; the non-interactive block + refusal marker unchanged; no
+      candidate content committed.
