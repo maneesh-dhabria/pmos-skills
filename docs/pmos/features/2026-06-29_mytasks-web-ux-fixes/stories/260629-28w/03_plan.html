@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<meta name="pmos:artifact" content="plan">
+<title>Plan — /mytasks web UX fixes (story 260629-28w)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: Georgia, "Times New Roman", serif; max-width: 52rem; margin: 0 auto; padding: 2rem 1.25rem; line-height: 1.6; color: #1a1a1a; background: #fbfaf6; }
+  h1, h2, h3 { font-family: -apple-system, system-ui, sans-serif; line-height: 1.25; }
+  h1 { font-size: 1.9rem; } h2 { font-size: 1.25rem; margin-top: 2rem; border-bottom: 1px solid #ddd; padding-bottom: .3rem; }
+  code { font-family: ui-monospace, "SF Mono", Menlo, monospace; background: #efece3; padding: .1em .35em; border-radius: 3px; font-size: .9em; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; margin: 1rem 0; }
+  th, td { border: 1px solid #d6d2c6; padding: .4rem .55rem; text-align: left; vertical-align: top; }
+  th { background: #efece3; font-family: system-ui, sans-serif; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #1a1816; color: #e8e4da; } code, th { background: #2a2724; } th, td { border-color: #3a3530; } h2 { border-color: #3a3530; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Plan — /mytasks web UX fixes</h1>
+<p><strong>Story:</strong> 260629-28w &middot; <strong>Epic:</strong> 260629-pd2 &middot; <strong>Route:</strong> skill &middot; <strong>Plugin:</strong> pmos-toolkit &middot; <strong>Design:</strong> <code>../../02_design.html</code> &middot; <strong>Tasks:</strong> <code>tasks.yaml</code></p>
+<p>One <code>/execute</code> run (execution_mode: inline) revising the <code>/mytasks</code> web SPA against 13 design-crit findings + 5 contrast failures. All work is web-UI-only; the CLI, schema, and dependency set are unchanged (INV-1/2/3).</p>
+
+<h2 id="waves">Waves</h2>
+<table>
+  <tr><th>Wave</th><th>Tasks</th><th>Theme</th></tr>
+  <tr><td>1 — Study</td><td>T1</td><td>Pin every edit-target call site before any code.</td></tr>
+  <tr><td>2 — Foundations</td><td>T2, T3, T4, T5</td><td>The shared substrate the findings reuse: colour/contrast tokens (CC3), friendly-date formatter, toast+undo helper (CC1), chip renderer + autocomplete primitive (CC2). Each depends only on T1.</td></tr>
+  <tr><td>3 — Features</td><td>T6, T7, T8, T9, T10, T11, T12</td><td>The per-FR fixes, each built on the foundations: quick-add visibility, people picker, default-view signal, empty states + panel layout, row chips, recurrence/labels/open-affordance, completion feedback.</td></tr>
+  <tr><td>4 — Conformance</td><td>T13</td><td>SKILL.md doc updates, tests + new assertions green, skill-eval <code>[D]</code>, 4 hygiene lints + audit. Depends on all.</td></tr>
+</table>
+
+<h2 id="ac-map">Acceptance-criteria map</h2>
+<table>
+  <tr><th>AC</th><th>FRs</th><th>Tasks</th></tr>
+  <tr><td>AC1</td><td>FR-1 quick-add visibility</td><td>T5, T6</td></tr>
+  <tr><td>AC2</td><td>FR-2 people picker + add</td><td>T5, T6, T7</td></tr>
+  <tr><td>AC3</td><td>FR-3 friendly dates</td><td>T3</td></tr>
+  <tr><td>AC4</td><td>FR-4 default-view signal, FR-5 empty states</td><td>T8, T9</td></tr>
+  <tr><td>AC5</td><td>FR-6 panel layout, FR-12 open affordance</td><td>T9, T11</td></tr>
+  <tr><td>AC6</td><td>FR-7 row chips, FR-10 labels chips</td><td>T5, T10, T11</td></tr>
+  <tr><td>AC7</td><td>FR-8 due colour, FR-13 hit areas, FR-14 contrast</td><td>T2, T3</td></tr>
+  <tr><td>AC8</td><td>FR-11 completion + toast/undo</td><td>T4, T12</td></tr>
+  <tr><td>AC9</td><td>conformance / no-regression (INV-1..INV-5)</td><td>T13</td></tr>
+</table>
+
+<h2 id="risks">Risks &amp; notes</h2>
+<ul>
+  <li><strong>Single-file contention.</strong> Most tasks edit <code>app.js</code>; the wave ordering (foundations before features) keeps shared helpers stable before consumers build on them. <code>execution_mode: inline</code> ⇒ sequential, so no parallel-edit conflict.</li>
+  <li><strong>FR-2 server reuse.</strong> Person creation uses the <em>existing</em> <code>POST /api/people</code> endpoint (story 71x) — wiring only, no new server capability, no schema change (INV-2).</li>
+  <li><strong>No-regression bar.</strong> The existing <code>scripts/tests</code> suites (lib, people, serve, registry, import-parse, recur) must stay green; new assertions cover the date formatter, the people-add path, and quick-add parse visibility (INV-4).</li>
+  <li><strong>Release prerequisites</strong> (version bump, changelog, README row, manifest sync) are <em>not</em> tasks here — <code>/complete-dev</code> owns them per §G.</li>
+</ul>
+
+</body>
+</html>

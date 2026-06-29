@@ -1,0 +1,236 @@
+schema_version: 1
+story: 260629-28w
+epic: 260629-pd2
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+execution_mode: inline
+skill_dir: plugins/pmos-toolkit/skills/mytasks
+# Revision of the existing /mytasks skill's WEB UI — applies 13 design-crit findings (F-01..F-13) + 5
+#   deterministic contrast failures from a /design-crit of the live SPA.
+# Surfaces (all under plugins/pmos-toolkit/skills/mytasks/scripts/): webapp/app.js (client SPA),
+#   webapp/app.css (tokens/contrast/layout), webapp/index.html (shell/toast host), and serve.js/people.js
+#   ONLY for the FR-2 client->/api/people wiring (endpoint already exists; no new server capability).
+# Reference: ../../02_design.html (D1–D7, FR-1..FR-14, INV-1..INV-5, CC1–CC3) +
+#   feature-sdlc/reference/skill-patterns.md §A–§L + host CLAUDE.md (canonical skill path
+#   plugins/pmos-toolkit/skills/mytasks; non-interactive inline-block byte-match; recommended-audit;
+#   flag/phase-ref lints). SKILL.md doc updates reflect new web behaviour; cite refs, never restate (§K).
+# INV-1 CLI unchanged; INV-2 no schema/data-format change; INV-3 zero new deps (vanilla JS/CSS);
+#   INV-4 existing test suites stay green + new assertions; INV-5 skill-eval [D]+[J] + 4 lints + audit green.
+# NO release-prereq tasks (version bump, changelog, README, manifest sync) — /complete-dev owns those (§G).
+tasks:
+  - id: T1
+    title: "Study: design doc, webapp/{app.js,app.css,index.html}, serve.js+people.js people path, tests, skill-patterns"
+    ac: [AC1, AC2, AC3, AC4, AC5, AC6, AC7, AC8, AC9]
+    deps: []
+    parallel: false
+    detail: >
+      Read ../../02_design.html (finding→FR map, D1–D7, FR-1..FR-14, INV-1..INV-5, CC1–CC3). Read
+      plugins/pmos-toolkit/skills/mytasks/scripts/webapp/app.js — locate: the view/render pipeline and the smart-view
+      definitions (Today/Overdue/Upcoming/Inbox), the quick-add input handler + its parse call (reuses
+      lib.parseQuickAdd grammar), the task-row renderer, the detail/editor panel render, the completion handler,
+      and the date-rendering call sites. Read webapp/app.css — the colour tokens (the #8b8d98 gray, the #d1453b
+      red on #fdeceb pink), due-date colour rule, the detail-panel layout/grid, and the row glyph control sizes.
+      Read webapp/index.html — the panel structure + whether a toast host exists. Read scripts/serve.js +
+      scripts/people.js — confirm the existing POST /api/people endpoint + person record shape (FR-2 wiring only).
+      Read scripts/tests/* (which suites exist: lib, people, serve, registry, import-parse, recur) and how they
+      run. Read feature-sdlc/reference/skill-patterns.md §A–§L and skills/_shared/non-interactive.md (frozen
+      block — do NOT alter). Produce NO code — pin the exact date-render call sites, the contrast token names, the
+      quick-add handler, the row + editor renderers, the completion handler, and the people endpoint signature.
+    verify: >
+      All edit-target call sites are pinned: date render sites, colour tokens, quick-add handler, row renderer,
+      editor renderer, completion handler, smart-view defs, and the POST /api/people signature; the test suites
+      and the frozen non-interactive block are identified before any code is written.
+
+  - id: T2
+    title: "FR-14/FR-8/FR-13 — app.css colour-token + contrast pass (CC3): accessible gray, overdue-only red, hit areas"
+    ac: [AC7]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Edit webapp/app.css (D6). Replace the secondary gray (#8b8d98, 3.3:1) with an accessible token (>=4.5:1 on
+      white, e.g. #6b6e7a) used by section labels (PROJECTS/LABELS/PEOPLE), + Add… links, placeholder/helper
+      text. Fix the active-nav / due-date red so it is >=4.5:1 against its background (darken #d1453b or change the
+      pink #fdeceb). Introduce due-date colour-semantics tokens: a `--due-overdue` (red) used ONLY for overdue,
+      and a neutral/amber `--due-upcoming` for future dates (FR-8 token half; the logic that selects them is T3).
+      Give the row glyph controls (N badge, checkbox, disclosure ▸, pencil ✎) >=24x24px hit areas + a visible
+      hover state (FR-13). Add NO new deps; vanilla CSS only.
+    verify: >
+      Every previously-flagged text colour computes to >=4.5:1 against its background (spot-check the 5 slop
+      findings); overdue and upcoming use distinct tokens; row glyph controls render with >=24px targets and a
+      hover state. No layout regressions on the captured screens.
+
+  - id: T3
+    title: "FR-3/FR-8 — app.js friendly-date formatter (D2) + apply overdue-vs-upcoming colour selection"
+    ac: [AC3, AC7]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Add a pure `formatDueDate(dateISO, now)` to app.js (D2): relative for near — Today / Tomorrow / Yesterday
+      (±1 day), weekday alone for the rest of the current week (e.g. Fri) — and absolute beyond (e.g. "Fri Jul
+      3"; append the year only when not the current year). Route EVERY user-facing date render (lists, rows,
+      editor display, toasts) through it; the native <input type=date> stays for picking but its visible display
+      text uses the formatter. Apply the FR-8 colour selection: a date in the past uses `--due-overdue`, a future
+      date uses `--due-upcoming` + an icon (tokens from T2). Add a unit assertion (in the appropriate scripts/tests
+      suite, or a small inline self-test) covering Today/Tomorrow/Yesterday/this-week/next-month/next-year.
+    verify: >
+      formatDueDate returns the right string for each band (relative ±1, weekday this week, absolute beyond, year
+      appended only off-current-year); no DD/MM or raw ISO appears anywhere in the UI; overdue dates are red,
+      upcoming neutral/amber + icon; the date unit assertion passes.
+
+  - id: T4
+    title: "D5/CC1 — app.js toast+undo helper + index.html toast host (toast-window undo only)"
+    ac: [AC8]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Add a single `showToast({message, undo})` helper to app.js and a toast host element to webapp/index.html
+      (D5). The toast is transient (auto-dismiss after a few seconds); when `undo` is supplied it renders an Undo
+      affordance that, while the toast is visible, reverts the action. Undo lives on the toast window ONLY — no
+      persistent undo stack, no post-dismiss retrieval. Style the toast host in app.css using the accessible
+      tokens from T2. This helper is consumed by T6 (quick-add submit) and T12 (completion).
+    verify: >
+      A toast appears on a triggering action, auto-dismisses, and (when undoable) the Undo control reverts the
+      action while visible; after dismissal the action is final; the toast text uses the accessible colour tokens.
+
+  - id: T5
+    title: "D7/CC2 — app.js shared chip renderer + filtered autocomplete-dropdown infra"
+    ac: [AC1, AC2, AC6]
+    deps: [T1, T2]
+    parallel: false
+    detail: >
+      Add reusable building blocks in app.js used by multiple FRs (CC2): (a) a `renderChip(kind, value)` producing
+      a consistent project/label/person/date chip (styled in app.css, T2 tokens); (b) a filtered-dropdown
+      primitive `openAutocomplete(anchorEl, items, {onPick, onAdd})` that shows a list filtered live as the user
+      types, supports keyboard nav, and optionally renders a trailing "+ Add …" action. This is the substrate for
+      the @ people picker (T7), the #project / +label autocompletes and live token chips (T6), and the row/label
+      chips (T10/T11). Pure-render where possible; no new deps.
+    verify: >
+      renderChip yields a consistent chip across kinds; openAutocomplete filters live, supports pick + the
+      optional add action, and is keyboard-navigable; both are unit-checkable or demonstrable in the running SPA.
+
+  - id: T6
+    title: "FR-1 — quick-add live token chips + @/#/+ autocomplete + submit toast"
+    ac: [AC1]
+    deps: [T3, T4, T5]
+    parallel: false
+    detail: >
+      Wire the quick-add input (app.js, F-03). While typing, parse with the existing lib.parseQuickAdd grammar and
+      render live token chips (renderChip, T5) for @person / #project / +label / due date under the input.
+      Typing @, #, or + opens the matching filtered autocomplete (openAutocomplete, T5) — the @ dropdown is the
+      D1 people picker (full behaviour in T7). On submit, show a toast (showToast, T4) naming the destination view
+      and the parsed fields (e.g. "Added to Upcoming · launch · Fri Jul 3"), dates via formatDueDate (T3).
+    verify: >
+      Typing "@sam #launch +urgent friday" shows live chips and the matching dropdowns; on submit a toast names
+      the destination view + parsed fields with a friendly date; the parsed task lands correctly (no behaviour
+      regression vs current parse).
+
+  - id: T7
+    title: "FR-2 — @ people picker + explicit add-person (client -> POST /api/people) + sidebar refresh"
+    ac: [AC2]
+    deps: [T5, T6]
+    parallel: false
+    detail: >
+      Implement the D1 people picker in app.js, used by both quick-add (T6) and the editor People field. Typing @
+      opens a live-filtered dropdown of existing people (from /api/people / the loaded model); selecting assigns.
+      The dropdown carries an explicit "+ Add \"<handle>\"" action that POSTs to the existing /api/people
+      endpoint to mint a minimal person record (people.js shape — no schema change), then assigns it. A new person
+      is created ONLY on that deliberate click — never silently from a typo. After add, refresh the editor People
+      field AND the PEOPLE sidebar so the person appears immediately; confirm via toast (T4). No server capability
+      added — wiring only.
+    verify: >
+      Typing @ shows existing people filtered live; selecting assigns; "+ Add" mints a person that appears in the
+      editor People field and the PEOPLE sidebar without reload; a typo'd handle does NOT create a record unless
+      Add is clicked; existing people tests stay green (INV-4).
+
+  - id: T8
+    title: "FR-4 — smart-view count badges + overdue surfaced on Today (D3)"
+    ac: [AC4]
+    deps: [T1, T3]
+    parallel: false
+    detail: >
+      In app.js, compute per-smart-view counts and render a trailing count badge on each smart view in the
+      sidebar (e.g. "Overdue (1)"). On the Today view, also surface overdue items (with their friendly dates via
+      T3, overdue colour via T2/T3) so a cold open never reads empty while work is due. Today remains the landing
+      view. Badge styling uses the accessible tokens (T2).
+    verify: >
+      Each smart view shows an accurate count badge; with 1 overdue task the Today view surfaces it instead of
+      "Nothing here."; counts update as tasks change.
+
+  - id: T9
+    title: "FR-5/FR-6 — explanatory empty states + CTA; collapse detail panel until selection, list reclaims width"
+    ac: [AC4, AC5]
+    deps: [T1, T8]
+    parallel: false
+    detail: >
+      Replace bare empty states (app.js / index.html) with explanatory text + a CTA (FR-5) — e.g. "No tasks due
+      today — you have 1 Overdue" linking to Overdue; generic list empties get a useful message + an action.
+      Collapse the detail panel until a task is selected (FR-6): no permanent empty "Select a task…" quarter; the
+      list reclaims the freed width when nothing is selected. Selecting a task expands the panel; clearing
+      selection (or completing, T12) collapses it again.
+    verify: >
+      Empty views show explanatory text + a working CTA; with no task selected the detail panel is collapsed and
+      the list spans the freed width; selecting a task expands the panel.
+
+  - id: T10
+    title: "FR-7 — task-row inline metadata chips (project/label/assignee) via shared chip renderer"
+    ac: [AC6]
+    deps: [T5]
+    parallel: false
+    detail: >
+      Update the task-row renderer (app.js) to show inline chips (renderChip, T5) for the task's project, labels,
+      and assignee(s) when set — so attributes are visible without opening the editor (F-07). Chips use the
+      shared style (T2/T5). Keep the row compact; truncate gracefully if many chips.
+    verify: >
+      A task with project/label/assignee shows matching chips on its row; a bare task shows none; chip style
+      matches the sidebar/editor representation (CC2).
+
+  - id: T11
+    title: "FR-9/FR-10/FR-12 — recurrence full-width conditional; labels chip input; row-click opens detail"
+    ac: [AC5, AC6]
+    deps: [T5]
+    parallel: false
+    detail: >
+      Three editor/row interaction fixes in app.js (+ app.css). FR-9: render the recurrence control as a
+      full-width row, shown ONLY when Recur != none, so it no longer overflows/clips the panel. FR-10: replace the
+      raw comma-text Labels field with a tokenized chip input + autocomplete (openAutocomplete, T5), matching the
+      chip display elsewhere. FR-12: a row click OUTSIDE the title opens the detail panel; reserve a clear,
+      distinct control for rename (title inline-edit is no longer the only "open" affordance — disambiguate from
+      the pencil).
+    verify: >
+      Recurrence row is full-width and hidden when Recur=none, never clipped; Labels edits as chips with
+      autocomplete; clicking a row body opens the detail panel while rename has its own clear control; no
+      conflicting open affordances.
+
+  - id: T12
+    title: "FR-11 — completion toast + Undo + detail-panel update/clear (no stale pending panel)"
+    ac: [AC8]
+    deps: [T4, T9]
+    parallel: false
+    detail: >
+      Update the completion handler (app.js, F-11). On complete: optimistic row update (strikethrough/remove) +
+      a toast (showToast, T4) with toast-window Undo that restores the task while visible. If the completed task
+      was open in the detail panel, update it to a completed state or clear/collapse the panel (T9) — never leave
+      a stale "pending" task with live controls. Undo is toast-window only (D5).
+    verify: >
+      Completing a task shows a toast with a working Undo (while visible); the detail panel updates or clears
+      rather than showing the completed task as pending; after the toast dismisses completion is final.
+
+  - id: T13
+    title: "SKILL.md doc updates + conformance: tests green, skill-eval [D]+[J], 4 lints + audit (INV-3/4/5)"
+    ac: [AC9]
+    deps: [T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12]
+    parallel: false
+    detail: >
+      Update plugins/pmos-toolkit/skills/mytasks/SKILL.md only where the new web behaviour changes what the doc
+      promises (quick-add chips/autocomplete, people picker, friendly dates, badges/empty states, completion
+      toast) — cite ../../02_design.html, do not restate (§K); the inline non-interactive block stays
+      BYTE-IDENTICAL (INV-5). Run all scripts/tests suites + the new date/people/parse assertions — all green, no
+      regressions (INV-4). Confirm zero new deps (INV-3). Run skill-eval [D] (skill-eval-check.sh --target
+      claude-code <skill_dir>) and remediate; the [J] half runs in feature-sdlc Phase 6a. Run the 4 hygiene lints
+      (lint-non-interactive-inline, lint-flags-vs-hints, lint-phase-refs, audit-recommended) — green. NO
+      release-prereq tasks here (§G — /complete-dev owns version/changelog/README/manifest).
+    verify: >
+      All test suites + new assertions green; CLI behaviour unchanged (INV-1); no schema change (INV-2); zero new
+      deps (INV-3); skill-eval [D] exit 0 (or residuals accepted in Phase 6a); 4 lints + audit green; SKILL.md
+      updated minimally with citations and a byte-identical non-interactive block.
