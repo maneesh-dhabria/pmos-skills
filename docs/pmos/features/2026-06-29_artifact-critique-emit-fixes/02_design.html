@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Epic design — /artifact-critique emit-pathway fixes (260629-9ne)</title>
+<style>
+  :root { --ink:#1a1a1a; --mut:#666; --line:#e2e2e2; --accent:#2b6cb0; --bg:#fff; --code:#f5f5f5; }
+  body { font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; color:var(--ink); background:var(--bg); max-width:860px; margin:0 auto; padding:2.5rem 1.25rem 6rem; }
+  h1 { font-size:1.7rem; line-height:1.25; margin:0 0 .25rem; }
+  h2 { font-size:1.25rem; margin:2.4rem 0 .6rem; padding-bottom:.3rem; border-bottom:2px solid var(--line); }
+  h3 { font-size:1.05rem; margin:1.5rem 0 .4rem; }
+  .sub { color:var(--mut); margin:.2rem 0 1.5rem; }
+  table { border-collapse:collapse; width:100%; margin:1rem 0; font-size:.93rem; }
+  th,td { border:1px solid var(--line); padding:.5rem .6rem; text-align:left; vertical-align:top; }
+  th { background:var(--code); font-weight:600; }
+  code { background:var(--code); padding:.1rem .3rem; border-radius:3px; font-size:.88em; }
+  pre { background:var(--code); padding:.8rem 1rem; border-radius:6px; overflow:auto; font-size:.85rem; }
+  .pill { display:inline-block; font-size:.72rem; font-weight:600; padding:.1rem .5rem; border-radius:99px; background:#eef4fb; color:var(--accent); vertical-align:middle; }
+  .fr { font-weight:600; color:var(--accent); }
+  ul { padding-left:1.3rem; } li { margin:.3rem 0; }
+  blockquote { border-left:3px solid var(--accent); margin:1rem 0; padding:.3rem 0 .3rem 1rem; color:#333; }
+</style>
+</head>
+<body>
+
+<h1>Epic design — <code>/artifact-critique</code> emit-pathway fixes</h1>
+<p class="sub">Epic <strong>260629-9ne</strong> · route: skill · plugin: pmos-toolkit · <span class="pill">define / Loop 1</span> · source: <code>/reflect</code> retro (/artifact-critique, 1 run, 2026-06-29)</p>
+
+<h2 id="why">Why this epic</h2>
+<p>A single <code>/artifact-critique</code> run on <code>pov/pov_v6.html</code> delivered fully on its claimed
+contract — correct 10-axis scorecard, ≥40-char verbatim quotes on every axis, valid embedded findings JSON,
+published artifact, no pushback on critique content. The retro surfaced <strong>four gaps in the emit pathway only</strong>:
+two friction-level (an undocumented platform fallback for the HTML emit, and an undocumented protocol when the
+deterministic gate can't run) and two nits (an advisory-reviewer line that wasn't always surfaced, and the Phase 0
+resolution lines never appearing on a no-stderr harness). None touch the critique engine or the rubric — all four
+are <strong>documentation / contract</strong> fixes in the skill's <code>SKILL.md</code>.</p>
+
+<h2 id="scope">Scope &amp; shape</h2>
+<p>This is a <strong>singleton skill epic</strong> (D18 wrap): every fix edits the same single file —
+<code>plugins/pmos-toolkit/skills/artifact-critique/SKILL.md</code> — so the D24 litmus fails any multi-story split.
+One story (<code>260629-6j0</code>, route: skill). No rubric substrate, no <code>_shared/html-authoring/</code> change,
+no script change: the <code>critique-eval.mjs</code> gate and the multi-file emit contract are documented <em>around</em>,
+not modified.</p>
+
+<h2 id="decisions">Decisions (maintainer-approved, this define run)</h2>
+<table>
+  <tr><th>ID</th><th>Decision</th><th>Provenance</th></tr>
+  <tr>
+    <td><strong>D1</strong></td>
+    <td><strong>Conditional self-contained HTML fallback; multi-file substrate stays default.</strong>
+      When the host platform exposes a first-class Artifact/canvas publish tool, the skill MAY emit a
+      <em>single self-contained</em> HTML (inline <code>&lt;style&gt;</code>/<code>&lt;script&gt;</code>, no external
+      asset links), <strong>retaining the embedded <code>pmos-critique-findings</code> block</strong> and inlining
+      the comments overlay (<code>comments.js</code>/<code>comments.css</code>) best-effort, and publish it via that
+      tool <strong>in the same phase</strong> — never requiring the user to initiate publication separately. The
+      multi-file <code>assets/</code> substrate emit remains the <strong>default</strong> for <code>--out</code> /
+      pipeline-folder writes. Any overlay capability not inlined is named in <code>## Limits</code>.</td>
+    <td>F1; grilled via AskUserQuestion (chose "conditional fallback, multi-file stays default" over "self-contained becomes default" / "verbatim minimal").</td>
+  </tr>
+  <tr>
+    <td><strong>D2</strong></td>
+    <td><strong>Node-unavailable protocol for the deterministic gate.</strong> When <code>node</code> exec is
+      unavailable, skip <code>critique-eval.mjs</code>, <strong>manually validate the deterministic checks by
+      inspection</strong> (especially E-quote-in-source — every quote a real substring — plus E-axes-complete and
+      E-applicable-consistency), add a <code>## Limits</code> entry ("deterministic gate not run (Node unavailable) —
+      findings manually validated"), and proceed. Never block; never silently omit the limitation. Mirrors the
+      <code>/feature-sdlc</code> skill-eval "no bash → LLM-judge fallback" stance.</td>
+    <td>F2; adopted (clear). Strengthened from the verbatim "skip" to "skip + manual-validate" to keep Inv-5 honesty.</td>
+  </tr>
+  <tr>
+    <td><strong>D3</strong></td>
+    <td><strong>Always-surfaced advisory-reviewer line.</strong> Phase 7 Tier-2 MUST emit exactly one chat-summary
+      sentence reporting the advisory reviewer's outcome <em>regardless of findings</em>:
+      <code>Tier 2 advisory reviewer: ran &lt;inline|subagent&gt; — &lt;N findings | no findings&gt;</code>. An empty
+      review is no longer silent.</td>
+    <td>F3; adopted (modify — strengthen the existing "surface its notes" contract to always-emit).</td>
+  </tr>
+  <tr>
+    <td><strong>D4</strong></td>
+    <td><strong>No-stderr surfacing of Phase 0 resolution lines.</strong> On a harness with no distinct stderr
+      channel, surface the Phase 0 resolution lines (<code>mode: …</code> and <code>output_format: …</code>) inline as
+      a brief code block at Phase 0 entry, then continue. <em>Cross-skill note:</em> this is a repo-wide convention
+      (every pmos skill prints these to stderr); scoped to this skill per the feedback, flagged as a promotion
+      candidate for the shared non-interactive block but NOT promoted here (out of scope for a single-skill epic).</td>
+    <td>F4; adopted (nit). Cross-skill promotion deliberately deferred.</td>
+  </tr>
+</table>
+
+<h2 id="frs">Functional requirements</h2>
+<ul>
+  <li><span class="fr">FR-1</span> (D1) — <code>SKILL.md</code> <code>## Platform Adaptation</code> gains a
+    self-contained-HTML-fallback bullet matching D1; the Phase 7 <code>#emit</code> text cross-references it so the
+    default multi-file path and the fallback are both discoverable from the emit phase.</li>
+  <li><span class="fr">FR-2</span> (D2) — <code>## Platform Adaptation</code> gains a Node-unavailable bullet matching
+    D2; Phase 7 Tier-1 text cross-references it (it currently documents only exit 0/1/2, not "node absent").</li>
+  <li><span class="fr">FR-3</span> (D3) — Phase 7 Tier-2 contract requires the always-emitted reviewer-outcome
+    sentence; the chat-print instruction at the end of Phase 7 is updated to include it.</li>
+  <li><span class="fr">FR-4</span> (D4) — <code>## Platform Adaptation</code> gains a no-stderr bullet matching D4.</li>
+</ul>
+
+<h2 id="finding-map">Finding → FR map</h2>
+<table>
+  <tr><th>Retro finding</th><th>Sev</th><th>FR</th></tr>
+  <tr><td>Template renderer unavailable — no self-contained HTML fallback</td><td>friction</td><td>FR-1</td></tr>
+  <tr><td><code>critique-eval.mjs</code> skipped with no documented protocol</td><td>friction</td><td>FR-2</td></tr>
+  <tr><td>Tier-2 advisory reviewer not surfaced in chat summary</td><td>nit</td><td>FR-3</td></tr>
+  <tr><td>Phase 0 stderr tokens never visibly emitted</td><td>nit</td><td>FR-4</td></tr>
+</table>
+
+<h2 id="invariants">Invariants (cross-cutting; the build must not break)</h2>
+<ul>
+  <li><strong>INV-1</strong> — <code>_shared/critique-rubric/</code> is byte-unchanged. All edits are in
+    <code>artifact-critique/SKILL.md</code> only (CLAUDE.md §K, Inv-1: the skill cites the rubric, never forks it).</li>
+  <li><strong>INV-2</strong> — <code>_shared/html-authoring/</code> is NOT modified. FR-1 is a per-skill
+    platform-adaptation, not a substrate change; the multi-file emit contract stays the default and byte-identical.</li>
+  <li><strong>INV-3</strong> — <code>scripts/critique-eval.mjs</code> is unchanged. FR-2 documents a fallback
+    <em>around</em> the gate, not a code change.</li>
+  <li><strong>INV-4</strong> — the embedded <code>pmos-critique-findings/v1</code> block is retained on
+    <em>every</em> emit path, including the self-contained fallback (it's the <code>/artifact</code> hand-off contract).</li>
+  <li><strong>INV-5</strong> — skill-patterns §A–§L conformance preserved: every new Platform Adaptation bullet
+    follows the canonical "No&nbsp;X → do&nbsp;Y" degradation shape; <code>argument-hint</code> is unchanged; no new
+    flags are introduced (the changes are documentation/contract only).</li>
+</ul>
+
+<h2 id="story-split">Story split</h2>
+<p>One story — <strong>260629-6j0</strong> (route: skill, planned). All four FRs revise the single
+<code>SKILL.md</code>; the D24 litmus (a task in one story depending on a task in another) forces a single story.
+Build is one <code>/execute</code> run → <code>/skill-eval</code> → <code>/verify</code>.</p>
+
+<h2 id="non-goals">Non-goals</h2>
+<ul>
+  <li>No change to the 10-axis rubric, verdict scale, applicability map, or findings schema.</li>
+  <li>No promotion of the F4 stderr-surfacing convention into the shared non-interactive block (cross-skill; deferred).</li>
+  <li>No <code>/artifact</code> rewrite-side change (critique-only contract, Inv-6, unchanged).</li>
+  <li>No new flags; <code>argument-hint</code> stays as-is.</li>
+</ul>
+
+<!-- pmos-comments:start -->
+<script id="pmos-comments" type="application/json">{"version":1,"threads":[]}</script>
+<!-- pmos-comments:end -->
+</body>
+</html>

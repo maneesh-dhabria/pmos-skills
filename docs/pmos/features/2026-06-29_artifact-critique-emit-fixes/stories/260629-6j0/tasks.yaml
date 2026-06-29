@@ -1,0 +1,141 @@
+schema_version: 1
+story: 260629-6j0
+epic: 260629-9ne
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+execution_mode: inline
+skill_dir: plugins/pmos-toolkit/skills/artifact-critique
+# Revision of the existing /artifact-critique skill — applies 4 /reflect emit-pathway findings (F1..F4 → FR-1..FR-4).
+# Surface: plugins/pmos-toolkit/skills/artifact-critique/SKILL.md ONLY — ## Platform Adaptation (FR-1/FR-2/FR-4
+#   bullets) + ## Phase 7 (FR-1/FR-2 cross-refs + FR-3 Tier-2 always-emit line). All edits are documentation/contract.
+# Reference: ../../02_design.html (D1–D4, FR-1..FR-4, finding→FR map, INV-1..INV-5) +
+#   feature-sdlc/reference/skill-patterns.md §A–§L (esp. Platform Adaptation "No X → do Y" degradation shape) +
+#   host CLAUDE.md (canonical skill path; non-interactive inline-block byte-match; recommended-audit; flag/phase-ref
+#   lints). Cite refs, never restate (§K).
+# INV-1 _shared/critique-rubric/ byte-unchanged; INV-2 _shared/html-authoring/ NOT modified (multi-file emit stays
+#   default); INV-3 scripts/critique-eval.mjs unchanged; INV-4 embedded pmos-critique-findings block retained on
+#   every emit path incl. self-contained fallback; INV-5 skill-patterns §A–§L preserved, NO new flags, argument-hint
+#   unchanged.
+# NO release-prereq tasks (version bump, changelog, README, manifest sync) — /complete-dev owns those (§G).
+tasks:
+  - id: T1
+    title: "Study: SKILL.md (Platform Adaptation + Phase 0 + Phase 7), html-authoring README emit contract, skill-patterns degradation shape"
+    ac: [AC1, AC2, AC3, AC4, AC5]
+    deps: []
+    parallel: false
+    detail: >
+      Read plugins/pmos-toolkit/skills/artifact-critique/SKILL.md in full — pin the exact insertion points:
+      (a) the ## Platform Adaptation bullet list (lines under "## Platform Adaptation"); (b) the Phase 0
+      output_format/stderr lines + the inlined non-interactive block (the `mode:`/`output_format:` stderr prints);
+      (c) Phase 7 #emit — the "Emit ... per _shared/html-authoring/README.md" sentence (FR-1 xref target), the
+      Tier-1 deterministic-gate paragraph with the `node ... critique-eval.mjs` invocation + exit 0/1/2 handling
+      (FR-2 xref target), the Tier-2 advisory-reviewer paragraph + the final "Print to chat ..." instruction
+      (FR-3 target). Read skills/_shared/html-authoring/README.md to ground FR-1 wording (the substrate slot-fills
+      {{asset_prefix}} and links assets/style.css — a multi-file folder, not {{inline_css}}; the self-contained
+      path is the alternative). Read feature-sdlc/reference/skill-patterns.md §Platform-Adaptation (the canonical
+      "No X → do Y" degradation-bullet shape) and §H/§I (no new flags). Read skills/_shared/non-interactive.md
+      (frozen block — must NOT be altered; FR-4 surfaces the Phase-0 lines, it does not touch the block). Produce
+      NO edits — confirm the 4 insertion points and the byte-frozen regions.
+    verify: >
+      The 4 insertion points are pinned (Platform Adaptation list; Phase 7 #emit sentence; Phase 7 Tier-1 paragraph;
+      Phase 7 Tier-2 paragraph + final chat-print line); the html-authoring multi-file emit reality is confirmed for
+      FR-1 wording; the frozen non-interactive block and the rubric/substrate/script byte-frozen regions are
+      identified before any edit.
+
+  - id: T2
+    title: "FR-1 (D1) — self-contained HTML fallback bullet in ## Platform Adaptation + Phase 7 #emit cross-reference"
+    ac: [AC1]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Edit ## Platform Adaptation. Add a bullet in the canonical degradation shape, e.g.:
+      "**No template renderer / a first-class Artifact (canvas) publish tool is available:** instead of the
+      multi-file `_shared/html-authoring/` emit, write a single self-contained HTML — inline `<style>`/`<script>`,
+      no external asset links — that RETAINS the embedded `pmos-critique-findings` block (the /artifact hand-off
+      contract, Inv-3) and inlines the comments overlay (`comments.js`/`comments.css`) best-effort, and publish it
+      via that tool IN THE SAME PHASE. Do not require the user to initiate publication separately. The multi-file
+      `assets/` substrate emit stays the default for `--out` / pipeline-folder writes; name any comments-overlay
+      capability you could not inline in `## Limits`." Then in Phase 7 #emit, add a short cross-reference after the
+      "Emit ... per _shared/html-authoring/README.md" sentence pointing at the Platform Adaptation fallback so both
+      the default multi-file path and the self-contained path are discoverable from the emit phase. Do NOT modify
+      _shared/html-authoring/ (INV-2).
+    verify: >
+      The Platform Adaptation bullet states: conditional on an Artifact/canvas tool; single self-contained HTML
+      inline CSS/JS; findings block retained; overlay inlined best-effort; publish same phase / no separate user
+      turn; multi-file substrate stays default for --out/pipeline; overlay loss → ## Limits. Phase 7 #emit
+      cross-references it. _shared/html-authoring/ is byte-unchanged (git diff empty for that dir).
+
+  - id: T3
+    title: "FR-2 (D2) — Node-unavailable gate-protocol bullet in ## Platform Adaptation + Phase 7 Tier-1 cross-reference"
+    ac: [AC2]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Edit ## Platform Adaptation. Add a bullet in the canonical degradation shape, e.g.:
+      "**No Node.js exec (`critique-eval.mjs` cannot run):** skip the Tier-1 deterministic gate, but manually
+      validate its checks by inspection — especially E-quote-in-source (every quote a real ≥40-char substring of
+      the source), plus E-axes-complete and E-applicable-consistency — then add a `## Limits` entry ('deterministic
+      gate not run (Node unavailable) — findings manually validated' ) and proceed. Never block; never silently omit
+      the limitation (Inv-5)." Then in Phase 7 Tier-1, add a one-clause cross-reference (alongside the existing
+      exit 0/1/2 handling) noting the node-absent path lives in Platform Adaptation. Do NOT modify
+      scripts/critique-eval.mjs (INV-3).
+    verify: >
+      The Platform Adaptation bullet states: node unavailable → skip the script + manually validate the named
+      E-checks + add a ## Limits entry + proceed; never block / never silently omit. Phase 7 Tier-1 cross-references
+      it. scripts/critique-eval.mjs is byte-unchanged.
+
+  - id: T4
+    title: "FR-3 (D3) — Phase 7 Tier-2 always-surfaced advisory-reviewer line"
+    ac: [AC3]
+    deps: [T3]
+    parallel: false
+    detail: >
+      Edit Phase 7 Tier-2 (advisory reviewer) + the final "Print to chat ..." instruction. Strengthen the existing
+      "surface its notes in the chat summary" contract to REQUIRE exactly one sentence regardless of findings:
+      "Always print one line reporting the reviewer outcome, even when empty:
+      `Tier 2 advisory reviewer: ran <inline|subagent> — <N findings | no findings>`." Keep the reviewer
+      non-blocking and edit-free (it scores and reports only). Fold the requirement into the end-of-Phase-7
+      chat-print instruction so it sits next to the critique path + Tier-1 verdict already printed there.
+    verify: >
+      Phase 7 mandates one always-emitted reviewer-outcome sentence (inline|subagent; N findings|no findings) even
+      on an empty review; the reviewer stays non-blocking and edit-free; the requirement is in the final chat-print
+      instruction.
+
+  - id: T5
+    title: "FR-4 (D4) — no-stderr Phase-0 surfacing bullet in ## Platform Adaptation"
+    ac: [AC4]
+    deps: [T4]
+    parallel: false
+    detail: >
+      Edit ## Platform Adaptation. Add a bullet in the canonical degradation shape, e.g.:
+      "**No distinct stderr channel (e.g. Claude Code):** surface the Phase 0 resolution lines —
+      `mode: <m> (source: …)` and `output_format: <v> (source: …)` — inline as a brief code block at Phase 0 entry,
+      then continue." Do NOT alter the frozen `_shared/non-interactive.md` inline block (the block still says
+      'print to stderr'; this bullet adapts that for a no-stderr harness). This is a cross-skill convention scoped
+      to this skill — do NOT touch other skills or the shared block.
+    verify: >
+      The Platform Adaptation bullet states: no distinct stderr channel → surface the Phase 0 mode + output_format
+      lines inline as a code block at Phase 0 entry, then continue. The frozen inline non-interactive block is
+      byte-unchanged.
+
+  - id: T6
+    title: "Conformance: skill-eval [D], 4 repo lints, audit-recommended, INV byte-checks"
+    ac: [AC5]
+    deps: [T5]
+    parallel: false
+    detail: >
+      Run the deterministic skill gate: bash plugins/pmos-toolkit/skills/feature-sdlc/tools/skill-eval-check.sh
+      --target claude-code plugins/pmos-toolkit/skills/artifact-critique (expect a clean [D] result; if pre-existing
+      residuals exist, confirm they are identical on pristine main — same range-untouched stance as prior runs).
+      Run the repo hygiene lints: tools/lint-flags-vs-hints.sh, tools/lint-phase-refs.sh, and
+      tools/lint-non-interactive-inline.sh against the skill (or repo). Run tools/audit-recommended.sh
+      (the AskUserQuestion (Recommended)/defer-only audit). Assert the invariants by git diff: _shared/critique-rubric/,
+      _shared/html-authoring/, and scripts/critique-eval.mjs show ZERO changes; argument-hint in SKILL.md frontmatter
+      is unchanged and no new flags were introduced (INV-5); the SKILL.md still contains exactly one byte-identical
+      non-interactive inline block. Fix any new lint/audit/eval failure introduced by T2–T5.
+    verify: >
+      skill-eval-check.sh [D] is clean (or residuals proven pre-existing on main); lint-flags-vs-hints,
+      lint-phase-refs, lint-non-interactive-inline, and audit-recommended are all green; git diff shows
+      _shared/critique-rubric/, _shared/html-authoring/, and scripts/critique-eval.mjs unchanged; argument-hint
+      unchanged + no new flags; the frozen non-interactive block byte-matches.
