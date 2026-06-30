@@ -28,6 +28,21 @@ node    "$SCRIPTS/check-citations.mjs"  --selftest || fail "check-citations.mjs 
 node    "$SCRIPTS/fill-scorecard.mjs"   --selftest || fail "fill-scorecard.mjs selftest";  pass=$((pass+1))
 node    "$SCRIPTS/questionnaire.mjs"    --selftest || fail "questionnaire.mjs selftest";   pass=$((pass+1))
 
+echo "== transcribe clobber guard: a real run never destroys a curated transcript =="
+# Without whisper/ffmpeg the script degrades (exit 3) before writing anything;
+# with them it routes to transcript.whisper.txt (resolve_transcript_target,
+# unit-tested in transcribe.sh --selftest). Either way a pre-existing curated
+# transcript.refined.txt must survive byte-identical (F2/INV-4).
+guard_tmp="$(mktemp -d 2>/dev/null || mktemp -d -t ifb-guard)"
+mkdir -p "$guard_tmp/out"
+printf 'Interviewer: shall we begin?\nCandidate: yes, thanks.\n' > "$guard_tmp/out/transcript.refined.txt"
+before="$(shasum "$guard_tmp/out/transcript.refined.txt" | awk '{print $1}')"
+IFB_MODEL_DIRS="$guard_tmp/empty" bash "$SCRIPTS/transcribe.sh" "$guard_tmp/nope.mp4" "$guard_tmp/out" >/dev/null 2>&1 || true
+after="$(shasum "$guard_tmp/out/transcript.refined.txt" | awk '{print $1}')"
+[ "$before" = "$after" ] || fail "transcribe clobbered an existing transcript.refined.txt"
+rm -rf "$guard_tmp"
+pass=$((pass+1))
+
 echo "== skill-level smoke: DOM contract coherence =="
 # The scorecard skeleton is THE contract; the rubric + notes skeleton must instantiate it.
 grep -q 'data-card="scorecard"' "$REF/scorecard-skeleton.html"        || fail "scorecard skeleton missing data-card anchor"

@@ -77,6 +77,33 @@ resolve_model() {
 }
 
 # ---------------------------------------------------------------------------
+# has_attribution <file> — succeeds (0) if the file carries speaker-label lines
+# (a leading `Name:` prefix, e.g. "Interviewer:" / "Priya Shah:"). Timestamp-only
+# whisper output has none; an LLM-refined / curated transcript does. Used to tell
+# the operator which preserved transcript carries speaker attribution.
+# ---------------------------------------------------------------------------
+has_attribution() {
+  grep -qE "^[A-Z][A-Za-z .'-]{1,40}:" "$1" 2>/dev/null
+}
+
+# ---------------------------------------------------------------------------
+# resolve_transcript_target <out-dir> <force> — echo the path the NEW whisper
+# output should be written to, never clobbering a curated transcript:
+#   - no existing transcript.refined.txt   -> transcript.refined.txt
+#   - it exists and force != "1" (default) -> transcript.whisper.txt  (preserve)
+#   - it exists and force == "1"           -> transcript.refined.txt  (overwrite)
+# ---------------------------------------------------------------------------
+resolve_transcript_target() {
+  local out_dir="$1"
+  local force="${2:-}"
+  if [ -f "$out_dir/transcript.refined.txt" ] && [ "$force" != "1" ]; then
+    printf '%s\n' "$out_dir/transcript.whisper.txt"
+  else
+    printf '%s\n' "$out_dir/transcript.refined.txt"
+  fi
+}
+
+# ---------------------------------------------------------------------------
 # degrade — emit the degrade signal + install nudge, exit non-zero.
 # ---------------------------------------------------------------------------
 degrade() {
@@ -92,6 +119,7 @@ transcribe() {
   local recording="$1"
   local out_dir="$2"
   local pin="${3:-}"
+  local force="${4:-}"
 
   local model
   model="$(resolve_model "$pin")"
@@ -110,7 +138,11 @@ transcribe() {
   local wav="$out_dir/audio.wav"
   ffmpeg -i "$recording" -vn -ar 16000 -ac 1 -y "$wav" >/dev/null 2>&1
 
-  local transcript="$out_dir/transcript.refined.txt"
+  # Never clobber a curated transcript.refined.txt: when one already exists and
+  # --force-transcribe was not passed, the fresh whisper output goes to
+  # transcript.whisper.txt and the original is left untouched (F2/D2).
+  local transcript
+  transcript="$(resolve_transcript_target "$out_dir" "$force")"
   : > "$transcript"
 
   # Duration in whole seconds (fallback 0 → single-shot).
@@ -137,6 +169,18 @@ transcribe() {
     done
   else
     whisper-cli -m "$model" -f "$wav" 2>/dev/null >> "$transcript" || true
+  fi
+
+  # When the curated transcript was preserved, signal both files on stdout and
+  # name which one carries speaker attribution so Phase [Ground] can select it.
+  if [ "$transcript" = "$out_dir/transcript.whisper.txt" ]; then
+    local attr="(none)"
+    if has_attribution "$out_dir/transcript.refined.txt"; then
+      attr="transcript.refined.txt"
+    elif has_attribution "$transcript"; then
+      attr="transcript.whisper.txt"
+    fi
+    printf 'preserve: kept existing transcript.refined.txt; wrote new transcription to transcript.whisper.txt; speaker-attributed: %s\n' "$attr"
   fi
 
   printf '%s\n' "$transcript"
@@ -206,6 +250,27 @@ selftest() {
   got="$(IFB_MODEL_DIRS="$d1:$d2" resolve_model || true)"
   check "$got" "$d1/ggml-base.bin" "first dir with a candidate wins"
 
+  # (c) clobber guard (F2): resolve_transcript_target preserves a curated
+  #     transcript.refined.txt by routing new output to transcript.whisper.txt,
+  #     unless --force-transcribe (force=1) is set.
+  local od="$tmp/od"
+  mkdir -p "$od"
+  got="$(resolve_transcript_target "$od" "")"
+  check "$got" "$od/transcript.refined.txt" "no existing transcript -> writes refined"
+  printf 'Interviewer: shall we begin the round?\nCandidate: yes, thank you.\n' > "$od/transcript.refined.txt"
+  got="$(resolve_transcript_target "$od" "")"
+  check "$got" "$od/transcript.whisper.txt" "existing refined preserved -> writes whisper"
+  got="$(resolve_transcript_target "$od" "1")"
+  check "$got" "$od/transcript.refined.txt" "--force-transcribe overwrites refined"
+
+  # (c') attribution detection: a speaker-labeled transcript is detected; a
+  #      timestamp-only whisper dump is not.
+  if has_attribution "$od/transcript.refined.txt"; then got="yes"; else got="no"; fi
+  check "$got" "yes" "has_attribution detects Name: speaker labels"
+  printf '[00:00:01.000] welcome to the round\n[00:00:05.000] lets get started\n' > "$od/ts.txt"
+  if has_attribution "$od/ts.txt"; then got="yes"; else got="no"; fi
+  check "$got" "no" "has_attribution rejects timestamp-only output"
+
   trap - EXIT
   rm -rf "$tmp"
 
@@ -224,9 +289,13 @@ main() {
     selftest
   fi
 
-  local recording="" out_dir="" pin=""
+  local recording="" out_dir="" pin="" force=""
   while [ "$#" -gt 0 ]; do
     case "$1" in
+      --force-transcribe)
+        force="1"
+        shift
+        ;;
       --model)
         pin="${2:-}"
         shift 2
@@ -266,7 +335,7 @@ main() {
       ;;
   esac
 
-  transcribe "$recording" "$out_dir" "$pin"
+  transcribe "$recording" "$out_dir" "$pin" "$force"
 }
 
 main "$@"

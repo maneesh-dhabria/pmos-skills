@@ -2,7 +2,7 @@
 name: interview-feedback
 description: Turn a candidate's interview inputs (recording or transcript, interviewer notes, the round's scorecard and brief) into two grounded artifacts — a filled scorecard and per-interviewer effectiveness notes — where every subjective claim is tagged by evidence tier and transcript citations are verified verbatim. Use when scoring a candidate after an interview round, writing up interview feedback, filling an interview scorecard, evaluating how an interviewer ran a round, or setting up a role's interview process and round guidelines. Triggers: "score this candidate", "fill the interview scorecard", "write up interview feedback", "how did the interviewer do", "set up the interview loop for <role>".
 user-invocable: true
-argument-hint: "setup [role] | <candidate inputs…> (score) | list   [--root <path>] [--reference <path>] [--model <medium|base>] [--no-transcribe] [--non-interactive]"
+argument-hint: "setup [role] | <candidate inputs…> (score) | list   [--root <path>] [--reference <path>] [--model <medium|base>] [--no-transcribe] [--force-transcribe] [--written-submission <path>] [--submission-type <post-live|pre-live>] [--non-interactive]"
 ---
 
 # Interview feedback
@@ -28,7 +28,7 @@ The first token selects the verb **only** when it is exactly `setup` or `list`; 
 
 ## Flags & natural language
 
-Every option also has a natural-language form — infer it from the request; an explicit flag overrides. Canonical phrasings: "store it under <path>" ≡ `--root <path>`, "use this scorecard/brief" ≡ `--reference <path>`, "don't transcribe / I already have the transcript" ≡ `--no-transcribe`, "use the base model" ≡ `--model base`.
+Every option also has a natural-language form — infer it from the request; an explicit flag overrides. Canonical phrasings: "store it under <path>" ≡ `--root <path>`, "use this scorecard/brief" ≡ `--reference <path>`, "don't transcribe / I already have the transcript" ≡ `--no-transcribe`, "use the base model" ≡ `--model base`, "re-transcribe / transcribe again" ≡ `--force-transcribe`, "here's the take-home / written submission" ≡ `--written-submission <path>`, "treat it as a post-live / pre-live submission" ≡ `--submission-type <post-live|pre-live>`.
 
 Contract flags (machine-coupled, typed, or headless-determinism — §I), shown in `argument-hint`:
 
@@ -36,6 +36,9 @@ Contract flags (machine-coupled, typed, or headless-determinism — §I), shown 
 - `--reference <path>` — explicit per-round interviewer-reference/scorecard override (§ Reference resolution).
 - `--model <medium|base>` — pin the whisper model rather than auto-resolving (typed value).
 - `--no-transcribe` — skip transcription; expect a transcript among the inputs (headless determinism).
+- `--force-transcribe` — re-transcribe even when a curated `transcript.refined.txt` already exists; the new transcription is written to `transcript.whisper.txt` so the curated file is never clobbered (destructive-opt-in; forwarded verbatim to `scripts/transcribe.sh`, Phase [Transcribe](#transcribe)).
+- `--written-submission <path>` — explicit path to the candidate's written submission (take-home, design doc, writing sample); typed path. Without it, a submission is auto-detected by filename in `inputs/` (Phase [Score](#score)).
+- `--submission-type <post-live|pre-live>` — override the auto-classified submission scenario (typed value; the two scenarios drive different assessment frames in Phase [Score](#score)).
 - `--non-interactive` / `--interactive` — see the non-interactive block.
 
 <!-- nl-sugar -->
@@ -97,6 +100,17 @@ Before the verb runs: read `~/.pmos/learnings.md` if present and factor any entr
 
 Resolve the **storage root** and the **inputs**.
 
+0. **URL inputs — probe before relying on them.** When any input is a URL rather than a local path/pasted content (a recording link, a notes doc, a written submission), it must be fetched to a local file before grounding can use it. Known auth-walled hosts — `drive.google.com`, `docs.google.com`, `dropbox.com`, `notion.so`, `*.sharepoint.com`, any host behind SSO — typically 403/redirect to a login page for an unauthenticated fetch; treat a fetch that returns a login/permission page (not the artifact) as inaccessible. For any inaccessible URL, emit **exactly** this line and do not silently substitute the login page as content:
+
+   ```
+   Can't access <url> — please provide a local file path or paste the content.
+   ```
+
+   Interactive: ask the interviewer for a local path or pasted content. Under `--non-interactive`, an inaccessible URL **DEFERs** (log an open question; the affected input is treated as absent and grounding falls to the next available tier) — there is no safe default to AUTO-PICK:
+
+   <!-- defer-only: free-form -->
+   - what to substitute for an inaccessible URL is free-form (a path or pasted text only the operator has) — never guess.
+
 1. **Root.** Precedence: `--root <path>` → `.pmos/settings.yaml :: managerkit.interview_root` → built-in default `./interviews/`. Call `scripts/storage.sh resolve-root` (it applies the same precedence and prints the absolute root). Inside a git repo, `storage.sh` installs/refreshes a **gitignore guard** so confidential candidate data is never committed; if the guard cannot be written, warn and continue (the operator is responsible — see § Confidentiality).
 2. **Locate the round.** From the inputs (or `--round`/`--candidate`), resolve the round folder under the role per the storage layout (§ Storage). New candidate → `scripts/storage.sh new-candidate <role> <round> <candidate>` creates the folder and copies each raw input into `inputs/` verbatim (never mutate originals).
 3. **Reference resolution.** Resolve the round's interviewer-reference + scorecard: `--reference <path>` wins; else the round-level guideline under `guidelines/<round>/`; else fall back to the role-level default. Under `--non-interactive`, if resolution is ambiguous, **DEFER** (log an open question) rather than guessing — see the non-interactive block. (Full precedence + the interviewer model lead/shadow/panel wiring live in `reference/reference-resolution.md`.)
@@ -105,7 +119,9 @@ Resolve the **storage root** and the **inputs**.
 
 Only on the `score` path, and only if a recording is present and `--no-transcribe` is not set.
 
-Run `scripts/transcribe.sh <recording> <out-dir>`. It extracts audio with `ffmpeg` (`-vn -ar 16000 -ac 1`), resolves a whisper model (`~/whisper-models/`, `~/.pmos/managerkit/models/`, `./models`; `ggml-medium.bin` then `ggml-base.bin`; `--model` pins one), transcribes with `whisper-cli` (timestamped, chunked for long audio), and writes `transcript.refined.txt`. **Speaker attribution:** the refined transcript carries timestamps only; an LLM-refine pass may *propose provisional* speaker labels from explicit self-introductions but must never guess — unattributable per-interviewer claims fall to tier 3 and are flagged in output (b).
+Run `scripts/transcribe.sh <recording> <out-dir> [--force-transcribe]`. It extracts audio with `ffmpeg` (`-vn -ar 16000 -ac 1`), resolves a whisper model (`~/whisper-models/`, `~/.pmos/managerkit/models/`, `./models`; `ggml-medium.bin` then `ggml-base.bin`; `--model` pins one), transcribes with `whisper-cli` (timestamped, chunked for long audio), and writes `transcript.refined.txt`. **Speaker attribution:** the refined transcript carries timestamps only; an LLM-refine pass may *propose provisional* speaker labels from explicit self-introductions but must never guess — unattributable per-interviewer claims fall to tier 3 and are flagged in output (b).
+
+**Never clobber a curated transcript (preserve guard).** `transcribe.sh` picks its own output target: when `transcript.refined.txt` already exists (e.g. an operator hand-curated speaker labels) it writes the fresh machine transcription to `transcript.whisper.txt` instead and prints a `preserve:` line naming both files and whether the kept file is speaker-attributed — the curated file survives byte-identical. Forward `--force-transcribe` to re-run the transcription against an already-present recording (it still routes to `transcript.whisper.txt`, never over the curated file). Surface the script's `preserve:` line to the operator so the chosen grounding source is explicit. (Target-selection + attribution detection are unit-tested in `transcribe.sh --selftest` — §K: do not restate the rule here.)
 
 **Graceful degrade (never fail the run).** No model / no `whisper-cli` / no `ffmpeg` → `transcribe.sh` exits non-zero with a one-line install nudge and a `degrade:tier2` (notes present) or `degrade:tier3` (no notes) signal on stdout. Honor it: drop to interviewer-notes grounding, or to the recall questionnaire (interactive-only — see the refusal note above).
 
@@ -113,7 +129,7 @@ Run `scripts/transcribe.sh <recording> <out-dir>`. It extracts audio with `ffmpe
 
 Establish the evidence basis before scoring. Three tiers (best first):
 
-1. **transcript** — verbatim ≥40-char quotes from `transcript.refined.txt`.
+1. **transcript** — verbatim ≥40-char quotes from the transcript. **Source selection:** when both a speaker-attributed transcript (`transcript.refined.txt`, carrying `Name:` speaker prefixes) and a timestamped-only machine transcript (`transcript.whisper.txt`, from the preserve guard) are present, ground on the **speaker-attributed** one — per-interviewer claims need attribution — and surface which file was chosen. The whisper file remains available to corroborate verbatim wording. With only the timestamped transcript, per-interviewer attribution falls to tier 3 and is flagged in output (b).
 2. **interviewer-notes** — the interviewer's own written notes (must name the note source).
 3. **interviewer-recalled** — answers captured via the emitted recall questionnaire (must name the interviewer).
 
@@ -125,7 +141,45 @@ Fill the scorecard. Read the round's scorecard via its machine anchors (`referen
 
 **Foreign scorecard (no anchors).** If the round's scorecard lacks the anchors, infer the dimensions/scales from its DOM, then: interactive → echo the inferred structure for confirmation before filling; non-interactive → fill but log every inference as an open question. Never silently guess.
 
-Score each dimension on its own scale with grounded notes + flags, then set the overall `reco`. Run `scripts/check-citations.mjs filled-scorecard.html transcript.refined.txt` — **hard gate**: any transcript-tier citation that is not a verbatim ≥40-char substring fails the run.
+Score each dimension on its own scale with grounded notes + flags, then set the overall `reco`.
+
+**Written submission (take-home / design doc / writing sample).** A round may include a candidate-authored written artifact alongside the live conversation. Detect it: `--written-submission <path>` wins; else auto-detect a submission file in `inputs/` (filename predicate — `*submission*`, `*take-home*`/`*takehome*`, `*design-doc*`, `*writing-sample*`, or an obvious doc among the inputs that is neither the recording, transcript, nor interviewer notes). When one is present:
+
+1. **Classify the scenario once.** The two scenarios assess *different things* and must never be conflated:
+   - **post-live** — the candidate produced the artifact *during/around* a live round; the live conversation is the primary signal and the submission is assessed for what was **discussed**, what was **interviewer-directed**, and what was **independent** — a submission that only restates the live discussion is WEAK, not strong.
+   - **pre-live** — the candidate submitted the artifact *before* any live round (e.g. a screening take-home); assess its **intrinsic quality** and the candidate's **live defense** of it.
+
+   `--submission-type <post-live|pre-live>` pins it. Otherwise infer from the timeline in the inputs and confirm (the inferred scenario is the Recommended option, so a non-interactive run AUTO-PICKs it rather than deferring — classification is always resolvable from the inputs' timeline):
+
+   ```
+   AskUserQuestion:
+     question: "Is this written submission post-live (produced during/around the live round) or pre-live (submitted before any live round)?"
+     header: "Submission"
+     options:
+       - label: "<inferred> (Recommended)"   # the scenario inferred from the inputs' timeline
+         description: "<one line on why the inputs point to this scenario>"
+       - label: "<the other scenario>"
+         description: "<one line on what that would imply>"
+   ```
+
+   An explicit `--submission-type` skips this ask entirely.
+
+2. **Assess it in context, in its own block.** `fill-scorecard.mjs` injects a `data-card="submission-assessment"` block (scenario-stamped) ahead of the recommendation when a submission is passed — post-live → discussed / interviewer-directed / independent + live-context note; pre-live → intrinsic quality + live defense. Quotes from the submission carry `data-cite-tier="submission"`.
+3. **Reference it in the recommendation.** The `reco` must account for the submission assessment (a `data-submission-ref` note ties them) — a submission that is assessed but not reflected in the hire/no-hire call is an incomplete run.
+
+**Submission checklist gate** (run when a submission is present; every box must be ticked):
+- present? — the submission file was located (flag or auto-detect).
+- classified? — scenario resolved to exactly one of `post-live` / `pre-live`.
+- assessed in context? — the `submission-assessment` block exists and uses the scenario-appropriate frame.
+- referenced in reco? — the recommendation cites the submission assessment.
+
+**Grounding hard gate.** Run `scripts/check-citations.mjs filled-scorecard.html transcript.refined.txt` — appending the submission file as a **third positional** when one is present (`… transcript.refined.txt <submission-path>`) so `data-cite-tier="submission"` quotes are verified verbatim too. Any transcript- or submission-tier citation that is not a verbatim ≥40-char substring of its source fails the run. On pass, surface the script's `✓ citations:` line to the operator and append a one-line audit comment to `filled-scorecard.html`:
+
+```
+<!-- citations verified: <N> transcript-tier, <M> notes-tier[, <K> submission-tier], <YYYY-MM-DD> -->
+```
+
+(Counts come from the script's per-tier output — §K: the script owns the counting; do not recompute by hand. The submission-tier clause appears only when K > 0.)
 
 ## Phase: Coach {#coach}
 
