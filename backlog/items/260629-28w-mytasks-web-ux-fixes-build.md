@@ -9,18 +9,18 @@ priority: should
 route: skill
 dependencies: []
 plugin: pmos-toolkit
-status: in-progress
+status: done
 feature_folder: docs/pmos/features/2026-06-29_mytasks-web-ux-fixes/
 plan_doc: docs/pmos/features/2026-06-29_mytasks-web-ux-fixes/stories/260629-28w/03_plan.html
 tasks: docs/pmos/features/2026-06-29_mytasks-web-ux-fixes/stories/260629-28w/tasks.yaml
 worktree: feat/260629-28w
-claimed_by: build:b0c61220-0a97-4ab0-afcb-144a7c4df518
-driver_holder: build:b0c61220-0a97-4ab0-afcb-144a7c4df518
-build_branch:
-build_commit:
+claimed_by:
+driver_holder:
+build_branch: feat/260629-28w
+build_commit: dd39cf8e
 labels: [pmos-toolkit, mytasks, web, ux, skill, from-feedback]
 created: 2026-06-29
-updated: 2026-06-29
+updated: 2026-06-30
 ---
 
 <!-- status: planned at define (Loop 1); tasks.yaml authored, route:skill. Build via /skill-sdlc build --story 260629-28w -->
@@ -73,3 +73,25 @@ tokens) live in the `design_doc:` (`../../02_design.html`). One `/execute` run, 
   execution ⇒ sequential, no parallel-edit conflict on `app.js`.
 - FR-2 reuses the existing `POST /api/people` endpoint (story 71x) — wiring only.
 - Web-UI-only: never touch the terminal CLI flow, inference heuristics, or the on-disk schema.
+
+### Build outcome (2026-06-30) — DONE, branch feat/260629-28w @ dd39cf8e
+
+PASS. All 9 ACs proven live via Playwright against the running SPA. New pure
+`scripts/webapp/format.js` (friendly dates + overdue/upcoming colour, unit-tested);
+read-only `GET /api/counts` for sidebar badges; Today-view overdue group + keyed
+empty states; toast-window Undo (reverts completion incl. spawned recurrence);
+inline chips; contrast pass; 24×24 hit areas; quick-add live preview + toast.
+
+- **Bug found & fixed during verify (not in original ACs):** the `+ Add "@handle"`
+  autocomplete rung never rendered for a *brand-new* handle — `updateAutocomplete`
+  bailed with `hideAutocomplete()` on zero existing-people matches before
+  `showAutocomplete` (which builds the rung) ran. Added a `canAddPerson` guard so an
+  add-eligible `@prefix` still opens the dropdown. Re-proven: typing `@dana` shows the
+  rung, click mints the person into the sidebar.
+- Invariants held: CLI/`lib.js` untouched, no schema change (counts endpoint is GET-only,
+  derives from existing frontmatter), zero new deps (format.js is vanilla UMD).
+- Gates: skill-eval [D] EXIT0 (3 advisory residuals — `d-learnings-load-line`,
+  `d-capture-learnings-phase`, `d-progress-tracking` — pre-existing on base main, not
+  introduced here) + [J] PASS (4 prose nits all fixed). 4 hygiene lints + audit green.
+  tests 154/0.
+- Worktree `feat/260629-28w` KEPT for the Loop-3 `/complete-dev --epic 260629-pd2` release.
