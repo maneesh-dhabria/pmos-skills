@@ -9,15 +9,15 @@ priority: should
 route: skill
 dependencies: []
 plugin: pmos-toolkit
-status: in-progress
+status: done
 feature_folder: docs/pmos/features/2026-06-29_artifact-critique-emit-fixes/
 plan_doc: docs/pmos/features/2026-06-29_artifact-critique-emit-fixes/stories/260629-6j0/03_plan.html
 tasks: docs/pmos/features/2026-06-29_artifact-critique-emit-fixes/stories/260629-6j0/tasks.yaml
 worktree: feat/260629-6j0
-claimed_by: build:b0c61220-0a97-4ab0-afcb-144a7c4df518
-driver_holder: build:b0c61220-0a97-4ab0-afcb-144a7c4df518
-build_branch:
-build_commit:
+claimed_by:
+driver_holder:
+build_branch: feat/260629-6j0
+build_commit: f8dac85a
 labels: [pmos-toolkit, artifact-critique, skill, from-feedback]
 created: 2026-06-29
 updated: 2026-06-30
@@ -62,3 +62,28 @@ are all byte-unchanged. One `/execute` run — see `tasks.yaml`.
 
 **Standing AC** — the revised skill conforms to `reference/skill-patterns.md §A–§L` and the binary `reference/skill-eval.md`
 rubric (cited as acceptance criteria; every new Platform Adaptation bullet follows the canonical "No X → do Y" shape).
+
+### Build outcome (2026-06-30) — DONE, branch feat/260629-6j0 @ f8dac85a
+
+PASS. All four FRs applied to the single file `plugins/pmos-toolkit/skills/artifact-critique/SKILL.md`:
+- **AC1 (FR-1/D1)** — `## Platform Adaptation` self-contained-HTML fallback bullet: conditional on a first-class
+  Artifact/canvas publish tool; single self-contained HTML (inline CSS/JS, no external asset links); **retains the
+  embedded `pmos-critique-findings` block**; comments overlay inlined best-effort; publishes in the same phase; the
+  multi-file `assets/` substrate stays the default for `--out`/pipeline writes; overlay loss named in `## Limits`.
+  Phase 7 `#emit` cross-references it.
+- **AC2 (FR-2/D2)** — Node-unavailable bullet: skip `critique-eval.mjs`, manually validate `E-quote-in-source` +
+  `E-axes-complete` + `E-applicable-consistency`, add the `## Limits` entry, proceed; never block/omit. Phase 7
+  Tier-1 cross-references it.
+- **AC3 (FR-3/D3)** — Phase 7 Tier-2 always-emitted reviewer-outcome line
+  (`Tier 2 advisory reviewer: ran <inline|subagent> — <N findings | no findings>`), folded into the end-of-Phase-7
+  chat-print; reviewer stays non-blocking + edit-free.
+- **AC4 (FR-4/D4)** — no-stderr bullet: surface the Phase 0 `mode:`/`output_format:` lines inline as a code block.
+- **AC5 (conformance)** — INV-1/2/3 byte-frozen (`_shared/critique-rubric/`, `_shared/html-authoring/`,
+  `scripts/critique-eval.mjs` show zero diff); INV-4 findings block retained on every emit path; INV-5 argument-hint
+  unchanged, no new flags, frozen non-interactive block byte-identical.
+
+Gates: skill-eval `[D]` EXIT0 (zero fails) + `[J]` independent-judge PASS (all ACs met; one optional "No X"-phrasing
+nit on the FR-1 bullet, judge confirmed conforming — no change required). 4 hygiene lints
+(`lint-flags-vs-hints`, `lint-phase-refs`, `lint-non-interactive-inline`) + `audit-recommended` all green.
+
+Worktree `feat/260629-6j0` (under `.claude/worktrees/`) KEPT for the Loop-3 `/complete-dev --epic 260629-9ne` release.
