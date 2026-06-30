@@ -9,18 +9,18 @@ priority: should
 route: skill
 dependencies: []
 plugin: pmos-utilities
-status: planned
+status: in-progress
 feature_folder: docs/pmos/features/2026-06-29_to-notion-doc-fidelity/
 plan_doc: docs/pmos/features/2026-06-29_to-notion-doc-fidelity/stories/260629-sch/03_plan.html
 tasks: docs/pmos/features/2026-06-29_to-notion-doc-fidelity/stories/260629-sch/tasks.yaml
-worktree:
-claimed_by:
-driver_holder:
+worktree: feat/260629-sch
+claimed_by: build:b0c61220-0a97-4ab0-afcb-144a7c4df518
+driver_holder: build:b0c61220-0a97-4ab0-afcb-144a7c4df518
 build_branch:
 build_commit:
 labels: [pmos-utilities, to-notion-doc, notion, document-conversion, skill, from-feedback]
 created: 2026-06-29
-updated: 2026-06-29
+updated: 2026-06-30
 ---
 
 <!-- status: planned at define (Loop 1); tasks.yaml authored, route:skill. Build via /skill-sdlc build --story 260629-sch -->
