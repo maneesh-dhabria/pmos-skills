@@ -120,9 +120,12 @@ handling is a **remembered preference** `to_notion_doc.image_mode`:
      NFM (`![alt](https://…)`; public HTTPS, no auth; Notion hotlinks, never re-hosts → breaks if the host
      dies). `scripts/upload-image.mjs` `buildExternal()`.
   2. **Local-extract stub** (always-available, no token/host) — for any local/relative image: copy it to
-     `./to-notion-doc-assets/<slug>/<name>`, emit a **callout** naming the relative path + alt, then an empty
-     **image placeholder** for the user to drag-drop fill in the Notion UI. Verification (§7) counts these as
-     *stubbed* (accounted-for). `scripts/upload-image.mjs` `buildStub()`. The Google-Drive trick is
+     `./to-notion-doc-assets/<slug>/<name>`, and emit **one** callout (no separate placeholder block) whose
+     TAB-indented body is, in order: `🖼 <filename> · Caption: <caption>` (the caption falls back alt →
+     filename), the copied relative path, and a "drag this file into an image block to fill" hint. The callout
+     NFM shape is produced by `scripts/upload-image.mjs` `stubCalloutNfm()` and consumed by both
+     `buildStub()` and `map-to-notion.mjs` (the single positional owner of the in-document stub — no
+     dual-write). Verification (§7) counts these as *stubbed* (accounted-for). The Google-Drive trick is
      researched and **rejected** (Google throttles hotlinking).
 
 - **`rest-upload` (opt-in)** — uses the Notion **File Upload API**, which is **raw REST and requires a Notion

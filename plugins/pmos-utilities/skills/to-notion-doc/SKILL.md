@@ -20,16 +20,16 @@ this body cites it, never restates it.
 (`notion-create-pages`, `notion-update-page`, `notion-fetch`, `notion-search`) as Notion-flavored Markdown —
 **no REST block API**. The single capability the MCP cannot express is uploading a *local* image; that is the
 opt-in `rest-upload` rung of the image ladder (§3 below), which is disclosed to require a Notion integration
-token and otherwise degrades to a placeholder stub.
+token and otherwise degrades to a single caption-inline callout stub.
 
 ## Platform Adaptation
 
 These instructions use Claude Code tool names. In other environments:
 
-- **No `AskUserQuestion` tool:** the preference confirm and section-divider ask (Phase 0), the TOC-mode ask
-  (Phase 1), the ambiguity prompts and image-mode ask (Phase 2), and the parent / update-mode picks (Phase 3)
-  degrade to numbered free-form prompts. The non-interactive auto-pick contract below still governs unattended
-  runs.
+- **No `AskUserQuestion` tool:** the preference confirm and section-divider ask (Phase 0), the TOC-mode ask and
+  annexure-grouping ask (Phase 1), the ambiguity prompts and image-mode ask (Phase 2), and the parent /
+  update-mode picks (Phase 3) degrade to numbered free-form prompts. The non-interactive auto-pick contract
+  below still governs unattended runs.
 - **No Notion MCP connected:** hard error — this skill writes exclusively through the Notion MCP. Tell the user
   to connect the Notion integration; do not fall back to any REST path.
 - **No Bash tool:** the user runs the four `node scripts/*.mjs` invocations themselves and pastes the JSON back;
@@ -116,7 +116,8 @@ effects; keep its task visible until the verification pass (Phase 4) confirms th
      conservative, source-faithful default; never injects structure the document didn't have). Persisted as
      `section_dividers: true|false`.
    - **Image mode** *(only if the source contains local/relative images)* — *MCP-only (Recommended)* (local
-     images become a labeled placeholder stub; no token needed) vs *REST upload* (uploads local images via the
+     images become a single caption-inline callout stub naming the copied file; no token needed) vs
+     *REST upload* (uploads local images via the
      Notion File Upload API — **this requires a Notion integration token** in the env var
      `notion_token_env`; if absent, falls back to the stub). AUTO-PICK mcp-only. State the token requirement in
      the option description.
@@ -130,6 +131,8 @@ effects; keep its task visible until the verification pass (Phase 4) confirms th
 5. **Flag overrides.** `--headings` / `--style` / `--image-mode` / `--dividers` / `--no-dividers` override for
    this run **without** rewriting settings, unless the confirm above chose to save. Print the resolved
    `(heading, visual, section_dividers, image_mode)` to chat.
+
+**Phase 0 complete — `<resolved heading/visual/dividers/image-mode>`. Phase 1 starting.**
 
 ## Phase 1: Parse + map {#parse-map}
 
@@ -145,12 +148,26 @@ effects; keep its task visible until the verification pass (Phase 4) confirms th
      the entries verbatim as a bullet list) / *Omit it* (drop it — Notion pages have their own outline).
      AUTO-PICK the native block. Resolves to `toc_mode ∈ {native, replicate, omit}`.
 3. **Map:** `node scripts/map-to-notion.mjs --style <minimal|expressive> --headings <normal|toggle>
-   --toc <native|replicate|omit> [--dividers|--no-dividers] <tree.json>` → `{ blocks, nfm, plan }` (the
-   REST-faithful model, its Notion-flavored-Markdown render, and the per-source-block reconciliation plan).
-   Table fidelity (cells padded/truncated to `table_width`, `fit-page-width="true"` on **every** table), the
-   code-language enum, the color enum, the TOC handling, and section dividers are all applied here per
-   reference/notion-blocks.md §3–§4. Pass `--dividers` when the resolved `section_dividers` preference is on.
-4. **Census:** report block counts by type and the count of `ambiguous` nodes + images headed to Phase 2.
+   --toc <native|replicate|omit> --slug <doc-slug> [--dividers|--no-dividers] <tree.json>` → `{ blocks, nfm,
+   plan }` (the REST-faithful model, its Notion-flavored-Markdown render, and the per-source-block
+   reconciliation plan). Table fidelity (cells padded/truncated to `table_width`, `fit-page-width="true"` on
+   **every** table), the code-language enum, the color enum, the TOC handling, section dividers, **and the
+   single local-image / ambiguous-media stub callout** (reference/notion-blocks.md §3–§5) are all applied
+   here. Pass `--dividers` when the resolved `section_dividers` preference is on; pass the same `--slug` you use
+   for `./to-notion-doc-assets/<slug>/` so the stub callout names the exact copied path.
+4. **Census:** report block counts by type, the count of `ambiguous` nodes + images headed to Phase 2, and —
+   from the parse output — the count of subtrees `detectedAs: 'table-candidate'` (`<dl>` / label-value divs):
+   "N sections detected as table candidates → converted to 2-column tables" (reference/notion-blocks.md §3).
+5. **Annexure grouping** *(only if the parse emitted one or more `clusters`)* — for each groupable cluster
+   (≥3 sibling sections sharing a leading token, e.g. "Annexure"/"Appendix"), ask once how to lay it out:
+
+   - `AskUserQuestion`: *Group under one parent toggle (Recommended)* (nest the N `<prefix>` sections under a
+     single collapsible parent heading — re-map with `--headings toggle` scoped to the cluster) / *Keep them
+     flat* (leave each section at top level). AUTO-PICK group. The cluster's `prefix` + `count` come from the
+     parse `clusters` signal; never auto-group without this resolution.
+
+**Phase 1 complete — `<block counts>`; `<A>` ambiguous, `<I>` images, `<T>` table candidates, `<C>` annexure
+clusters. Phase 2 starting.**
 
 ## Phase 2: Resolve ambiguities + build images {#resolve-media}
 
@@ -163,12 +180,21 @@ effects; keep its task visible until the verification pass (Phase 4) confirms th
      AUTO-PICK placeholder-callout. Record each resolution as `si → {mapped|stubbed|user-skipped}`.
 
 2. **Images** — for each image node, `scripts/upload-image.mjs` `resolveRung` decides the rung from the resolved
-   `image_mode` + token presence (reference/notion-blocks.md §5):
+   `image_mode` + token presence (reference/notion-blocks.md §5). **When ≥1 local image takes the stub rung,
+   print this banner once, up front, before any output:** "Notion's MCP cannot create a native image-upload
+   field — each local image becomes a single callout naming the copied file path with the caption inline; drag
+   the file into an image block to fill it."
    - **external https URL in source** → `buildExternal` (NFM external image).
-   - **mcp-only local image** → `buildStub`: copy the file to `./to-notion-doc-assets/<slug>/` (via Bash) and
-     emit the callout-path + empty-image-placeholder pair. Counts as *stubbed* in verification.
+   - **mcp-only local image** → `buildStub`: copy the file to `./to-notion-doc-assets/<slug>/` (via Bash).
+     The stub callout itself is **already in the mapped NFM** — map-to-notion is the single positional owner
+     (it rendered exactly one caption-inline callout per image node in Phase 1). Phase 2 only performs the
+     **file copy** (`buildStub`'s `copy` op) and the banner; it does **not** inject a second callout. Counts as
+     *stubbed* in verification.
    - **rest-upload + token present** → `uploadImage` (File Upload API; token read from the env var, **never**
      logged or persisted). On a thrown error / missing token, catch → fall back to `buildStub` and warn.
+
+**Phase 2 complete — `<E>` external / `<S>` stubbed / `<U>` uploaded images, `<A>` ambiguities resolved.
+Phase 3 starting.**
 
 ## Phase 3: Create or update + chunked write {#write}
 
@@ -196,6 +222,8 @@ effects; keep its task visible until the verification pass (Phase 4) confirms th
    `{ page_id, last_si }` to `./to-notion-doc-assets/<slug>/.write-cursor.json`; on a re-run with the same
    source + page, skip every batch whose `lastSi ≤` the cursor (idempotent resume, no duplicate blocks).
 
+**Phase 3 complete — `<N>` blocks written across `<B>` batches to `<page URL>`. Phase 4 starting.**
+
 ## Phase 4: Verify {#verify}
 
 1. Re-fetch the page: `notion-fetch <page>` → NFM. Derive the set of source-indices that landed.
@@ -206,12 +234,31 @@ effects; keep its task visible until the verification pass (Phase 4) confirms th
    - **Integrity:** no orphaned block, every table row's `cells.length == table_width`, no accidentally-empty
      block where the source had content, all code languages + colors in-enum (reference/notion-blocks.md §7).
 
+**Phase 4 complete — completeness `<pass|FAIL>`, integrity `<pass|FAIL>`, `<U>` unaccounted-for. Phase 5
+starting.**
+
 ## Phase 5: Conversion report {#report}
 
 Emit a report: block counts by type, ambiguities and how each resolved, image dispositions (external / stub /
 uploaded), the page URL, and the pass/fail of both verification passes (with the offending source location on
 any failure). If verification found unaccounted-for or integrity failures, surface them prominently — a
 partial/incorrect conversion must never be reported as clean.
+
+**Post-conversion actions (always emit — even on a clean run).** Some fidelity work cannot be finished at write
+time and is the user's to complete in the Notion UI. This subsection renders on every run; its presence does
+**not** contradict a "Run outcome: clean" line (these are manual follow-ups, not conversion failures). Counts
+come from the map `plan`, never hard-coded:
+
+1. **In-page anchor links written as plain text** — report the count (from the `plan`: links whose target is an
+   in-document `#anchor`). Reason: the destination block UUIDs are unknown at write time, so the MCP cannot
+   re-point them. Manual fix: in Notion, re-link each by typing `@` and selecting the target heading. (Count 0
+   → state "0 in-page anchor links — nothing to re-link.")
+2. **Full-width tables** — confirm `fit-page-width="true"` is set on all `<N>` tables (from the `plan`'s table
+   count). Note: Notion may still render a narrow table without stretching it edge-to-edge — that is a client
+   layout choice, not a missing attribute; if you want it stretched, open the table's ⋮⋮ menu → **Full width**
+   (reference/notion-blocks.md §3).
+
+**Phase 5 complete — report emitted, `<P>` post-conversion actions listed. Phase 6 starting.**
 
 ## Phase 6: Capture Learnings {#capture-learnings}
 
@@ -220,3 +267,5 @@ remembering, a parent page or style the user reached for — offer to append it 
 `~/.pmos/learnings.md` (create the file/section if absent). Keep entries short and general; never record the
 converted document's content, a Notion integration token, or any page-private data. Nothing reusable → skip
 silently.
+
+**Phase 6 complete — conversion finished.**

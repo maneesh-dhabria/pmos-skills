@@ -31,7 +31,22 @@ export function mimeForPath(p) {
 }
 
 const isExternalHttps = (src) => /^https:\/\//i.test(src || '');
-const slugize = (s) => (s || 'doc').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'doc';
+export const slugize = (s) => (s || 'doc').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'doc';
+
+// Canonical single stub callout NFM (reference/notion-blocks.md §5). `lines` are body lines; each is rendered
+// on its own TAB-indented line — NEVER an inline <br> right after the opening tag (Notion's NFM parser rejects
+// it, falling back to escaped literal text — §1). This is the ONE home for the stub-callout shape:
+// map-to-notion.mjs imports it so the in-document callout and buildStub() agree byte-for-byte (no dual-write).
+const TAB = '\t';
+export function stubCalloutNfm(icon, lines) {
+  const body = (lines || []).filter((l) => l != null && l !== '').map((l) => `${TAB}${l}`).join('\n');
+  return `<callout icon="${icon}">\n${body}\n</callout>`;
+}
+
+// The deterministic local-asset relative path the stub names and the copy op targets.
+export function assetRelPath(slug, src) {
+  return `./to-notion-doc-assets/${slugize(slug)}/${path.basename(src || 'image')}`;
+}
 
 // Decide which rung an image takes given the resolved mode + token presence. Pure; no I/O.
 export function resolveRung(image, opts = {}) {
@@ -51,17 +66,17 @@ export function buildExternal(image) {
   return { kind: 'external', src: image.src, alt: image.alt || '', nfm: `![${(image.alt || '').replace(/[\]]/g, '\\$&')}](${image.src})` };
 }
 
-// Rung 2 (always-available): local-extract stub — a callout naming the copied relative path + an empty image
-// placeholder block for the user to drag-drop fill in Notion. Returns the copy op for the skill to perform.
+// Rung 2 (always-available): local-extract stub — a SINGLE caption-inline callout naming the file, the caption
+// (alt → filename fallback, D2/FR-3.1), the copied relative path, and a drag-to-fill hint. No separate image
+// placeholder block (the dual-write F2 fix). Returns the copy op for the skill to perform.
 export function buildStub(image, opts = {}) {
-  const slug = slugize(opts.slug);
   const base = path.basename(image.src || 'image');
-  const rel = `./to-notion-doc-assets/${slug}/${base}`;
-  const alt = image.alt || base;
-  const callout = { type: 'callout', icon: '🖼', color: 'gray_background', rich: [{ content: `Image: ${alt} — local file copied to ${rel} (drag into the placeholder below).` }] };
-  const placeholder = { type: 'image', src: '', alt, external: false };
-  const nfm = `<callout icon="🖼" color="gray_bg">\n\t${callout.rich[0].content}\n</callout>\n\n<callout icon="⬜"><br>[ image placeholder: ${alt} ]\n</callout>`;
-  return { kind: 'stub', assetRelPath: rel, copy: { from: image.src, to: rel }, blocks: [callout, placeholder], nfm };
+  const rel = assetRelPath(opts.slug, image.src);
+  const caption = image.alt || base;
+  const lines = [`🖼 ${base} · Caption: ${caption}`, rel, 'Drag this file into an image block to fill.'];
+  const callout = { type: 'callout', icon: '🖼', color: 'gray_background', rich: [{ content: lines.join(' — ') }] };
+  const nfm = stubCalloutNfm('🖼', lines);
+  return { kind: 'stub', assetRelPath: rel, caption, copy: { from: image.src, to: rel }, blocks: [callout], nfm };
 }
 
 // Rung 3 (opt-in): a description of the File Upload API request shape. The token is NOT part of this object;
@@ -121,12 +136,16 @@ async function selftest() {
   const eb = buildExternal({ src: 'https://x/y.png', alt: 'Y' });
   ok(eb.kind === 'external' && /!\[Y\]\(https:\/\/x\/y\.png\)/.test(eb.nfm), 'external NFM image');
 
-  // Stub builder: correct relative path under the slug, callout names it, placeholder present.
+  // Stub builder: a SINGLE caption-inline callout — names the copied path, embeds the caption + filename,
+  // one block only (no placeholder pair), tab-indented body, no inline <br>.
   const sb = buildStub({ src: '/abs/path/diagram.png', alt: 'Arch' }, { slug: 'POV v6!' });
   ok(sb.assetRelPath === './to-notion-doc-assets/pov-v6/diagram.png', `stub rel path under slug (got ${sb.assetRelPath})`);
   ok(sb.copy.from === '/abs/path/diagram.png' && sb.copy.to === sb.assetRelPath, 'stub copy op from→to');
-  ok(sb.nfm.includes(sb.assetRelPath) && /placeholder/.test(sb.nfm), 'stub callout names path + has placeholder');
-  ok(sb.blocks.length === 2 && sb.blocks[1].type === 'image' && sb.blocks[1].src === '', 'stub yields callout + empty image placeholder');
+  ok(sb.blocks.length === 1 && sb.blocks[0].type === 'callout', 'stub is a single callout (no placeholder pair)');
+  ok(sb.nfm.includes(sb.assetRelPath) && /Caption: Arch/.test(sb.nfm) && /diagram\.png/.test(sb.nfm), 'stub callout names path + caption + filename');
+  ok(/<callout icon="🖼">\n\t/.test(sb.nfm) && !/<br>/.test(sb.nfm), 'stub callout tab-indented, no inline <br>');
+  // caption falls back to filename when alt is absent (D2/FR-3.1)
+  ok(/Caption: photo\.png/.test(buildStub({ src: './x/photo.png' }, { slug: 'doc' }).nfm), 'caption falls back alt → filename');
 
   // MIME mapping.
   ok(mimeForPath('a.PNG') === 'image/png' && mimeForPath('b.svg') === 'image/svg+xml', 'mime by extension');

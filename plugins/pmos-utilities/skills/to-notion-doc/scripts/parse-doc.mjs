@@ -361,6 +361,64 @@ function looksLikeAnchorToc(ulNode) {
   return anchored >= Math.ceil(lis.length * 0.6); // mostly in-page anchor links ⇒ a TOC, not a content list
 }
 
+// --- definition-list / label-value → 2-column table (F5) ------------------------------------------------
+// A <dl> (or a <div> of clean alternating label→value pairs) is semantically a 2-column attribute table, not
+// prose. Convert it to a `table` node (header ['Attribute','Description']) so it flows through map-to-notion's
+// §3 fidelity path. CONSERVATIVE: any structural irregularity (a dt without its dd, a non-short label, a
+// nested block, no recognizable label/value class signal) rejects the whole subtree — prose is never mis-tabled.
+const ATTR_HEADER = () => [[{ t: 'Attribute' }], [{ t: 'Description' }]];
+const LABEL_CLASS = /\b(label|term|key|name|field|attribute|attr|dt|caption|prop|property)\b/i;
+const VALUE_CLASS = /\b(value|val|desc|description|definition|dd|detail|content)\b/i;
+
+function dlToTable(node) {
+  const kids = (node.children || []).filter((c) => c.tag === 'dt' || c.tag === 'dd');
+  const rows = [ATTR_HEADER()];
+  let pending = null;
+  for (const c of kids) {
+    if (c.tag === 'dt') { if (pending !== null) return null; pending = inlineFromHtml(c); }
+    else { if (pending === null) return null; rows.push([pending, inlineFromHtml(c)]); pending = null; }
+  }
+  if (pending !== null || rows.length < 2) return null;
+  return { type: 'table', header: true, rows, detectedAs: 'table-candidate' };
+}
+
+function divPairsToTable(node) {
+  const kids = (node.children || []).filter((c) => c.tag === 'div' || c.tag === 'span' || c.tag === 'p');
+  if (kids.length < 4 || kids.length % 2 !== 0) return null;
+  for (let k = 0; k < kids.length; k += 2) {
+    const label = kids[k], value = kids[k + 1];
+    // require an explicit label/value class signal on every pair (conservative — prose divs never match)
+    if (!(LABEL_CLASS.test(label.attrs?.class || '') || VALUE_CLASS.test(value.attrs?.class || ''))) return null;
+    const labelText = textOf(label).trim();
+    if (!labelText || labelText.length > 60 || /\n/.test(labelText)) return null; // a long/multi-line label ⇒ prose
+    if ((label.children || []).some((c) => BLOCK_LEVEL.has(c.tag))) return null;  // a nested block ⇒ not a label
+  }
+  const rows = [ATTR_HEADER()];
+  for (let k = 0; k < kids.length; k += 2) rows.push([inlineFromHtml(kids[k]), inlineFromHtml(kids[k + 1])]);
+  return { type: 'table', header: true, rows, detectedAs: 'table-candidate' };
+}
+
+// --- annexure / appendix cluster signal (F6) ------------------------------------------------------------
+// ≥3 sibling top-level headings (same level) sharing a case-insensitive leading token ("Annexure 1/2/3",
+// "Appendix A/B/C") are a groupable cluster. Emit the signal (prefix + the heading si range + count) WITHOUT
+// auto-grouping — the skill's Phase-1 ask decides whether to nest them under one parent toggle.
+function detectClusters(blocks) {
+  const byKey = new Map();
+  for (const b of blocks) {
+    if (b.type !== 'heading') continue;
+    const text = (b.rich || []).map((s) => s.t).join('').trim();
+    const word = text.split(/\s+/)[0] || '';
+    const token = word.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (token.length < 3) continue;
+    const key = `${b.level}|${token}`;
+    if (!byKey.has(key)) byKey.set(key, { prefix: word, level: b.level, headingSis: [] });
+    byKey.get(key).headingSis.push(b.si);
+  }
+  const clusters = [];
+  for (const c of byKey.values()) if (c.headingSis.length >= 3) clusters.push({ ...c, count: c.headingSis.length });
+  return clusters;
+}
+
 function htmlToBlocks(node, blocks) {
   for (const ch of node.children || []) {
     const t = ch.tag;
@@ -383,6 +441,7 @@ function htmlToBlocks(node, blocks) {
     else if (t === 'blockquote') { const text = inlineFromHtml(ch); const raw = text.map((s) => s.t).join(''); const adm = /\b(NOTE|WARNING|WARN|TIP|IMPORTANT|CAUTION)\b/i.exec(raw); blocks.push({ type: 'quote', rich: text, admonition: adm ? adm[1].toLowerCase().replace('warning', 'warn').replace('important', 'note').replace('caution', 'warn') : null }); }
     else if (t === 'pre') { const codeNode = (ch.children || []).find((c) => c.tag === 'code') || ch; const lang = (codeNode.attrs?.class || ch.attrs?.class || '').replace(/^.*language-/, '').split(/\s+/)[0] || ''; blocks.push({ type: 'code', language: /language-|^\w+$/.test(lang) ? lang : '', code: decodeEntities(codeNode.text || textOf(codeNode)).replace(/\n$/, '') }); }
     else if (t === 'table') blocks.push(htmlTable(ch));
+    else if (t === 'dl') { const tbl = dlToTable(ch); if (tbl) blocks.push(tbl); else htmlToBlocks(ch, blocks); }
     else if (t === 'svg') blocks.push({ type: 'ambiguous', kind: 'svg', raw: ch.raw || '<svg>…</svg>' });
     else if (t === 'iframe') blocks.push({ type: 'ambiguous', kind: 'iframe', raw: ch.raw || `<iframe src="${ch.attrs.src || ''}">` });
     else if (t === 'embed' || t === 'object') blocks.push({ type: 'ambiguous', kind: 'embed', raw: ch.attrs.src || ch.attrs.data || t });
@@ -391,7 +450,10 @@ function htmlToBlocks(node, blocks) {
     else if (t === 'figcaption') { const rich = inlineFromHtml(ch); if (rich.length) blocks.push({ type: 'paragraph', rich }); }
     else if (t === 'details') { const sum = (ch.children || []).find((c) => c.tag === 'summary'); if (sum) blocks.push({ type: 'heading', level: 3, rich: inlineFromHtml(sum) }); htmlToBlocks({ children: (ch.children || []).filter((c) => c.tag !== 'summary') }, blocks); }
     else if (BLOCK_LEVEL.has(t) || t === 'body' || t === 'html' || t === 'span' || t === 'a') {
-      // container: if it holds block-level children, recurse; else treat as paragraph
+      // a <div> of clean label→value pairs is a 2-column table candidate (F5); else fall through to the
+      // container rule: if it holds block-level children, recurse; else treat as paragraph.
+      const tbl = t === 'div' ? divPairsToTable(ch) : null;
+      if (tbl) { blocks.push(tbl); continue; }
       const hasBlockChild = (ch.children || []).some((c) => BLOCK_LEVEL.has(c.tag) || c.tag === 'img' || c.tag === 'svg');
       if (hasBlockChild) htmlToBlocks(ch, blocks);
       else { const rich = inlineFromHtml(ch); if (rich.length) blocks.push({ type: 'paragraph', rich }); }
@@ -503,7 +565,8 @@ export function parseDoc(src, format) {
   else if (format === 'html' || format === 'htm') blocks = parseHtml(src);
   else if (format === 'txt' || format === 'text') blocks = parseTxt(src);
   else throw new Error(`unknown format: ${format}`);
-  return { blocks: assignSi(blocks), format };
+  const indexed = assignSi(blocks);
+  return { blocks: indexed, format, clusters: detectClusters(indexed) };
 }
 
 export function formatFromPath(p) {
@@ -627,6 +690,26 @@ function selftest() {
   ok(tr.blocks.some((b) => b.type === 'heading' && b.rich[0].t === 'SECTION ONE'), 'txt caps heading');
   ok(tr.blocks.filter((b) => b.type === 'bulleted_list_item').length === 2, 'txt bullets');
   ok(tr.blocks.some((b) => b.type === 'paragraph' && b.rich[0].t.includes('paragraph here continued')), 'txt paragraph join');
+
+  // F5: <dl> → a 2-column Attribute/Description table candidate
+  const dl = parseDoc('<html><body><dl><dt>Name</dt><dd>Acme</dd><dt>Year</dt><dd>2026</dd></dl></body></html>', 'html');
+  const dlt = dl.blocks.find((b) => b.type === 'table');
+  ok(dlt && dlt.detectedAs === 'table-candidate' && dlt.rows.length === 3 && dlt.rows[0][0][0].t === 'Attribute' && dlt.rows[0][1][0].t === 'Description', 'dl → 2-col Attribute/Description table candidate');
+  ok(dlt.rows[1][0][0].t === 'Name' && dlt.rows[1][1][0].t === 'Acme', 'dl pairs become table rows');
+  // F5: a label/value <div> pair list → table candidate
+  const lv = parseDoc('<html><body><div class="meta"><div class="label">Owner</div><div class="value">Mae</div><div class="label">Stage</div><div class="value">Beta</div></div></body></html>', 'html');
+  ok(lv.blocks.some((b) => b.type === 'table' && b.detectedAs === 'table-candidate' && b.rows.length === 3), 'label/value div pairs → 2-col table candidate');
+  // F5 conservative: a prose <div> (no label/value classes) is NEVER mis-tabled
+  const prose = parseDoc('<html><body><div><p>Intro sentence one here.</p><p>Body sentence two here.</p><p>More text three.</p><p>Even more four.</p></div></body></html>', 'html');
+  ok(!prose.blocks.some((b) => b.type === 'table'), 'prose div (no label/value classes) is not mis-tabled');
+  // F6: 3 "Annexure N" siblings → one groupable cluster; 2 → none (≥3 required)
+  const ann = parseDoc('<html><body><h2>Annexure A</h2><p>x</p><h2>Annexure B</h2><p>y</p><h2>Annexure C</h2><p>z</p></body></html>', 'html');
+  ok(ann.clusters && ann.clusters.length === 1 && ann.clusters[0].count === 3 && /annexure/i.test(ann.clusters[0].prefix) && ann.clusters[0].headingSis.length === 3, '3 Annexure siblings → one cluster signal (prefix + si range)');
+  const ann2 = parseDoc('<html><body><h2>Annexure A</h2><p>x</p><h2>Annexure B</h2><p>y</p></body></html>', 'html');
+  ok(!(ann2.clusters && ann2.clusters.length), '2 Annexure siblings → no cluster (≥3 required)');
+  // F6 conservative: distinct headings do not cluster
+  const noann = parseDoc('<html><body><h2>Intro</h2><p>x</p><h2>Methods</h2><p>y</p><h2>Results</h2><p>z</p></body></html>', 'html');
+  ok(!noann.clusters.length, 'distinct section headings → no spurious cluster');
 
   console.log(`parse-doc selftest: ${pass} passed, ${fail} failed`);
   return fail === 0;
