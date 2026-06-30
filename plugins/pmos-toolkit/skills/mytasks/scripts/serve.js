@@ -231,6 +231,26 @@ async function handleApi(tasksDir, peopleDir, req, res, pathname, query) {
     return sendJson(res, 200, { tasks: items.map(itemJson) });
   }
 
+  // GET /api/counts — trailing count badges for the sidebar (FR-4). Read-only; reuses
+  // the same filters as GET /api/tasks so the badges never drift from the lists.
+  if (pathname === '/api/counts' && req.method === 'GET') {
+    const all = lib.loadAllItems(tasksDir).filter((it) => !['completed', 'dropped'].includes(it.fm.status));
+    const smart = {
+      today: all.filter((it) => dueWindow(it.fm, 'today', today)).length,
+      upcoming: all.filter((it) => dueWindow(it.fm, 'next-30', today)).length,
+      overdue: all.filter((it) => dueWindow(it.fm, 'overdue', today)).length,
+      waiting: all.filter((it) => it.fm.status === 'waiting').length,
+      checkins: all.filter((it) => it.fm.next_checkin && it.fm.next_checkin <= today).length,
+    };
+    const projects = {}, labels = {};
+    for (const it of all) {
+      const p = it.fm.project || '';
+      projects[p] = (projects[p] || 0) + 1;
+      for (const l of (it.fm.labels || [])) labels[l] = (labels[l] || 0) + 1;
+    }
+    return sendJson(res, 200, { smart, projects, labels });
+  }
+
   // POST /api/tasks  (create — quick-add text or explicit fields)
   if (pathname === '/api/tasks' && req.method === 'POST') {
     let body; try { body = await readBody(req); } catch (e) { return sendJson(res, 400, { error: 'bad-body', detail: String(e.message || e) }); }

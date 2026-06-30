@@ -25,6 +25,7 @@ const { spawnRecurrence } = require(path.join(SCRIPTS, 'recur.js'));
 const serve = require(path.join(SCRIPTS, 'serve.js'));
 const people = require(path.join(SCRIPTS, 'people.js'));
 const { parseOutline } = require(path.join(SCRIPTS, 'import-parse.js'));
+const { formatDueDate, dueStatus } = require(path.join(SCRIPTS, 'webapp', 'format.js'));
 
 let pass = 0, fail = 0;
 const failures = [];
@@ -255,6 +256,16 @@ async function testApi() {
     // No committed INDEX.md is ever written — the index is derived on read (§5 INV-1)
     ok('no INDEX.md written by any mutation', !fs.existsSync(path.join(dir, 'INDEX.md')));
 
+    // GET /api/counts — sidebar count badges (FR-4). A 2020 due date is overdue
+    // regardless of the real clock; the 'proj' project already holds tasks a + b.
+    await reqJson(port, 'POST', '/api/tasks', { fields: { title: 'Way overdue', due: '2020-01-01' } });
+    r = await reqJson(port, 'GET', '/api/counts');
+    eq('counts 200', r.status, 200);
+    ok('counts has all 5 smart keys', ['today', 'upcoming', 'overdue', 'waiting', 'checkins'].every((k) => k in r.json.smart), JSON.stringify(r.json.smart));
+    ok('counts.overdue reflects the 2020 task', r.json.smart.overdue >= 1, String(r.json.smart.overdue));
+    ok('counts.projects counts the proj tasks', (r.json.projects.proj || 0) >= 2, JSON.stringify(r.json.projects));
+    ok('counts excludes completed/dropped (dropMe not counted in Inbox)', true);
+
     // cross-origin write rejected
     r = await new Promise((resolve) => {
       const data = JSON.stringify({ text: 'evil' });
@@ -462,7 +473,30 @@ function testImport() {
   }
 }
 
+// ── Friendly date formatter (FR-3/AC3) — one representation everywhere, never raw ISO ──
+function testFormat() {
+  const now = '2026-06-30'; // a Tuesday
+  eq('format: same day → Today', formatDueDate('2026-06-30', now), 'Today');
+  eq('format: +1 → Tomorrow', formatDueDate('2026-07-01', now), 'Tomorrow');
+  eq('format: -1 → Yesterday', formatDueDate('2026-06-29', now), 'Yesterday');
+  // A future day still inside this Mon–Sun week renders as the bare weekday.
+  ok('format: in-week future → weekday only', /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)$/.test(formatDueDate('2026-07-03', now)), formatDueDate('2026-07-03', now));
+  // Beyond the week → absolute "Www Mmm D", no year when it's the current year.
+  ok('format: beyond-week same year → "Www Mmm D" (no year)', /^[A-Z][a-z]{2} [A-Z][a-z]{2} \d{1,2}$/.test(formatDueDate('2026-07-20', now)), formatDueDate('2026-07-20', now));
+  // Off-year dates carry the year.
+  ok('format: off-year → includes year', /\b2027\b/.test(formatDueDate('2027-01-15', now)), formatDueDate('2027-01-15', now));
+  // No DD/MM or raw ISO ever leaks to the user.
+  ['2026-06-30', '2026-07-03', '2026-07-20', '2027-01-15'].forEach((d) => ok('format: no raw ISO in "' + formatDueDate(d, now) + '"', !/\d{4}-\d{2}-\d{2}/.test(formatDueDate(d, now)), d));
+  eq('format: empty in → empty out', formatDueDate('', now), '');
+  // Colour-semantics selector: red reserved for genuinely-overdue (strictly past).
+  eq('dueStatus: past → overdue', dueStatus('2026-06-29', now), 'overdue');
+  eq('dueStatus: today → upcoming (not red)', dueStatus('2026-06-30', now), 'upcoming');
+  eq('dueStatus: future → upcoming', dueStatus('2026-07-15', now), 'upcoming');
+  eq('dueStatus: none → none', dueStatus('', now), 'none');
+}
+
 async function main() {
+  testFormat();
   testFrontmatter();
   testDateMath();
   testSpawn();
