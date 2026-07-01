@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-01 — pmos-utilities 0.5.0: /to-notion-doc conversion fidelity fixes
+
+**`/to-notion-doc` now reports what it actually converted and handles images, SVGs, and table-shaped content more faithfully.** After a conversion it prints an honest post-conversion report — what mapped cleanly, what was approximated, and what needs a second look — plus a per-phase status banner so you can see where a large document is in the pipeline. Local images and SVGs convert through a single owner into one caption-carrying callout instead of a placeholder/duplicate pair, and definition-list and attribute/description content that reads as tabular is detected and offered as a Notion table, with related items grouped into an annexure.
+
 ## 2026-06-27 — pmos-learnkit 0.32.0: /primer library-viewer reaches full parity with /frameworks
 
 **`/primer`'s library browser now works like `/frameworks`.** The viewer gains the full shared library-viewer experience — multi-select category and audience filters, three view modes, and an in-page iframe reader that opens a primer without leaving the library. A bug that broke card links has been fixed, and the result count now reflects the whole library. Because the change is an additive, default-off seam in the shared viewer engine, `/frameworks` and `/learn-list` render byte-for-byte identically to before.

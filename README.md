@@ -11,7 +11,7 @@ Five plugins, each answering one question:
 |---|---|---|
 | **pmos-toolkit** | ship a feature | `/feature-sdlc`, `/requirements` → `/spec` → `/plan` → `/execute` → `/verify` → `/complete-dev`, `/grill`, `/artifact` |
 | **pmos-learnkit** | learn a topic | `/primer`, `/learn-list`, `/frameworks`, `/magazine`, `/playbook`, `/book-summary`, `/critical-thinking` |
-| **pmos-utilities** | maintain your environment | `/mac-health`, `/reflect` |
+| **pmos-utilities** | maintain your environment | `/mac-health`, `/reflect`, `/converter`, `/to-notion-doc` |
 | **pmos-managerkit** | do manager work | `/interview-feedback` |
 | **pmos-gamekit** | take a break | `/solitaire`, `/2048`, `/tetris`, `/sudoku`, `/snake`, `/poker`, `/flappy-bird` |
 
@@ -31,6 +31,7 @@ prefix. The plugin each skill belongs to is in the last column.
 |---|---|---|
 | Take an idea all the way to shipped code | `/feature-sdlc <idea>` | toolkit |
 | Pressure-test a half-formed idea before writing it up | `/ideate` | toolkit |
+| Shape a fuzzy problem before any solution or requirements | `/shape` | toolkit |
 | Shape just requirements (no code yet) | `/requirements` | toolkit |
 | Mock up the UI before specifying it | `/wireframes` → `/prototype` | toolkit |
 | Run the discovery half only (no /plan or /execute) | `/prototype-sdlc <seed>` | toolkit |
@@ -42,8 +43,12 @@ prefix. The plugin each skill belongs to is in the last column.
 | Generate a changelog entry after merging | `/changelog` | toolkit |
 | Author a new skill (or revise one from feedback) | `/skill-sdlc` | toolkit |
 | Draft a PRD / EDD / Discovery Doc | `/artifact` | toolkit |
+| Critique a PRD / strategy doc like a product leader | `/artifact-critique` | toolkit |
 | Tighten any prose | `/polish` | toolkit |
 | Summarize any source into a faithful TL;DR | `/summary-tldr` | toolkit |
+| Run deep, decision-framed research on a topic | `/research` | toolkit |
+| Generate a high-converting product landing page | `/landing-page` | toolkit |
+| Build a living wiki from scattered team docs | `/wiki` | toolkit |
 | Audit, scaffold, or update a README | `/readme` | toolkit |
 | Annotate any pmos-emitted HTML artifact in the browser | `/comments` | toolkit |
 | Design and field a survey | `/survey-design` → `/survey-analyse` | toolkit |
@@ -58,6 +63,8 @@ prefix. The plugin each skill belongs to is in the last column.
 | Persist context across sessions and repos | `/product-context` | toolkit |
 | Capture session learnings | `/session-log` | toolkit |
 | Send feedback to skill authors | `/reflect` | utilities |
+| Convert files between formats (JSON/YAML/CSV/HTML/MD/PDF) | `/converter` | utilities |
+| Turn a local doc into a faithful Notion page | `/to-notion-doc` | utilities |
 | Ramp up on a topic with cited sources | `/primer <topic>` | learnkit |
 | Get a verified, anti-slop reading list | `/learn-list <topic>` | learnkit |
 | Find the right PM framework for a decision | `/frameworks "<problem>"` | learnkit |
@@ -148,7 +155,8 @@ for its full skill reference.
   audience-shaped learning artifacts (primers, reading lists, framework
   library, feed digest, case-study playbooks).
 - **[pmos-utilities](plugins/pmos-utilities/README.md)** — standalone
-  diagnostics and meta-tooling (`/mac-health`, `/reflect`).
+  diagnostics and meta-tooling (`/mac-health`, `/reflect`, `/converter`,
+  `/to-notion-doc`).
 - **[pmos-managerkit](plugins/pmos-managerkit/README.md)** — manager-facing
   skills for hiring, team, and reviews, starting with `/interview-feedback`.
 - **[pmos-gamekit](plugins/pmos-gamekit/README.md)** — pre-bundled,
