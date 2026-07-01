@@ -4,13 +4,13 @@ id: 260629-7hm
 title: "/to-notion-doc fidelity fixes — honest post-conversion report, single-owner image/SVG stub pipeline, attribute/description→table + annexure-grouping detection, per-phase status banner"
 type: enhancement
 kind: epic
-status: defined
+status: released
 route: skill
 priority: should
 labels: [pmos-utilities, to-notion-doc, notion, document-conversion, skill, from-feedback]
 created: 2026-06-29
-updated: 2026-06-29
-released:
+updated: 2026-07-01
+released: 0.5.0
 source: "from-feedback (/reflect on first production run, 2026-06-29): converted a 242-block POV HTML to Notion; verification passed 242/242 but three post-conversion sessions surfaced (a) report omitted two deterministic limitations, (b) image-stub pipeline output bugs, (c) source structures not recognized as conversion candidates. Maintainer decisions (define run): D1 map-to-notion is single stub owner; D2 single-callout caption-inline stub; D3 auto-convert dl/label-divs to tables, flag in census."
 design_doc: docs/pmos/features/2026-06-29_to-notion-doc-fidelity/02_design.html
 parent:
