@@ -4,13 +4,13 @@ id: 260629-xrz
 title: "/landing-page substance-depth fixes — per-product personas, do>show>tell hard gate + claim mapping, embed show-surface, Phase-6 judgment checks, dev-tool hero subhead (5 reflect findings)"
 type: enhancement
 kind: epic
-status: defined
+status: released
 route: skill
 priority: should
 labels: [pmos-toolkit, landing-page, skill, from-feedback]
 created: 2026-06-29
-updated: 2026-06-29
-released:
+updated: 2026-07-01
+released: 2.100.0
 source: "from-feedback (/reflect retro of /landing-page, 1 run on the pmos-skills 5-plugin marketplace page, 2026-06-29). The skill shipped a clean, valid, self-contained page on the first pass and every deterministic gate (structure, single-CTA, mobile-overflow, asset-fidelity) went green — but the build was shallow on substance: it collapsed a 5-plugin marketplace into one 'product builder' persona, undersold learnkit, used an unrelated framework SVG to stand in for the delivery pipeline, and told (named skills, listed features) where it should have shown. The user pushed back twice, forcing a deep rebuild (per-plugin personas, real artifact screenshots) and a third pass adding live interactive embeds. 5 findings — 2 blockers (F1 multi-product persona cap forces global collapse, F2 do>show>tell defaulted to tell while the show-ratio advisory never fired), 2 friction (F3 interactive embeds absent from the show-surface menu, F4 Phase-6 self-review is all deterministic / no judgment), 1 nit (F5 weak hero one-liner/subhead despite passing the copy gates). Maintainer decisions (define run): D1 one primary persona per product overriding the global 1-2 cap (grilled via AskUserQuestion vs full-triad / capped); D2 Phase-2 maps every feature/value claim to a show-surface as a drafting precondition; D3 do>show>tell promoted to a HARD asset-gated binary-presence Phase-6 gate, §H-clean no-arithmetic (grilled vs keep-advisory-escalate); D4 embed-the-real-artifact (iframe, page-folder-relative, load-on-open <details>+data-src) as the top do-rung of the ladder; D5 two new Phase-6 judgment checks — value-coverage HARD structural for multi-product + asset-claim-match ADVISORY (grilled vs both-advisory); D6 dev-tool hero subhead must name buyer + category explicitly. All edits in plugins/pmos-toolkit/skills/landing-page/{SKILL.md, reference/multi-product.md, reference/section-scaffolds.md, reference/copy-gates.md}; no _shared/ change, no script change, no new flag."
 design_doc: docs/pmos/features/2026-06-29_landing-page-substance-depth/02_design.html
 parent:

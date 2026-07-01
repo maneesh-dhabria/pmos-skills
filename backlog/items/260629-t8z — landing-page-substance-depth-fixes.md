@@ -1,4 +1,5 @@
 ---
+released: 2.100.0
 schema_version: 1
 id: 260629-t8z
 kind: story
@@ -20,7 +21,7 @@ build_branch: feat/260629-t8z
 build_commit: 24785f23
 labels: [pmos-toolkit, landing-page, skill, from-feedback]
 created: 2026-06-29
-updated: 2026-06-30
+updated: 2026-07-01
 ---
 
 <!-- status: planned at define (Loop 1); tasks.yaml authored, route:skill. Build via /skill-sdlc build --story 260629-t8z -->
