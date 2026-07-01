@@ -22,7 +22,7 @@
   This task changed elsewhere. <button id="reload-btn">Reload</button>
 </div>
 
-<div id="app" class="layout">
+<div id="app" class="layout detail-collapsed">
   <aside id="sidebar">
     <div class="brand">My Tasks</div>
     <nav id="smart-views"></nav>
@@ -32,11 +32,12 @@
   </aside>
 
   <main id="list-pane">
-    <header id="list-header"><h1 id="view-title">Today</h1><span id="lno-legend" class="muted" title="Importance: Leverage / Neutral / overhead (no badge)"><span class="lno-badge lev">L</span>everage · <span class="lno-badge neu">N</span>eutral</span></header>
+    <header id="list-header"><h1 id="view-title">Today</h1><span id="lno-legend" class="muted" title="Importance: Leverage / Neutral / overhead (no badge)"><span class="lno-badge lev"><span class="lno-dot">L</span></span>everage · <span class="lno-badge neu"><span class="lno-dot">N</span></span>eutral</span></header>
     <ul id="task-list"></ul>
     <div id="list-footer"></div>
     <form id="quick-add" autocomplete="off">
       <input id="quick-input" type="text" placeholder="+ Quick-add  (e.g. Call @sam #home +urgent tomorrow)">
+      <div id="quick-preview" class="qa-preview"></div>
     </form>
   </main>
 
@@ -46,6 +47,9 @@
   </section>
 </div>
 
+<div id="toast"></div>
+
+<script src="/format.js"></script>
 <script src="/app.js"></script>
 </body>
 </html>

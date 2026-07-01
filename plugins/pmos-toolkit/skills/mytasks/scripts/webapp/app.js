@@ -21,11 +21,39 @@ const LNO_BADGE = { leverage: { letter: 'L', cls: 'lev' }, neutral: { letter: 'N
 const state = {
   view: { kind: 'smart', key: 'today', q: 'due=today', label: 'Today' },
   selected: null, tasks: [], meta: { projects: [], labels: [] }, people: [],
+  counts: { smart: {}, projects: {}, labels: {} }, // FR-4 sidebar badges
+  todayOverdue: [], // FR-5 overdue items surfaced atop the Today view
   expanded: {}, // parentId -> true when its subtask block is open
 };
 
 const $ = (s) => document.querySelector(s);
 function el(tag, cls, txt) { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+
+// One friendly date everywhere (FR-3/AC3) — delegates to format.js (loaded first).
+function friendlyDate(iso) { return (typeof formatDueDate === 'function') ? formatDueDate(iso) : (iso || ''); }
+function friendlyOrDash(iso) { return friendlyDate(iso) || '—'; }
+function dueClass(iso) { return (typeof dueStatus === 'function') ? dueStatus(iso) : 'none'; }
+// Handle → display name (falls back to the handle when the person isn't loaded).
+function personName(handle) { const p = (state.people || []).find((x) => x.handle === handle); return p ? (p.name || p.handle) : handle; }
+
+// One chip representation across row, sidebar, and editor (FR-7/FR-10/CC2).
+// kind ∈ project|label|person; sigil is the user-facing prefix; onRemove (optional) renders an ✕.
+function chip(kind, sigil, text, onRemove) {
+  const c = el('span', 'chip chip-' + kind);
+  if (sigil) c.appendChild(el('span', 'chip-sigil', sigil));
+  c.appendChild(el('span', 'chip-text', text));
+  if (onRemove) { const x = el('span', 'chip-x', '✕'); x.onclick = (e) => { e.stopPropagation(); onRemove(); }; c.appendChild(x); }
+  return c;
+}
+// A due-date pill carrying the overdue/upcoming colour semantics (FR-8/AC7). Red only when overdue.
+function dueChip(iso, cls) {
+  const status = dueClass(iso);
+  const span = el('span', (cls || 'row-due') + (status === 'overdue' ? ' overdue' : ''));
+  span.appendChild(el('span', 'due-icon', status === 'overdue' ? '⚠' : '🗓'));
+  span.appendChild(el('span', null, friendlyDate(iso)));
+  span.title = iso;
+  return span;
+}
 
 async function api(path, opts) {
   const r = await fetch('/api' + path, opts);
@@ -38,19 +66,28 @@ function showServerModal(show) { $('#server-modal').classList.toggle('hidden', !
 function showReloadBanner() { $('#reload-banner').classList.remove('hidden'); }
 
 // ── Sidebar ──
+// A nav row with a label span + optional trailing count badge (FR-4). The badge turns
+// red (.overdue) only for the Overdue view carrying work — colour-semantics (CC3/FR-8).
+function sideItem(cls, label, count, overdue) {
+  const a = el('a', cls);
+  a.appendChild(el('span', 'side-label', label));
+  if (count != null && count > 0) a.appendChild(el('span', 'side-count' + (overdue ? ' overdue' : ''), String(count)));
+  return a;
+}
 function renderSidebar() {
   const sv = $('#smart-views'); sv.innerHTML = '';
   for (const v of SMART_VIEWS) {
-    const a = el('a', 'side-item' + (state.view.kind === 'smart' && state.view.key === v.key ? ' active' : ''), v.label);
+    const cls = 'side-item' + (state.view.kind === 'smart' && state.view.key === v.key ? ' active' : '');
+    const a = sideItem(cls, v.label, (state.counts.smart || {})[v.key], v.key === 'overdue');
     a.onclick = () => { state.view = { kind: 'smart', key: v.key, q: v.q, label: v.label }; refresh(); };
     sv.appendChild(a);
   }
   const pj = $('#projects'); pj.innerHTML = '';
-  const inbox = el('a', 'side-item' + (isProj('') ? ' active' : ''), 'Inbox');
+  const inbox = sideItem('side-item' + (isProj('') ? ' active' : ''), 'Inbox', (state.counts.projects || {})['']);
   inbox.onclick = () => { state.view = { kind: 'project', key: '', label: 'Inbox' }; refresh(); };
   pj.appendChild(inbox);
   for (const p of state.meta.projects) {
-    const a = el('a', 'side-item' + (isProj(p) ? ' active' : ''), p);
+    const a = sideItem('side-item' + (isProj(p) ? ' active' : ''), p, (state.counts.projects || {})[p]);
     a.onclick = () => { state.view = { kind: 'project', key: p, label: p }; refresh(); };
     pj.appendChild(a);
   }
@@ -61,7 +98,8 @@ function renderSidebar() {
 
   const lb = $('#labels'); lb.innerHTML = '';
   for (const l of state.meta.labels) {
-    const a = el('a', 'side-item' + (state.view.kind === 'label' && state.view.key === l ? ' active' : ''), '#' + l);
+    const cls = 'side-item' + (state.view.kind === 'label' && state.view.key === l ? ' active' : '');
+    const a = sideItem(cls, '#' + l, (state.counts.labels || {})[l]);
     a.onclick = () => { state.view = { kind: 'label', key: l, label: '#' + l }; refresh(); };
     lb.appendChild(a);
   }
@@ -140,20 +178,28 @@ function isReorderable() { return state.view.kind === 'project'; }
 // ── Data loads ──
 async function loadMeta() { state.meta = await api('/meta'); }
 async function loadPeople() { try { const r = await api('/people'); state.people = r.people || []; } catch (e) { state.people = []; } }
+async function loadCounts() { try { state.counts = await api('/counts'); } catch (e) { state.counts = { smart: {}, projects: {}, labels: {} }; } }
 
 // ── Task list ──
 async function refresh() {
-  try { await loadMeta(); await loadPeople(); showServerModal(false); }
+  try { await loadMeta(); await loadPeople(); await loadCounts(); showServerModal(false); }
   catch (e) { showServerModal(true); return; }
   try {
     const sep = viewQuery() ? '&' : '';
     const r = await api('/tasks?' + viewQuery() + sep + 'include_children=1');
     state.tasks = r.tasks;
+    // FR-5: surface overdue work atop the Today view so a cold open is never an empty
+    // "Nothing here" while tasks are past due (overdue is disjoint from due=today).
+    if (isTodayView()) {
+      try { const o = await api('/tasks?due=overdue'); state.todayOverdue = o.tasks; }
+      catch (e) { state.todayOverdue = []; }
+    } else { state.todayOverdue = []; }
     renderSidebar();
     renderList();
     if (state.selected) openDetail(state.selected, true);
   } catch (e) { /* transient */ }
 }
+function isTodayView() { return state.view.kind === 'smart' && state.view.key === 'today'; }
 
 function renderList() {
   $('#view-title').textContent = state.view.label || 'Tasks';
@@ -168,7 +214,16 @@ function renderList() {
   // Top-level = no parent, or a parent not present in this view (then it stands alone).
   let tops = all.filter((t) => !t.parent || !byId.has(t.parent));
   if (isReorderable()) tops.sort((a, b) => (a.order ?? 1e9) - (b.order ?? 1e9));
-  if (tops.length === 0) { ul.appendChild(el('li', 'empty-row', 'Nothing here.')); renderListFooter(); return; }
+
+  // FR-5: on the Today view, overdue work leads under its own header.
+  const overdue = isTodayView() ? (state.todayOverdue || []).filter((t) => !byId.has(t.id)) : [];
+  if (overdue.length) {
+    ul.appendChild(el('li', 'list-group-head', 'Overdue · ' + overdue.length));
+    for (const t of overdue) ul.appendChild(taskRow(t, 0));
+    if (tops.length) ul.appendChild(el('li', 'list-group-head muted-head', 'Today'));
+  }
+
+  if (tops.length === 0 && overdue.length === 0) { renderEmptyState(ul); renderListFooter(); return; }
   for (const t of tops) {
     const kids = childrenOf.get(t.id) || [];
     ul.appendChild(taskRow(t, kids.length));
@@ -181,6 +236,27 @@ function renderList() {
     }
   }
   renderListFooter();
+}
+
+// FR-5/AC4: an explanatory empty state with a working CTA (focuses quick-add) — never
+// a bare "Nothing here." The copy is keyed to the active view.
+function renderEmptyState(ul) {
+  const v = state.view;
+  let title = 'Nothing here yet', sub = '', cta = 'Add a task';
+  if (v.kind === 'smart' && v.key === 'today') { title = 'Nothing due today'; sub = 'You\'re clear for today. Upcoming and Inbox are in the sidebar.'; cta = 'Add a task for today'; }
+  else if (v.kind === 'smart' && v.key === 'overdue') { title = 'No overdue tasks'; sub = 'You\'re all caught up.'; }
+  else if (v.kind === 'smart' && v.key === 'upcoming') { title = 'Nothing upcoming'; sub = 'No tasks due in the next 30 days.'; }
+  else if (v.kind === 'smart' && v.key === 'waiting') { title = 'Nothing waiting'; sub = 'No tasks are blocked on someone else right now.'; }
+  else if (v.kind === 'smart' && v.key === 'checkins') { title = 'No check-ins due'; sub = 'Recurring check-ins surface here when they come due.'; }
+  else if (v.kind === 'project') { title = 'No tasks in ' + (v.label || 'this project'); sub = 'Add the first one to get started.'; cta = 'Add a task to ' + (v.label || 'project'); }
+  else if (v.kind === 'label') { title = 'No tasks tagged ' + (v.label || 'this label'); sub = 'Tag a task with this label and it shows up here.'; }
+  const wrap = el('li', 'empty-state');
+  wrap.appendChild(el('div', 'empty-title', title));
+  if (sub) wrap.appendChild(el('div', 'empty-sub', sub));
+  const a = el('div', 'empty-cta', '+ ' + cta);
+  a.onclick = () => { const qi = $('#quick-input'); if (qi) qi.focus(); };
+  wrap.appendChild(a);
+  ul.appendChild(wrap);
 }
 
 // AC A5 — a persistent "+ Add task" control below the last task row.
@@ -206,6 +282,9 @@ function renderListFooter() {
 function taskRow(t, childCount, isChild) {
   const li = el('li', 'task-row' + (state.selected === t.id ? ' selected' : '') + (isChild ? ' is-child' : '') + (t.status === 'completed' ? ' completed' : ''));
   li.dataset.id = t.id;
+  // FR-12/AC5: a click anywhere on the row except an interactive control opens the
+  // detail panel. The title (rename), check, badges, and pencil all stopPropagation.
+  li.onclick = () => openDetail(t.id);
   if (isReorderable() && !isChild) {
     li.draggable = true;
     li.addEventListener('dragstart', (e) => { li.classList.add('dragging'); e.dataTransfer.setData('text/plain', t.id); });
@@ -222,18 +301,14 @@ function taskRow(t, childCount, isChild) {
   } else {
     li.appendChild(el('span', 'chevron-spacer'));
   }
-  // LNO letter badge (D2): green L / blue N / nothing for overhead. Click cycles.
+  // LNO letter badge (D2): green L / blue N / dashed for overhead, inside a ≥24px hit
+  // area (FR-13). Click cycles importance.
   const lno = LNO_BADGE[t.importance || 'neutral'];
-  if (lno) {
-    const badge = el('span', 'lno-badge ' + lno.cls, lno.letter);
-    badge.title = (t.importance || 'neutral') + ' — click to cycle';
-    badge.onclick = (e) => { e.stopPropagation(); cycleImportance(t); };
-    li.appendChild(badge);
-  } else {
-    const slot = el('span', 'lno-badge none'); slot.title = 'overhead — click to cycle';
-    slot.onclick = (e) => { e.stopPropagation(); cycleImportance(t); };
-    li.appendChild(slot);
-  }
+  const badge = el('span', 'lno-badge ' + (lno ? lno.cls : 'none'));
+  badge.appendChild(el('span', 'lno-dot', lno ? lno.letter : ''));
+  badge.title = (t.importance || 'neutral') + ' — click to cycle';
+  badge.onclick = (e) => { e.stopPropagation(); cycleImportance(t); };
+  li.appendChild(badge);
   const cb = el('span', 'row-check' + (t.status === 'completed' ? ' done' : '')); cb.textContent = t.status === 'completed' ? '☑' : '☐';
   cb.title = t.status === 'completed' ? 'completed' : 'complete';
   cb.onclick = (e) => { e.stopPropagation(); completeTask(t); };
@@ -242,7 +317,15 @@ function taskRow(t, childCount, isChild) {
   const title = el('span', 'row-title', t.title);
   title.onclick = (e) => { e.stopPropagation(); startInlineTitle(li, title, t); };
   li.appendChild(title);
-  if (t.due) li.appendChild(el('span', 'row-due', t.due));
+  // FR-7/AC6: inline chips for project / label / assignee when set — one chip
+  // representation (CC2). Suppress the chip that just echoes the current view.
+  const chips = el('span', 'row-chips');
+  if (t.project && !(state.view.kind === 'project' && state.view.key === t.project)) chips.appendChild(chip('project', '#', t.project));
+  for (const l of (t.labels || [])) { if (!(state.view.kind === 'label' && state.view.key === l)) chips.appendChild(chip('label', '+', l)); }
+  for (const h of (t.people || [])) chips.appendChild(chip('person', '@', personName(h)));
+  if (chips.childNodes.length) li.appendChild(chips);
+  // FR-3/FR-8/AC7: one friendly date format; red reserved for overdue only.
+  if (t.due) li.appendChild(dueChip(t.due));
   if (childCount) li.appendChild(el('span', 'row-badge', '▸ ' + childCount + ' subtask' + (childCount === 1 ? '' : 's')));
   if (t.recur) li.appendChild(el('span', 'row-badge', '⟳ ' + t.recur));
   const pencil = el('span', 'row-pencil', '✎'); pencil.title = 'Open editor';
@@ -288,9 +371,27 @@ async function cycleImportance(t) {
 }
 async function completeTask(t) {
   if (t.status === 'completed') return;
-  try { const r = await api('/tasks/' + t.id + '/complete', body({ expected_version: t.version })); if (r.spawned) toast('Spawned next instance due ' + (r.spawned.new_due || '—')); }
-  catch (e) { if (!e.conflict) toast(e.message); }
-  if (state.selected === t.id) state.selected = null;
+  const prevStatus = t.status || 'pending';
+  let r;
+  try { r = await api('/tasks/' + t.id + '/complete', body({ expected_version: t.version })); }
+  catch (e) { if (!e.conflict) toast(e.message); return; }
+  // AC8: a stale "pending" task must not linger in the detail panel with live controls.
+  if (state.selected === t.id) clearDetail();
+  const spawnedNote = r.spawned ? ' · next due ' + friendlyOrDash(r.spawned.new_due) : '';
+  // AC8/FR-11: toast-window Undo reverts the completion (and any spawned recurrence) while visible.
+  toast('Completed “' + t.title + '”' + spawnedNote, {
+    label: 'Undo',
+    onClick: async () => {
+      try {
+        const ver = (r.task && r.task.version != null) ? r.task.version : (await api('/tasks/' + t.id)).task.version;
+        await patch(t.id, { status: prevStatus, completed: '' }, ver);
+        if (r.spawned && r.spawned.new_id) {
+          try { const sp = await api('/tasks/' + r.spawned.new_id); await api('/tasks/' + r.spawned.new_id + '/drop', body({ expected_version: sp.task.version })); } catch (e) { /* spawned already gone */ }
+        }
+        refresh();
+      } catch (e) { if (!e.conflict) toast('Could not undo: ' + e.message); }
+    },
+  });
   refresh();
 }
 
@@ -319,7 +420,12 @@ function updateAutocomplete(input) {
   const tok = trailingToken(input);
   if (!tok) return hideAutocomplete();
   const matches = candidatesFor(tok.sigil).filter((c) => c.toLowerCase().startsWith(tok.prefix.toLowerCase())).slice(0, 8);
-  if (!matches.length) return hideAutocomplete();
+  // A new @handle that matches no existing person still needs the dropdown — that is
+  // where the "+ Add" rung lives. Only bail when there is genuinely nothing to show
+  // (no matches AND not an add-eligible @prefix).
+  const canAddPerson = tok.sigil === '@' && tok.prefix &&
+    !candidatesFor('@').some((h) => h.toLowerCase() === tok.prefix.toLowerCase());
+  if (!matches.length && !canAddPerson) return hideAutocomplete();
   showAutocomplete(input, tok, matches);
 }
 function showAutocomplete(input, tok, matches) {
@@ -327,15 +433,39 @@ function showAutocomplete(input, tok, matches) {
   acBox = el('div', 'ac-box'); acBox.dataset.active = '0';
   matches.forEach((mtext, i) => {
     const opt = el('div', 'ac-opt' + (i === 0 ? ' active' : ''), tok.sigil + mtext);
-    opt.onmousedown = (e) => { e.preventDefault(); applyAutocomplete(input, tok, mtext); };
+    opt._apply = () => applyAutocomplete(input, tok, mtext);
+    opt.onmousedown = (e) => { e.preventDefault(); opt._apply(); };
     acBox.appendChild(opt);
   });
+  // FR-2/AC2: explicit "+ Add" rung for a new @person — minting only happens on this
+  // click, so a typo'd handle that's never clicked creates nothing.
+  const exact = candidatesFor('@').some((h) => h.toLowerCase() === (tok.prefix || '').toLowerCase());
+  if (tok.sigil === '@' && tok.prefix && !exact) {
+    const add = el('div', 'ac-opt ac-add');
+    add.appendChild(el('span', null, '+ Add “@' + tok.prefix + '”'));
+    add.appendChild(el('span', 'ac-sub', 'new person'));
+    add._apply = () => addPersonFromToken(input, tok);
+    add.onmousedown = (e) => { e.preventDefault(); add._apply(); };
+    acBox.appendChild(add);
+  }
   document.body.appendChild(acBox);
   const r = input.getBoundingClientRect();
   acBox.style.left = r.left + 'px';
   acBox.style.top = (r.bottom + window.scrollY + 2) + 'px';
   acBox.style.minWidth = r.width + 'px';
   acBox._input = input; acBox._tok = tok;
+}
+// FR-2/AC2: mint a person via the existing POST /api/people, then reflect it in the
+// PEOPLE sidebar and (via refresh) the editor People field — no page reload.
+async function addPersonFromToken(input, tok) {
+  let handle = tok.prefix;
+  try {
+    const r = await api('/people', body({ name: tok.prefix }));
+    if (r.person && r.person.handle) handle = r.person.handle;
+    await loadPeople(); renderSidebar();
+    if (state.selected) openDetail(state.selected, true);
+  } catch (e) { if (!e.conflict) toast(e.message); }
+  applyAutocomplete(input, tok, handle);
 }
 function hideAutocomplete() { if (acBox) { acBox.remove(); acBox = null; } }
 function onAutocompleteKey(e, input) {
@@ -344,7 +474,7 @@ function onAutocompleteKey(e, input) {
   let active = opts.findIndex((o) => o.classList.contains('active'));
   if (e.key === 'ArrowDown') { e.preventDefault(); active = (active + 1) % opts.length; }
   else if (e.key === 'ArrowUp') { e.preventDefault(); active = (active - 1 + opts.length) % opts.length; }
-  else if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); applyAutocomplete(input, acBox._tok, opts[active].textContent.slice(1)); return; }
+  else if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); const o = opts[active < 0 ? 0 : active]; if (o && o._apply) o._apply(); return; }
   else if (e.key === 'Escape') { e.preventDefault(); hideAutocomplete(); return; }
   else return;
   opts.forEach((o, i) => o.classList.toggle('active', i === active));
@@ -360,6 +490,18 @@ function applyAutocomplete(input, tok, value) {
 }
 
 // ── Detail panel ──
+// FR-6/FR-12: the panel is collapsed (and the list reclaims its width) until a task
+// is selected. These two helpers are the single source of the open/closed transition.
+function syncDetailCollapse() { $('#app').classList.toggle('detail-collapsed', state.selected == null); }
+function clearDetail() {
+  state.selected = null;
+  $('#detail-body').classList.add('hidden');
+  $('#detail-empty').classList.remove('hidden');
+  $('#detail-pane').classList.add('empty');
+  syncDetailCollapse();
+  renderList();
+}
+
 async function openDetail(id, keepScroll) {
   state.selected = id;
   let r; try { r = await api('/tasks/' + id); } catch (e) { return; }
@@ -367,6 +509,7 @@ async function openDetail(id, keepScroll) {
   $('#detail-empty').classList.add('hidden');
   const d = $('#detail-body'); d.classList.remove('hidden'); d.innerHTML = '';
   $('#detail-pane').classList.remove('empty');
+  syncDetailCollapse();
 
   // AC A9 — when this task is a subtask, show its parent + open affordance.
   if (t.parent) {
@@ -382,7 +525,7 @@ async function openDetail(id, keepScroll) {
   d.appendChild(editableTitle(t));
   d.appendChild(metaRow(t));
   d.appendChild(projectField(t));
-  d.appendChild(fieldRow('Labels', (t.labels || []).join(', '), (v) => patch(id, { labels: v }, t.version)));
+  d.appendChild(labelsField(t));
   d.appendChild(dateField('Due', t.due, (v) => patch(id, { due: v }, t.version)));
   d.appendChild(dateField('Start', t.start, (v) => patch(id, { start: v }, t.version)));
   d.appendChild(peopleField(t));
@@ -395,7 +538,7 @@ async function openDetail(id, keepScroll) {
   const ciBtn = el('button', 'btn', 'Check in');
   ciBtn.onclick = async () => { try { await api('/tasks/' + id + '/checkin', body({ expected_version: t.version, note: noteIn.value.trim() })); noteIn.value = ''; openDetail(id); refresh(); } catch (e) { if (!e.conflict) toast(e.message); } };
   ci.appendChild(noteIn); ci.appendChild(ciBtn);
-  const dropBtn = el('button', 'btn danger', 'Drop'); dropBtn.onclick = async () => { await api('/tasks/' + id + '/drop', body({ expected_version: t.version })); state.selected = null; $('#detail-body').classList.add('hidden'); $('#detail-empty').classList.remove('hidden'); refresh(); };
+  const dropBtn = el('button', 'btn danger', 'Drop'); dropBtn.onclick = async () => { try { await api('/tasks/' + id + '/drop', body({ expected_version: t.version })); } catch (e) { if (!e.conflict) toast(e.message); return; } clearDetail(); refresh(); };
   ci.appendChild(dropBtn);
   d.appendChild(ci);
 
@@ -435,6 +578,8 @@ function metaRow(t) {
   const row = el('div', 'detail-meta');
   row.appendChild(badge('status', t.status));
   row.appendChild(badge('importance', t.importance));
+  // FR-3/AC3: friendly due in the editor display (the date field below stays for editing).
+  if (t.due) row.appendChild(dueChip(t.due, 'row-due'));
   return row;
 }
 function badge(k, v) { const b = el('span', 'meta-badge'); b.textContent = v; b.title = k; return b; }
@@ -449,6 +594,38 @@ function fieldRow(label, value, onSave) {
   const inp = el('input', 'field-input'); inp.value = value || '';
   inp.onchange = async () => { try { await onSave(inp.value.trim()); refresh(); } catch (e) { if (!e.conflict) toast(e.message); } };
   row.appendChild(inp); return row;
+}
+// FR-10/AC6 — Labels as a tokenized chip input (one chip representation, CC2) with
+// autocomplete from existing labels via a native <datalist> (zero new deps, INV-3).
+function labelsField(t) {
+  const row = fieldShell('Labels');
+  const boxWrap = el('div', 'chip-input');
+  const labels = (t.labels || []).slice();
+  const save = async (next) => { try { await patch(t.id, { labels: next.join(', ') }, t.version); refresh(); } catch (e) { if (!e.conflict) toast(e.message); } };
+  for (const l of labels) boxWrap.appendChild(chip('label', '+', l, () => save(labels.filter((x) => x !== l))));
+  const entry = el('input', 'chip-entry'); entry.placeholder = labels.length ? '' : 'add label…';
+  const dl = ensureDatalist('labels-datalist', state.meta.labels);
+  entry.setAttribute('list', dl);
+  entry.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const raw = entry.value.trim().replace(/^\+/, '');
+      if (raw && !labels.includes(raw)) save(labels.concat(raw)); else entry.value = '';
+    } else if (e.key === 'Backspace' && !entry.value && labels.length) {
+      e.preventDefault(); save(labels.slice(0, -1));
+    }
+  });
+  boxWrap.onclick = () => entry.focus();
+  boxWrap.appendChild(entry);
+  row.appendChild(boxWrap); return row;
+}
+// Shared <datalist> host for chip-input autocomplete (created once, refreshed each render).
+function ensureDatalist(id, values) {
+  let dl = document.getElementById(id);
+  if (!dl) { dl = el('datalist'); dl.id = id; document.body.appendChild(dl); }
+  dl.innerHTML = '';
+  for (const v of (values || [])) dl.appendChild(new Option(v));
+  return id;
 }
 // AC A13 — Project as a <select> ("Inbox" = clear).
 function projectField(t) {
@@ -488,19 +665,25 @@ function typeField(t) {
   sel.onchange = async () => { try { await patch(t.id, { type: sel.value }, t.version); refresh(); } catch (e) { if (!e.conflict) toast(e.message); } };
   row.appendChild(sel); return row;
 }
-// AC A12 — Recurrence: preset <select> + a free field for "every N …" / "every <weekday>".
+// AC A12 / FR-9 — Recurrence: preset <select> + a free field for "every N …".
+// The row is full-width (.recur-row) and the free input only appears for a custom
+// value — so it never clips and isn't shown when recurrence is none (AC7).
 function recurField(t) {
-  const row = fieldShell('Recur');
+  const row = fieldShell('Recur'); row.classList.add('recur-row');
   const wrap = el('div', 'recur-wrap');
   const sel = el('select', 'field-input recur-preset');
   for (const r of RECUR_PRESETS) sel.appendChild(new Option(r === '' ? 'none' : r, r));
-  const cur = (t.recur || '').toLowerCase();
+  sel.appendChild(new Option('custom…', '__custom'));
   const free = el('input', 'field-input recur-free'); free.placeholder = 'every 2 weeks · every monday';
-  if (RECUR_PRESETS.includes(cur)) { sel.value = cur; }
-  else { sel.value = ''; free.value = t.recur || ''; }
+  const cur = (t.recur || '').toLowerCase();
+  if (cur === '') sel.value = '';
+  else if (RECUR_PRESETS.includes(cur)) sel.value = cur;
+  else { sel.value = '__custom'; free.value = t.recur || ''; }
+  const syncFree = () => free.classList.toggle('hidden', sel.value !== '__custom');
   const save = async (val) => { try { await patch(t.id, { recur: val }, t.version); refresh(); } catch (e) { if (!e.conflict) toast(e.message || 'Invalid recurrence'); } };
-  sel.onchange = () => { free.value = ''; save(sel.value); };
-  free.onchange = () => { const v = free.value.trim(); if (v) { sel.value = ''; save(v); } else save(''); };
+  sel.onchange = () => { if (sel.value === '__custom') { syncFree(); free.focus(); return; } free.value = ''; syncFree(); save(sel.value); };
+  free.onchange = () => { const v = free.value.trim(); if (v) save(v); };
+  syncFree();
   wrap.appendChild(sel); wrap.appendChild(free);
   row.appendChild(wrap); return row;
 }
@@ -511,20 +694,75 @@ function patch(id, fields, version) {
 function body(obj) { return { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(obj) }; }
 
 let toastTimer = null;
-function toast(msg) {
+// FR-11/CC1: a toast with an optional toast-window action (e.g. Undo). The action
+// is live ONLY while the toast is visible — dismiss clears it, matching the window.
+function toast(msg, action) {
   let t = $('#toast'); if (!t) { t = el('div'); t.id = 'toast'; document.body.appendChild(t); }
-  t.textContent = msg; t.classList.add('show');
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+  t.innerHTML = '';
+  t.appendChild(el('span', 'toast-msg', msg));
+  const hide = () => t.classList.remove('show');
+  if (action && action.label && typeof action.onClick === 'function') {
+    const btn = el('button', 'toast-undo', action.label);
+    btn.onclick = () => { hide(); clearTimeout(toastTimer); action.onClick(); };
+    t.appendChild(btn);
+  }
+  t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(hide, action ? 6000 : 2500);
 }
 
 // ── Quick-add ──
 const quickInput = $('#quick-input');
 attachAutocomplete(quickInput);
+quickInput.addEventListener('input', renderQuickPreview);
+
+// FR-1/AC1: a lightweight client parse drives the live token-chip preview. The server
+// stays authoritative — the post-submit toast is built from the SERVER's parsed task.
+const DATE_WORDS = ['today', 'tomorrow', 'yesterday', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday', 'next week', 'this week'];
+function parseQuickTokens(text) {
+  const out = { people: [], projects: [], labels: [] };
+  let m; const re = /([@#+])([A-Za-z0-9._-]+)/g;
+  while ((m = re.exec(text))) {
+    if (m[1] === '@') out.people.push(m[2]);
+    else if (m[1] === '#') out.projects.push(m[2]);
+    else out.labels.push(m[2]);
+  }
+  return out;
+}
+function detectDuePhrase(text) {
+  const iso = text.match(/\b(\d{4}-\d{2}-\d{2})\b/);
+  if (iso) return { iso: iso[1], label: friendlyDate(iso[1]) };
+  const low = ' ' + text.toLowerCase() + ' ';
+  for (const w of DATE_WORDS) if (low.includes(' ' + w + ' ')) return { iso: null, label: w.charAt(0).toUpperCase() + w.slice(1) };
+  return null;
+}
+function renderQuickPreview() {
+  const host = $('#quick-preview'); if (!host) return;
+  host.innerHTML = '';
+  const text = quickInput.value;
+  const tk = parseQuickTokens(text);
+  for (const p of tk.projects) host.appendChild(chip('project', '#', p));
+  for (const l of tk.labels) host.appendChild(chip('label', '+', l));
+  for (const h of tk.people) host.appendChild(chip('person', '@', personName(h)));
+  const due = detectDuePhrase(text);
+  if (due) { const d = el('span', 'qa-due' + (due.iso && dueClass(due.iso) === 'overdue' ? ' overdue' : '')); d.appendChild(el('span', 'due-icon', '🗓')); d.appendChild(el('span', null, due.label)); host.appendChild(d); }
+}
+function quickAddSummary(t) {
+  const dest = t.project ? '#' + t.project : 'Inbox';
+  const bits = [];
+  if (t.due) bits.push('due ' + friendlyDate(t.due));
+  if ((t.people || []).length) bits.push('@' + t.people.map(personName).join(', @'));
+  if ((t.labels || []).length) bits.push('+' + t.labels.join(' +'));
+  return 'Added to ' + dest + (bits.length ? ' · ' + bits.join(' · ') : '');
+}
 $('#quick-add').addEventListener('submit', async (e) => {
   e.preventDefault();
   const text = quickInput.value.trim(); if (!text) return;
-  try { await api('/tasks', body({ text })); quickInput.value = ''; refresh(); }
-  catch (err) { toast(err.message); }
+  try {
+    const r = await api('/tasks', body({ text }));
+    quickInput.value = ''; renderQuickPreview();
+    toast(quickAddSummary(r.task));
+    refresh();
+  } catch (err) { toast(err.message); }
 });
 
 $('#reload-btn').addEventListener('click', () => { $('#reload-banner').classList.add('hidden'); if (state.selected) openDetail(state.selected); refresh(); });

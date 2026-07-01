@@ -1,6 +1,12 @@
 :root {
-  --bg: #fbfbfa; --panel: #fff; --line: #e8e8e6; --ink: #1f1f1f; --muted: #8b8d98;
-  --accent: #d1453b; --accent-soft: #fdeceb; --radius: 8px;
+  --bg: #fbfbfa; --panel: #fff; --line: #e8e8e6; --ink: #1f1f1f;
+  /* CC3/FR-14 (D6): one accessible gray — #6b6e7a is 4.7:1 on white (was #8b8d98, 3.3:1). */
+  --muted: #6b6e7a;
+  --accent: #d1453b;        /* brand red — borders / fills / icons (non-text use) */
+  --accent-ink: #b5362e;    /* red for TEXT + active-nav — 5.1:1 on white / 4.8:1 on --accent-soft */
+  --accent-soft: #fdeceb; --radius: 8px;
+  /* FR-8 (D6): due-date colour semantics — red ONLY for overdue, neutral for upcoming. */
+  --due-overdue: #b5362e; --due-upcoming: #5b6472;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; }
@@ -9,18 +15,26 @@ body { font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Hel
 .muted { color: var(--muted); }
 
 .layout { display: grid; grid-template-columns: 230px 1fr 320px; height: 100vh; }
+/* FR-6/FR-12: detail panel is collapsed until a task is selected; the list reclaims the freed width. */
+.layout.detail-collapsed { grid-template-columns: 230px 1fr; }
+.layout.detail-collapsed #detail-pane { display: none; }
 @media (max-width: 900px) { .layout { grid-template-columns: 180px 1fr; } #detail-pane { display: none; } }
 
 /* Sidebar */
 #sidebar { background: var(--panel); border-right: 1px solid var(--line); padding: 14px 10px; overflow-y: auto; }
-.brand { font-weight: 700; font-size: 15px; padding: 4px 8px 12px; color: var(--accent); }
+.brand { font-weight: 700; font-size: 15px; padding: 4px 8px 12px; color: var(--accent-ink); }
 .side-section { margin-top: 16px; }
 .side-head { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); padding: 4px 8px; }
-.side-item { display: block; padding: 5px 8px; border-radius: 6px; cursor: pointer; color: var(--ink); text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.side-item { display: flex; align-items: center; gap: 6px; padding: 5px 8px; border-radius: 6px; cursor: pointer; color: var(--ink); text-decoration: none; }
+.side-item .side-label { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .side-item:hover { background: #f0f0ee; }
-.side-item.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.side-item.active { background: var(--accent-soft); color: var(--accent-ink); font-weight: 600; }
+/* FR-4 (D3): trailing count badge on smart views. */
+.side-count { flex: 0 0 auto; font-size: 11px; font-weight: 600; color: var(--muted); background: #eceef2; border-radius: 9px; padding: 0 7px; min-width: 18px; text-align: center; }
+.side-item.active .side-count { color: var(--accent-ink); background: #fff; }
+.side-count.overdue { color: #fff; background: var(--due-overdue); }
 .add-link { color: var(--muted); font-size: 12px; }
-.add-link:hover { color: var(--accent); }
+.add-link:hover { color: var(--accent-ink); }
 .inline-add-form { padding: 2px 4px; }
 .inline-add-input { width: 100%; padding: 4px 7px; border: 1px solid var(--accent); border-radius: 6px; font-size: 13px; }
 .inline-add-input:focus { outline: none; }
@@ -30,7 +44,8 @@ body { font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Hel
 #list-header { padding: 18px 22px 8px; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 #list-header h1 { margin: 0; font-size: 20px; }
 #lno-legend { font-size: 11px; }
-#lno-legend .lno-badge { width: 15px; height: 15px; font-size: 10px; margin-right: 1px; }
+#lno-legend .lno-badge { min-width: 0; min-height: 0; font-size: 10px; margin-right: 1px; }
+#lno-legend .lno-dot { width: 15px; height: 15px; }
 #task-list { list-style: none; margin: 0; padding: 4px 14px; overflow-y: auto; flex: 1; }
 .task-row { display: flex; align-items: center; gap: 9px; padding: 9px 8px; border-bottom: 1px solid var(--line); border-radius: 6px; cursor: pointer; }
 .task-row:hover { background: #f4f4f2; }
@@ -39,25 +54,43 @@ body { font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Hel
 .task-row.dragging { opacity: .4; pointer-events: none; } /* /solitaire drag gotcha */
 .task-row.completed .row-title { text-decoration: line-through; color: var(--muted); }
 .task-row.is-child { padding-left: 8px; }
-/* LNO letter badge (D2): bordered circle — green L (leverage), blue N (neutral), empty for overhead */
-.lno-badge { width: 18px; height: 18px; border-radius: 50%; flex: 0 0 auto; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; border: 1.5px solid transparent; line-height: 1; }
-.lno-badge.lev { color: #2f9e44; border-color: #2f9e44; background: #ebfbee; }
-.lno-badge.neu { color: #1971c2; border-color: #1971c2; background: #e7f5ff; }
-.lno-badge.none { border: 1.5px dashed #d8d8d6; background: transparent; }
-.chevron { width: 14px; flex: 0 0 auto; cursor: pointer; color: var(--muted); font-size: 11px; text-align: center; }
-.chevron-spacer { width: 14px; flex: 0 0 auto; }
+/* FR-13 (A2/C3): every row glyph control has a ≥24×24px hit area + a hover state. */
+.lno-badge, .chevron, .chevron-spacer, .row-check, .row-pencil { min-width: 24px; min-height: 24px; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+/* LNO letter badge (D2): 18px bordered circle (the .lno-dot) inside a ≥24px transparent
+   hit area (the .lno-badge) — green L (leverage), blue N (neutral), dashed for overhead. */
+.lno-badge { cursor: pointer; font-size: 11px; font-weight: 700; line-height: 1; border-radius: 6px; }
+.lno-badge .lno-dot { width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; border: 1.5px solid transparent; }
+.lno-badge:hover { background: #f0f0ee; }
+.lno-badge.lev .lno-dot { color: #2f9e44; border-color: #2f9e44; background: #ebfbee; }
+.lno-badge.neu .lno-dot { color: #1971c2; border-color: #1971c2; background: #e7f5ff; }
+.lno-badge.none .lno-dot { border: 1.5px dashed #d8d8d6; background: transparent; }
+.lno-badge.none:hover .lno-dot { border-color: var(--muted); }
+.chevron { cursor: pointer; color: var(--muted); font-size: 11px; border-radius: 6px; }
+.chevron:hover { background: #f0f0ee; color: var(--ink); }
 .subtask-block { padding: 0; }
 .subtask-block .nested-list { list-style: none; margin: 0; padding: 0 0 0 26px; border-left: 2px solid var(--line); margin-left: 14px; }
-.row-check { cursor: pointer; color: var(--muted); font-size: 20px; flex: 0 0 auto; line-height: 1; }
-.row-check.done { color: var(--accent); }
+.row-check { cursor: pointer; color: var(--muted); font-size: 20px; line-height: 1; border-radius: 6px; }
+.row-check:hover { background: #f0f0ee; color: var(--ink); }
+.row-check.done { color: var(--accent-ink); }
 .row-title { flex: 1; }
 .inline-title-input { flex: 1; padding: 3px 6px; border: 1px solid var(--accent); border-radius: 5px; font: inherit; }
 .inline-title-input:focus { outline: none; }
-.row-due { color: var(--accent); font-size: 12px; }
+/* FR-8 (D6): due red ONLY for overdue; upcoming neutral + leading icon. */
+.row-due { font-size: 12px; display: inline-flex; align-items: center; gap: 3px; color: var(--due-upcoming); }
+.row-due.overdue { color: var(--due-overdue); font-weight: 600; }
 .row-badge { font-size: 11px; color: var(--muted); background: #f0f0ee; border-radius: 10px; padding: 1px 7px; }
-.row-pencil { opacity: 0; color: var(--muted); cursor: pointer; font-size: 13px; flex: 0 0 auto; transition: opacity .12s; }
-.row-pencil:hover { color: var(--accent); opacity: 1; }
+.row-pencil { opacity: 0; color: var(--muted); cursor: pointer; font-size: 13px; border-radius: 6px; transition: opacity .12s; }
+.task-row:hover .row-pencil { opacity: .7; }
+.row-pencil:hover { color: var(--accent-ink); opacity: 1; background: #f0f0ee; }
 .empty-row { color: var(--muted); padding: 24px 8px; }
+/* FR-5 (S1): explanatory empty state + CTA (replaces bare "Nothing here."). */
+.empty-state { padding: 28px 12px; color: var(--muted); }
+.empty-state .empty-title { font-size: 14px; color: var(--ink); margin-bottom: 4px; }
+.empty-state .empty-cta { display: inline-block; margin-top: 8px; color: var(--accent-ink); cursor: pointer; font-size: 13px; }
+.empty-state .empty-cta:hover { text-decoration: underline; }
+/* FR-4 (D3): overdue group surfaced atop the Today view. */
+.list-group-head { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--due-overdue); font-weight: 700; padding: 10px 8px 2px; }
+.list-group-head.muted-head { color: var(--muted); }
 
 #list-footer { padding: 2px 22px 8px; }
 .add-task-below input { width: 100%; padding: 8px 10px; border: 1px dashed var(--line); border-radius: var(--radius); font-size: 13px; color: var(--ink); background: transparent; }
@@ -65,8 +98,11 @@ body { font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Hel
 
 /* @/#/+ autocomplete dropdown */
 .ac-box { position: absolute; z-index: 200; background: #fff; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.12); padding: 4px; max-height: 220px; overflow-y: auto; }
-.ac-opt { padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 13px; }
-.ac-opt.active, .ac-opt:hover { background: var(--accent-soft); color: var(--accent); }
+.ac-opt { padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+.ac-opt.active, .ac-opt:hover { background: var(--accent-soft); color: var(--accent-ink); }
+/* FR-2: explicit "+ Add" rung at the bottom of the @people dropdown. */
+.ac-opt.ac-add { color: var(--accent-ink); font-weight: 600; border-top: 1px solid var(--line); margin-top: 2px; }
+.ac-opt .ac-sub { color: var(--muted); font-size: 11px; margin-left: auto; }
 
 #quick-add { padding: 12px 16px; border-top: 1px solid var(--line); background: var(--panel); }
 #quick-input { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius); font-size: 14px; }
@@ -86,7 +122,7 @@ body { font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Hel
 .detail-head { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 16px 0 6px; }
 .btn { padding: 6px 12px; border: 1px solid var(--line); background: #fff; border-radius: 6px; cursor: pointer; }
 .btn:hover { background: #f4f4f2; }
-.btn.danger { color: var(--accent); }
+.btn.danger { color: var(--accent-ink); }
 .subtask-list { list-style: none; margin: 0; padding: 0; }
 .subtask { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
 .subtask-title { cursor: pointer; }
@@ -114,5 +150,35 @@ select.field-input[multiple] { height: auto; cursor: default; }
 .modal-card pre { background: #1f1f1f; color: #fff; padding: 10px 14px; border-radius: 8px; }
 .banner { position: fixed; top: 0; left: 0; right: 0; background: #fff4e5; border-bottom: 1px solid #f0c97a; padding: 8px 16px; text-align: center; z-index: 90; }
 .banner button { margin-left: 10px; }
-#toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(60px); background: #1f1f1f; color: #fff; padding: 10px 18px; border-radius: 8px; opacity: 0; transition: all .2s; z-index: 120; }
+#toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(60px); background: #1f1f1f; color: #fff; padding: 10px 18px; border-radius: 8px; opacity: 0; transition: all .2s; z-index: 120; display: flex; align-items: center; gap: 14px; max-width: 90vw; }
 #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+#toast .toast-msg { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* FR-11: toast-window Undo — reverts only while the toast is visible (CC1). */
+#toast .toast-undo { flex: 0 0 auto; background: transparent; border: 1px solid #555; color: #fff; padding: 3px 10px; border-radius: 6px; cursor: pointer; font: inherit; font-size: 12px; }
+#toast .toast-undo:hover { background: #333; border-color: #777; }
+
+/* FR-7/FR-10 — one chip representation across row, sidebar, and editor (CC2). */
+.chip { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; line-height: 1.4; border-radius: 10px; padding: 1px 8px; white-space: nowrap; background: #f0f0ee; color: #444; }
+.chip.chip-project { background: #eef2ff; color: #3a48b5; }
+.chip.chip-label { background: #fde8f3; color: #99386c; }
+.chip.chip-person { background: #e7f5ff; color: #145a99; }
+.chip .chip-sigil { opacity: .6; }
+.chip .chip-x { cursor: pointer; opacity: .55; margin-left: 1px; }
+.chip .chip-x:hover { opacity: 1; }
+.row-chips { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+/* Tokenized chip input (Labels editor + any chip field): chips sit inline with the entry box. */
+.chip-input { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; flex: 1; padding: 4px 6px; border: 1px solid var(--line); border-radius: 6px; min-height: 30px; }
+.chip-input:focus-within { border-color: var(--accent); }
+.chip-input .chip-entry { flex: 1; min-width: 60px; border: none; outline: none; font: inherit; padding: 2px; background: transparent; }
+
+/* FR-1: quick-add live token preview — chips for parsed @person #project +label + due. */
+#quick-add { position: relative; }
+.qa-preview { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; padding: 6px 4px 0; min-height: 0; }
+.qa-preview:empty { display: none; }
+.qa-preview .qa-due { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; color: var(--due-upcoming); }
+.qa-preview .qa-due.overdue { color: var(--due-overdue); }
+
+/* FR-9: recurrence row spans full width and only renders when Recur ≠ none (no clipping). */
+.recur-row { flex-wrap: wrap; }
+.recur-row .recur-wrap { flex: 1 1 100%; display: flex; gap: 6px; margin-top: 4px; }
+.recur-row .recur-free { flex: 1; }
