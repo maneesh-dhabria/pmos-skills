@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-01 — pmos-toolkit 2.99.0: /mytasks web app UX polish
+
+**The `/mytasks` web app got a round of usability fixes.** Actions that used to feel invisible now confirm themselves — deletes and completions raise a toast with an Undo window, and sidebar view counts show as live badges. Dates render in friendly, colour-coded form, the Today view groups overdue tasks separately and shows helpful empty states when a view is clear, and status chips make each task's type and cadence readable at a glance. The person picker now lets you mint a brand-new `@handle` inline, and a contrast pass plus larger touch targets make the whole surface easier to read and tap.
+
 ## 2026-07-01 — pmos-managerkit 0.2.0: /interview-feedback handles URLs, submissions, and re-runs safely
 
 **`/interview-feedback` is more robust across messy real-world inputs.** It now detects when an interview input is a URL it can't fetch and tells you exactly what it couldn't access instead of guessing. Re-running transcription no longer clobbers a transcript you've hand-corrected — audio transcribes to a separate file, with an explicit `--force-transcribe` to override, plus a speaker-attribution step. Written take-home submissions are recognized and assessed in context — whether written before or after the live round — always folded into the scorecard rather than judged in isolation, and the citation gate now visibly confirms the submission assessment was grounded in the candidate's evidence.
