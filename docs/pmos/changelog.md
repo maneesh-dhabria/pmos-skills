@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-01 — pmos-managerkit 0.2.0: /interview-feedback handles URLs, submissions, and re-runs safely
+
+**`/interview-feedback` is more robust across messy real-world inputs.** It now detects when an interview input is a URL it can't fetch and tells you exactly what it couldn't access instead of guessing. Re-running transcription no longer clobbers a transcript you've hand-corrected — audio transcribes to a separate file, with an explicit `--force-transcribe` to override, plus a speaker-attribution step. Written take-home submissions are recognized and assessed in context — whether written before or after the live round — always folded into the scorecard rather than judged in isolation, and the citation gate now visibly confirms the submission assessment was grounded in the candidate's evidence.
+
 ## 2026-07-01 — pmos-toolkit 2.98.0: /artifact-critique reliably emits a self-contained report
 
 **`/artifact-critique` no longer loses its critique when its normal file layout can't be written.** When the multi-file emit path isn't available, it now falls back to a single self-contained HTML report that still carries the full findings block, and if Node isn't available it degrades through a documented gate instead of failing silently. The reviewer summary line is always surfaced, and noisy stderr lines during setup have been removed, so the run is quieter and the output is dependable.
