@@ -9,6 +9,7 @@ This file carries the detection heuristic + the three organizing principles; the
 ## Contents
 
 - [Detection heuristic](#detection-heuristic)
+- [Per-product persona override](#per-product-persona-override)
 - [The three organizing principles](#the-three-organizing-principles)
 - [Non-interactive default](#non-interactive-default)
 
@@ -31,6 +32,21 @@ ambiguity in the brief — a wrongly-split page is worse than a focused one.
 
 Record the verdict in `brief.md` as `product_count: single | multi` with the detected product list (names +
 one-line each) when multi.
+
+## Per-product persona override
+
+The global Phase 1 persona rule (`SKILL.md#research-brief` step 5, D2) selects **1–2 personas** for a single
+product. **When `product_count: multi`, that cap is OVERRIDDEN:** each detected product gets **one primary
+persona** of its own — with its **own jargon tolerance** (`novice` / `fluent`) and its **own signature
+moments** — written as a **distinct brief slice**. The cap is a single-product rule; applying it across N
+products is exactly the failure this overrides — a five-product toolkit collapsed into one "product builder"
+persona undersells every product but the one the persona happens to fit.
+
+So: single product → 1–2 personas (unchanged). N products → **N primary personas, one per product**, each in
+its product's brief slice. This is a *precondition* for Phase 2, not a post-hoc note — Phase 2 may not run
+until every detected product has its own slice (persona + jargon tolerance + signature moments). The brief
+slices keep the one-fact-one-home discipline: each slice cites `copy-gates.md#persona-jargon-rule` for how its
+persona calibrates copy, no rule restated per product.
 
 ## The three organizing principles
 

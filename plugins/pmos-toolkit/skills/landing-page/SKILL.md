@@ -168,8 +168,15 @@ Build understanding **before** designing (D8). Grounded in `02_design.html#inges
 
    **Cite each fact** back to its source file/line. **Missing fields are asked, never invented** (D6) — list
    unknowns explicitly in the brief and (interactive) ask, or (non-interactive) leave a clearly-labelled
-   `TODO:` placeholder and log an Open Question. For multi-product inputs, write **one brief slice per
-   product** (persona, signature moments, sections), per `reference/multi-product.md`.
+   `TODO:` placeholder and log an Open Question.
+
+   **Multi-product (D1) — one brief slice per product, as a Phase-2 precondition.** When `product_count:
+   multi`, the single-product **1–2 personas** cap above is overridden per
+   `reference/multi-product.md#per-product-persona-override`: each detected product gets **its own brief
+   slice** — one primary persona + that persona's jargon tolerance + the product's own signature moments +
+   sections. **Phase 2 may not begin until every detected product has its slice** (this is a precondition,
+   not a post-hoc note — a single global persona across N products is the failure it prevents). The
+   single-product path is unchanged.
 6. **Confirm the brief with the user** before proceeding (interactive). Adjust on feedback. This is the
    foundation the rest of the page is built on, so it is worth a beat.
 
@@ -217,10 +224,16 @@ copy-length rule all live in `reference/section-scaffolds.md` — read it and ap
    — the gate below carries that pick.
 2. Filter every candidate row through the **governing equation** `Purchase Rate = Desire − (Labor +
    Confusion)` — a section earns its place only if it adds desire or removes labor/confusion. Cut the rest.
-3. **Map signature moments to show-surfaces (do>show>tell, D1).** For each brief signature moment, pick the
-   best-available surface (interactive snippet / video / carousel / annotated screenshot / plain screenshot)
-   per `reference/section-scaffolds.md#governing-principles`, and attach it to the section that makes the
-   claim — so the draft *shows* rather than *tells*.
+3. **Map every feature/value claim to a show-surface (do>show>tell, D1) — a drafting precondition (D2).** Not
+   only the brief's signature moments: take **every page-level feature or value claim** the chosen structure
+   intends to make and map each to a concrete show-surface per
+   `reference/section-scaffolds.md#governing-principles` — **embed-first** (an embedded real self-contained
+   artifact is the strongest rung, then interactive snippet / video / carousel / annotated screenshot / plain
+   screenshot), attached to the section that makes the claim. **A complete map is a precondition for drafting
+   (Phase 5):** a claim with **no available show-surface** must be either **demoted** (cut from the page) or
+   **explicitly flagged tell-only** in the structure; **Phase 5 may not begin while any feature claim remains
+   unmapped.** This is a presence/completeness precondition (every claim has a mapping decision) — not an
+   arithmetic ratio (§H).
 4. **Coherence / dedup pass (D3).** Before presenting, sweep the proposed list: **omit the below-hero
    social-proof strip when the hero caption already carries those proof values**, and ensure **no section
    restates the hero's value prop** or duplicates another section's proof (`section-scaffolds.md` dedup note).
@@ -354,8 +367,10 @@ Generate `index.html` in the page folder — the **single self-contained file** 
    the hub for the product-index principle, per `reference/multi-product.md`.)
 3. **Show the signature moments, don't just tell them (do>show>tell, D1).** Render each brief signature
    moment on the show-surface chosen in Phase 2 (`reference/section-scaffolds.md#governing-principles`) —
-   a real screenshot / annotated shot / carousel / interactive snippet of that moment — rather than asserting
-   the benefit in prose.
+   rather than asserting the benefit in prose. The **strongest surface is an embedded real self-contained
+   artifact** (iframe a real primer, embed a playable game) using the load-on-open `<details>` + `data-src`
+   pattern, page-folder-relative and never remote (`section-scaffolds.md#governing-principles` — cite, don't
+   restate); failing that, a screenshot / annotated shot / carousel / interactive snippet of that moment.
 4. **Write real copy** grounded in the brief — apply the hero rules and the copy craft from
    `reference/copy-gates.md` as you write (litmus, Harry Dry 3-test, one isolated CTA, persona-calibrated
    vocabulary, benefits over self-praise, scannable blocks, place psychology levers deliberately by section).
@@ -387,8 +402,12 @@ Apply the gates and **revise in place before surfacing the page** (D10). All gat
 1. **Copy / conversion gates** (`reference/copy-gates.md`): Julian's litmus on the headline; Harry Dry's
    3-test on every headline/claim; the 6-criteria review; single-CTA / attention-ratio; clarity rules; the
    **persona-jargon rule** (`#persona-jargon-rule` — a novice persona rejects undefined domain jargon unless
-   inline-defined); the **do>show>tell show-ratio** check (`#show-ratio` — advisory: flag sections that tell
-   a benefit a captured asset could show); psychology levers placed (not stacked); and the anti-pattern
+   inline-defined); the **dev-tool hero-subhead rule** (`#dev-tool-hero-subhead` — when `product_type` is a dev tool,
+   the hero subhead must name the buyer and the category in the headline region: a presence check that blocks
+   if absent); the **do>show>tell show-ratio gate** (`#show-ratio` — a **HARD asset-gated binary-presence
+   gate**: a page that makes feature claims with ≥1 capturable/embeddable surface available MUST show ≥1
+   claimed feature, else it does **not emit**; explicit `N/A`+logged escape only when no asset can exist);
+   psychology levers placed (not stacked); and the anti-pattern
    avoid-list (reject slogans, vague copy, bloated header, abstract stock imagery, unattributed testimonials,
    low-contrast CTA, wrong copy-length, and any fabricated metric/testimonial/logo). Fix violations in the
    draft.
@@ -397,7 +416,10 @@ Apply the gates and **revise in place before surfacing the page** (D10). All gat
    mobile** into `working/`; run a reviewer pass (≤ 2-iteration fix loop, the `/wireframes` // `/prototype`
    pattern) confirming hero + single CTA + sections + style render correctly — no overflow, CTA visible
    above the fold, contrast holds — fixing issues in place. **Mobile is a hard pass dimension** (see the
-   reference). **Grade against the shared design checklist, don't re-derive layout rules (D10):** apply the
+   reference). The reviewer pass also runs the **value-coverage** check (`#value-coverage` — HARD structural
+   for multi-product: the hero/overview fold must name **each** detected product with a distinct value line,
+   else block) and the **asset-claim-match** check (`#asset-claim-match` — ADVISORY judgment: each embedded
+   visual must depict what its caption names; surfaced loudly, never silent, does not block). **Grade against the shared design checklist, don't re-derive layout rules (D10):** apply the
    shared visual / responsive / contrast checklist that `/wireframes`, `/prototype`, and `/design-crit` all
    honour — `plugins/pmos-toolkit/skills/design-crit/reference/eval.md` (§V visual hierarchy, §G layout, §A
    WCAG-AA accessibility incl. the contrast + target-size subset) — rather than inventing a second set of

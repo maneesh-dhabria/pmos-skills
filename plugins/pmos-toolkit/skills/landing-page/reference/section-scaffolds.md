@@ -30,13 +30,28 @@ product-type rather than shipping all 12 rows every time.
 
 > **Prefer letting the visitor _do_ it; failing that, _show_ it; only then _tell_ it.**
 
-A claim the visitor can try (an interactive snippet) beats one you can show (a screenshot, annotated shot,
-carousel, or video), which beats one you merely assert in prose. This is a first-class principle, not a
-single gate: the brief captures the **signature moments to demonstrate** (the 2–4 product moments worth
-showing — Phase 1); Phase 2 maps each to a **show-surface** (interactive snippet / video / carousel /
-annotated screenshot / plain screenshot, best-available first); and Phase 6's show-ratio check
-(`copy-gates.md#show-ratio`) flags any section that *tells* a benefit a captured asset could *show*. It is
-advisory (judgment), never a hard arithmetic gate.
+The show-surface ladder, strongest first:
+
+1. **Embed the real self-contained artifact (iframe, page-folder-relative)** — the strongest proof of all
+   *for a repo whose value is producing real openable artifacts*: don't screenshot the primer, **iframe the
+   actual primer**; don't describe the game, **embed it playable**. The visitor interacts with the genuine
+   output, not a depiction of it.
+   - **Load-on-open** so the embed never bloats initial paint/scroll: wrap it in a `<details>` whose summary
+     names the artifact, and put the artifact path on a **`data-src`** attribute that a tiny vanilla-JS
+     `toggle` handler copies into the iframe's `src` on **first open** (subsequent opens are no-ops). The
+     iframe ships with no `src` until opened, so the page's first paint is unaffected.
+   - **Page-folder-relative, `file://`-openable, never remote.** The embedded artifact lives inside the page
+     folder (a relative path), so the page still opens from `file://` and honours the self-contained rule
+     (the skill's D3 / INV-4) — never a remote URL or CDN.
+2. **Interactive snippet** — a small in-page widget the visitor can try (a live readout, a toggle, a tiny
+   calculator) when the real artifact is too large to embed whole.
+3. **Show** — a video, carousel, annotated shot, or plain screenshot of the moment.
+4. **Tell** — assert the benefit in prose. Last resort.
+
+This is a first-class principle, not a single gate: the brief captures the **signature moments to
+demonstrate** (the 2–4 product moments worth showing — Phase 1); Phase 2 maps each to a **show-surface**
+(embed-first, then the rungs above); and Phase 6's show-ratio check (`copy-gates.md#show-ratio`) is the hard
+asset-gated gate that refuses a page which *tells* every moment while *showing* none.
 
 ## Default scaffold (12 rows)
 

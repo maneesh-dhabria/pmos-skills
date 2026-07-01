@@ -13,8 +13,11 @@ contain a hero with a single primary CTA, the approved sections in order, and th
 - [Julian's 6-criteria review](#julians-6-criteria-review)
 - [Single-CTA / attention ratio](#single-cta--attention-ratio)
 - [Clarity rules](#clarity-rules)
+  - [Dev-tool hero-subhead rule](#dev-tool-hero-subhead)
 - [Persona-jargon rule](#persona-jargon-rule)
 - [do > show > tell show-ratio](#show-ratio)
+- [Value-coverage (multi-product)](#value-coverage)
+- [Asset-claim-match](#asset-claim-match)
 - [Asset fidelity](#asset-fidelity)
 - [Psychology levers by section](#psychology-levers-by-section)
 - [Anti-pattern avoid-list](#anti-pattern-avoid-list)
@@ -58,6 +61,16 @@ enforce a **1:1 attention ratio**: strip nav links and competing CTAs so there i
 - **No wall of text** — scannable; one idea per block.
 - Handle **only major objections** — not every edge case.
 
+### Dev-tool hero-subhead rule {#dev-tool-hero-subhead}
+
+When the brief's `product_type` is a **dev tool**, the hero **subhead**
+must name **both the buyer (the persona)** and **the category** explicitly, *in the headline region* — not
+deferred to body copy below the fold. A clever one-word product name plus a vague tagline is a fail: a developer
+scanning the fold must learn *who it's for* and *what kind of thing it is* from the hero subhead alone (e.g.
+"**Postgres query profiler for backend teams**", not "**Ship faster.**"). This is a **presence check** on the
+hero region — the buyer and the category must both appear in the headline/subhead — applied in Phase 6 step 1.
+A dev-tool page whose hero region names neither the buyer nor the category fails this gate; fix it in the draft.
+
 ## Persona-jargon rule
 
 Calibrate vocabulary to the brief's selected persona(s) and their **jargon tolerance** (`novice` / `fluent`,
@@ -70,13 +83,47 @@ gate — fix it in the draft.
 
 ## do > show > tell show-ratio {#show-ratio}
 
-An **advisory (judgment) check, never a hard arithmetic gate** (§H — do not count tokens and threshold). Walk
-the drafted sections against the brief's **signature moments to demonstrate** and the do>show>tell principle
-(`section-scaffolds.md#governing-principles`): flag any section that **tells** a benefit a captured asset
-could **show** — a prose claim ("real-time pot-equity readout") where a screenshot, annotated shot, carousel,
-video, or interactive snippet of that exact moment exists or could be captured. Each flag is a suggestion to
-upgrade tell→show (or show→do), surfaced to the user; it does not block emit. A page that asserts every
-signature moment in prose while showing none is the failure shape this check exists to catch.
+A **HARD, asset-gated binary-presence gate** (D3) — promoted from the former advisory check. The hardness is a
+**binary presence** condition, **never an arithmetic ratio** (§H — do not count tokens or sections and
+threshold; do not have the model compute a percentage):
+
+> **If the page makes feature claims AND ≥1 capturable-or-embeddable show-surface is available, the page MUST
+> show at least one claimed feature. A page that *tells* every feature and *shows* none does not emit.**
+
+Walk the drafted sections against the brief's **signature moments to demonstrate** and the do>show>tell ladder
+(`section-scaffolds.md#governing-principles`, embed-first). The gate is satisfied by the **presence of at least
+one** shown claim — an embedded real artifact, interactive snippet, video, carousel, or annotated/plain
+screenshot of a claimed feature. It is **not** satisfied by a page that asserts every signature moment in prose
+while showing none — that page is **not emitted**; fix it in the draft (upgrade at least one tell→show, or
+embed→do, per the ladder).
+
+**Explicit N/A escape.** When **no asset can exist** — every claim is genuinely unshowable (e.g. a pre-launch
+waitlist with no product to capture, no embeddable artifact, no screenshot possible) — the gate records an
+explicit **`N/A` + a logged line** naming why no surface was available, and the page emits. The escape is for
+*absence of any capturable surface*, not for *skipping the work*: if even one feature could be shown, the gate
+is live. (Presence, not ratio — there is no threshold to tune; one shown claim clears it, zero with an
+available surface blocks it.)
+
+## Value-coverage (multi-product) {#value-coverage}
+
+A **HARD structural gate** that fires only on **multi-product** pages (`product_count: multi` in the brief —
+`multi-product.md`). The hero or overview fold that sells the suite **must name every detected product with a
+distinct value line** — one product surfacing a value line while the others are reduced to a logo or a bare
+name is the failure this catches (the "five-plugin toolkit sold as one product" shape). The check is
+**structural presence, not arithmetic** (§H): for each product in the detected list, assert that the
+hero/overview fold contains a value line naming it — if any detected product has none, the page is **blocked**
+until it does (fix in the draft). It does not count words or score balance; it asserts *presence per product*.
+On a **single-product** page (`product_count: single`) this gate is inert.
+
+## Asset-claim-match {#asset-claim-match}
+
+An **ADVISORY (judgment) check, never a block** (§H — it needs vision to judge whether an image depicts what a
+caption claims, so it cannot be a deterministic gate). For **each embedded visual** (screenshot, diagram, SVG,
+video poster, carousel still), check that the asset **actually depicts what its caption/label names** — the
+failure shape is a caption that says one thing while the image shows another (the Hooked-model SVG captioned as
+"the pipeline"; a screenshot of screen A labelled as feature B). Each mismatch is **surfaced loudly to the
+user** (named, with the offending caption + asset) so it can be corrected — it is **never silent** — but it
+**does not block emit**, because confirming the match is a vision judgment, not a deterministic assertion.
 
 ## Asset fidelity {#asset-fidelity}
 
