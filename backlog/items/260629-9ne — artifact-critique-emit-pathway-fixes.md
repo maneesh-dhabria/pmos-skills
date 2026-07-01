@@ -4,13 +4,13 @@ id: 260629-9ne
 title: "/artifact-critique emit-pathway fixes — self-contained HTML fallback, Node-unavailable gate protocol, always-surfaced reviewer line, no-stderr Phase-0 lines (4 reflect findings)"
 type: enhancement
 kind: epic
-status: defined
+status: released
 route: skill
 priority: should
 labels: [pmos-toolkit, artifact-critique, skill, from-feedback]
 created: 2026-06-29
-updated: 2026-06-29
-released:
+updated: 2026-07-01
+released: 2.98.0
 source: "from-feedback (/reflect retro of /artifact-critique, 1 run on pov/pov_v6.html, 2026-06-29). Skill delivered fully on its claimed contract (10-axis scorecard, ≥40-char verbatim quotes, valid embedded findings JSON, published artifact, no critique-content pushback); 4 emit-pathway gaps surfaced — 2 friction (F1 undocumented self-contained HTML fallback, F2 undocumented Node-unavailable gate protocol) + 2 nits (F3 reviewer line not always surfaced, F4 Phase-0 stderr lines invisible on no-stderr harness). Maintainer decisions (define run): D1 conditional self-contained HTML fallback when an Artifact/canvas tool is present, multi-file substrate stays default (grilled via AskUserQuestion); D2 Node-unavailable → skip critique-eval.mjs + manually validate E-checks + ## Limits entry + proceed; D3 Phase-7 Tier-2 always emits one reviewer-outcome line; D4 no-stderr → surface Phase-0 mode/output_format lines inline. All 4 = SKILL.md-only doc/contract edits; rubric substrate, html-authoring substrate, and critique-eval.mjs all byte-unchanged."
 design_doc: docs/pmos/features/2026-06-29_artifact-critique-emit-fixes/02_design.html
 parent:
