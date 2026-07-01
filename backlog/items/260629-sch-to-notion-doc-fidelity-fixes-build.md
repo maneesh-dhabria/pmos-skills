@@ -14,7 +14,7 @@ status: done
 feature_folder: docs/pmos/features/2026-06-29_to-notion-doc-fidelity/
 plan_doc: docs/pmos/features/2026-06-29_to-notion-doc-fidelity/stories/260629-sch/03_plan.html
 tasks: docs/pmos/features/2026-06-29_to-notion-doc-fidelity/stories/260629-sch/tasks.yaml
-worktree: feat/260629-sch
+worktree:
 claimed_by: build:b0c61220-0a97-4ab0-afcb-144a7c4df518
 driver_holder: build:b0c61220-0a97-4ab0-afcb-144a7c4df518
 build_branch: feat/260629-sch

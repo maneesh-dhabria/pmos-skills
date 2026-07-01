@@ -14,7 +14,7 @@ status: done
 feature_folder: docs/pmos/features/2026-06-29_mytasks-web-ux-fixes/
 plan_doc: docs/pmos/features/2026-06-29_mytasks-web-ux-fixes/stories/260629-28w/03_plan.html
 tasks: docs/pmos/features/2026-06-29_mytasks-web-ux-fixes/stories/260629-28w/tasks.yaml
-worktree: feat/260629-28w
+worktree:
 claimed_by:
 driver_holder:
 build_branch: feat/260629-28w

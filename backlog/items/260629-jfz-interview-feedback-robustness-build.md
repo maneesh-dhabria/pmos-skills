@@ -14,7 +14,7 @@ status: done
 feature_folder: docs/pmos/features/2026-06-29_interview-feedback-robustness/
 plan_doc: docs/pmos/features/2026-06-29_interview-feedback-robustness/stories/260629-jfz/03_plan.html
 tasks: docs/pmos/features/2026-06-29_interview-feedback-robustness/stories/260629-jfz/tasks.yaml
-worktree: feat/260629-jfz
+worktree:
 claimed_by:
 driver_holder:
 build_branch: feat/260629-jfz

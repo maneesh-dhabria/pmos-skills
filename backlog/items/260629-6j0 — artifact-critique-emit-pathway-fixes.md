@@ -14,7 +14,7 @@ status: done
 feature_folder: docs/pmos/features/2026-06-29_artifact-critique-emit-fixes/
 plan_doc: docs/pmos/features/2026-06-29_artifact-critique-emit-fixes/stories/260629-6j0/03_plan.html
 tasks: docs/pmos/features/2026-06-29_artifact-critique-emit-fixes/stories/260629-6j0/tasks.yaml
-worktree: feat/260629-6j0
+worktree:
 claimed_by:
 driver_holder:
 build_branch: feat/260629-6j0

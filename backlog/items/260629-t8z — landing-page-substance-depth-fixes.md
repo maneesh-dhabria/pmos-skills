@@ -14,7 +14,7 @@ status: done
 feature_folder: docs/pmos/features/2026-06-29_landing-page-substance-depth/
 plan_doc: docs/pmos/features/2026-06-29_landing-page-substance-depth/stories/260629-t8z/03_plan.html
 tasks: docs/pmos/features/2026-06-29_landing-page-substance-depth/stories/260629-t8z/tasks.yaml
-worktree: feat/260629-t8z
+worktree:
 claimed_by:
 driver_holder: build:b0c61220-0a97-4ab0-afcb-144a7c4df518
 build_branch: feat/260629-t8z
