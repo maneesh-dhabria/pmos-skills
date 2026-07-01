@@ -12,6 +12,9 @@
 'use strict';
 import fs from 'node:fs';
 import { parseDoc, formatFromPath } from './parse-doc.mjs';
+// The stub-callout shape lives in one home (upload-image.mjs §5); map-to-notion is the single positional owner
+// of the in-document stub, so it renders via the SAME helper buildStub() uses — they cannot drift.
+import { stubCalloutNfm, assetRelPath } from './upload-image.mjs';
 
 // reference/notion-blocks.md §4 — code language enum (unknown → 'plain text')
 export const LANGUAGES = new Set(['abap', 'arduino', 'bash', 'basic', 'c', 'clojure', 'coffeescript', 'c++', 'c#', 'css', 'dart', 'diff', 'docker', 'elixir', 'elm', 'erlang', 'flow', 'fortran', 'fsharp', 'gherkin', 'glsl', 'go', 'graphql', 'groovy', 'haskell', 'html', 'java', 'javascript', 'json', 'julia', 'kotlin', 'latex', 'less', 'lisp', 'livescript', 'lua', 'makefile', 'markdown', 'markup', 'matlab', 'mermaid', 'nix', 'objective-c', 'ocaml', 'pascal', 'perl', 'php', 'plain text', 'powershell', 'prolog', 'protobuf', 'python', 'r', 'reason', 'ruby', 'rust', 'sass', 'scala', 'scheme', 'scss', 'shell', 'sql', 'swift', 'typescript', 'vb.net', 'verilog', 'vhdl', 'visual basic', 'webassembly', 'xml', 'yaml']);
@@ -119,7 +122,9 @@ export function buildModel(tree, opts = {}) {
       case 'image': {
         // disposition refined later by the skill via upload-image (external → mapped, stub → stubbed)
         rec(b.external ? 'mapped' : 'stubbed', 'image');
-        return { _si: b.si, type: 'image', src: b.src, alt: b.alt || '', external: !!b.external };
+        const m = { _si: b.si, type: 'image', src: b.src, alt: b.alt || '', external: !!b.external };
+        if (!b.external) m.assetRelPath = assetRelPath(opts.slug, b.src); // the copied path the stub callout names
+        return m;
       }
       case 'table': return mapTable(b, rec);
       case 'toc': {
@@ -242,19 +247,24 @@ function renderBlock(b, depth) {
     case 'bookmark': return `[${b.url}](${b.url})`;
     case 'image': {
       if (b.external && b.src) return `![${esc(b.alt)}](${b.src})`;
-      // stub fallback is produced by the skill via upload-image (callout + placeholder); a bare model
-      // image with no external src renders as a placeholder callout so nothing is silently dropped.
-      // Callout payload MUST be a tab-indented line on its own — NEVER an inline <br> right after the
-      // opening tag, which Notion's NFM parser rejects, falling back to escaped literal text (see §1).
-      return `<callout icon="🖼">\n${TAB}Image (no URL): ${esc(b.alt || b.src || 'image')}\n</callout>`;
+      // Single canonical local-image stub (reference/notion-blocks.md §5) — map-to-notion is the ONE owner of
+      // this callout in the document; Phase 2 fills it (copies the file), it never injects a second. Shape comes
+      // from upload-image.stubCalloutNfm so it matches buildStub byte-for-byte. Tab-indented body, no inline <br>.
+      const base = (b.src || '').split('/').pop() || b.alt || 'image';
+      const caption = b.alt || base;
+      const lines = [`🖼 ${esc(base)} · Caption: ${esc(caption)}`];
+      if (b.assetRelPath) lines.push(b.assetRelPath);
+      lines.push('Drag this file into an image block to fill.');
+      return stubCalloutNfm('🖼', lines);
     }
     case 'table': return renderTable(b);
     // TOC: native = Notion's auto-updating block; replicate = the source list as plain bullets; omit = drop.
     case 'toc_native': return '<table_of_contents/>';
     case 'toc_replicate': return (b.items || []).map((it) => `- ${renderInline(it) || ' '}`).join('\n');
     case 'toc_omit': return '';
-    // Same callout rule as the image stub: tab-indented body line, no inline <br> after the opening tag.
-    case 'ambiguous': return `<callout icon="❓">\n${TAB}Unresolved ${esc(b.kind || 'media')} — see conversion report\n</callout>`;
+    // One canonical stub callout per ambiguous-media node too (single owner), with a fillable caption slot.
+    // Same rule as the image stub: tab-indented body lines, no inline <br> after the opening tag.
+    case 'ambiguous': return stubCalloutNfm('❓', [`❓ Unresolved ${esc(b.kind || 'media')} · Caption:`, 'See the conversion report for the original source.']);
     default: return renderInline(b.rich || []) || '<empty-block/>';
   }
 }
@@ -343,16 +353,23 @@ function selftest() {
   const code = mapToNotion([{ type: 'code', si: 0, language: 'python', code: 'a = [1, 2]' }], {});
   ok(/```python\na = \[1, 2\]\n```/.test(code.nfm), 'code NFM literal, language preserved');
 
-  // callout payloads (image stub + ambiguous) MUST be multi-line tab-indented, never an inline <br>
-  // after the opening tag (the live-dogfood drift: NFM parser rejects <br>, falls back to literal text).
-  const imgStub = mapToNotion([{ type: 'image', si: 0, src: 'diagram.png', alt: 'flow', external: false }], {});
-  ok(/<callout icon="🖼">\n\tImage \(no URL\): flow\n<\/callout>/.test(imgStub.nfm), 'image stub callout: tab-indented, no <br>');
+  // Single canonical stub callout per image / ambiguous node (one positional owner — never a dual-write pair).
+  // Tab-indented body, never an inline <br> after the opening tag (NFM parser rejects it → literal text, §1).
+  const imgStub = mapToNotion([{ type: 'image', si: 0, src: 'diagram.png', alt: 'flow', external: false }], { slug: 'pov-v6' });
+  ok((imgStub.nfm.match(/<callout/g) || []).length === 1, 'image node → exactly one stub callout (no dual-write pair)');
+  ok(/<callout icon="🖼">\n\t🖼 diagram\.png · Caption: flow\n/.test(imgStub.nfm), 'image stub: caption-inline, tab-indented');
+  ok(/\.\/to-notion-doc-assets\/pov-v6\/diagram\.png/.test(imgStub.nfm) && /Drag this file/.test(imgStub.nfm), 'image stub names the copied path + drag hint');
   ok(!/<callout[^>]*><br>/.test(imgStub.nfm), 'image stub callout: no inline <br> after opening tag');
   const ambCallout = mapToNotion([{ type: 'ambiguous', si: 0, kind: 'svg', raw: '<svg/>' }], {});
-  // ambiguous renders as the literal placeholder block via renderBlock's 'ambiguous' case
   const ambNfm = renderNfm(ambCallout.blocks);
-  ok(/<callout icon="❓">\n\tUnresolved svg — see conversion report\n<\/callout>/.test(ambNfm), 'ambiguous callout: tab-indented, no <br>');
+  ok((ambNfm.match(/<callout/g) || []).length === 1 && /<callout icon="❓">\n\t❓ Unresolved svg · Caption:\n/.test(ambNfm), 'ambiguous node → one stub callout, caption slot, tab-indented');
   ok(!/<callout[^>]*><br>/.test(ambNfm), 'ambiguous callout: no inline <br> after opening tag');
+  // image + svg together → exactly two callouts total (one each), never four (single-owner, no dual-write)
+  const both = mapToNotion([{ type: 'image', si: 0, src: 'a.png', alt: 'A', external: false }, { type: 'ambiguous', si: 1, kind: 'svg', raw: '<svg/>' }], { slug: 'doc' });
+  ok((both.nfm.match(/<callout/g) || []).length === 2, 'image + svg → exactly two callouts total (one per node)');
+  // a parse-doc 2-col table-candidate (dl / label-div detection) flows through the §3 table path unchanged
+  const cand = mapToNotion([{ type: 'table', si: 0, header: true, detectedAs: 'table-candidate', rows: [[[{ t: 'Attribute' }], [{ t: 'Description' }]], [[{ t: 'Name' }], [{ t: 'Acme' }]]] }], {});
+  ok(cand.blocks[0].type === 'table' && cand.blocks[0].table_width === 2 && /header-row="true"/.test(cand.nfm), 'detected table-candidate maps via §3 table path (width 2, header row)');
 
   // TOC modes: native → <table_of_contents/>; replicate → bullets; omit → dropped (user-skipped, no output)
   const tocDoc = [{ type: 'toc', si: 0, items: [[{ t: 'Intro' }], [{ t: 'Body' }]] }, { type: 'paragraph', si: 1, rich: [{ t: 'x' }] }];
@@ -400,19 +417,20 @@ const isMain = import.meta.url === `file://${process.argv[1]}`;
 if (isMain) {
   const args = process.argv.slice(2);
   if (args.includes('--selftest')) process.exit(selftest() ? 0 : 1);
-  let style = 'minimal', headings = 'normal', tocMode = 'native', sectionDividers = false; const files = [];
+  let style = 'minimal', headings = 'normal', tocMode = 'native', sectionDividers = false, slug = ''; const files = [];
   for (let k = 0; k < args.length; k++) {
     if (args[k] === '--style') style = args[++k];
     else if (args[k] === '--headings') headings = args[++k];
     else if (args[k] === '--toc') tocMode = args[++k];
+    else if (args[k] === '--slug') slug = args[++k];
     else if (args[k] === '--dividers') sectionDividers = true;
     else if (args[k] === '--no-dividers') sectionDividers = false;
     else files.push(args[k]);
   }
-  if (!files.length) { console.error('usage: map-to-notion.mjs [--style ..] [--headings ..] [--toc native|replicate|omit] [--dividers|--no-dividers] <parse-doc.json|source-file> | --selftest'); process.exit(64); }
+  if (!files.length) { console.error('usage: map-to-notion.mjs [--style ..] [--headings ..] [--toc native|replicate|omit] [--slug <doc-slug>] [--dividers|--no-dividers] <parse-doc.json|source-file> | --selftest'); process.exit(64); }
   const raw = fs.readFileSync(files[0], 'utf8');
   let tree;
   try { const j = JSON.parse(raw); tree = j.blocks || j; } catch { tree = parseDoc(raw, formatFromPath(files[0])).blocks; }
-  const out = mapToNotion(tree, { style, headings, tocMode, sectionDividers });
+  const out = mapToNotion(tree, { style, headings, tocMode, sectionDividers, slug });
   process.stdout.write(JSON.stringify(out, null, 2) + '\n');
 }
