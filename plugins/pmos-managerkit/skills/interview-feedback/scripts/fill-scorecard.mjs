@@ -236,7 +236,77 @@ function fill(html, values) {
     out = injectInputSlot(out, 'notes:reco', values.recoNotes);
   }
 
+  // 6. Written-submission assessment (F3/F4). Only when a submission is supplied —
+  //    a no-submission fill is byte-identical to before (INV-4). The block is
+  //    injected immediately before the overall-reco section, and a deterministic
+  //    reference line is inserted into that section so the reco never reads the
+  //    submission as a standalone number divorced from interview context.
+  if (values.submission) {
+    const block = renderSubmissionBlock(values.submission);
+    const recoRe = /<section\b[^>]*\bclass\s*=\s*"reco"[^>]*>/;
+    const rm = out.match(recoRe);
+    if (rm) {
+      const at = rm.index;
+      const recoOpenEnd = at + rm[0].length;
+      const ref =
+        '\n    <p class="notes" data-submission-ref>Recommendation accounts for the written-submission assessment above.</p>';
+      // Insert the ref inside the reco section first (after its open tag) so the
+      // earlier `at` index stays valid for the block insertion that follows.
+      out = out.slice(0, recoOpenEnd) + ref + out.slice(recoOpenEnd);
+      out = out.slice(0, at) + block + '\n\n  ' + out.slice(at);
+    }
+  }
+
   return out;
+}
+
+// Render the scenario-aware written-submission assessment block (F3/F4). Reuses
+// the skeleton's existing CSS classes (.dim/.dim-name/.notes) so no <style>
+// change is needed (which would break the no-submission byte-identity, INV-4).
+// The LLM supplies the per-slot HTML (with its <cite data-cite-tier> tags); this
+// renderer owns only the structure — the scenario label, the buckets/quality
+// split, and the "how it shaped the scores & reco" close (skill-patterns §H).
+function renderSubmissionBlock(sub) {
+  const scenario = sub.scenario === 'pre-live' ? 'pre-live' : 'post-live';
+  const scenarioLabel =
+    scenario === 'pre-live'
+      ? 'Prepared before the live session, then presented'
+      : 'Completed after the live session';
+  let inner = '';
+  if (scenario === 'pre-live') {
+    inner += submissionPart('Intrinsic quality &amp; clarity of thought', sub.intrinsicQuality);
+    inner += submissionPart(
+      'Live defense — how the candidate defended it, answered probes, and adjusted on the fly',
+      sub.liveDefense
+    );
+  } else {
+    const b = sub.buckets || {};
+    inner += submissionPart('Discussed in the interview', b.discussed);
+    inner += submissionPart('Directed by the interviewer’s closing brief', b.interviewerDirected);
+    inner += submissionPart('Independently reached', b.independent);
+    inner += submissionPart(
+      'Did the candidate use the live context to structure &amp; complete the missing parts? (restate-only is a WEAK signal)',
+      sub.liveContext
+    );
+  }
+  inner += submissionPart('How this shaped the dimension scores &amp; recommendation', sub.shaped);
+  return (
+    '  <section class="dim" data-card="submission-assessment" data-scenario="' +
+    escAttr(scenario) +
+    '">\n' +
+    '    <div class="dim-head"><span class="dim-name">Written submission — ' +
+    scenarioLabel +
+    '</span></div>\n' +
+    inner +
+    '  </section>'
+  );
+}
+
+function submissionPart(label, html) {
+  if (!html) return '';
+  return (
+    '    <div class="notes"><strong>' + label + '</strong><div>' + html + '</div></div>\n'
+  );
 }
 
 // Replace the inner content of the element bearing data-input="<key>".
@@ -362,6 +432,60 @@ function selftest() {
   const headOrig = skeleton.slice(0, skeleton.indexOf('<body'));
   const headFilled = filled.slice(0, filled.indexOf('<body'));
   assert(headOrig === headFilled, 'fill: head preserved byte-for-byte');
+
+  // no-submission fill never emits the submission block (INV-4 byte-identity).
+  assert(
+    !filled.includes('data-card="submission-assessment"'),
+    'fill: no submission -> no submission block (byte-identical path)'
+  );
+
+  // (b') submission present (post-live) -> scenario-aware block + reco reference.
+  const filledSub = fill(skeleton, {
+    ...values,
+    submission: {
+      scenario: 'post-live',
+      buckets: {
+        discussed: 'They walked through the rollout we covered live. SUB_DISCUSSED_TOKEN',
+        interviewerDirected: 'Filled in the metric guardrail I asked them to add. SUB_DIRECTED_TOKEN',
+        independent: 'Added a kill-switch nobody prompted. SUB_INDEPENDENT_TOKEN',
+      },
+      liveContext: 'Used the live discussion to structure the missing parts rather than restating. SUB_CONTEXT_TOKEN',
+      shaped: 'Lifted Scope and Strategy by one band. SUB_SHAPED_TOKEN',
+    },
+  });
+  assert(
+    /data-card="submission-assessment"[^>]*data-scenario="post-live"/.test(filledSub),
+    'fill(submission): post-live assessment block rendered'
+  );
+  assert(
+    filledSub.includes('SUB_DISCUSSED_TOKEN') &&
+      filledSub.includes('SUB_DIRECTED_TOKEN') &&
+      filledSub.includes('SUB_INDEPENDENT_TOKEN'),
+    'fill(submission): three post-live buckets rendered'
+  );
+  assert(filledSub.includes('SUB_SHAPED_TOKEN'), 'fill(submission): shaped-the-scores close rendered');
+  assert(
+    /data-submission-ref/.test(filledSub) &&
+      filledSub.indexOf('data-card="submission-assessment"') <
+        filledSub.indexOf('class="reco"'),
+    'fill(submission): block precedes reco and reco references it'
+  );
+  // pre-live scenario renders the quality/defense split, not the buckets.
+  const filledPre = fill(skeleton, {
+    ...values,
+    submission: {
+      scenario: 'pre-live',
+      intrinsicQuality: 'Tight thesis, well-sequenced. PRE_QUALITY_TOKEN',
+      liveDefense: 'Held up under probing and revised the rollout when pushed. PRE_DEFENSE_TOKEN',
+      shaped: 'Confirmed the Strategy score. PRE_SHAPED_TOKEN',
+    },
+  });
+  assert(
+    /data-scenario="pre-live"/.test(filledPre) &&
+      filledPre.includes('PRE_QUALITY_TOKEN') &&
+      filledPre.includes('PRE_DEFENSE_TOKEN'),
+    'fill(submission): pre-live quality + live-defense split rendered'
+  );
 
   // (c) FOREIGN fixture -> anchored:false with non-empty inferred echo.
   const foreign = `<!DOCTYPE html><html><body>
