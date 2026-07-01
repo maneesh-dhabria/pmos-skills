@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-01 — pmos-toolkit 2.100.0: /landing-page shows, not just tells
+
+**`/landing-page` now holds itself to a higher substance bar.** Before drafting, every claim on the page must be paired with a way to *show* it — a real embedded artifact, screenshot, or demo — and a hard do > show > tell gate refuses a page that only asserts value without evidence. Multi-product pages can override the target persona per product, the hero embeds a real artifact rather than a stock mock, and new self-checks verify value coverage and match asset claims to what's actually shown. Developer-tool pages get a dedicated hero-subhead check so the pitch reads right for a technical audience.
+
 ## 2026-07-01 — pmos-toolkit 2.99.0: /mytasks web app UX polish
 
 **The `/mytasks` web app got a round of usability fixes.** Actions that used to feel invisible now confirm themselves — deletes and completions raise a toast with an Undo window, and sidebar view counts show as live badges. Dates render in friendly, colour-coded form, the Today view groups overdue tasks separately and shows helpful empty states when a view is clear, and status chips make each task's type and cadence readable at a glance. The person picker now lets you mint a brand-new `@handle` inline, and a contrast pass plus larger touch targets make the whole surface easier to read and tap.
