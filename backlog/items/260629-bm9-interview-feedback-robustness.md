@@ -4,13 +4,13 @@ id: 260629-bm9
 title: "/interview-feedback robustness — URL-input detection + fallback, non-clobbering transcribe, scenario-aware written-submission assessment, visible citation gate"
 type: enhancement
 kind: epic
-status: defined
+status: released
 route: skill
 priority: should
 labels: [pmos-managerkit, interview-feedback, hiring, skill, from-feedback]
 created: 2026-06-29
-updated: 2026-06-29
-released:
+updated: 2026-07-01
+released: 0.2.0
 source: "from-feedback (/reflect on first production run, 2026-06-29): scored one candidate from a Google Drive recording + Google Docs transcript + local case-docs + a post-interview PDF. Core grounding contract held, but required two external-URL workarounds, a manual transcript-rescue, and two rounds of user-prompted correction to written-submission handling. Maintainer decision (define run): D3 written submission is assessed by scenario (post-live vs pre-live-then-present), never in isolation. /reflect's own nit (R1: add a phases: frontmatter key) was triaged and DROPPED — no pmos skill uses that key; skill-patterns §J anchors task-tracking to body phase headings."
 design_doc: docs/pmos/features/2026-06-29_interview-feedback-robustness/02_design.html
 parent:

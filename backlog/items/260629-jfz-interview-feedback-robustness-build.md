@@ -1,4 +1,5 @@
 ---
+released: 0.2.0
 schema_version: 1
 id: 260629-jfz
 kind: story
@@ -20,7 +21,7 @@ build_branch: feat/260629-jfz
 build_commit: e9c6493f
 labels: [pmos-managerkit, interview-feedback, hiring, skill, from-feedback]
 created: 2026-06-29
-updated: 2026-06-30
+updated: 2026-07-01
 ---
 
 <!-- status: planned at define (Loop 1); tasks.yaml authored, route:skill. Build via /skill-sdlc build --story 260629-jfz -->
