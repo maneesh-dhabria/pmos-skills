@@ -4,13 +4,13 @@ id: 260629-pd2
 title: "/mytasks web UX fixes — invisible-feedback toasts, people picker, friendly dates, default-view signal, empty states, chips, contrast pass (13 design-crit findings + 5 contrast failures)"
 type: enhancement
 kind: epic
-status: defined
+status: released
 route: skill
 priority: should
 labels: [pmos-toolkit, mytasks, web, ux, skill, from-feedback]
 created: 2026-06-29
-updated: 2026-06-29
-released:
+updated: 2026-07-01
+released: 2.99.0
 source: "from-feedback (/design-crit of the live /mytasks web SPA, 2026-06-29: …/personal/docs/docs/2026-06-29_mytasks-web/design-crit/design-crit.html). 4 journeys, 7 screens; 13 LLM findings F-01..F-13 (all 12 surfaced dispositioned 'Fix as proposed') + 5 deterministic WCAG-AA contrast failures. Three cross-cutting themes: invisible feedback, representation drift across surfaces, contrast/colour-semantics. Maintainer decisions (define run): D1 @ opens a filtered people picker with an explicit +Add (no silent person creation); D2 friendly dates — relative near, absolute beyond; D3 count badges + overdue-on-Today; D4 full scope incl. low F-13; D5 toast-window undo only. Grill refined D1 (silent auto-create -> explicit picker) and D2 (added relative-near band)."
 design_doc: docs/pmos/features/2026-06-29_mytasks-web-ux-fixes/02_design.html
 parent:
