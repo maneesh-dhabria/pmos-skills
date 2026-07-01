@@ -42,6 +42,9 @@ These instructions use Claude Code tool names. In other environments:
 - **No subagents:** run the Phase 3 axis scoring and the Phase 7 advisory reviewer inline in the main agent rather than dispatching a separate reviewer.
 - **No PDF/image reader:** if a `.pdf` page or an embedded diagram cannot be rendered, **name the unreadable visual** in `limits[]` and do NOT score its possible content `ABSENT` (Inv-5); proceed on the readable text.
 - **`.pmos/settings.yaml` missing:** run `_shared/pipeline-setup.md` Section A first-run setup before resolving paths, or fall back to `./docs/` for the out dir.
+- **No distinct stderr channel (e.g. a harness that merges stderr into chat):** surface the Phase 0 resolution lines — `mode: <m> (source: …)` and `output_format: <v> (source: …)` — inline as a brief code block at Phase 0 entry, then continue. The frozen `_shared/non-interactive.md` inline block still says "print to stderr"; this only adapts *where* those two lines land for a no-stderr harness — it does not modify the block.
+- **A first-class Artifact / canvas publish tool is the emit surface (no template renderer):** instead of the multi-file `_shared/html-authoring/` emit (which links `assets/style.css` + the inline-comments substrate), write a **single self-contained HTML** — inline `<style>`/`<script>`, no external asset links — that **retains the embedded `pmos-critique-findings` block** (the `/artifact` hand-off contract) and inlines the comments overlay (`comments.js`/`comments.css`) best-effort, then publish it via that tool **in the same phase** (do not require the user to initiate publication separately). The multi-file `assets/` substrate emit stays the **default** for `--out` / pipeline-folder writes; name any comments-overlay capability you could not inline in `## Limits` (Phase 7).
+- **No Node.js exec (`scripts/critique-eval.mjs` cannot run):** skip the Tier-1 deterministic gate, but **manually validate its checks by inspection** — especially `E-quote-in-source` (every quote a real ≥40-char substring of the source), plus `E-axes-complete` and `E-applicable-consistency` — then add a `## Limits` entry (`deterministic gate not run (Node unavailable) — findings manually validated`) and proceed. Never block; never silently omit the limitation (Inv-5).
 
 ## Track Progress
 
@@ -171,7 +174,7 @@ Hold to the locked voice in `reference/voice-rubric.md` (unnamed seasoned-produc
 
 ## Phase 7: Emit + two-tier quality gate {#emit}
 
-**Emit the critique** per the `_shared/html-authoring/README.md` checklist (template slot-fill; atomic write with the `.sections.json` companion; idempotent asset copy — which carries the inline-comments substrate, `comments.js` et al.; cache-busted asset URLs; kebab heading ids per `conventions.md` §3; `<meta name="pmos:skill" content="artifact-critique">`; wordmark/footer). Asset prefix `assets/` for a top-level write, `../assets/` when nested. Regenerate `{feature_folder}/index.html` only when the out dir is a pipeline sub-folder; standalone `--out` writes do not.
+**Emit the critique** per the `_shared/html-authoring/README.md` checklist (template slot-fill; atomic write with the `.sections.json` companion; idempotent asset copy — which carries the inline-comments substrate, `comments.js` et al.; cache-busted asset URLs; kebab heading ids per `conventions.md` §3; `<meta name="pmos:skill" content="artifact-critique">`; wordmark/footer). Asset prefix `assets/` for a top-level write, `../assets/` when nested. Regenerate `{feature_folder}/index.html` only when the out dir is a pipeline sub-folder; standalone `--out` writes do not. When a first-class Artifact / canvas publish tool is the only emit surface (no template renderer), follow the **self-contained-HTML fallback in `## Platform Adaptation`** instead of the multi-file write — both the default multi-file path and the self-contained path keep the embedded `pmos-critique-findings` block, so the `/artifact` hand-off survives either way.
 
 The HTML body carries, in order: the opening framing, the verdict-by-axis scorecard (a clean ordinal table), the per-axis deep-dives, the weakest-claims ranking, the bottom line, and a `## Limits` list. Plus two required affordances:
 
@@ -190,11 +193,15 @@ Close with **advisory hand-off prose**: one paragraph pointing the author at `/a
 node {skill_dir}/scripts/critique-eval.mjs --source <extracted-source-file> --findings <findings.json>
 ```
 
-It asserts E-schema, E-axes-complete, E-applicable-consistency, E-quote-len, E-quote-in-source, E-gap-named, E-weakest-ranked, E-opening. **Exit 0** → proceed. **Exit 1** → it lists the failing checks; fix the findings (a hallucinated quote, a missing axis, a mis-ranked claim) and re-run — never finalize a critique that fails the gate. **Exit 2** → script error; surface it, never silently pass.
+It asserts E-schema, E-axes-complete, E-applicable-consistency, E-quote-len, E-quote-in-source, E-gap-named, E-weakest-ranked, E-opening. **Exit 0** → proceed. **Exit 1** → it lists the failing checks; fix the findings (a hallucinated quote, a missing axis, a mis-ranked claim) and re-run — never finalize a critique that fails the gate. **Exit 2** → script error; surface it, never silently pass. If Node cannot exec in this harness at all, follow the **Node-unavailable path in `## Platform Adaptation`** (skip the script, manually validate the checks by inspection, record the limit in `## Limits`) — never finalize as though the gate had passed.
 
-**Tier 2 — advisory reviewer (separate agent, `_shared/reviewer-protocol.md`, ≤2 loops).** Dispatch a reviewer subagent (or run inline if subagents are unavailable) against the critique per `reference/voice-rubric.md` § "Advisory reviewer". It scores grounding quality, **fairness** (strengths credited before attacks), and **voice adherence**, and flags any **manufactured / nitpick** finding (Inv-4). It is **non-blocking** — surface its notes in the chat summary and let the author decide; the reviewer never edits the artifact. Cap at 2 loops (a cost governor, not a gate).
+**Tier 2 — advisory reviewer (separate agent, `_shared/reviewer-protocol.md`, ≤2 loops).** Dispatch a reviewer subagent (or run inline if subagents are unavailable) against the critique per `reference/voice-rubric.md` § "Advisory reviewer". It scores grounding quality, **fairness** (strengths credited before attacks), and **voice adherence**, and flags any **manufactured / nitpick** finding (Inv-4). It is **non-blocking** — surface its notes in the chat summary and let the author decide; the reviewer never edits the artifact. Cap at 2 loops (a cost governor, not a gate). **Always print one line reporting the reviewer outcome, even when it found nothing**, so a silent run never reads as "no review happened":
 
-Print to chat the path of the emitted critique and the Tier-1 verdict (`critique-eval: PASS` / the failing checks).
+```
+Tier 2 advisory reviewer: ran <inline|subagent> — <N findings | no findings>
+```
+
+Print to chat, at the end of Phase 7: the path of the emitted critique, the Tier-1 verdict (`critique-eval: PASS` / the failing checks), and the always-emitted Tier-2 reviewer-outcome line above (`ran inline|subagent` per how it was dispatched; `N findings` or `no findings`).
 
 ---
 
