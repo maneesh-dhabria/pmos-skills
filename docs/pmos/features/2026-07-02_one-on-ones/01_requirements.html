@@ -1,0 +1,65 @@
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Requirements — /one-on-ones (pmos-managerkit)</title>
+<style>
+  body { max-width: 52rem; margin: 2rem auto; padding: 0 1.25rem; font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: #1a1a1a; }
+  h1 { font-size: 1.6rem; margin: 0 0 .25rem; } h2 { font-size: 1.12rem; margin: 2rem 0 .5rem; border-bottom: 2px solid #ececec; padding-bottom: .3rem; }
+  h3 { font-size: 1rem; margin: 1.2rem 0 .3rem; } .sub { color: #666; margin: 0 0 1.4rem; }
+  code { background: #f2f2f2; padding: .05rem .3rem; border-radius: 4px; font-size: .88em; }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; } th,td { text-align: left; vertical-align: top; padding: .45rem .6rem; border-bottom: 1px solid #eee; } th { background: #fafafa; font-size: .76rem; text-transform: uppercase; letter-spacing: .03em; color: #555; }
+  .must { color: #1a7f37; font-weight: 600; } ul { padding-left: 1.3rem; } section { overflow-x: auto; }
+</style>
+
+<h1>Requirements — <code>/one-on-ones</code></h1>
+<p class="sub">pmos-managerkit · epic 260702-z77 · route: skill · Tier 2 · from shape brief <code>2026-07-02_effective-one-on-ones.html</code></p>
+
+<section id="problem">
+<h2>Problem</h2>
+<p>A manager has no durable, low-friction, per-report thread that assembles a tailored, human-first agenda at the moment each 1:1 starts and carries continuity across sessions — open action items, recurring themes, goals, and manager-recorded feedback — so weekly 1:1s stop decaying into status updates and growth/morale get tended. (Full framing, decomposition, and competing framings: the shape brief; Framing B — "per-report relationship thread" — chosen.)</p>
+</section>
+
+<section id="users">
+<h2>User & jobs</h2>
+<p><strong>User:</strong> any manager with recurring direct reports. <strong>Jobs:</strong> (1) register a report; (2) capture a discussion item the instant it occurs; (3) prep a human-first, continuity-aware 1:1; (4) log what happened and close loops; (5) keep each report's goals + performance/coaching feedback in view for planning; (6) run a periodic deeper career conversation.</p>
+</section>
+
+<section id="functional">
+<h2>Functional requirements</h2>
+<table>
+<tr><th>#</th><th>Requirement</th><th>Priority</th></tr>
+<tr><td>FR1</td><td><strong>Add report</strong> — register a direct report; anchor identity in <code>/people</code> (offer to create when absent; never fabricate); create the per-report 1:1 record (cadence, role, goals, operating-manual).</td><td class="must">MUST</td></tr>
+<tr><td>FR2</td><td><strong>Quick-capture discussion item</strong> — one command appends an item to the report's running-agenda inbox; unattended-safe; optional intent tag.</td><td class="must">MUST</td></tr>
+<tr><td>FR3</td><td><strong>Plan/prep a 1:1</strong> — assemble a human-first agenda from header (goals, themes, feedback) + open action items + inbox; surface actively-coached suggestions (intent-tagged questions, human-first opener, status-creep + stale-action-item flags). Emit a commentable HTML prep artifact.</td><td class="must">MUST</td></tr>
+<tr><td>FR4</td><td><strong>Log a session</strong> — append a dated entry (topics, decisions, action items w/ owner+status, questions) newest-first; clear discussed inbox items.</td><td class="must">MUST</td></tr>
+<tr><td>FR5</td><td><strong>Context management</strong> — set/update goals, standing themes, performance feedback, coaching feedback in the persistent header (manager-entered only).</td><td class="must">MUST</td></tr>
+<tr><td>FR6</td><td><strong>Career conversation</strong> — Laraway 3-part deeper session, offered separately from weekly prep; writes a career-plan block.</td><td>SHOULD</td></tr>
+<tr><td>FR7</td><td><strong>Overview</strong> — bare <code>/one-on-ones</code> lists reports, who's due, and open items.</td><td>SHOULD</td></tr>
+<tr><td>FR8</td><td><strong>Coaching corpus</strong> — bundled reference: intent-tagged question bank + named models + durable principles, honoring the 4 attribution caveats.</td><td class="must">MUST</td></tr>
+</table>
+</section>
+
+<section id="nonfunctional">
+<h2>Constraints & non-functional</h2>
+<ul>
+<li><strong>Independence (hard):</strong> fully independent of <code>/interview-feedback</code> — no import, no <code>_shared</code> cite, no scorecard read.</li>
+<li><strong>Anchors:</strong> identity via <code>/people</code> (<code>~/.pmos/people</code>); <strong>no</strong> <code>/mytasks</code> dependency.</li>
+<li><strong>Privacy:</strong> records under <code>~/.pmos/one-on-ones/</code>, outside the repo — never committed.</li>
+<li><strong>Zero-dep Node</strong> scripts + html-authoring substrate for the prep artifact (patterns reused from <code>/people</code>, <code>/mytasks</code>, <code>/interview-feedback</code> — patterns only, no code coupling).</li>
+<li><strong>Non-interactive:</strong> <code>note</code>/<code>log</code> run unattended (Recommended → AUTO-PICK); missing identity or session body DEFERs, never fabricated.</li>
+<li><strong>Conformance:</strong> <code>skill-patterns.md §A–§L</code>; <code>skill-eval</code> (<code>[D]</code>+<code>[J]</code>); 4 hygiene lints + <code>audit-recommended</code> green.</li>
+</ul>
+</section>
+
+<section id="out-of-scope">
+<h2>Out of scope (v1)</h2>
+<ul>
+<li>Pulling feedback/scorecards from <code>/interview-feedback</code> or any other skill (manager types feedback in).</li>
+<li>Task management of reports' work (no <code>/mytasks</code> integration).</li>
+<li>A full multi-report web viewer (the prep artifact is per-session HTML; a browsable viewer is a possible follow-up).</li>
+<li>Scheduling/calendar integration; reminders/notifications.</li>
+</ul>
+</section>
+
+<section id="acceptance">
+<h2>Standing acceptance criteria</h2>
+<p>The produced skill must conform to <code>plugins/pmos-toolkit/skills/feature-sdlc/reference/skill-patterns.md §A–§L</code> and the host repo's <code>CLAUDE.md</code> skill-authoring conventions (canonical path, manifest version-sync, release entry point). Detailed ACs live on the epic (260702-z77) and story (260702-6ks); the design contract is <code>02_design.html</code>.</p>
+</section>

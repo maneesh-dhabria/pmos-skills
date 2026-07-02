@@ -1,0 +1,48 @@
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Plan — story 260702-6ks (/one-on-ones)</title>
+<style>
+  body { max-width: 52rem; margin: 2rem auto; padding: 0 1.25rem; font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: #1a1a1a; }
+  h1 { font-size: 1.5rem; margin: 0 0 .25rem; } h2 { font-size: 1.08rem; margin: 1.8rem 0 .5rem; border-bottom: 2px solid #ececec; padding-bottom: .3rem; }
+  .sub { color: #666; margin: 0 0 1.3rem; } code { background: #f2f2f2; padding: .05rem .3rem; border-radius: 4px; font-size: .87em; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; } th,td { text-align: left; vertical-align: top; padding: .45rem .6rem; border-bottom: 1px solid #eee; } th { background: #fafafa; font-size: .74rem; text-transform: uppercase; letter-spacing: .03em; color: #555; }
+  section { overflow-x: auto; } .w { font-weight: 600; color: #335; }
+</style>
+
+<h1>Plan — <code>/one-on-ones</code></h1>
+<p class="sub">story 260702-6ks · epic 260702-z77 · route: skill · plugin pmos-managerkit · spec <code>../../02_design.html</code> · no deps · execution mode: inline</p>
+
+<section id="approach">
+<h2>Approach</h2>
+<p>One vertical slice building the whole skill. TDD: each script ships with <code>--selftest</code> unit coverage; the data-model lib (T2) is the foundation every verb builds on. Reuse the established <code>~/.pmos</code> personal-store + zero-dep-Node + html-authoring patterns from <code>/people</code>, <code>/mytasks</code>, <code>/interview-feedback</code> — <strong>patterns only, no code coupling</strong> (INV-2). Full task detail + per-task verify live in the sibling <code>tasks.yaml</code>; this is the readable overview.</p>
+</section>
+
+<section id="waves">
+<h2>Waves</h2>
+<table>
+<tr><th>Wave</th><th>Tasks</th><th>Delivers (ACs)</th></tr>
+<tr><td class="w">1 · Scaffold + data model</td><td>T1 SKILL.md scaffold; T2 record parser/serializer + store</td><td>AC1, INV-4 — the record contract everything hangs off</td></tr>
+<tr><td class="w">2 · Capture & context</td><td>T3 <code>add</code>; T4 <code>note</code>; T5 <code>set</code></td><td>AC2, AC3, AC6, INV-1</td></tr>
+<tr><td class="w">3 · Coaching corpus</td><td>T6 <code>reference/</code> corpus (principles, models, question bank, caveats)</td><td>AC8, D7</td></tr>
+<tr><td class="w">4 · Plan / log / career / overview</td><td>T7 <code>plan</code> (+HTML prep, script-computed flags); T8 <code>log</code>; T9 <code>career</code>; T10 overview</td><td>AC4, AC5, AC7, D8, D9, D10, FR7</td></tr>
+<tr><td class="w">5 · Conformance</td><td>T11 independence/anchors grep-clean; T12 skill-eval + 4 hygiene lints + audit</td><td>AC9, AC10, INV-2, INV-3</td></tr>
+</table>
+</section>
+
+<section id="risks">
+<h2>Risks & watch-items</h2>
+<ul>
+<li><strong>/people coupling drift</strong> — keep it to identity resolution only (read <code>~/.pmos/people</code>); don't reach into /people internals. If /people isn't set up, <code>add</code> must degrade gracefully (create the entry or DEFER).</li>
+<li><strong>Deterministic flags (§H)</strong> — status-creep / stale-action / career-due MUST be script-computed on the record, never model-estimated; unit-test on fixtures.</li>
+<li><strong>Attribution caveats</strong> — the 4 corpus caveats are easy to regress; T6 verify checks them explicitly.</li>
+<li><strong>Independence grep</strong> — T11 is the backstop for INV-2/INV-3; must be grep-clean before skill-eval.</li>
+<li><strong>Non-interactive</strong> — capture verbs unattended-safe; anything needing human content (identity, session body, feedback) DEFERs, never fabricates.</li>
+</ul>
+</section>
+
+<section id="release-prereqs">
+<h2>Release prerequisites (NOT build tasks — /complete-dev owns)</h2>
+<ul>
+<li>pmos-managerkit <code>plugin.json</code> ×2 version bump (new user-invocable skill → minor from 0.2.0).</li>
+<li>README row for <code>/one-on-ones</code>; changelog entry; manifest version-sync.</li>
+</ul>
+</section>

@@ -1,0 +1,147 @@
+story: 260702-6ks
+epic: 260702-z77
+route: skill
+spec: ../../02_design.html
+plugin: pmos-managerkit
+depends_on: []
+summary: >
+  Build /one-on-ones: a new pmos-managerkit skill that helps a manager run effective 1:1s via one rolling
+  record per report (persistent header + running-agenda inbox + reverse-chron session log), the verbs
+  add/note/plan/log/set/career + bare overview, and a bundled offline coaching corpus. Records live under
+  ~/.pmos/one-on-ones/; identity anchored in /people; fully independent of /interview-feedback; no /mytasks.
+
+waves:
+  - wave: 1
+    name: Scaffold + data model
+    tasks:
+      - id: T1
+        title: Scaffold one-on-ones/SKILL.md
+        deps: []
+        parallel: false
+        detail: >
+          Create plugins/pmos-managerkit/skills/one-on-ones/SKILL.md. Frontmatter: name: one-on-ones,
+          user-invocable: true, triggering description ("run a 1:1 / one-on-one", "prep my 1:1 with X",
+          "add a discussion item for X", "log my 1:1", "career conversation with X"), argument-hint listing
+          contract flags only (--tag, --non-interactive). Inline the canonical non-interactive block
+          byte-identical to skills/_shared/non-interactive.md (copy from pmos-toolkit; managerkit has no _shared).
+          Add a Platform Adaptation section. Body: verb list + phase headings with stable {#kebab} anchors (§J).
+        verify: >
+          name matches dir; lint-non-interactive-inline PASS; frontmatter valid; skill registers under the plugin.
+      - id: T2
+        title: Record parser/serializer + store (AC1, INV-4)
+        deps: [T1]
+        parallel: false
+        detail: >
+          Zero-dep Node lib to parse/serialize ~/.pmos/one-on-ones/<handle>.md per 02_design.html#data-model
+          (frontmatter + fixed sections: Goals, Standing themes, Operating manual, Performance feedback,
+          Coaching feedback, Open action items, Inbox, Sessions). Byte-stable round-trip. Resolves store dir from
+          $PMOS_ONEONONES_DIR else ~/.pmos/one-on-ones (created on first write). MUST refuse to write inside the
+          repo working tree (INV-4). --selftest unit coverage.
+        verify: round-trip test byte-stable; store-dir override honored; write-inside-repo guard test; --selftest 0.
+
+  - wave: 2
+    name: Capture & context verbs
+    tasks:
+      - id: T3
+        title: add — register report (AC2, INV-1)
+        deps: [T2]
+        parallel: true
+        detail: >
+          Resolve a /people identity by name/handle (read ~/.pmos/people). Absent -> offer to create the /people
+          entry (AskUserQuestion with (Recommended) Create; <!-- defer-only: free-form --> under --non-interactive
+          DEFER, never fabricate). Scaffold the record: cadence, role, goals, operating-manual prompts. Never
+          invent a person.
+        verify: existing-person path scaffolds record; absent path offers create; NI missing-identity DEFERs.
+      - id: T4
+        title: note — quick-capture (AC3)
+        deps: [T2]
+        parallel: true
+        detail: >
+          /one-on-ones note <report> "<item>" [--tag blocker|growth|morale|feedback-up] appends one line to
+          ## Inbox in a single command. Unattended-safe (no prompt on the happy path). Optional intent tag.
+        verify: appends exactly one inbox line; tag recorded; runs clean under --non-interactive.
+      - id: T5
+        title: set — context management (AC6)
+        deps: [T2]
+        parallel: true
+        detail: >
+          /one-on-ones set <report> goal|theme|perf|coaching "<text>" adds/updates the matching header section
+          (Goals, Standing themes, Performance feedback, Coaching feedback). Manager-entered only — no external
+          source (INV-2).
+        verify: each target writes the right section; idempotent update; no read of /interview-feedback.
+
+  - wave: 3
+    name: Coaching corpus
+    tasks:
+      - id: T6
+        title: reference/ coaching corpus (AC8, D7)
+        deps: [T1]
+        parallel: true
+        detail: >
+          Author plugins/pmos-managerkit/skills/one-on-ones/reference/ — the 12 durable principles, named models
+          (Manager Tools 10/10/10, Rands Update/Vent/Disaster, Laraway Career Conversations, GitLab template,
+          Hogan first-1:1 questions), and the intent-tagged question bank (opener/growth/blockers/morale/
+          feedback-up/relationship/workload). HONOR the 4 attribution caveats from 02_design.html#coaching-corpus.
+          Offline, no network. Structured so plan/career can pull by intent tag.
+        verify: caveats present and correctly attributed; question bank keyed by intent; no network access.
+
+  - wave: 4
+    name: Plan, log, career, overview
+    tasks:
+      - id: T7
+        title: plan — coached prep agenda + HTML artifact (AC4, D8, D9)
+        deps: [T2, T6]
+        parallel: true
+        detail: >
+          Assemble the prep agenda per 02_design.html#prep-output (human-first, last-time open loops, their agenda
+          from inbox by intent, growth & feedback in view, coached suggestions). SCRIPT-COMPUTE the deterministic
+          flags (status-creep: last N sessions topic-only; stale-action: open item older than threshold;
+          career-due: career_last_reviewed older than ~a quarter) — §H, never model arithmetic. Emit a commentable
+          HTML prep artifact via the html-authoring substrate + a terminal summary.
+        verify: flags computed by script (unit test on fixtures); HTML prep emits + validates; suggestions cite corpus.
+      - id: T8
+        title: log — capture session + close loops (AC5)
+        deps: [T2]
+        parallel: true
+        detail: >
+          /one-on-ones log <report> prepends a dated block under ## Sessions (topics, decisions, action items
+          owner+status, questions) newest-first, and moves discussed inbox items out. Missing session body DEFERs
+          under --non-interactive (never fabricate).
+        verify: newest-first prepend; discussed inbox cleared; NI missing-body DEFERs.
+      - id: T9
+        title: career — Laraway 3-part conversation (AC7, D10)
+        deps: [T2, T6]
+        parallel: true
+        detail: >
+          /one-on-ones career <report> runs Life Story -> Dreams -> Career Action Plan as a distinct session;
+          writes a career-plan block to the header and stamps career_last_reviewed. Separate from weekly plan.
+        verify: writes career-plan block; stamps date; distinct from plan output.
+      - id: T10
+        title: bare overview (FR7)
+        deps: [T2]
+        parallel: true
+        detail: >
+          Bare /one-on-ones lists reports, who's due (cadence vs last session date — script-computed), open action
+          item counts, inbox counts.
+        verify: due computation correct on fixtures; lists all records in store.
+
+  - wave: 5
+    name: Conformance
+    tasks:
+      - id: T11
+        title: Independence + anchors grep-clean (AC9, INV-2/3)
+        deps: [T3, T4, T5, T7, T8, T9, T10]
+        parallel: false
+        detail: >
+          Assert no import of / _shared cite to / scorecard read from interview-feedback anywhere in the skill;
+          identity strictly via /people; no /mytasks reference. Add a lint/test capturing INV-2 + INV-3.
+        verify: grep-clean for interview-feedback and mytasks; identity path is ~/.pmos/people only.
+      - id: T12
+        title: skill-eval + hygiene lints (AC10)
+        deps: [T11]
+        parallel: false
+        detail: >
+          Run skill-eval-check.sh (target claude-code); the [J] judge half; 4 hygiene lints
+          (lint-non-interactive-inline, lint-flags-vs-hints, lint-phase-refs, audit-recommended). Every
+          AskUserQuestion carries (Recommended) or a defer-only tag. Fix to green (<=2 remediation iterations).
+        verify: skill-eval [D]+[J] pass or accepted residuals; 4 lints + audit green.
