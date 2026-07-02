@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>/interview-guide — Epic Design (route:skill)</title>
+<style>
+  :root{ --ink:#1a1d21; --muted:#5b6470; --line:#e2e6ea; --accent:#0f3d2e;
+    --green:#1f8a4c; --green-bg:#e8f6ee; --amber:#b5740a; --amber-bg:#fcf3e3;
+    --red:#b3261e; --red-bg:#fbeceb; --grey-bg:#eef1f4; --blue:#1f5fb0; --blue-bg:#eaf1fb; }
+  *{box-sizing:border-box} html{font-size:15px}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink); background:#f4f6f8; line-height:1.5; margin:0;}
+  .page{max-width:960px; margin:0 auto; padding:34px 40px 60px; background:#fff;}
+  header.brief{border-bottom:3px solid var(--accent); padding-bottom:14px; margin-bottom:22px;}
+  header.brief .kicker{font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); font-weight:700;}
+  header.brief h1{font-size:1.6rem; margin:.18em 0 .15em;}
+  header.brief .sub{color:var(--muted); font-size:.92rem;}
+  h2{font-size:1.16rem; margin:2em 0 .5em; padding-bottom:.25em; border-bottom:2px solid var(--line);}
+  h2 .n{color:var(--accent); font-weight:800; margin-right:.4em;}
+  h3{font-size:1rem; margin:1.3em 0 .35em; color:var(--accent);}
+  p{margin:.55em 0;}
+  .lead{font-size:.98rem; background:var(--grey-bg); border-left:3px solid var(--accent); padding:11px 15px; border-radius:0 6px 6px 0;}
+  table{border-collapse:collapse; width:100%; margin:.7em 0; font-size:.85rem;}
+  th,td{border:1px solid var(--line); padding:7px 9px; text-align:left; vertical-align:top;}
+  th{background:var(--grey-bg); font-weight:700; font-size:.78rem;}
+  code{background:var(--grey-bg); padding:.08em .35em; border-radius:4px; font-size:.86em;}
+  .callout{border:1px solid var(--line); border-left:4px solid var(--blue); background:var(--blue-bg); padding:10px 14px; border-radius:0 6px 6px 0; margin:.8em 0; font-size:.9rem;}
+  .callout.green{border-left-color:var(--green); background:var(--green-bg);}
+  .callout.amber{border-left-color:var(--amber); background:var(--amber-bg);}
+  ul.tight{margin:.4em 0; padding-left:1.2em;} ul.tight li{margin:.24em 0;}
+  .pill{display:inline-block; font-size:.7rem; font-weight:700; padding:.12em .5em; border-radius:20px;}
+  .pill.g{background:var(--green-bg); color:var(--green);} .pill.a{background:var(--amber-bg); color:var(--amber);}
+  .pill.n{background:var(--grey-bg); color:var(--muted);} .pill.b{background:var(--blue-bg); color:var(--blue);}
+  .small{font-size:.82rem; color:var(--muted);}
+  @media print{ body{background:#fff} .page{padding:0 8px} h2{page-break-after:avoid} table,.callout{page-break-inside:avoid} }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="brief">
+  <div class="kicker">Epic 260702-3bb · route:skill · pmos-managerkit · Define (Loop 1)</div>
+  <h1>/interview-guide — author interview guides before the round</h1>
+  <div class="sub">Epic design = the cross-story coherence contract. Two stories cite this by anchor.
+    Sibling to /interview-feedback: this authors the guide <em>before</em> the interview; /interview-feedback scores a candidate <em>after</em>. They share one guidelines substrate.</div>
+</header>
+
+<p class="lead"><b>One-line charter.</b> Given a role and the competencies a round must assess, /interview-guide
+produces three grounded, self-contained HTML artifacts a hiring team can use immediately:
+<b>(a) an Interviewer Reference</b> (how to run and probe the round, what strong/average/poor looks like, common
+mistakes, a nudge ladder), <b>(b) a Scoring Sheet</b> (competency-aligned dimensions, scales, green/red flags,
+overall hire criteria), and — for case rounds only — <b>(c) a candidate-facing Case Document</b> (1–2 pages).
+The already-researched 7-archetype PM-round corpus that currently lives inside /interview-feedback is the grounded
+canon; this epic first lifts it into a shared managerkit substrate both skills consume.</p>
+
+<h2><span class="n">0</span>Context &amp; why this is an epic, not a monolith</h2>
+<p>The 7-archetype guidelines corpus (recruiter-screen, product-sense, analytical, technical, behavioral,
+case-study, case-presentation), the <code>reference-skeleton.html</code> / <code>scorecard-skeleton.html</code>
+authoring contracts, and the <code>interviewer-effectiveness.html</code> rubric were researched and shipped
+<em>inside</em> <code>plugins/pmos-managerkit/skills/interview-feedback/reference/</code> (epic 260616-9bt).
+The user's brief explicitly asks to "abstract that to a shared reference" so a second skill can build on it. That
+extraction touches an existing, shipped skill (retrofit + re-verify), so it is <b>independently shippable
+substrate</b> and gets <b>its own story</b> that the new-skill story depends on — the exact
+define-route-skill split rule (substrate is its own story; dependents list it in <code>dependencies:</code>,
+claim-time dep-merge makes it present in the consumer's build before its skill-eval).</p>
+
+<div class="callout amber"><b>Bootstrap note (CLAUDE.md "sync-shared intersection-only" gap).</b> pmos-managerkit
+has <b>no <code>skills/_shared/</code> directory yet</b>. This is the first shared substrate in the plugin, so
+Story 1 <b>creates</b> it by hand (a move, not a cross-plugin sync). No <code>sync-shared.sh</code> path applies —
+this substrate is managerkit-internal, consumed by two sibling skills in the same plugin.</div>
+
+<h2><span class="n">1</span>Decisions</h2>
+<table>
+  <thead><tr><th style="width:8%">#</th><th style="width:34%">Decision</th><th>Rationale / detail</th></tr></thead>
+  <tbody>
+    <tr><td><b>D1</b></td><td>New skill <code>/interview-guide</code> in pmos-managerkit; sibling to, not a verb of, /interview-feedback.</td><td>User asked for a distinct skill. /interview-feedback's <code>setup</code> already <em>generates</em> per-round reference+scorecard, but /interview-guide is a richer, dedicated authoring experience and adds a candidate-facing case document (interview-feedback has no candidate-facing output). Charter fit: "help me do manager work."</td></tr>
+    <tr><td><b>D2</b></td><td>Extract the guidelines corpus + skeletons + effectiveness rubric to <code>plugins/pmos-managerkit/skills/_shared/interview-guidelines/</code>; retrofit /interview-feedback to read from there. <span class="pill b">Story 1</span></td><td>The "abstract to shared reference" the user asked for. Behavior-preserving for /interview-feedback (no-op path byte-identical; all selftests green). Dependency of Story 2.</td></tr>
+    <tr><td><b>D3</b></td><td>The bundled corpus is the <b>canonical grounded source</b>. No live web research, no citation gate for v1.</td><td>The corpus is already verified-source researched (interview-feedback's stance). Best-practices mode instantiates from it; requirements mode tailors it to the round's stated competencies. Fully offline, fast, deterministic. (Recommended default; user away — recorded for review.)</td></tr>
+    <tr><td><b>D4</b></td><td>Two input modes: <b>round-requirements</b> (user supplies the round's competencies / points at a role) and <b>best-practices</b> (user picks an archetype; skill instantiates the canonical guide tailored to role + seniority).</td><td>Directly the two paths in the brief ("based on either the interview round requirements or based on best practices for typical PM interview rounds").</td></tr>
+    <tr><td><b>D5</b></td><td>Three outputs, per round: (a) Interviewer Reference, (b) Scoring Sheet, (c) Case Document — (c) only for case rounds.</td><td>Modeled on the gold-standard porter example (<code>…/guidelines/case-study/</code>: interviewer-brief + scoring-sheet + question). Each self-contained, print-friendly HTML.</td></tr>
+    <tr><td><b>D6</b></td><td>Rigor = <b>generative + self-review; the manager is the gate.</b> The skill authors the files, runs a self-evaluation rubric pass (completeness · competency-alignment · case realism), surfaces the draft to edit. No enforced verbatim-citation refusal gate.</td><td>Unlike /interview-feedback's scoring path (grounded in a candidate transcript, hard citation gate), this is creative authoring of a template artifact. The self-eval rubric + manager review is the quality mechanism (parity with /primer, /landing-page). (Recommended default; user away.)</td></tr>
+    <tr><td><b>D7</b></td><td>Inputs from user: <b>role</b>; <b>competencies to assess</b> in the round; <b>round type</b> (archetype or custom); for case rounds, a <b>business context/domain</b> (or a case seed). Case-seed is an optional rung.</td><td>The brief's "Inputs Needed" list, plus the context a realistic case requires (the porter case is grounded in Porter's bidding/marketplace domain).</td></tr>
+    <tr><td><b>D8</b></td><td><b>Interop contract:</b> the generated Scoring Sheet carries the <code>scorecard-skeleton.html</code> machine anchors (<code>data-dim</code>, <code>data-weight</code>, <code>data-scale</code>, <code>data-v</code>, <code>data-input="notes:&lt;dim&gt;"</code>, <code>data-flags</code>, <code>data-input="reco"</code>); the Interviewer Reference matches the <code>guidelines/&lt;round&gt;/</code> shape.</td><td>Closes the loop: /interview-guide <em>authors</em> a scorecard that /interview-feedback <code>score</code> can consume verbatim, and a reference that <code>setup</code> can attach. No new anchor dialect.</td></tr>
+    <tr><td><b>D9</b></td><td>Case document emitted <b>only</b> when archetype ∈ {<code>case-study</code>, <code>case-presentation</code>} or the user explicitly requests a case. Other rounds emit (a)+(b) only.</td><td>The brief: "Case Document (Only for case interview round)."</td></tr>
+    <tr><td><b>D10</b></td><td>Output location: default <code>./interview-guides/&lt;role-kebab&gt;/&lt;round&gt;/</code>; when pointed at a /interview-feedback role dir, write into that role's <code>guidelines/&lt;round&gt;/</code> so the loop is wired end-to-end.</td><td>Guides are non-confidential authoring artifacts; but respect a role dir's gitignore guard when writing there (INV-3).</td></tr>
+    <tr><td><b>D11</b></td><td>Non-interactive: archetype / competency-structure picks AUTO-PICK their Recommended option; the case <b>business-context</b> is free-form → <b>DEFERs</b> under <code>--non-interactive</code> when absent (never invent a business).</td><td>W14 contract. A case with no supplied domain cannot be grounded — defer, don't fabricate. Non-case generation runs unattended.</td></tr>
+    <tr><td><b>D12</b></td><td>Optional <code>--research</code> augmentation (fetch + cite current sources per guide) is <b>out of scope for v1</b>; the corpus canon (D3) stands. A later rung.</td><td>Keeps v1 offline and shippable; leaves the door open.</td></tr>
+  </tbody>
+</table>
+
+<h2><span class="n">2</span>Cross-story invariants</h2>
+<ul class="tight">
+  <li><b>INV-1 (behavior-preserving extraction).</b> After Story 1, /interview-feedback's no-op <code>score</code>/<code>setup</code> path is byte-identical; its selftests (<code>transcribe.sh</code> 13, <code>check-citations.mjs</code> 7, <code>fill-scorecard.mjs</code> 28, <code>tests/run-tests.sh</code> 9) all pass; <code>reference-resolution.md</code> and any hard-coded <code>reference/guidelines/…</code> paths are updated to the new <code>_shared/</code> home. The NI block + tier-3 refusal marker stay byte-frozen.</li>
+  <li><b>INV-2 (interop anchors).</b> Every Scoring Sheet /interview-guide emits carries the full <code>scorecard-skeleton</code> machine-anchor set (D8); a structural validator asserts this so /interview-feedback can parse it without a foreign-scorecard inference fall-through.</li>
+  <li><b>INV-3 (confidentiality boundary).</b> /interview-guide handles no candidate data. When writing into a /interview-feedback role dir, it honors that dir's gitignore guard and never commits candidate content. Its own default output dir is non-confidential.</li>
+  <li><b>INV-4 (conformance).</b> Both stories conform to <code>skill-patterns.md §A–§L</code>; the shipped/edited skills pass <code>skill-eval.md</code> (<code>[D]</code>+<code>[J]</code>); the 4 hygiene lints + <code>audit-recommended</code> are green. Release-prerequisite tasks (version bump, changelog, README row, manifest sync) live under "Release prerequisites", never in a wave (§G — /complete-dev owns them).</li>
+  <li><b>INV-5 (single plugin).</b> The whole epic targets <code>pmos-managerkit</code> only; one release unit.</li>
+</ul>
+
+<h2><span class="n">3</span>Output shapes (grounded in the porter gold-standard)</h2>
+<h3>3a — Interviewer Reference <span class="small">(all rounds)</span></h3>
+<p>Sections: the one-line key / what the round tests · what a strong vs average vs poor answer looks like (per
+competency) · how to open and time the round · a <b>probing / nudge ladder</b> (softest nudge that unsticks the
+candidate; the gap between soft and hard nudge is itself signal) · common interviewer mistakes (leading,
+over-talking, anchoring) · calibration guidance. Modeled on
+<code>v3-bidding-case-interviewer-brief.html</code> + the corpus <code>interviewer-reference.html</code>.</p>
+<h3>3b — Scoring Sheet <span class="small">(all rounds)</span></h3>
+<p>Competency-aligned dimensions (from the round's stated competencies, D4/D7), each with a scale, weight,
+green/red flags, and a notes field; an overall hire/no-hire criterion tying dimension scores to a bar. Carries the
+<code>scorecard-skeleton</code> anchors (INV-2). Modeled on <code>v3-bidding-case-scoring-sheet.html</code>.</p>
+<h3>3c — Case Document <span class="small">(case rounds only, D9)</span></h3>
+<p>Candidate-facing, 1–2 pages: the business context, the brief/prompt, any data table, constraints, and
+what's expected of the candidate. Authored from the user's supplied business context (D7/D11). The matching
+interviewer reference-solution (3a) and rubric (3b) are authored <em>together</em> so the "what strong looks like"
+markers map to the actual case. Modeled on <code>v3-bidding-case-question.html</code>.</p>
+
+<h2><span class="n">4</span>Story map</h2>
+<table>
+  <thead><tr><th style="width:12%">Story</th><th style="width:26%">Scope</th><th style="width:16%">Deps</th><th>Route / plugin</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><b>260702-cqf</b><br><span class="small">substrate</span></td>
+      <td>Extract the interview-guidelines corpus + skeletons + effectiveness rubric to
+        <code>_shared/interview-guidelines/</code>; retrofit /interview-feedback to consume it. No behavior change.</td>
+      <td><span class="pill n">none</span></td>
+      <td><code>route: skill</code> · pmos-managerkit</td>
+    </tr>
+    <tr>
+      <td><b>260702-jz4</b><br><span class="small">the skill</span></td>
+      <td>Author <code>/interview-guide</code> — SKILL.md + reference/ (authoring templates, self-eval rubric,
+        case-authoring guide) + scripts (scorecard-anchor validator, self-eval check). Two modes, three outputs,
+        consumes the shared substrate.</td>
+      <td><span class="pill a">260702-cqf</span></td>
+      <td><code>route: skill</code> · pmos-managerkit</td>
+    </tr>
+  </tbody>
+</table>
+<p class="small">Why two stories and not one: Story 1 is behavior-preserving substrate touching an
+already-shipped skill; it is independently verifiable/shippable and Story 2's SKILL.md cites the moved files, so
+"consumes the shared substrate" is a <em>story-level</em> dependency (D24 litmus holds — no task in jz4 depends on
+an unfinished task in cqf; the whole substrate is done and dep-merged before jz4's build). Why not three (case
+document as its own story): a skill is not shippable in output-slices — all three outputs are one skill, one
+<code>/execute</code> run.</p>
+
+<h2><span class="n">5</span>Open questions (recorded — user was away at define)</h2>
+<p>The four shaping decisions D3/D6/D7(case-generation)/D6(rigor) were put to the user via a structured ask; the
+user was away, so each was resolved to its <b>Recommended</b> option (D2 extract · D3 corpus-canonical ·
+D7 case-from-context · D6 generative+self-review). All four are the low-risk, offline, established-pattern
+choices; flagged here for confirmation at build or review time. None blocks the definition.</p>
+
+<p class="small">Spec lineage: brief 2026-07-02; gold-standard example
+<code>porter/interviewing-pms/interviews/2026-06-29-product-manager-marketplace/guidelines/case-study/</code>;
+substrate source <code>plugins/pmos-managerkit/skills/interview-feedback/reference/</code> (epic 260616-9bt);
+sibling robustness epic 260629-bm9.</p>
+
+</div>
+</body>
+</html>

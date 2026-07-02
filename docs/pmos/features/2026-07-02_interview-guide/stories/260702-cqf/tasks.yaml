@@ -1,0 +1,86 @@
+story: 260702-cqf
+epic: 260702-3bb
+route: skill
+spec: ../../02_design.html
+plugin: pmos-managerkit
+summary: >
+  Move the PM-round guidelines corpus + skeletons + effectiveness rubric to
+  plugins/pmos-managerkit/skills/_shared/interview-guidelines/ and retrofit /interview-feedback
+  to consume from there — behavior-preserving (INV-1).
+
+waves:
+  - wave: 1
+    name: Move assets (git mv, preserve history)
+    tasks:
+      - id: T1
+        title: Create _shared/interview-guidelines/ and git mv the corpus
+        deps: []
+        parallel: false
+        detail: >
+          mkdir plugins/pmos-managerkit/skills/_shared/interview-guidelines/. git mv the whole
+          interview-feedback/reference/guidelines/ tree (7 archetypes + case-study/additional/), plus
+          reference-skeleton.html, scorecard-skeleton.html, interviewer-effectiveness.html, and
+          reference-resolution.md into it. Verify the tree with `find` and that git recorded renames.
+        verify: >
+          `git status` shows renames (R), not delete+add; all moved files present under _shared/interview-guidelines/.
+
+  - wave: 2
+    name: Retrofit /interview-feedback paths
+    tasks:
+      - id: T2
+        title: Update SKILL.md references to the new _shared/ home
+        deps: [T1]
+        parallel: true
+        detail: >
+          In interview-feedback/SKILL.md, update every path that pointed at reference/guidelines/,
+          reference/reference-skeleton.html, reference/scorecard-skeleton.html, reference/interviewer-effectiveness.html,
+          and reference/reference-resolution.md to ../_shared/interview-guidelines/…. Covers Phase Resolve
+          (reference-resolution), Phase Setup (skeleton instantiation), Phase Coach (effectiveness rubric),
+          and the Storage/reference sections.
+        verify: >
+          grep -nE 'reference/(guidelines|.*skeleton|interviewer-effectiveness|reference-resolution)' SKILL.md
+          returns nothing (all now point at ../_shared/interview-guidelines/).
+      - id: T3
+        title: Update scripts (fill-scorecard.mjs, questionnaire.mjs) skeleton/corpus paths
+        deps: [T1]
+        parallel: true
+        detail: >
+          Update any hard-coded reference/*skeleton or reference/guidelines path in fill-scorecard.mjs and
+          questionnaire.mjs to the _shared home. If paths are passed in as args (not hard-coded), confirm the
+          caller in SKILL.md now passes the new path.
+        verify: grep for the old paths in scripts/ returns nothing.
+      - id: T4
+        title: Update reference-resolution.md internal paths
+        deps: [T1]
+        parallel: true
+        detail: >
+          The moved reference-resolution.md may cite sibling files by relative path; fix those to the new
+          _shared location so the resolution contract still resolves.
+        verify: Manual read — all cited siblings resolve from the new location.
+
+  - wave: 3
+    name: Verify behavior-preserving
+    tasks:
+      - id: T5
+        title: Run all /interview-feedback selftests + confirm byte-identical no-op path
+        deps: [T2, T3, T4]
+        parallel: false
+        detail: >
+          Run transcribe.sh --selftest (13), check-citations.mjs selftest (7), fill-scorecard.mjs selftest (28),
+          tests/run-tests.sh (9). Regenerate a fixture setup/score no-op output and diff against a pre-move capture
+          — must be byte-identical (INV-1). Confirm the NI block + tier-3 refusal marker are byte-unchanged.
+        verify: All four selftest suites green; no-op fixture diff empty; NI block/refusal marker unchanged.
+      - id: T6
+        title: Conformance — skill-eval + hygiene lints for /interview-feedback
+        deps: [T5]
+        parallel: false
+        detail: >
+          Run skill-eval-check.sh --target claude-code on the interview-feedback dir ([D] half) and the [J] judge;
+          run the 4 hygiene lints (lint-non-interactive-inline, lint-flags-vs-hints, lint-phase-refs) +
+          audit-recommended. Any pre-existing residuals must be verified identical to pre-move (prove on the
+          pre-move tree).
+        verify: skill-eval [D] EXIT0 (or residuals proven pre-existing); [J] PASS; 4 lints + audit green.
+
+release_prerequisites:
+  - No version bump for this story alone — it rides the epic's Loop-3 release (pmos-managerkit bump owned by /complete-dev).
+  - No changelog/README/manifest edits in any wave (§G).

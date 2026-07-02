@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>/interview-guide — Requirements (light, epic-level)</title>
+<style>
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:#1a1d21;line-height:1.5;max-width:880px;margin:0 auto;padding:34px 40px 60px;}
+  h1{font-size:1.5rem;border-bottom:3px solid #0f3d2e;padding-bottom:.3em;}
+  h2{font-size:1.12rem;margin-top:1.8em;border-bottom:1px solid #e2e6ea;padding-bottom:.2em;}
+  code{background:#eef1f4;padding:.08em .35em;border-radius:4px;font-size:.86em;}
+  ul li{margin:.25em 0;} .muted{color:#5b6470;font-size:.9rem;}
+</style>
+</head>
+<body>
+<h1>/interview-guide — requirements (epic 260702-3bb, route:skill)</h1>
+<p class="muted">Light epic-level framing for a new-skill define. The detailed decisions, invariants, output
+shapes, and story map are in <code>02_design.html</code> (the coherence contract). This doc frames the problem and
+the shared shape only.</p>
+
+<h2>Problem</h2>
+<p>A hiring manager preparing an interview round has to author, from scratch each time: a guide for the interviewer
+(how to run the round, what to probe, what strong looks like), a scoring sheet, and — for case rounds — a
+candidate-facing case document. The research for "what a good PM round assesses" already exists inside
+<code>/interview-feedback</code> (7 researched round archetypes) but is trapped in that skill and only used
+<em>after</em> the interview, for scoring. There is no tool to author the guide <em>before</em> the round.</p>
+
+<h2>Solution direction</h2>
+<ul>
+  <li>A new pmos-managerkit skill <code>/interview-guide</code> that authors three artifacts per round —
+    interviewer reference, scoring sheet, and (case rounds only) a candidate-facing case document.</li>
+  <li>Two input modes: from the round's stated requirements/competencies, or from best-practices for a chosen PM
+    round archetype.</li>
+  <li>Grounded in the existing 7-archetype guidelines corpus, first lifted into a shared managerkit substrate that
+    both <code>/interview-guide</code> and <code>/interview-feedback</code> consume.</li>
+  <li>Output interoperates with <code>/interview-feedback</code>: the generated scoring sheet carries the same
+    machine anchors, so a candidate can later be scored against the very guide authored here.</li>
+</ul>
+
+<h2>Inputs needed from the user</h2>
+<ul>
+  <li>Role being hired for.</li>
+  <li>Expected skills / competencies to be assessed in the round.</li>
+  <li>Round type (one of the 7 PM archetypes, or custom).</li>
+  <li>For case rounds: a business context / domain (or a rough case seed).</li>
+</ul>
+
+<h2>Acceptance shape</h2>
+<ul>
+  <li>The guidelines corpus is abstracted to a shared reference, consumed by both skills, with
+    <code>/interview-feedback</code> behavior unchanged (INV-1).</li>
+  <li><code>/interview-guide</code> produces the three artifacts (case doc only for case rounds), grounded in the
+    corpus, with a self-review pass; the manager reviews/edits (D6).</li>
+  <li>Conforms to <code>skill-patterns.md §A–§L</code>; passes <code>skill-eval</code>; hygiene lints green
+    (INV-4).</li>
+</ul>
+<p class="muted">Auto-tier: <b>Tier 2</b> (a new skill with a substrate extraction and interop contract; not a
+one-file bug fix, not a large multi-plugin platform change).</p>
+</body>
+</html>
