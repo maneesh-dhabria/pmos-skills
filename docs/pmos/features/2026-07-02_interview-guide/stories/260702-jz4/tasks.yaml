@@ -1,0 +1,139 @@
+story: 260702-jz4
+epic: 260702-3bb
+route: skill
+spec: ../../02_design.html
+plugin: pmos-managerkit
+depends_on: [260702-cqf]
+summary: >
+  Build /interview-guide: a new pmos-managerkit skill that authors an Interviewer Reference (a),
+  a Scoring Sheet (b, carrying scorecard-skeleton interop anchors), and a candidate-facing Case Document
+  (c, case rounds only), from a role + competencies, grounded in the shared guidelines corpus.
+
+waves:
+  - wave: 1
+    name: Skill scaffold + shared-substrate wiring
+    tasks:
+      - id: T1
+        title: Scaffold interview-guide/SKILL.md
+        deps: []
+        parallel: false
+        detail: >
+          Create plugins/pmos-managerkit/skills/interview-guide/SKILL.md. Frontmatter: name: interview-guide,
+          user-invocable: true, a triggering description ("create an interview guide", "author an interviewer
+          reference / scoring sheet", "make a case study for a PM round"), argument-hint with contract flags only.
+          Inline the canonical non-interactive block byte-identical to skills/_shared/non-interactive.md. Add a
+          Platform Adaptation section. Body: Verbs/modes + phase headings with stable {#kebab} anchors (§J).
+        verify: >
+          name matches dir; lint-non-interactive-inline PASS; frontmatter valid; skill registers under the plugin.
+      - id: T2
+        title: Confirm the shared corpus is present (dep-merge check) and wire read paths
+        deps: [T1]
+        parallel: false
+        detail: >
+          Assert ../_shared/interview-guidelines/ exists (dep 260702-cqf dep-merged at claim time). Wire the skill
+          to read the archetype corpus, reference-skeleton, and scorecard-skeleton from there — no path into
+          interview-feedback's own reference/ (AC7).
+        verify: grep of SKILL.md + scripts shows only ../_shared/interview-guidelines/ paths; the dir resolves.
+
+  - wave: 2
+    name: Input collection + mode routing
+    tasks:
+      - id: T3
+        title: Inputs + two-mode routing (round-requirements | best-practices)
+        deps: [T1]
+        parallel: true
+        detail: >
+          Phase to collect role, competencies, round type (archetype/custom), and — for case rounds — a business
+          context. Route to round-requirements mode (tailor to stated competencies) or best-practices mode
+          (instantiate the canonical archetype guide tailored to role+seniority), D4. Every AskUserQuestion carries
+          a (Recommended) option; the case business-context ask is tagged <!-- defer-only: free-form -->.
+        verify: audit-recommended green; NI: non-case run AUTO-PICKs; missing case-context DEFERs (D11).
+
+  - wave: 3
+    name: The three output authors
+    tasks:
+      - id: T4
+        title: Interviewer Reference author (a)
+        deps: [T2, T3]
+        parallel: true
+        detail: >
+          Author a self-contained, print-friendly Interviewer Reference grounded in the corpus for the chosen
+          archetype: what the round tests, strong/average/poor markers per competency, probing/nudge ladder, common
+          interviewer mistakes, calibration. Model on the moved interviewer-reference.html + the porter
+          interviewer-brief.
+        verify: Output renders standalone; sections present for the chosen archetype; competencies reflected.
+      - id: T5
+        title: Scoring Sheet author (b) with interop anchors
+        deps: [T2, T3]
+        parallel: true
+        detail: >
+          Author a Scoring Sheet whose dimensions map to the stated competencies (scales, weights, green/red flags,
+          notes fields, overall hire criterion). MUST carry the full scorecard-skeleton machine anchors
+          (data-dim, data-weight, data-scale, data-v, data-input="notes:<dim>", data-flags, data-input="reco") so
+          /interview-feedback score can consume it verbatim (INV-2/D8).
+        verify: The anchor validator (T7) passes on the emitted sheet.
+      - id: T6
+        title: Case Document author (c) — case rounds only
+        deps: [T2, T3]
+        parallel: true
+        detail: >
+          For archetype in {case-study, case-presentation} or an explicit case request, author a candidate-facing
+          Case Document (1–2 pages) from the supplied business context, PLUS the matching interviewer
+          reference-solution and rubric authored together (so 'strong looks like' maps to the case). Non-case
+          rounds skip this (D9). NI with no business context → DEFER, never fabricate (D11). Model on the porter
+          bidding-case question + interviewer-brief pair. Add reference/case-authoring.md.
+        verify: Case emitted only for case rounds; non-case run emits only (a)+(b); NI-no-context defers.
+
+  - wave: 4
+    name: Validators + self-review
+    tasks:
+      - id: T7
+        title: Scorecard-anchor structural validator script (+ --selftest)
+        deps: [T5]
+        parallel: true
+        detail: >
+          scripts/validate-scorecard-anchors.mjs — asserts an emitted Scoring Sheet carries the full anchor set;
+          exit 1 on any missing anchor. Ships a --selftest over a good + a deliberately-broken fixture.
+        verify: --selftest green; run against T5 output passes.
+      - id: T8
+        title: Self-evaluation pass over the drafts
+        deps: [T4, T5, T6]
+        parallel: false
+        detail: >
+          A self-eval phase scoring the drafts against reference/self-eval-rubric.md (completeness ·
+          competency-alignment · case realism); surfaces gaps for the manager to address before finalizing. No
+          enforced citation refusal gate (D6).
+        verify: Self-eval runs and reports; gaps surfaced; manager-review path documented.
+
+  - wave: 5
+    name: Conformance
+    tasks:
+      - id: T9
+        title: Output location + gitignore-guard honoring
+        deps: [T4, T5, T6]
+        parallel: true
+        detail: >
+          Write outputs to ./interview-guides/<role-kebab>/<round>/ by default, or into a /interview-feedback role
+          dir's guidelines/<round>/ when pointed at one — honoring that dir's gitignore guard (D10/INV-3).
+        verify: Default and role-dir output locations both work; role-dir writes respect the guard.
+      - id: T10
+        title: skill-eval + hygiene lints for /interview-guide
+        deps: [T7, T8, T9]
+        parallel: false
+        detail: >
+          Run skill-eval-check.sh --target claude-code ([D]) + [J] judge on the interview-guide dir; run the 4
+          hygiene lints + audit-recommended. Address failures within the ≤2-iteration cap.
+        verify: skill-eval [D] EXIT0; [J] PASS; lint-non-interactive/flags-vs-hints/phase-refs + audit green.
+      - id: T11
+        title: Dogfood — author a full guide set for a sample role/round
+        deps: [T10]
+        parallel: false
+        detail: >
+          Run the skill end-to-end for a sample PM role (e.g. product-sense round + a case-study round with a
+          supplied business context); confirm (a)+(b) for the non-case round and (a)+(b)+(c) for the case round;
+          confirm the scoring sheet passes the anchor validator and would load in /interview-feedback score.
+        verify: Both round types produce the right file set; anchor validator passes; interop confirmed.
+
+release_prerequisites:
+  - pmos-managerkit plugin.json ×2 minor bump (new user-invocable skill) — owned by /complete-dev (Loop 3).
+  - README row for /interview-guide; changelog entry; manifest version-sync — /complete-dev, not a wave (§G).
