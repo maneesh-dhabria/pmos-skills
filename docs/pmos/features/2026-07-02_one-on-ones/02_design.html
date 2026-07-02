@@ -1,5 +1,5 @@
 <meta name="pmos:skill" content="feature-sdlc">
-<title>Design — /one-on-ones (pmos-managerkit)</title>
+<title>Design — /one-on-one (pmos-managerkit)</title>
 <style>
   body { max-width: 54rem; margin: 2rem auto; padding: 0 1.25rem; font: 16px/1.62 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: #1a1a1a; }
   h1 { font-size: 1.6rem; margin: 0 0 .25rem; } h2 { font-size: 1.14rem; margin: 2.1rem 0 .5rem; border-bottom: 2px solid #ececec; padding-bottom: .3rem; }
@@ -10,12 +10,12 @@
   .cap { color: #9a6700; } .caveat { background: #fff5f5; border-left: 3px solid #e0b0b0; padding: .3rem .8rem; margin: .4rem 0; font-size: .92rem; }
 </style>
 
-<h1>Design — <code>/one-on-ones</code></h1>
+<h1>Design — <code>/one-on-one</code></h1>
 <p class="sub">pmos-managerkit · epic 260702-z77 · route: skill · the cross-cutting coherence contract for story 260702-6ks</p>
 
 <section id="overview">
 <h2>1. Overview</h2>
-<p><code>/one-on-ones</code> helps a manager run <em>effective</em> 1:1s — actively coaching, not a passive notepad. The unit is <strong>one rolling record per report</strong>. Verbs operate on that record: <code>add</code> creates it, <code>note</code> quick-captures into it, <code>plan</code> reads it into a coached prep agenda, <code>log</code> appends a session and closes loops, <code>career</code> runs the periodic deep-dive, and context verbs keep goals + feedback current. A bundled corpus makes the coaching grounded and attributable.</p>
+<p><code>/one-on-one</code> helps a manager run <em>effective</em> 1:1s — actively coaching, not a passive notepad. The unit is <strong>one rolling record per report</strong>. Verbs operate on that record: <code>add</code> creates it, <code>note</code> quick-captures into it, <code>plan</code> reads it into a coached prep agenda, <code>log</code> appends a session and closes loops, <code>career</code> runs the periodic deep-dive, and context verbs keep goals + feedback current. A bundled corpus makes the coaching grounded and attributable.</p>
 </section>
 
 <section id="invariants">
@@ -38,7 +38,7 @@ name: Sarah Chen
 role: Senior PM
 cadence: weekly              # weekly | biweekly | ...
 started: 2026-07-02
-career_last_reviewed:        # date of last /one-on-ones career session
+career_last_reviewed:        # date of last /one-on-one career session
 ---
 
 ## Goals & growth focus
@@ -79,13 +79,13 @@ career_last_reviewed:        # date of last /one-on-ones career session
 <h2>4. Verbs</h2>
 <table>
 <tr><th>Verb</th><th>Syntax</th><th>Behavior</th></tr>
-<tr><td>add</td><td><code>/one-on-ones add &lt;name&gt;</code></td><td>Resolve/create <code>/people</code> identity (offer create when absent; DEFER under <code>--non-interactive</code>, never fabricate). Scaffold the record: cadence, role, goals, operating-manual prompts.</td></tr>
-<tr><td>note</td><td><code>/one-on-ones note &lt;report&gt; "&lt;item&gt;" [--tag blocker|growth|morale|feedback-up]</code></td><td>Append one inbox item. Single command, unattended-safe. This is the mid-week quick-capture.</td></tr>
-<tr><td>plan</td><td><code>/one-on-ones plan &lt;report&gt;</code></td><td>Assemble a human-first prep agenda (see §5); emit a commentable HTML prep artifact. The coaching surface.</td></tr>
-<tr><td>log</td><td><code>/one-on-ones log &lt;report&gt;</code></td><td>Capture a dated session (topics, decisions, action items owner+status, questions); clear discussed inbox items. Missing body DEFERs under <code>--non-interactive</code>.</td></tr>
-<tr><td>set</td><td><code>/one-on-ones set &lt;report&gt; goal|theme|perf|coaching "&lt;text&gt;"</code></td><td>Add/update a header section (goals, standing themes, performance feedback, coaching feedback). Manager-entered only.</td></tr>
-<tr><td>career</td><td><code>/one-on-ones career &lt;report&gt;</code></td><td>Laraway 3-part career conversation (Life Story → Dreams → Career Action Plan), distinct from weekly prep; writes a career-plan block + stamps <code>career_last_reviewed</code>.</td></tr>
-<tr><td>(bare)</td><td><code>/one-on-ones</code></td><td>Overview: reports, who's due (cadence vs last session), open action items, inbox counts.</td></tr>
+<tr><td>add</td><td><code>/one-on-one add &lt;name&gt;</code></td><td>Resolve/create <code>/people</code> identity (offer create when absent; DEFER under <code>--non-interactive</code>, never fabricate). Scaffold the record: cadence, role, goals, operating-manual prompts.</td></tr>
+<tr><td>note</td><td><code>/one-on-one note &lt;report&gt; "&lt;item&gt;" [--tag blocker|growth|morale|feedback-up]</code></td><td>Append one inbox item. Single command, unattended-safe. This is the mid-week quick-capture.</td></tr>
+<tr><td>plan</td><td><code>/one-on-one plan &lt;report&gt;</code></td><td>Assemble a human-first prep agenda (see §5); emit a commentable HTML prep artifact. The coaching surface.</td></tr>
+<tr><td>log</td><td><code>/one-on-one log &lt;report&gt;</code></td><td>Capture a dated session (topics, decisions, action items owner+status, questions); clear discussed inbox items. Missing body DEFERs under <code>--non-interactive</code>.</td></tr>
+<tr><td>set</td><td><code>/one-on-one set &lt;report&gt; goal|theme|perf|coaching "&lt;text&gt;"</code></td><td>Add/update a header section (goals, standing themes, performance feedback, coaching feedback). Manager-entered only.</td></tr>
+<tr><td>career</td><td><code>/one-on-one career &lt;report&gt;</code></td><td>Laraway 3-part career conversation (Life Story → Dreams → Career Action Plan), distinct from weekly prep; writes a career-plan block + stamps <code>career_last_reviewed</code>.</td></tr>
+<tr><td>(bare)</td><td><code>/one-on-one</code></td><td>Overview: reports, who's due (cadence vs last session), open action items, inbox counts.</td></tr>
 </table>
 </section>
 
