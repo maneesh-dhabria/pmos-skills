@@ -4,7 +4,7 @@ id: 260702-kck
 title: "/morning-brief — trustworthy cross-source morning coverage: sweep user-declared sources (email, calendar, doc comments, …) into one ranked show-everything brief with a per-run coverage manifest, observe+correct heuristics, and batch-confirmed actions (create /mytasks tasks, source-native dismiss)"
 type: feature
 kind: epic
-status: defining
+status: defined
 route: skill
 priority: should
 labels: [pmos-toolkit, morning-brief, coverage, connectors, triage, mytasks, skill]
