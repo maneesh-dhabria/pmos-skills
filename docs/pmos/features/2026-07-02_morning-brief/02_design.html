@@ -1,0 +1,271 @@
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Design — /morning-brief (pmos-toolkit)</title>
+<style>
+  body { max-width: 54rem; margin: 2rem auto; padding: 0 1.25rem; font: 16px/1.62 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: #1a1a1a; }
+  h1 { font-size: 1.6rem; margin: 0 0 .25rem; } h2 { font-size: 1.14rem; margin: 2.1rem 0 .5rem; border-bottom: 2px solid #ececec; padding-bottom: .3rem; }
+  h3 { font-size: 1.02rem; margin: 1.3rem 0 .35rem; } .sub { color: #666; margin: 0 0 1.4rem; }
+  code { background: #f2f2f2; padding: .05rem .3rem; border-radius: 4px; font-size: .87em; } pre { background: #f7f7f9; border: 1px solid #eee; border-radius: 8px; padding: .8rem 1rem; overflow-x: auto; font-size: .84rem; line-height: 1.5; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; margin: .4rem 0; } th,td { text-align: left; vertical-align: top; padding: .45rem .6rem; border-bottom: 1px solid #eee; } th { background: #fafafa; font-size: .75rem; text-transform: uppercase; letter-spacing: .03em; color: #555; }
+  ul { padding-left: 1.3rem; } section { overflow-x: auto; } .inv { background: #fff8f0; border: 1px solid #f0dcc0; border-radius: 8px; padding: .3rem .8rem; }
+</style>
+
+<h1>Design — <code>/morning-brief</code></h1>
+<p class="sub">pmos-toolkit · epic 260702-kck · route: skill · the cross-cutting coherence contract for stories
+260702-b6q and 260702-ww7. Companion to <code>01_requirements.html</code>; grounded in the grill-hardened shape
+brief. Stories cite this doc by anchor.</p>
+
+<section id="overview">
+<h2 id="overview-h">1. Overview</h2>
+<p><code>/morning-brief</code> turns a user-declared set of inbound sources into one trustworthy, ranked,
+show-everything morning view, and lets the user clear it in one confirmed pass. It is a <strong>pure derived
+view</strong>: sources and <code>/mytasks</code> are the only state stores; the skill persists only user
+configuration, personal rules, and a last-run cursor. It is the repo's first connector-reader skill — the
+source abstraction (§4) is the load-bearing generic layer.</p>
+<pre>bare /morning-brief          sweep → categorize+rank → brief HTML + manifest → batch confirm → act → cursor
+/morning-brief sources       declare / edit sources + priorities (first-run guided setup)
+/morning-brief rules         view / add / edit / retire personal categorization rules</pre>
+</section>
+
+<section id="invariants">
+<h2 id="invariants-h">2. Invariants</h2>
+<div class="inv"><ul>
+  <li><strong>INV-1 — Derive, don't store.</strong> No per-item triage ledger, ever. The view is recomputed
+  from live source state + <code>/mytasks</code> each run; the only run-state written is
+  <code>cursor.yaml</code>. An item leaves the brief only by being resolved (acted on in its source, or
+  tracked), never by being seen.</li>
+  <li><strong>INV-2 — Show everything, structurally.</strong> Every in-window item appears in the brief at
+  least as a one-line FYI row. Rules and ranking set prominence, never inclusion. A judgment miss must be
+  detectable as "ranked too low", not invisible.</li>
+  <li><strong>INV-3 — User-declared, never assumed.</strong> Source presence AND relative priority are user
+  configuration. The skill ships zero assumptions about anyone's channel mix; bundled examples are examples,
+  not defaults.</li>
+  <li><strong>INV-4 — Privacy residency.</strong> All config, state, and emitted briefs live under
+  <code>~/.pmos/morning-brief/</code>. Work-comms content is never written inside any git repo. LLM
+  processing of work content is an accepted, stated premise.</li>
+  <li><strong>INV-5 — Confirm-gated actions.</strong> The skill informs and recommends; every mutation
+  (task creation, source-native dismissal) executes only from the user-confirmed batch action set. Under
+  <code>--non-interactive</code>, mutations DEFER (destructive) — never auto-executed.</li>
+  <li><strong>INV-6 — <code>/mytasks</code> sole system of record.</strong> The brief's task lane is
+  read-only; task creation goes through <code>/mytasks</code>' own data contract with dedupe. No parallel
+  task store.</li>
+</ul></div>
+</section>
+
+<section id="data-model">
+<h2 id="data-model-h">3. Data model — <code>~/.pmos/morning-brief/</code></h2>
+<table>
+<tr><th>Path</th><th>What</th><th>Written by</th></tr>
+<tr><td><code>sources.yaml</code></td><td>Declared sources: <code>id</code>, <code>kind</code>
+(email / calendar / doc-comments / chat / custom), <code>connector</code> hint (MCP tool-family name, e.g.
+<code>Gmail</code>, <code>Google Calendar</code>, <code>Notion</code>), <code>priority</code>
+(user-indicated ordinal or weight), <code>dismiss</code> (the source-native resolve action name, or
+<code>none</code>), optional <code>scope</code> (labels/calendars/spaces to include).</td>
+<td><code>sources</code> verb (guided setup + edits); hand-editable.</td></tr>
+<tr><td><code>sources.yaml :: settings</code></td><td>Global sweep settings set at guided setup:
+<code>first_window_days</code> (initial sweep reach when no cursor exists; default 7) and
+<code>carryover_horizon_days</code> (carryover items older than this drop from FYI rows but are counted in
+the manifest; default 14). D9/D10.</td>
+<td><code>sources</code> verb; hand-editable.</td></tr>
+<tr><td><code>rules.md</code></td><td>Personal categorization rules as human-readable bullets under
+per-category headings, seeded with the generic GTD-4D taxonomy (do / delegate-reply / defer-track /
+drop-FYI). Every rule earned from real traffic via the correct step; hand-editable.</td>
+<td><code>rules</code> verb + approved confirm-step corrections.</td></tr>
+<tr><td><code>cursor.yaml</code></td><td><code>last_run</code> ISO timestamp (+ per-source high-water marks
+where a source offers one). The ONLY run-state (INV-1).</td>
+<td>End of a completed run, atomically.</td></tr>
+<tr><td><code>briefs/YYYY-MM-DD[-N].html</code></td><td>Emitted brief artifacts — self-contained static
+HTML, no external assets, no repo substrate payload (they live outside any repo; INV-4).</td>
+<td>Each run; never overwritten (same-day reruns suffix <code>-2</code>…).</td></tr>
+</table>
+</section>
+
+<section id="source-abstraction">
+<h2 id="source-abstraction-h">4. Source abstraction</h2>
+<p>A source is <em>anything with a connector the session can call</em>. The skill defines a per-kind read
+contract and resolves concrete MCP tools at run time (ToolSearch by the declared <code>connector</code>
+hint) — it never hardcodes a tool inventory:</p>
+<table>
+<tr><th>Kind</th><th>Read contract (per run window)</th><th>Native dismiss</th></tr>
+<tr><td>email</td><td>threads new-in-window + threads still unarchived/unreplied (carryover)</td><td>archive / label</td></tr>
+<tr><td>calendar</td><td>today + tomorrow's events; new invites needing response</td><td>respond to invite</td></tr>
+<tr><td>doc-comments</td><td>comment threads mentioning/assigned to the user, new + still-unresolved</td><td>resolve / reply</td></tr>
+<tr><td>chat</td><td>mentions + DMs new-in-window (declared only when a connector exists)</td><td>varies / none</td></tr>
+<tr><td>custom</td><td>user-described read instruction interpreted at run time</td><td><code>none</code> unless declared</td></tr>
+</table>
+<ul>
+  <li><strong>Unreachable ≠ silent:</strong> a declared source whose connector is missing, unauthed, or
+  erroring is reported in the manifest (§7) as <code>failed: &lt;reason&gt;</code>; the run continues with
+  the remaining sources. Kinds with no dismiss affordance stay visible at low prominence (INV-1 — nothing
+  to resolve them with except tracking or source action elsewhere).</li>
+  <li><strong>Reference environment note:</strong> Gmail / Google Calendar / Notion MCP exist here; Slack
+  does not, and Drive MCP lacks comment threads — exactly why presence is declared per user, not assumed
+  (INV-3).</li>
+</ul>
+</section>
+
+<section id="verbs">
+<h2 id="verbs-h">5. Verbs</h2>
+<table>
+<tr><th>Verb</th><th>Behavior</th></tr>
+<tr><td>bare <code>/morning-brief</code></td><td>The run pipeline (§6). No <code>sources.yaml</code> →
+route into first-run guided setup, then offer to run.</td></tr>
+<tr><td><code>sources</code></td><td>Guided declare/edit: for each source — kind, connector hint,
+scope, <em>user-indicated</em> priority, dismiss affordance. Writes <code>sources.yaml</code>. Never
+suggests a priority ordering from observed volume (INV-3).</td></tr>
+<tr><td><code>rules</code></td><td>Show <code>rules.md</code>; add / edit / retire rules. Retired rules are
+deleted, not archived (the file is the user's, small, hand-editable).</td></tr>
+</table>
+<p>All flags NL-first per §I; no machine-coupled flags in v1 beyond <code>--non-interactive</code>
+(inherited contract).</p>
+</section>
+
+<section id="run-pipeline">
+<h2 id="run-pipeline-h">6. The run pipeline (bare verb)</h2>
+<ol>
+  <li><strong>Sweep</strong> each declared source per its §4 read contract, window = cursor →
+  now (first run: <code>first_window_days</code> back, D9 — stated in the brief header). Carryover reaches
+  back to <code>carryover_horizon_days</code>; older unresolved items are counted, not rendered (D10). Collect the
+  <code>/mytasks</code> read-only lane (due / overdue / check-ins / waiting-on) from the tasks store.</li>
+  <li><strong>Categorize</strong> every item against <code>rules.md</code> (LLM judgment; the rules file is
+  the prompt's rubric). Items no rule matches are categorized by the seed taxonomy AND flagged
+  <code>no-rule-matched</code> for the manifest.</li>
+  <li><strong>Rank</strong> into three prominence tiers using category + user-indicated source priority:
+  <em>Needs you today</em> · <em>Worth knowing</em> · <em>FYI</em> (collapsed to per-source counts,
+  expandable). Every item lands in exactly one tier (INV-2).</li>
+  <li><strong>Emit</strong> the brief (§8) + manifest (§7); print the absolute path.</li>
+  <li><strong>Batch confirm</strong> (§9): one editable proposed action set, one confirmation.</li>
+  <li><strong>Act</strong> on the confirmed set: create tasks via the <code>/mytasks</code> contract
+  (dedupe first), perform source-native dismissals via each source's connector. Report per-action
+  success/failure verbatim.</li>
+  <li><strong>Correct</strong>: offer to capture any user re-tiering/re-categorization from the confirm
+  step as candidate rules → approved ones append to <code>rules.md</code>.</li>
+  <li><strong>Cursor</strong>: write <code>cursor.yaml</code> atomically. Steps 5–7 skipped/deferred
+  under non-interactive (§10) — the cursor still advances only when the sweep completed cleanly for all
+  reachable sources.</li>
+</ol>
+</section>
+
+<section id="manifest">
+<h2 id="manifest-h">7. Coverage manifest</h2>
+<p>A fixed section at the top of every brief — the week-4 trust mechanism. Per declared source:
+<code>swept ✓ / failed ✗ (reason)</code>, item counts (new / carryover / shown-by-tier), the exact cursor
+window, the list of <code>no-rule-matched</code> items, and per source "N older items beyond the
+carryover horizon" (D10 — the cap is visible, never silent). Deterministic counts are script-computed (§H),
+never LLM-estimated. A run with any failed source says so in the brief header line, not only in the
+manifest body.</p>
+</section>
+
+<section id="brief-artifact">
+<h2 id="brief-artifact-h">8. Brief artifact</h2>
+<ul>
+  <li>Self-contained static HTML at <code>~/.pmos/morning-brief/briefs/YYYY-MM-DD.html</code>; inline CSS;
+  zero external requests; no repo substrate payload (it lives outside the repo, INV-4 — the pmos-comments
+  overlay contract does not apply to home-dir artifacts).</li>
+  <li>Layout: header (date, window, one-line coverage status) → manifest (§7) → <em>Needs you today</em> →
+  <em>Worth knowing</em> → <code>/mytasks</code> lane → <em>FYI</em> (per-source
+  <code>&lt;details&gt;</code> collapsed counts). Each item row: source badge, one-line summary, category,
+  why-this-tier (the rule that fired, or <code>no-rule-matched</code>), and a deep link to the item in its
+  source when the connector provides one.</li>
+  <li>The proposed action set is <em>printed in the brief for reference</em> but reviewed and confirmed in
+  chat (v1 decision D4) — the HTML has no write path.</li>
+</ul>
+</section>
+
+<section id="mytasks-interop">
+<h2 id="mytasks-interop-h">9. Batch confirm + /mytasks interop</h2>
+<ul>
+  <li><strong>One proposal, one confirm:</strong> the skill proposes {create-task[], dismiss[], leave[]}
+  as a numbered editable list — mirror of <code>/mytasks import</code>'s preview→confirm shape. The user
+  edits by number ("move 3 to dismiss", "retitle 5"), then confirms once. No per-item approval chain.</li>
+  <li><strong>Task creation:</strong> through <code>/mytasks</code>' own data contract (its quick-add
+  grammar / lib in <code>plugins/pmos-toolkit/skills/mytasks/scripts/</code>) so minted items are
+  byte-compatible; each created task carries a source link in its body. INV-6.</li>
+  <li><strong>Dedupe rule:</strong> before proposing a create, match against open <code>/mytasks</code>
+  items by source link (exact) then by title similarity (judgment); matches downgrade the proposal to
+  "already tracked — shown in lane".</li>
+  <li><strong>Dismissals:</strong> executed via the source's declared native action (§4). Per-item failure
+  is reported and leaves the item for the next run (INV-1 — the source still holds it, so it derives back
+  in as carryover).</li>
+</ul>
+</section>
+
+<section id="non-interactive">
+<h2 id="non-interactive-h">10. Non-interactive contract</h2>
+<ul>
+  <li>Sweep → categorize → rank → emit (steps 1–4) run unattended; structured prompts with a Recommended
+  option AUTO-PICK per the W14 block (inlined byte-identical in SKILL.md).</li>
+  <li>The batch confirm is tagged <code>&lt;!-- defer-only: destructive --&gt;</code> — the action set is
+  written into the brief + OQ flush and nothing executes. Rule-correction capture likewise defers.</li>
+  <li>First-run setup (<code>sources</code>) under non-interactive DEFERs (free-form) — a source
+  declaration cannot be auto-picked.</li>
+</ul>
+</section>
+
+<section id="policy-notes">
+<h2 id="policy-notes-h">11. §H / §I / §L notes</h2>
+<ul>
+  <li><strong>§H:</strong> deterministic work in scripts — <code>cursor</code> read/write (atomic),
+  <code>sources.yaml</code> parse/validate, manifest count assembly, brief HTML rendering from a JSON
+  model, dedupe-by-source-link exact match. LLM keeps judgment: categorization, tiering, summarization,
+  title-similarity dedupe, rule synthesis. Scripts zero-dependency Node, each with
+  <code>--selftest</code>.</li>
+  <li><strong>§I:</strong> NL-first surface; argument-hint carries only the verbs +
+  <code>--non-interactive</code>.</li>
+  <li><strong>§L:</strong> per-source sweeps may dispatch parallel subagents (sonnet — bounded read+extract
+  per source, parent validates); categorization/ranking stays in the parent (inherit) because it needs the
+  whole picture and the user's rules.</li>
+</ul>
+</section>
+
+<section id="decisions">
+<h2 id="decisions-h">12. Decisions</h2>
+<table>
+<tr><th>ID</th><th>Decision</th><th>Rationale</th></tr>
+<tr><td>D1</td><td>Verb surface = bare run + <code>sources</code> + <code>rules</code>.</td><td>Smallest
+surface covering setup and rule stewardship; no standalone dismiss verb — dismissal lives only in the
+confirmed batch (INV-5), and re-runs re-derive anything left (INV-1).</td></tr>
+<tr><td>D2</td><td>Data layout = <code>sources.yaml</code> / <code>rules.md</code> / <code>cursor.yaml</code>
+/ <code>briefs/</code> under <code>~/.pmos/morning-brief/</code>.</td><td>Rules as prose markdown for
+hand-editing; cursor isolated so config never churns; follows <code>/mytasks</code>/<code>/people</code>
+home-dir residency.</td></tr>
+<tr><td>D3</td><td>Rules live in a dedicated <code>rules.md</code>, not <code>~/.pmos/learnings.md</code>.</td>
+<td>Personal triage rules are user content, not agent-behavior learnings; different lifecycle and
+ownership.</td></tr>
+<tr><td>D4</td><td>v1 brief is static; batch confirm happens in chat.</td><td>No server/write-path plumbing
+in v1; matches the <code>/mytasks import</code> confirm shape the user already knows. A served brief is a
+natural later epic.</td></tr>
+<tr><td>D5</td><td>Connector resolution is runtime ToolSearch by declared hint.</td><td>First-of-kind
+connector-reader: hardcoding tool names would rot; the declared hint + kind contract keeps the abstraction
+generic (INV-3).</td></tr>
+<tr><td>D6</td><td>Cursor advances only after a clean sweep of reachable sources.</td><td>A crashed run must
+not eat items; failed sources don't block the cursor (they're carried in the manifest and re-swept by
+derive-on-read anyway).</td></tr>
+<tr><td>D7</td><td>Same-day briefs never overwrite (suffix <code>-2</code>…).</td><td>A rerun after
+actions is a new derived view; the morning's record stays.</td></tr>
+<tr><td>D9</td><td>First-run window is set at guided setup (<code>first_window_days</code>, default 7),
+stated in the brief header.</td><td>Grill follow-up: no cursor on run 1; a fixed 24h misses weekends, an
+unbounded carryover-only first sweep is unpredictable in cost.</td></tr>
+<tr><td>D10</td><td>Carryover horizon (<code>carryover_horizon_days</code>, default 14): older unresolved
+items drop from FYI rows but are counted per-source in the manifest.</td><td>Grill follow-up: unbounded
+carryover makes old noise accumulate — the exact week-4 trust killer; the manifest count keeps the gap
+detectable, preserving INV-2's spirit (visible, not invisible).</td></tr>
+<tr><td>D8</td><td>2 stories, sequential (b6q core coverage → ww7 action lane).</td><td>Both edit one
+SKILL.md → dependency, not parallel; S1 alone is independently verifiable (brief + manifest with no
+mutations), S2 adds the mutation lane behind the confirm.</td></tr>
+</table>
+</section>
+
+<section id="story-split">
+<h2 id="story-split-h">13. Story split</h2>
+<table>
+<tr><th>Story</th><th>Scope (anchors)</th><th>Deps</th></tr>
+<tr><td><strong>260702-b6q</strong> — core coverage: sweep → rank → brief</td>
+<td>§3 data model, §4 source abstraction, §5 verbs (all three; <code>rules</code> = view/add/edit only),
+§6 steps 1–4 + 8, §7 manifest, §8 artifact, §10, §11. Read-only end-to-end: declared sources swept, brief +
+manifest emitted, cursor written. No mutations.</td><td>—</td></tr>
+<tr><td><strong>260702-ww7</strong> — action lane: batch confirm → act → correct</td>
+<td>§6 steps 5–7, §9 interop (create+dedupe, dismissals), the confirm-step rule-correction capture into
+<code>rules.md</code>, §10 defer paths for mutations. Extends the same SKILL.md + scripts.</td>
+<td>260702-b6q</td></tr>
+</table>
+</section>

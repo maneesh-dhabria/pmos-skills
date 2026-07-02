@@ -1,0 +1,87 @@
+story: 260702-ww7
+epic: 260702-kck
+route: skill
+spec: ../../02_design.html
+plugin: pmos-toolkit
+depends_on: [260702-b6q]
+summary: >
+  Add the mutation lane to /morning-brief: one numbered editable action proposal confirmed once, /mytasks task
+  creation through its own lib with source-link + title dedupe, source-native dismissals via each source's
+  declared connector action, and observe+correct capture of confirm-step corrections into rules.md. All
+  mutations confirm-gated (INV-5) and DEFER under --non-interactive.
+
+waves:
+  - wave: 1
+    name: Confirm lane
+    tasks:
+      - id: T1
+        title: Batch-review one-confirm phase (AC1, INV-5)
+        deps: []
+        parallel: false
+        detail: >
+          Replace b6q's stop-after-emit boundary with 02_design.html#run-pipeline steps 5-7 entry: build the
+          proposed action set {create-task[], dismiss[], leave[]} from the ranked items, print it as one
+          numbered editable list (mirror /mytasks import preview->confirm, D4), support edits by number
+          ("move 3 to dismiss", "retitle 5", re-tier), then ONE confirmation. The proposal is also rendered
+          into the brief for reference (#brief-artifact). The confirm AskUserQuestion is preceded by
+          <!-- defer-only: destructive --> so non-interactive runs defer with zero mutations (§10).
+        verify: >
+          proposal covers every needs-you-today item with a suggested disposition; single confirm; edits
+          round-trip; NI run performs no mutation and flushes the set to brief + OQ.
+      - id: T2
+        title: Dedupe — source-link script + title judgment (AC2)
+        deps: []
+        parallel: true
+        detail: >
+          scripts/dedupe.mjs: exact source-link match against open /mytasks items (read via the /mytasks lib),
+          pure function + --selftest (§H). SKILL.md layer adds judgment title-similarity on the remainder.
+          Matches downgrade the proposal entry to "already tracked - shown in lane"; user can override in the
+          T1 edit step.
+        verify: --selftest exit 0 (hit, miss, malformed-link cases); downgraded entries visibly labeled.
+
+  - wave: 2
+    name: Act
+    tasks:
+      - id: T3
+        title: /mytasks task creation (AC2, INV-6)
+        deps: [T1, T2]
+        parallel: true
+        detail: >
+          Confirmed creates go through /mytasks' own lib/quick-add grammar so minted items are byte-compatible
+          (registry, parent, INDEX-free derive semantics — whatever the current /mytasks contract mints).
+          Each created task carries the item's source deep link in its body. Report created ids verbatim.
+        verify: created items parse cleanly via /mytasks lib; source link present; /mytasks remains sole store.
+      - id: T4
+        title: Source-native dismissals (AC3, INV-1)
+        deps: [T1]
+        parallel: true
+        detail: >
+          Execute each confirmed dismissal via the source's declared native action per
+          02_design.html#source-abstraction (archive/label email, respond to invite, resolve/reply comment)
+          using the run-time-resolved connector tools. Per-action success/failure reported verbatim; failures
+          leave the item in-source so it derives back as carryover next run — no retry state stored (INV-1).
+        verify: per-action report lists each dismissal with outcome; failure path documented as derive-back.
+
+  - wave: 3
+    name: Learn + verify
+    tasks:
+      - id: T5
+        title: Observe + correct rule capture (AC4)
+        deps: [T1]
+        parallel: false
+        detail: >
+          After actions, diff the user's confirm-step edits (re-tiers, re-categorizations, disposition
+          overrides) against the run's own proposals; synthesize each into a one-line candidate rule and offer
+          per-rule approval (Recommended = the synthesized rule; skip freely). Approved rules append under the
+          matching category heading in rules.md. No silent writes; declining all is a clean exit. Under
+          non-interactive the capture defers (§10).
+        verify: correction -> candidate rule -> approval -> rules.md append round-trip; decline writes nothing.
+      - id: T6
+        title: Regression + NI proof + lints (AC5-AC7)
+        deps: [T3, T4, T5]
+        parallel: false
+        detail: >
+          Re-run b6q's script --selftests UN-EDITED (read-only lane must be regression-free). Prove the NI
+          defer path end-to-end (run with --non-interactive against fixture sweep: brief emitted, zero
+          mutations, OQ flush present). Run the 4 hygiene lints + audit-recommended across the skill.
+        verify: b6q suites 0 un-edited; NI run mutation-free with OQ; lints + audit green.

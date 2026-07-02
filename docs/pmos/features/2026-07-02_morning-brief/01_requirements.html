@@ -1,0 +1,126 @@
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Requirements — /morning-brief (pmos-toolkit)</title>
+<style>
+  body { max-width: 54rem; margin: 2rem auto; padding: 0 1.25rem; font: 16px/1.62 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: #1a1a1a; }
+  h1 { font-size: 1.6rem; margin: 0 0 .25rem; } h2 { font-size: 1.14rem; margin: 2.1rem 0 .5rem; border-bottom: 2px solid #ececec; padding-bottom: .3rem; }
+  h3 { font-size: 1.02rem; margin: 1.3rem 0 .35rem; } .sub { color: #666; margin: 0 0 1.4rem; }
+  code { background: #f2f2f2; padding: .05rem .3rem; border-radius: 4px; font-size: .87em; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; margin: .4rem 0; } th,td { text-align: left; vertical-align: top; padding: .45rem .6rem; border-bottom: 1px solid #eee; } th { background: #fafafa; font-size: .75rem; text-transform: uppercase; letter-spacing: .03em; color: #555; }
+  ul { padding-left: 1.3rem; } section { overflow-x: auto; }
+</style>
+
+<h1>Requirements — <code>/morning-brief</code></h1>
+<p class="sub">pmos-toolkit · epic 260702-kck · route: skill · Tier 2 · epic-level framing for the design doc.
+Grounded in the shape brief (<code>docs/pmos/shape/2026-07-02_morning-brief-skill.html</code>, untracked) and its
+deep grill (<code>.pmos/grills/2026-07-02_morning-brief-skill.html</code>, untracked). All shaping decisions are
+settled and binding; this doc frames them as requirements — it does not reopen them.</p>
+
+<section id="problem">
+<h2 id="problem-h">Problem</h2>
+<p>The shaped problem is <strong>trustworthy cross-source coverage</strong>, not "generate a brief." A PM's
+inbound arrives across email, team chat, calendar, and doc-collaboration comments; no single tool shows a
+trustworthy picture of what arrived and what it demands. Today the user either pays a manual tool-by-tool
+morning sweep (time + tab-thrash) or risks catching commitments late; and items caught in the sweep don't
+reliably become tracked tasks (discussed ≠ tracked). Three co-equal pains: fear-of-missing, triage time-cost,
+and the capture gap. The ★ sub-problem is <strong>staying trustworthy in week 4</strong> — silent heuristic
+rot, source breakage, or a false sense of coverage is worse than no tool, because the user stops sweeping
+manually the moment they trust the view.</p>
+<p><strong>Falsifiable success signal:</strong> the brief is opened every workday and the manual all-tool
+sweep observably stops. Counter-evidence: the brief is read <em>and</em> the tools are still swept.</p>
+</section>
+
+<section id="user-jobs">
+<h2 id="user-jobs-h">User &amp; jobs</h2>
+<ul>
+  <li><strong>Who:</strong> an IC PM (or any knowledge worker with a multi-channel inbound mix) running
+  Claude Code in a live session with MCP connectors authenticated for their declared sources.</li>
+  <li><strong>Job 1 — see everything:</strong> "When I start my day, show me one trustworthy view of
+  everything that arrived or is still open across my sources, ranked by what matters to me, so I don't
+  sweep tools by hand."</li>
+  <li><strong>Job 2 — act on it once:</strong> "Let me clear the view in one pass — track these as tasks,
+  archive/resolve those at the source, leave the rest — with one confirmation."</li>
+  <li><strong>Job 3 — keep it mine:</strong> "Let the ranking learn my rules from my corrections, and show
+  me exactly what was and wasn't covered, so I can keep trusting it."</li>
+</ul>
+</section>
+
+<section id="frs">
+<h2 id="frs-h">Functional requirements</h2>
+<table>
+<tr><th>ID</th><th>Requirement</th></tr>
+<tr><td>FR-1</td><td><strong>Declared sources.</strong> The user declares each source (kind, how to read it,
+relative priority, dismiss affordance) as configuration under <code>~/.pmos/morning-brief/sources.yaml</code>.
+The skill assumes nothing about any user's channel mix or priorities; priority is user-indicated, never
+inferred. First run with no config enters guided setup (<code>/morning-brief sources</code>).</td></tr>
+<tr><td>FR-2</td><td><strong>Sweep.</strong> Bare <code>/morning-brief</code> sweeps every declared source via
+its live connector: items new since the last-run cursor plus carryover items still unresolved
+<em>in their source</em> (unarchived / unreplied / unresolved comment) and not yet tracked. An unreachable
+source never fails the run silently — it lands in the coverage manifest.</td></tr>
+<tr><td>FR-3</td><td><strong>Categorize + rank.</strong> Each item is categorized against the user's rules
+(seeded from a small generic GTD-4D taxonomy: do / delegate-reply / defer-track / drop-FYI) and ranked into
+prominence tiers. Heuristics decide <em>prominence only, never inclusion</em>.</td></tr>
+<tr><td>FR-4</td><td><strong>Show-everything brief.</strong> One static HTML brief is emitted per run to
+<code>~/.pmos/morning-brief/briefs/</code>: prominence tiers at top, FYI tier collapsed to expandable counts,
+and every in-window item present at least as a one-line FYI row — recall is structural.</td></tr>
+<tr><td>FR-5</td><td><strong>Coverage manifest.</strong> Every brief carries a per-run manifest: per-source
+swept/failed status, item counts, the cursor window, and items no heuristic matched. Never a silent gap.</td></tr>
+<tr><td>FR-6</td><td><strong>/mytasks lane.</strong> The brief includes a read-only lane from
+<code>/mytasks</code> (due / overdue / check-ins / waiting-on). <code>/mytasks</code> remains the sole system
+of record for tasks.</td></tr>
+<tr><td>FR-7</td><td><strong>Batch confirm.</strong> The run ends in one editable proposed action set —
+create these <code>/mytasks</code> tasks (deduped against existing items), perform these source-native
+dismissals (archive email / resolve comment), leave these — reviewed in chat and confirmed once. Nothing
+executes unconfirmed.</td></tr>
+<tr><td>FR-8</td><td><strong>Derive, don't store.</strong> No per-item triage state is persisted. Re-running
+derives the view from live source state. Only the last-run cursor (<code>cursor.yaml</code>) plus user config
+(<code>sources.yaml</code>, <code>rules.md</code>) persist.</td></tr>
+<tr><td>FR-9</td><td><strong>Observe + correct rules.</strong> User corrections at the confirm step ("this
+should have been top-tier") become candidate rules; the user approves them into
+<code>rules.md</code> (human-readable, hand-editable). Cold start with the seed taxonomy only — no priors
+seeded from <code>/people</code> or history.</td></tr>
+<tr><td>FR-10</td><td><strong>Rules verb.</strong> <code>/morning-brief rules</code> shows the current rule
+file and supports add / edit / retire — the same observe-and-correct file the confirm step appends to.</td></tr>
+</table>
+</section>
+
+<section id="constraints">
+<h2 id="constraints-h">Constraints &amp; non-functional</h2>
+<ul>
+  <li><strong>Privacy (hard):</strong> all state and every emitted brief live under
+  <code>~/.pmos/morning-brief/</code>. Work-comms content is never written inside any git repo.
+  LLM processing of work content on every run is an explicitly accepted premise — stated, not implicit.</li>
+  <li><strong>On-demand, live session:</strong> runs when invoked in an authed interactive session; no cron
+  dependency. Headless runs without authed connectors degrade loudly via the manifest.</li>
+  <li><strong>Inform + recommend only:</strong> the user confirms and triggers every action. Source-native
+  dismissal gives the skill confirm-gated <em>write</em> access to work systems — always user-confirmed,
+  and DEFER (destructive) under <code>--non-interactive</code>.</li>
+  <li><strong>Zero new npm dependencies</strong> (repo norm); deterministic work (cursor I/O, manifest
+  counts, brief rendering) in scripts per §H; judgment work (categorization, ranking, rule synthesis)
+  stays LLM.</li>
+  <li><strong>Non-interactive contract:</strong> sweep + brief emit run unattended (Recommended →
+  AUTO-PICK); batch confirm and dismissals DEFER; W14 block inlined byte-identical.</li>
+</ul>
+</section>
+
+<section id="out-of-scope">
+<h2 id="out-of-scope-h">Out of scope (v1)</h2>
+<ul>
+  <li>A served interactive brief (serve.js web UI with in-page confirm) — the v1 brief is static HTML;
+  the action set is confirmed in chat.</li>
+  <li>Scheduled / cron runs and push delivery.</li>
+  <li>Slack and Google-Drive-comment sources in the bundled examples — no Slack MCP in the reference
+  environment and Drive MCP lacks comment threads; the abstraction supports them the day a connector
+  exists, and the manifest names them as declared-but-unreachable if configured.</li>
+  <li>Numeric speed/clear-time targets — adoption (sweep stops) is the only success measure.</li>
+  <li>An ordered day-plan / calendar-blocking framing — rejected at shape.</li>
+</ul>
+</section>
+
+<section id="standing-acs">
+<h2 id="standing-acs-h">Standing acceptance criteria</h2>
+<p>The produced skill must conform to <code>feature-sdlc/reference/skill-patterns.md §A–§L</code> and pass
+<code>skill-eval</code> (<code>[D]</code> + <code>[J]</code>), the 4 hygiene lints, and
+<code>audit-recommended.sh</code>. Canonical path <code>plugins/pmos-toolkit/skills/morning-brief/SKILL.md</code>;
+single plugin, one release unit; release prerequisites (version bump ×2, README row, changelog) owned by
+<code>/complete-dev</code>, never in a build wave (§G).</p>
+</section>
