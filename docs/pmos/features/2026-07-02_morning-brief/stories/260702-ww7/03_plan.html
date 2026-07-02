@@ -1,0 +1,35 @@
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Plan — 260702-ww7 /morning-brief action lane</title>
+<style>
+  body { max-width: 54rem; margin: 2rem auto; padding: 0 1.25rem; font: 16px/1.62 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: #1a1a1a; }
+  h1 { font-size: 1.5rem; margin: 0 0 .25rem; } h2 { font-size: 1.1rem; margin: 2rem 0 .5rem; border-bottom: 2px solid #ececec; padding-bottom: .3rem; }
+  code { background: #f2f2f2; padding: .05rem .3rem; border-radius: 4px; font-size: .87em; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; } th,td { text-align: left; vertical-align: top; padding: .45rem .6rem; border-bottom: 1px solid #eee; } th { background: #fafafa; font-size: .75rem; text-transform: uppercase; color: #555; }
+  .sub { color: #666; margin: 0 0 1.4rem; } ul { padding-left: 1.3rem; }
+</style>
+
+<h1>Plan — story 260702-ww7</h1>
+<p class="sub">/morning-brief action lane · epic 260702-kck · route: skill · deps: 260702-b6q ·
+spec = <code>../../02_design.html</code> (§6 steps 5–7, §9, §10; D1, D4; INV-1/5/6) ·
+execution_mode: inline. Canonical task list: <code>tasks.yaml</code> beside this file.</p>
+
+<h2 id="approach">Approach</h2>
+<ul>
+  <li>Extends the SAME <code>SKILL.md</code> + <code>scripts/</code> b6q created (claim-time dep merge makes
+  them present). The bare run's stop-after-emit boundary is replaced by the §6 steps 5–7 tail.</li>
+  <li><strong>Every mutation behind one confirm</strong> (INV-5); under <code>--non-interactive</code> the
+  confirm is <code>defer-only: destructive</code> — zero mutations, proposal flushed to brief + OQ.</li>
+  <li>Task creation via <code>/mytasks</code>' own lib (INV-6); dismissals via each source's declared native
+  connector action; failures reported verbatim and self-heal by derive-on-read (INV-1).</li>
+  <li>Regression gate: b6q's suites re-run un-edited.</li>
+</ul>
+
+<h2 id="waves">Waves</h2>
+<table>
+<tr><th>Wave</th><th>Tasks</th></tr>
+<tr><td>1 — Confirm lane</td><td>T1 batch-review one-confirm phase · T2 dedupe (exact source-link script + judgment similarity)</td></tr>
+<tr><td>2 — Act</td><td>T3 /mytasks creation · T4 source-native dismissals</td></tr>
+<tr><td>3 — Learn + verify</td><td>T5 observe+correct rule capture · T6 regression + NI-defer proof + lints</td></tr>
+</table>
+
+<p class="sub">Release prerequisites are owned by <code>/complete-dev</code> — absent from every wave (§G).</p>

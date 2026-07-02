@@ -81,7 +81,11 @@ Binding decisions (all settled at shape + grill; the design doc carries them as 
 
 ## Stories
 
-(filled by the story-split step)
+- **260702-b6q** — core coverage (read-only end-to-end): source abstraction + guided setup, sweep,
+  GTD-4D categorize/rank, show-everything brief + coverage manifest, `/mytasks` read-only lane, cursor,
+  `rules` verb. No deps.
+- **260702-ww7** — action lane: batch-review one-confirm, `/mytasks` creation with dedupe, source-native
+  dismissals, observe+correct rule capture. Deps: 260702-b6q (same SKILL.md — sequential, D8).
 
 ## Release prerequisites
 

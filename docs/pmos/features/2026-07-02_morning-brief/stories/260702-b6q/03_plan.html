@@ -1,0 +1,41 @@
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Plan — 260702-b6q /morning-brief core coverage</title>
+<style>
+  body { max-width: 54rem; margin: 2rem auto; padding: 0 1.25rem; font: 16px/1.62 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: #1a1a1a; }
+  h1 { font-size: 1.5rem; margin: 0 0 .25rem; } h2 { font-size: 1.1rem; margin: 2rem 0 .5rem; border-bottom: 2px solid #ececec; padding-bottom: .3rem; }
+  code { background: #f2f2f2; padding: .05rem .3rem; border-radius: 4px; font-size: .87em; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; } th,td { text-align: left; vertical-align: top; padding: .45rem .6rem; border-bottom: 1px solid #eee; } th { background: #fafafa; font-size: .75rem; text-transform: uppercase; color: #555; }
+  .sub { color: #666; margin: 0 0 1.4rem; } ul { padding-left: 1.3rem; }
+</style>
+
+<h1>Plan — story 260702-b6q</h1>
+<p class="sub">/morning-brief core coverage (read-only end-to-end) · epic 260702-kck · route: skill ·
+spec = <code>../../02_design.html</code> (§3–§8, §10–§11; D1–D3, D5–D7, D9–D10; INV-1..4) ·
+execution_mode: inline. Canonical task list: <code>tasks.yaml</code> beside this file.</p>
+
+<h2 id="approach">Approach</h2>
+<ul>
+  <li><strong>Sole writer:</strong> `/execute` authors <code>plugins/pmos-toolkit/skills/morning-brief/</code>
+  (SKILL.md + <code>scripts/</code>) in eval-passing form up front (single-line description, Track Progress,
+  Platform Adaptation, learnings load-line, Capture Learnings phase, stable <code>{#kebab}</code> anchors).</li>
+  <li><strong>§H split:</strong> zero-dep Node scripts own sources/cursor I/O, manifest counts, and brief
+  rendering from a JSON run-model; the LLM owns sweep extraction, categorization, tiering, summaries.</li>
+  <li><strong>Verification:</strong> script selftests + a live dogfood run against the session's real
+  connectors (Gmail / Calendar / Notion); brief + manifest inspected at
+  <code>~/.pmos/morning-brief/briefs/</code>. Work content never committed anywhere (INV-4).</li>
+  <li><strong>Boundary:</strong> the run STOPS after brief emission (informational proposal print only) —
+  the confirm/act lane is story 260702-ww7.</li>
+</ul>
+
+<h2 id="waves">Waves</h2>
+<table>
+<tr><th>Wave</th><th>Tasks</th></tr>
+<tr><td>1 — Scaffold + config</td><td>T1 SKILL.md scaffold · T2 config lib (sources.yaml + cursor.yaml + settings)</td></tr>
+<tr><td>2 — Setup + rules verbs</td><td>T3 <code>sources</code> guided setup · T4 <code>rules</code> verb + GTD-4D seed</td></tr>
+<tr><td>3 — Sweep</td><td>T5 source-abstraction sweep (§4, runtime connector resolve) · T6 /mytasks read-only lane</td></tr>
+<tr><td>4 — Brief</td><td>T7 brief render script (§7/§8) · T8 bare-run pipeline wiring (§6 steps 1–4 + 8)</td></tr>
+<tr><td>5 — Verify</td><td>T9 selftests green + live dogfood + hygiene lints</td></tr>
+</table>
+
+<p class="sub">Release prerequisites (version bump ×2, README row, changelog, manifest sync) are owned by
+<code>/complete-dev</code> — deliberately absent from every wave (§G).</p>

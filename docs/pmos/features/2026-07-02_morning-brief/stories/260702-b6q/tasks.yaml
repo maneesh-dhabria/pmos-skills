@@ -1,0 +1,138 @@
+story: 260702-b6q
+epic: 260702-kck
+route: skill
+spec: ../../02_design.html
+plugin: pmos-toolkit
+depends_on: []
+summary: >
+  Build the read-only core of /morning-brief: user-declared source abstraction + guided setup, cursor-windowed
+  sweep via runtime-resolved MCP connectors, GTD-4D categorize + three-tier show-everything ranking, a
+  self-contained static HTML brief with a coverage manifest under ~/.pmos/morning-brief/, a /mytasks read-only
+  lane, and the rules verb. Run stops after brief emission (action lane = 260702-ww7).
+
+waves:
+  - wave: 1
+    name: Scaffold + config
+    tasks:
+      - id: T1
+        title: Scaffold morning-brief/SKILL.md (AC1)
+        deps: []
+        parallel: false
+        detail: >
+          Create plugins/pmos-toolkit/skills/morning-brief/SKILL.md. Frontmatter: name: morning-brief,
+          user-invocable: true, triggering description ("morning brief", "what came in overnight", "sweep my
+          inboxes", "plan my morning"), argument-hint = verbs (sources, rules) + --non-interactive only (§I).
+          Inline the canonical non-interactive block byte-identical to skills/_shared/non-interactive.md.
+          Track Progress + Platform Adaptation + learnings load-line + Capture Learnings phase. Body: verb
+          table (D1) + integer phases with stable {#kebab} anchors (§J). State INV-1..4 up front, including
+          the accepted-premise line (LLM processing of work content) and the never-write-in-repo rule.
+        verify: >
+          name matches dir; lint-non-interactive-inline PASS; lint-flags-vs-hints PASS; skill registers.
+      - id: T2
+        title: Config lib — sources.yaml + cursor.yaml (AC2, AC8)
+        deps: [T1]
+        parallel: false
+        detail: >
+          Zero-dep Node scripts/lib.mjs: parse/validate sources.yaml per 02_design.html#data-model (per-source
+          id/kind/connector/priority/dismiss/scope; settings.first_window_days default 7 (D9),
+          settings.carryover_horizon_days default 14 (D10)); atomic cursor.yaml read/write (temp-then-rename);
+          store dir from $PMOS_MORNING_BRIEF_DIR else ~/.pmos/morning-brief (created on first write); MUST
+          refuse to write inside a git working tree (INV-4). --selftest coverage incl. malformed-config errors.
+        verify: --selftest exit 0; write-inside-repo guard test; defaults applied when settings absent.
+
+  - wave: 2
+    name: Setup + rules verbs
+    tasks:
+      - id: T3
+        title: sources verb — guided setup + edit (AC2, INV-3)
+        deps: [T2]
+        parallel: true
+        detail: >
+          /morning-brief sources walks declare/edit per 02_design.html#verbs: kind, connector hint, scope,
+          user-indicated priority, dismiss affordance, plus the two settings. NEVER suggests a priority from
+          observed volume (INV-3). Bare run with no sources.yaml routes here first (AC1). Under
+          --non-interactive setup DEFERs (defer-only: free-form) — a source declaration cannot be auto-picked.
+        verify: setup writes valid sources.yaml; bare-run-no-config routes to setup; NI DEFERs.
+      - id: T4
+        title: rules verb + GTD-4D seed (AC4 seed, AC9)
+        deps: [T2]
+        parallel: true
+        detail: >
+          First use seeds ~/.pmos/morning-brief/rules.md with the generic GTD-4D taxonomy (do / delegate-reply /
+          defer-track / drop-FYI) as per-category headings — cold start, zero personal priors.
+          /morning-brief rules shows the file and supports add / edit / retire (retire = delete, D-per-design).
+          Hand-editability is a feature: prose bullets, no machine framing beyond headings.
+        verify: seed file matches taxonomy; add/edit/retire round-trip; no priors from /people or history.
+
+  - wave: 3
+    name: Sweep
+    tasks:
+      - id: T5
+        title: Source-abstraction sweep (AC3, INV-1/INV-3)
+        deps: [T3]
+        parallel: false
+        detail: >
+          SKILL.md sweep phase per 02_design.html#source-abstraction: resolve each declared source's MCP tools
+          at run time (ToolSearch by connector hint, D5 — never a hardcoded inventory); per-kind read contracts
+          (email threads new+unarchived; calendar today+tomorrow+invites; doc-comments mentioning/assigned,
+          new+unresolved; chat mentions/DMs; custom = interpreted instruction). Window = cursor→now, first run
+          first_window_days (D9); carryover bounded by carryover_horizon_days with beyond-horizon items COUNTED
+          not rendered (D10). Per-source parallel subagents allowed (sonnet, §L) returning a normalized item
+          JSON (id, source, ts, who, one-line, link, raw-category-signals). Unreachable/unauthed/erroring
+          source -> failed-with-reason record; run continues.
+        verify: >
+          normalized item model documented in SKILL.md; failed source produces manifest record not abort;
+          horizon + window math lives in scripts (§H), not prose arithmetic.
+      - id: T6
+        title: /mytasks read-only lane (AC7, INV-6)
+        deps: [T2]
+        parallel: true
+        detail: >
+          Read due / overdue / check-ins / waiting-on from the /mytasks store via its own lib
+          (plugins/pmos-toolkit/skills/mytasks/scripts/), presenting a read-only lane model for the brief.
+          Zero writes; degrade to an empty lane + manifest note when the store is absent.
+        verify: lane populated from a fixture tasks dir; absent store degrades with manifest note; no writes.
+
+  - wave: 4
+    name: Brief
+    tasks:
+      - id: T7
+        title: Brief render script (AC5, AC6)
+        deps: [T5, T6]
+        parallel: false
+        detail: >
+          scripts/render-brief.mjs: JSON run-model -> self-contained static HTML per 02_design.html#brief-artifact
+          (inline CSS, zero external requests, no repo substrate payload): header (date, window, one-line
+          coverage status incl. any failed source), manifest per #manifest (script-computed counts: per-source
+          swept/failed, new/carryover/shown-by-tier, cursor window, no-rule-matched list, beyond-horizon
+          counts), three tiers, /mytasks lane, per-source <details> FYI counts, item rows (badge, one-line,
+          category, why-this-tier, deep link). Writes briefs/YYYY-MM-DD.html with same-day -2 suffixing (D7).
+          --selftest renders a bundled fixture model and asserts structure + counts + suffixing.
+        verify: --selftest exit 0; fixture render carries every in-window item at least as an FYI row (INV-2).
+      - id: T8
+        title: Bare-run pipeline wiring (AC1, AC4, AC8)
+        deps: [T7]
+        parallel: false
+        detail: >
+          SKILL.md bare-run phases per 02_design.html#run-pipeline steps 1-4 + 8: sweep -> categorize every
+          item against rules.md (LLM; un-matched -> seed taxonomy + no-rule-matched flag) -> rank into exactly
+          three tiers (category + user priority; prominence never inclusion, INV-2) -> emit via T7 -> print
+          absolute path + informational proposal lane (create/dismiss/leave suggestions, marked "confirm lane
+          lands in a later story") -> advance cursor ONLY when all reachable sources swept cleanly (D6).
+          No per-item state written anywhere (INV-1).
+        verify: dry-run against fixture sweep output produces brief + advanced cursor; failed-source run leaves cursor per D6 semantics documented.
+
+  - wave: 5
+    name: Verify
+    tasks:
+      - id: T9
+        title: Selftests + live dogfood + lints (AC10-AC12)
+        deps: [T8, T4]
+        parallel: false
+        detail: >
+          All script --selftests green. Live dogfood: declare the session's real connectors (Gmail, Google
+          Calendar, Notion) in a scratch $PMOS_MORNING_BRIEF_DIR, run bare /morning-brief, inspect brief +
+          manifest (window, tiers, FYI counts, no-rule-matched, lane). NOTHING from the dogfood committed
+          (INV-4; store dir outside repo). Run lint-non-interactive-inline, lint-flags-vs-hints,
+          lint-phase-refs, audit-recommended across the new skill.
+        verify: selftests 0; dogfood brief exists under scratch dir with manifest; 4 lints + audit green.
