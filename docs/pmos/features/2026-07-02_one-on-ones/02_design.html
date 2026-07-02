@@ -1,0 +1,161 @@
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Design — /one-on-ones (pmos-managerkit)</title>
+<style>
+  body { max-width: 54rem; margin: 2rem auto; padding: 0 1.25rem; font: 16px/1.62 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: #1a1a1a; }
+  h1 { font-size: 1.6rem; margin: 0 0 .25rem; } h2 { font-size: 1.14rem; margin: 2.1rem 0 .5rem; border-bottom: 2px solid #ececec; padding-bottom: .3rem; }
+  h3 { font-size: 1.02rem; margin: 1.3rem 0 .35rem; } .sub { color: #666; margin: 0 0 1.4rem; }
+  code { background: #f2f2f2; padding: .05rem .3rem; border-radius: 4px; font-size: .87em; } pre { background: #f7f7f9; border: 1px solid #eee; border-radius: 8px; padding: .8rem 1rem; overflow-x: auto; font-size: .84rem; line-height: 1.5; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; margin: .4rem 0; } th,td { text-align: left; vertical-align: top; padding: .45rem .6rem; border-bottom: 1px solid #eee; } th { background: #fafafa; font-size: .75rem; text-transform: uppercase; letter-spacing: .03em; color: #555; }
+  ul { padding-left: 1.3rem; } section { overflow-x: auto; } .inv { background: #fff8f0; border: 1px solid #f0dcc0; border-radius: 8px; padding: .3rem .8rem; }
+  .cap { color: #9a6700; } .caveat { background: #fff5f5; border-left: 3px solid #e0b0b0; padding: .3rem .8rem; margin: .4rem 0; font-size: .92rem; }
+</style>
+
+<h1>Design — <code>/one-on-ones</code></h1>
+<p class="sub">pmos-managerkit · epic 260702-z77 · route: skill · the cross-cutting coherence contract for story 260702-6ks</p>
+
+<section id="overview">
+<h2>1. Overview</h2>
+<p><code>/one-on-ones</code> helps a manager run <em>effective</em> 1:1s — actively coaching, not a passive notepad. The unit is <strong>one rolling record per report</strong>. Verbs operate on that record: <code>add</code> creates it, <code>note</code> quick-captures into it, <code>plan</code> reads it into a coached prep agenda, <code>log</code> appends a session and closes loops, <code>career</code> runs the periodic deep-dive, and context verbs keep goals + feedback current. A bundled corpus makes the coaching grounded and attributable.</p>
+</section>
+
+<section id="invariants">
+<h2>2. Invariants</h2>
+<div class="inv">
+<p><strong>INV-1 — identity in <code>/people</code>, record owned here.</strong> A report's identity (name, handle, role) is anchored in <code>~/.pmos/people</code>. The 1:1 <em>record</em> is a separate file this skill owns. <code>add</code> reconciles the two; it never invents a person.</p>
+<p><strong>INV-2 — independent of <code>/interview-feedback</code>.</strong> No import, no <code>_shared</code> cite, no reading its scorecards or corpus. Performance/coaching feedback is manager-entered into the record. (Grep-clean AC.)</p>
+<p><strong>INV-3 — no <code>/mytasks</code>.</strong> The skill never reads or writes a report's task list. "Work context" comes from what the manager captures, not a task tracker they may not own.</p>
+<p><strong>INV-4 — privacy.</strong> Records live under <code>~/.pmos/one-on-ones/</code>, outside the repo. The skill must never write a record inside the working tree; sensitive employee content is never committed.</p>
+</div>
+</section>
+
+<section id="data-model">
+<h2>3. Data model — the per-report record</h2>
+<p>One Markdown file per report at <code>~/.pmos/one-on-ones/&lt;handle&gt;.md</code>, where <code>&lt;handle&gt;</code> is the <code>/people</code> handle. Three body zones under YAML frontmatter — the hybrid the shape brief settled on (persistent header + running-agenda inbox + reverse-chron session log):</p>
+<pre>---
+schema_version: 1
+handle: sarah-chen           # /people handle (identity anchor, INV-1)
+name: Sarah Chen
+role: Senior PM
+cadence: weekly              # weekly | biweekly | ...
+started: 2026-07-02
+career_last_reviewed:        # date of last /one-on-ones career session
+---
+
+## Goals & growth focus
+- Grow into staff-level scope by H2; wants more cross-org influence.
+
+## Standing themes
+- Recurring: feels under-recognized in leadership reviews.
+
+## Operating manual
+- Feedback: direct, in the moment. Recognition: private, written.
+- What makes them grumpy: last-minute scope changes.
+
+## Performance feedback        <!-- manager-entered; NOT from /interview-feedback (INV-2) -->
+- 2026-Q2: strong delivery; stretch = influencing without authority.
+
+## Coaching feedback           <!-- manager-entered -->
+- Working on: running crisper design reviews.
+
+## Open action items
+- [ ] (me) intro Sarah to Platform lead — since 2026-06-20
+
+## Inbox                       <!-- running agenda: zero-friction quick-capture (note) -->
+- [growth] discuss the staff-eng ladder expectations
+- [blocker] blocked on legal review for launch
+
+## Sessions                    <!-- reverse-chron; newest first (log prepends here) -->
+### 2026-06-25
+- Check-in: energized after the offsite.
+- Topics: roadmap Q3; recognition.
+- Decisions: Sarah leads the retro.
+- Action items: (Sarah) draft retro agenda [open]; (me) raise recognition w/ VP [done]
+- Questions surfaced: "what does staff scope look like here?"
+</pre>
+<p>A parser/serializer round-trips this structure byte-stably (frontmatter + the fixed section set). <code>note</code> appends to <code>## Inbox</code>; <code>log</code> prepends a dated block under <code>## Sessions</code> and moves discussed inbox lines out; context verbs edit the header sections. First write creates <code>~/.pmos/one-on-ones/</code>.</p>
+</section>
+
+<section id="verbs">
+<h2>4. Verbs</h2>
+<table>
+<tr><th>Verb</th><th>Syntax</th><th>Behavior</th></tr>
+<tr><td>add</td><td><code>/one-on-ones add &lt;name&gt;</code></td><td>Resolve/create <code>/people</code> identity (offer create when absent; DEFER under <code>--non-interactive</code>, never fabricate). Scaffold the record: cadence, role, goals, operating-manual prompts.</td></tr>
+<tr><td>note</td><td><code>/one-on-ones note &lt;report&gt; "&lt;item&gt;" [--tag blocker|growth|morale|feedback-up]</code></td><td>Append one inbox item. Single command, unattended-safe. This is the mid-week quick-capture.</td></tr>
+<tr><td>plan</td><td><code>/one-on-ones plan &lt;report&gt;</code></td><td>Assemble a human-first prep agenda (see §5); emit a commentable HTML prep artifact. The coaching surface.</td></tr>
+<tr><td>log</td><td><code>/one-on-ones log &lt;report&gt;</code></td><td>Capture a dated session (topics, decisions, action items owner+status, questions); clear discussed inbox items. Missing body DEFERs under <code>--non-interactive</code>.</td></tr>
+<tr><td>set</td><td><code>/one-on-ones set &lt;report&gt; goal|theme|perf|coaching "&lt;text&gt;"</code></td><td>Add/update a header section (goals, standing themes, performance feedback, coaching feedback). Manager-entered only.</td></tr>
+<tr><td>career</td><td><code>/one-on-ones career &lt;report&gt;</code></td><td>Laraway 3-part career conversation (Life Story → Dreams → Career Action Plan), distinct from weekly prep; writes a career-plan block + stamps <code>career_last_reviewed</code>.</td></tr>
+<tr><td>(bare)</td><td><code>/one-on-ones</code></td><td>Overview: reports, who's due (cadence vs last session), open action items, inbox counts.</td></tr>
+</table>
+</section>
+
+<section id="prep-output">
+<h2>5. <code>plan</code> — the coached prep agenda</h2>
+<p>Assembled deterministically from the record, then annotated with coaching from the corpus (§6). Sections, in order:</p>
+<ol>
+<li><strong>Human first</strong> — a check-in opener ("How are you as a person?" / "What's top of mind?"), always first.</li>
+<li><strong>Last time's open loops</strong> — open action items + questions from the newest session entry, surfaced for follow-through.</li>
+<li><strong>Their agenda</strong> — inbox items (report's + manager's captures), grouped by intent tag.</li>
+<li><strong>Growth & feedback in view</strong> — goals, standing themes, and the latest performance + coaching feedback, so the manager plans against them (structurally resists status-creep).</li>
+<li><strong>Coached suggestions</strong> — intent-tagged question picks from the corpus + nudges: human-first, listen-heavy (Horowitz 10/90), solicit upward feedback, and flags:
+  <ul>
+    <li><span class="cap">status-creep flag</span> — if the last <em>N</em> session entries are topic-only with no growth/human content.</li>
+    <li><span class="cap">stale-action flag</span> — an open action item older than a threshold.</li>
+    <li><span class="cap">career-due flag</span> — <code>career_last_reviewed</code> older than ~a quarter → suggest a career session.</li>
+  </ul>
+</li>
+</ol>
+<p>Output: a commentable HTML prep artifact via the html-authoring substrate (so the manager can annotate it), plus a terminal summary. The flags are computed by script (deterministic), never by the model guessing — §H.</p>
+</section>
+
+<section id="coaching-corpus">
+<h2>6. Coaching corpus (bundled reference)</h2>
+<p>Ships in the skill's <code>reference/</code> (offline, no network). Feeds <code>plan</code>'s suggestions and <code>career</code>. Contents:</p>
+<ul>
+<li><strong>12 durable principles</strong> — report's meeting; not a status report; listen &gt; talk; near-never cancel; high-leverage; go below the surface; solicit feedback on yourself then be silent; capture + close loops; coaching/growth are the point; learn how each person wants to be led early; match style to person/moment; protect the human layer.</li>
+<li><strong>Named models</strong> — Manager Tools 10/10/10; Rands' Update/Vent/Disaster; Laraway Career Conversations; GitLab agenda template; Hogan first-1:1 operating-manual questions.</li>
+<li><strong>Intent-tagged question bank</strong> — opener / growth-career / blockers / morale / feedback-up / relationship / workload.</li>
+</ul>
+<h3>Attribution caveats (must be honored in the corpus)</h3>
+<div class="caveat">The <strong>10/90 talk ratio is Horowitz</strong>, not Grove (Grove's version: "ask another question").</div>
+<div class="caveat">Laraway's plan is <strong>"long-term vision + short-term plan"</strong> (Sandberg's 18-month), <em>not</em> a "15-month plan".</div>
+<div class="caveat">Hogan's <strong>"Bias Toward [Action/Feelings]"</strong> two-column exercise is <em>unverified</em> (likely <em>Resilient Management</em>) — label as such, do not assert verbatim.</div>
+<div class="caveat">Manager Tools <strong>10/10/10</strong> and the Rands "you're doing it wrong" line are documented-canon / paraphrase — attribute accordingly.</div>
+</section>
+
+<section id="noninteractive">
+<h2>7. Non-interactive contract</h2>
+<p>Inline the canonical <code>_shared/non-interactive.md</code> block byte-identically (pmos-managerkit has no <code>_shared/</code> yet — the block is inlined per skill anyway). Per-verb posture: <code>note</code> and <code>log</code> AUTO-PICK Recommended (unattended-safe capture); <code>add</code> with a missing <code>/people</code> identity DEFERs (never fabricate a person); <code>log</code>/<code>career</code> with no supplied body DEFERs (never fabricate feedback or session content). Every <code>AskUserQuestion</code> carries a <code>(Recommended)</code> option or an adjacent <code>&lt;!-- defer-only: … --&gt;</code> tag.</p>
+</section>
+
+<section id="platform">
+<h2>8. §H / §I / §L notes</h2>
+<ul>
+<li><strong>§H gates:</strong> the status-creep / stale-action / career-due flags and the "who's due" overview are <em>deterministic → computed by script</em>, never model arithmetic. Coaching <em>suggestions</em> are advisory (judgment).</li>
+<li><strong>§I flags:</strong> NL-first — every verb/flag has a natural-language form; <code>--tag</code>, <code>--non-interactive</code> are the only contract flags (typed value / headless determinism). Others stay parsed as silent aliases.</li>
+<li><strong>§L dispatch:</strong> no subagent fan-out needed; the skill is a sequential CRUD-plus-coaching flow.</li>
+</ul>
+</section>
+
+<section id="decisions">
+<h2>9. Decisions</h2>
+<table>
+<tr><th>#</th><th>Decision</th><th>Rationale</th></tr>
+<tr><td>D1</td><td>One rolling record per report (header + inbox + reverse-chron log)</td><td>Shape brief Framing B; the hybrid the 1:1 doctrine converges on. Not one-file-per-session.</td></tr>
+<tr><td>D2</td><td>Store under <code>~/.pmos/one-on-ones/</code></td><td>Outside repo → privacy (INV-4); matches <code>~/.pmos/people</code>, <code>~/.pmos/tasks</code> convention.</td></tr>
+<tr><td>D3</td><td>Identity in <code>/people</code>; skill owns the record</td><td>User: "add reports to /people for sure." Light coupling to identity only (INV-1).</td></tr>
+<tr><td>D4</td><td>Independent of <code>/interview-feedback</code>; feedback manager-entered</td><td>Explicit user constraint (INV-2); manager may not use /interview-feedback for a report.</td></tr>
+<tr><td>D5</td><td>No <code>/mytasks</code></td><td>Manager may not own reports' tasks (INV-3).</td></tr>
+<tr><td>D6</td><td>Actively coaching (not neutral notepad)</td><td>User decision; the reason the skill exists vs. a shared doc.</td></tr>
+<tr><td>D7</td><td>Bundled offline corpus with attribution caveats</td><td>Grounded, trustworthy coaching; no network; the 4 caveats prevent misattribution.</td></tr>
+<tr><td>D8</td><td>Flags (status-creep/stale/career-due) computed by script</td><td>§H — deterministic, not model guesses.</td></tr>
+<tr><td>D9</td><td><code>plan</code> emits a commentable HTML prep artifact</td><td>Resolves shape open-Q on output surface: MD records + per-session HTML prep. Full multi-report web viewer deferred (v1 out-of-scope).</td></tr>
+<tr><td>D10</td><td>Career conversation is a separate verb, not folded into weekly prep</td><td>Laraway — career must be run deliberately or it never surfaces.</td></tr>
+<tr><td>D11</td><td>Singleton epic — one story</td><td>Single new skill = one SKILL.md = one PR; splitting would couple two stories on one file (D24 litmus).</td></tr>
+</table>
+</section>
+
+<section id="story-split">
+<h2>10. Story split</h2>
+<p><strong>260702-6ks</strong> — the whole skill, one vertical slice, no deps. ACs on the story item. Scope: ~5 zero-dep Node scripts (record parse/serialize, add, note, plan-assemble, log) + <code>SKILL.md</code> (verbs + phases + inline non-interactive block) + <code>reference/</code> corpus + tests. Single plugin (pmos-managerkit), one release unit → <code>/complete-dev</code> minor bump from 0.2.0.</p>
+</section>

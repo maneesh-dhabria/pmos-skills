@@ -1,0 +1,177 @@
+<meta name="pmos:skill" content="shape">
+<meta name="pmos:shape-phase" content="complete">
+<title>Shaped problem — effective 1:1s skill (pmos-managerkit)</title>
+
+<style>
+  body { max-width: 52rem; margin: 2rem auto; padding: 0 1.25rem; font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: #1a1a1a; }
+  h1 { font-size: 1.7rem; line-height: 1.2; margin: 0 0 .25rem; }
+  h2 { font-size: 1.15rem; margin: 2.2rem 0 .6rem; padding-bottom: .3rem; border-bottom: 2px solid #ececec; }
+  h3 { font-size: 1rem; margin: 1.3rem 0 .4rem; }
+  .sub { color: #666; margin: 0 0 1.5rem; }
+  .tldr { background: #f5f8ff; border: 1px solid #d6e2ff; border-radius: 10px; padding: 1rem 1.2rem; }
+  .tag { display: inline-block; font-size: .72rem; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; padding: .12rem .5rem; border-radius: 999px; background: #eef; color: #335; margin-right: .3rem; }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; margin: .5rem 0; }
+  th, td { text-align: left; vertical-align: top; padding: .5rem .6rem; border-bottom: 1px solid #eee; }
+  th { background: #fafafa; font-size: .78rem; text-transform: uppercase; letter-spacing: .03em; color: #555; }
+  code { background: #f2f2f2; padding: .05rem .3rem; border-radius: 4px; font-size: .88em; }
+  .star { color: #c8860a; font-weight: 700; }
+  .disp-ans { color: #1a7f37; font-weight: 600; }
+  .disp-park { color: #9a6700; font-weight: 600; }
+  .disp-open { color: #8250df; font-weight: 600; }
+  .disp-na { color: #999; font-weight: 600; }
+  blockquote { margin: .6rem 0; padding: .4rem 0 .4rem 1rem; border-left: 3px solid #cbd5e1; color: #333; }
+  ul { padding-left: 1.3rem; }
+  .src { color: #777; font-size: .85em; }
+  section { overflow-x: auto; }
+</style>
+
+<h1>Effective 1:1s — a skill for <code>pmos-managerkit</code></h1>
+<p class="sub">Shaped problem · 2026-07-02 · via <code>/shape</code></p>
+
+<section id="shaped-problem">
+<h2>The shaped problem (TL;DR)</h2>
+<div class="tldr">
+<p><strong>A manager lacks a durable, low-friction, <em>per-report</em> thread that (a) lets them quick-capture a discussion item the instant it occurs, (b) assembles a tailored, human-first agenda at the moment each 1:1 starts, and (c) carries continuity across sessions — open action items, recurring themes, and career goals — so weekly 1:1s stop decaying into status updates and growth / morale actually get tended.</strong></p>
+<p style="margin-bottom:0"><strong>Who:</strong> any manager with recurring direct reports. <strong>When:</strong> the minutes before each 1:1 (prep), the moments after (capture), <strong>and any moment mid-week</strong> when a discussion item occurs and needs to be jotted in two seconds so it surfaces next session.</p>
+</div>
+<p>The skill is <strong>opinionated / actively coaching</strong> (user decision): it bakes in cross-source 1:1 best practices — intent-tagged question suggestions, human-check-in-first, and nudges when recent sessions read status-heavy or an action item has gone stale — rather than being a neutral note organizer. There is <strong>no solution design here</strong> by charter; that begins downstream at <code>/skill-sdlc define</code>.</p>
+</section>
+
+<section id="felt-problem">
+<h2>Felt problem (HMW + JTBD)</h2>
+<p><strong>HMW:</strong> How might we make it effortless for a manager to walk into every 1:1 prepared and human-first, and never lose the thread between sessions?</p>
+<p><strong>JTBD:</strong> <em>When</em> a recurring 1:1 with a report is imminent (or just ended), <em>a manager wants</em> the relevant context, the right questions, and last time's open loops in one place, <em>so they can</em> run a conversation that grows the person instead of re-running a status readout.</p>
+<p><strong>Felt pain (confirmed working assumption A1):</strong> a pairing of <em>blank-page / no-prep</em> + <em>no-memory / no-continuity</em>, with <em>status-update creep</em> as the anti-pattern the skill actively fights and <em>self-mirror / coaching</em> as an emergent benefit.</p>
+</section>
+
+<section id="context-classification">
+<h2>Context classification</h2>
+<p><span class="tag">internal-tool</span> Source: sibling-skill signal (lands next to shipped <code>/interview-feedback</code> and defined <code>/interview-guide</code> in <code>pmos-managerkit</code>; charter = "help me do manager work"). Used silently — lens floor downshifted; no strategic-positioning grilling.</p>
+</section>
+
+<section id="abstraction-ladder">
+<h2>Abstraction ladder</h2>
+<ul>
+<li><strong>Symptom:</strong> "I walk into 1:1s unprepared / they turn into status updates."</li>
+<li><strong>↑ Why:</strong> no system pulls this person's context + last time's loops + their growth goals into one place at the right moment.</li>
+<li><strong>↑ Why:</strong> 1:1 continuity lives in the manager's memory or scattered notes, not a durable per-report thread.</li>
+<li><strong>★ Root altitude (chosen):</strong> a manager has no low-friction, per-report thread that turns scattered context into a prepared, human-first, continuity-aware conversation — so 1:1s decay into status and growth / morale go untended.</li>
+</ul>
+</section>
+
+<section id="decomposition">
+<h2>Decomposition</h2>
+<table>
+<tr><th>Sub-problem</th><th>Leverage</th></tr>
+<tr><td><strong>Prep</strong> — assemble a tailored, human-first agenda for <em>this</em> report <em>now</em> (their open loops, cadence-appropriate depth, coaching prompts)</td><td><span class="star">★ real leverage</span></td></tr>
+<tr><td><strong>Continuity</strong> — a durable per-report record: discussed topics, action items (owner + status), recurring themes, career goals — revisited each session</td><td><span class="star">★ co-leverage</span></td></tr>
+<tr><td><strong>Quick-capture</strong> — zero-friction mid-week dump of a note / discussion item for a given report (<code>/backlog add</code>-style), which lands in that report's rolling record and seeds the next session's agenda</td><td><span class="star">★ real leverage</span></td></tr>
+<tr><td><strong>In-the-moment guidance</strong> — intent-tagged question prompts (blockers / growth / morale / feedback-up) to break status-creep</td><td>supporting</td></tr>
+<tr><td><strong>Rhythm</strong> — the periodic <em>deeper</em> career conversation vs. the weekly tactical 1:1 (Laraway's separation)</td><td>supporting</td></tr>
+<tr><td><strong>Self-mirror</strong> — am I dominating airtime / avoiding hard topics?</td><td>emergent, low priority</td></tr>
+</table>
+</section>
+
+<section id="competing-framings">
+<h2>Competing framings (ripple on the framing)</h2>
+<p><strong>Framing A — "Prep assistant."</strong> Skill = generate an agenda before each 1:1. <em>Ripple:</em> light and fast, but forgets everything → continuity lives elsewhere → status-creep returns. Rejected as the core.</p>
+<p><strong>Framing B — "Per-report relationship thread." ✅ CHOSEN.</strong> Skill = a durable, grounded per-report record that prep, continuity, action items, and career goals all hang off of, refreshed each session. <em>Ripple:</em> higher value; guards status-creep <em>structurally</em> by always surfacing growth / human sections; natural fit with <code>/people</code>; interops with <code>/interview-feedback</code>'s person model. More to build.</p>
+<p><strong>Framing C — "Coaching mirror."</strong> Skill = grade / improve the manager. <em>Ripple:</em> niche, hard to ground, weak fit with managerkit's artifact pattern → de-scoped to a sub-feature, not the core.</p>
+</section>
+
+<section id="record-structure">
+<h2>Resolved: the continuity unit</h2>
+<p><strong>One rolling record <em>per report</em></strong> — internally a reverse-chronological log of <strong>dated session entries</strong> plus <strong>persistent top sections</strong> that never scroll away. (Resolves the user's open question "one recurring record vs. one per session.")</p>
+<ul>
+<li><strong>Persistent header</strong> (rarely changes): who they are, cadence, career goals / growth focus, standing themes, current open action items, operating-manual answers (how they like feedback / recognition).</li>
+<li><strong>Running agenda / inbox</strong> (mid-week quick-capture): un-discussed discussion items dumped in two seconds, cleared into the next session entry when raised. This is the surface the "quickly dump notes" job writes to.</li>
+<li><strong>Session log</strong> (append each 1:1, newest first): date, human check-in, topics, decisions, action items (owner + status), questions surfaced.</li>
+</ul>
+<p class="src">Rationale: one-file-per-session fragments continuity (the exact pain being killed); a flat rolling blob becomes unread. The hybrid is what GitLab's public 1:1 handbook, Lara Hogan's per-person doc, and the "shared rolling doc" doctrine all converge on.</p>
+</section>
+
+<section id="lens-ledger">
+<h2>Lens ledger</h2>
+<table>
+<tr><th>Lens</th><th>Disposition</th><th>Note</th></tr>
+<tr><td>Felt problem / JTBD</td><td class="disp-ans">Answered</td><td>Blank-page + no-continuity; status-creep is the guarded anti-pattern.</td></tr>
+<tr><td>Who &amp; when</td><td class="disp-ans">Answered</td><td>Any manager with recurring reports; before + after each 1:1.</td></tr>
+<tr><td>Altitude</td><td class="disp-ans">Answered</td><td>Root = missing per-report continuity thread.</td></tr>
+<tr><td>Framing choice</td><td class="disp-ans">Answered</td><td>Framing B (per-report relationship thread).</td></tr>
+<tr><td>Data provenance (adaptive)</td><td class="disp-ans">Answered</td><td>Anchor reports in <code>/people</code>; <strong>no</strong> dependence on <code>/mytasks</code> — manager may not own reports' task lists.</td></tr>
+<tr><td>Opinionation</td><td class="disp-ans">Answered</td><td>Actively coach — best practices baked in, not neutral.</td></tr>
+<tr><td>Strategic positioning</td><td class="disp-na">N/A</td><td>Internal-tool bucket → dropped per downshift matrix.</td></tr>
+<tr><td>Ethics / privacy</td><td class="disp-park">Parked</td><td>Per-report records hold sensitive employee content → follow <code>/interview-feedback</code> precedent (gitignored local store, never committed). Flag for <code>/spec</code>.</td></tr>
+<tr><td>Interop with <code>/interview-feedback</code></td><td class="disp-open">Open</td><td>Should a report's scorecard history feed their 1:1 growth section? Handoff-time decision.</td></tr>
+</table>
+<h3>Ceiling-breaker (mandatory off-deck probe)</h3>
+<p><strong>Off-deck probe — data provenance.</strong> The sharpest non-obvious dimension was not a generic lens but "what does this skill ground itself in?" Resolved: <code>/people</code> for identity/relationship, self-contained per-report store for the thread, <em>no</em> task-tracker dependency. This single call shapes the whole skill and was worth surfacing explicitly.</p>
+</section>
+
+<section id="research-grounding">
+<h2>Research grounding — 1:1 best practices</h2>
+<p>Sourced synthesis (primary sources fetched where possible) to feed the skill's baked-in coaching. Full brief retained in session; condensed here.</p>
+
+<h3>Durable cross-source principles (the coaching floor)</h3>
+<ol>
+<li><strong>It's the report's meeting</strong> — agenda &amp; tone set by them <span class="src">(Grove, Horowitz, GitLab, Scott, Manager Tools)</span>.</li>
+<li><strong>Not a status report</strong> — move status async; use the time for the human <span class="src">(Rands, Fournier, Scott, Zhuo)</span>.</li>
+<li><strong>Listen far more than you talk</strong> — Horowitz 10/90, GitLab 20/80.</li>
+<li><strong>Show up consistently; near-never cancel</strong> — the slot itself is the signal <span class="src">(Grove, Manager Tools, Fournier "oil changes")</span>.</li>
+<li><strong>High-leverage, not overhead</strong> — Grove: 90 minutes shapes two weeks of output.</li>
+<li><strong>Go below the surface / embrace the awkward</strong> <span class="src">(Zhuo; Rands' Vent / Disaster modes)</span>.</li>
+<li><strong>Solicit feedback on yourself, then stay silent</strong> — Scott's "What could I do or stop doing…" + "count to six".</li>
+<li><strong>Capture notes &amp; close the loop on action items</strong> — Grove's "handshake"; GitLab Hallway tags.</li>
+<li><strong>Coaching &amp; growth are the point</strong> — Google Oxygen behavior #1; run periodic career conversations separately <span class="src">(Laraway)</span>.</li>
+<li><strong>Learn how each person wants to be led — early</strong> — Hogan's first-1:1 operating-manual questions.</li>
+<li><strong>Match style to the person &amp; moment</strong> — Fournier's five 1:1 styles; Grove's task-relevant maturity.</li>
+<li><strong>Protect the human layer deliberately</strong> — especially remote <span class="src">(GitLab)</span>.</li>
+</ol>
+
+<h3>Named models to encode</h3>
+<ul>
+<li><strong>Manager Tools 10/10/10</strong> — report's agenda / manager's agenda / the future.</li>
+<li><strong>Rands — Update · Vent · Disaster</strong> — diagnose which mode you're in; on a Vent, don't problem-solve.</li>
+<li><strong>Laraway Career Conversations</strong> — Life Story → Dreams → Career Action Plan, run as dedicated sessions.</li>
+<li><strong>GitLab agenda template</strong> — Performance / Career / Vision / Hallway, with revisit-timing tags.</li>
+<li><strong>Hogan first-1:1 operating-manual questions</strong> — feedback style, recognition preference, "what makes you grumpy."</li>
+</ul>
+
+<h3>Question bank by intent</h3>
+<ul>
+<li><strong>Opener:</strong> "What's top of mind for you right now?" (Zhuo)</li>
+<li><strong>Growth / career:</strong> "What skills would you like to develop?"; Laraway's Life Story / Dreams prompts.</li>
+<li><strong>Blockers:</strong> "What can I do to get out of your way?"; "What's the #1 problem with our org? Why?" (Horowitz)</li>
+<li><strong>Morale:</strong> "Are you happy here?"; "When have you felt demoralized this year?"</li>
+<li><strong>Feedback-up:</strong> "What could I do or stop doing that would make it easier to work with me?" (Scott)</li>
+<li><strong>Relationship (first 1:1):</strong> "How do you like feedback — medium and timing?"; "How do you prefer recognition?" (Hogan)</li>
+</ul>
+
+<h3>Attribution caveats to honor downstream</h3>
+<ul>
+<li>The <strong>10/90 talk ratio is Horowitz</strong>, not Grove (Grove's version: "ask another question").</li>
+<li>Laraway's plan is <strong>"long-term vision + short-term plan"</strong> (Sandberg's 18-month), <em>not</em> a "15-month plan".</li>
+<li>Hogan's <strong>"Bias Toward [Action/Feelings]"</strong> two-column exercise is unverified (likely her book <em>Resilient Management</em>) — verify before quoting.</li>
+<li>Manager Tools 10/10/10 and the Rands "you're doing it wrong" line are documented-canon / paraphrase, not fetched verbatim this run.</li>
+</ul>
+</section>
+
+<section id="open-questions">
+<h2>Open questions (for define / spec)</h2>
+<ul>
+<li>Does a report's <code>/interview-feedback</code> scorecard history feed their 1:1 growth section, or stay separate?</li>
+<li>Storage &amp; privacy model for sensitive per-report records — mirror <code>/interview-feedback</code>'s gitignored local store?</li>
+<li>Output surface — Markdown per-report file, an HTML viewer (like <code>/people</code>'s web viewer), or both?</li>
+<li>How does the periodic career-conversation deep-dive get triggered vs. the weekly tactical prep?</li>
+</ul>
+</section>
+
+<section id="handoff">
+<h2>Handoff</h2>
+<p>The problem is shaped. Recommended next step:</p>
+<ul>
+<li><code>/skill-sdlc define</code> — carry this brief into a managerkit skill epic (route: skill). Reuse the research above as the coaching corpus.</li>
+<li><code>/requirements</code> — if you'd rather write acceptance criteria first.</li>
+</ul>
+<p>Also worth doing regardless: <strong>add your direct reports to <code>/people</code></strong> — that's the identity anchor this skill will hang the per-report thread off of.</p>
+</section>
