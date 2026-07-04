@@ -1,0 +1,65 @@
+story: 260704-3jt
+epic: 260704-rgt
+route: skill
+spec: ../../02_design.html
+plugin: pmos-learnkit
+depends_on: [260704-ytr]
+summary: >
+  Backfill the bottom `## References` section into all 61 bundled corpus primers using the shared generator
+  authored in story 260704-ytr. A new backfill-references.mjs CLI reads each primer's existing sources.json
+  sidecar and injects the section via 260704-ytr's injectReferences (imported, not re-implemented — INV-1).
+  Pure local transform: no network, no re-verification, no re-sourcing (INV-3, D10). Idempotent — a second run
+  is a no-op diff (INV-4). Bundled primers ship no sections.json, so backfill touches HTML only.
+
+waves:
+  - wave: 1
+    name: Backfill CLI
+    tasks:
+      - id: T1
+        title: backfill-references.mjs CLI (AC1; INV-1/INV-3)
+        deps: []
+        parallel: false
+        detail: >
+          New plugins/pmos-learnkit/skills/primer/scripts/backfill-references.mjs (zero-dep Node ESM). Import
+          injectReferences from ./references-section.mjs (260704-ytr's export — do NOT re-implement, INV-1).
+          Walk data/primers/*.html; for each, read the sibling `<stem>.sources.json` (array), call
+          injectReferences(html, sources), and atomically rewrite the HTML in place (temp-then-rename). A primer
+          with no sibling sidecar is logged to stderr and skipped, never fatal. Support a --dry-run flag (print
+          would-change files, write nothing) and print a summary line (N processed, M skipped). Note: this story
+          builds on 260704-ytr's merged branch (D9 claim-time merge) — references-section.mjs must be present.
+        verify: >
+          `node scripts/backfill-references.mjs --dry-run` from the primer skill dir lists the 61 corpus primers;
+          a real run rewrites them; a primer missing its sidecar is skipped with a stderr note, not an error.
+  - wave: 2
+    name: Run + verify
+    tasks:
+      - id: T2
+        title: Backfill the corpus + coverage + idempotency (AC2, AC3, AC5)
+        deps: [T1]
+        parallel: false
+        detail: >
+          Run backfill-references.mjs over data/primers/. Assert coverage (AC2): count of data/primers/*.html
+          containing `<h2 id="references">` equals the count of primers with a `.sources.json` sidecar (all 61);
+          each section is the last body section before </main> and lists every entry from that primer's sidecar
+          with correct ·cited· marks. Assert idempotency (AC3): run a second time and confirm `git diff` on
+          data/primers is EMPTY. Confirm primers-index.json is untouched (AC4/D8). Stage the 61 modified corpus
+          HTML files for commit.
+        verify: >
+          coverage assertion passes (61/61); second run yields empty git diff; primers-index.json unchanged;
+          spot-check one primer visually (References last, sources match sidecar, cited marks correct).
+      - id: T3
+        title: Regression + skill-eval + lints (skill-eval, lints, AC6)
+        deps: [T2]
+        parallel: false
+        detail: >
+          Re-run the primer skill's script tests UN-EDITED including 260704-ytr's references-section.mjs tests
+          (the generator must be regression-free under this story). Run skill-eval (skill-eval-check.sh [D] + [J]
+          judge) for the primer skill dir — the SKILL.md body is unchanged by this story, so the guard is that the
+          new script + corpus edits don't regress the rubric. Run the 4 hygiene lints + audit-recommended. Confirm
+          no release-prereq work leaked into any wave (§G — /complete-dev owns bumps/changelog/manifest).
+        verify: >
+          generator tests 0 un-edited; skill-eval [D] exit 0 (or residuals explicitly accepted) and [J] pass;
+          4 lints + audit-recommended green.
+
+# Release prerequisites (owned by /complete-dev — Loop 3, NEVER a build wave; §G)
+#   - Rides epic 260704-rgt's single pmos-learnkit release with story 260704-ytr.

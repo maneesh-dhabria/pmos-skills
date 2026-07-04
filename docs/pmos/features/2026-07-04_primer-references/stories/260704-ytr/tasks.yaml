@@ -1,0 +1,107 @@
+story: 260704-ytr
+epic: 260704-rgt
+route: skill
+spec: ../../02_design.html
+plugin: pmos-learnkit
+depends_on: []
+summary: >
+  Ship the shared deterministic References generator for /primer and wire it into the forward write path, plus
+  codify References as a rubric-enforced required section. New primers end with a `## References` section listing
+  every sources.json entry as a flat numbered [N] list (cleaned-host label, tier badge, verbatim takeaway),
+  with inline-cited sources marked ·cited·. One generator, two callers (INV-1); never model-authored (INV-2);
+  idempotent (INV-4); all sources shown honestly (INV-5). This story is the sole author of
+  references-section.mjs, which story 260704-3jt consumes for corpus backfill.
+
+waves:
+  - wave: 1
+    name: Generator
+    tasks:
+      - id: T1
+        title: Shared generator module — references-section.mjs (AC1, AC2, AC3; INV-1/INV-2/INV-4/INV-5)
+        deps: []
+        parallel: false
+        detail: >
+          New plugins/pmos-learnkit/skills/primer/scripts/references-section.mjs (zero-dep Node ESM, matching
+          build-library.mjs). Export renderReferencesFragment(sources, citedUrls) -> htmlString: a PURE function
+          returning a content-only fragment `<h2 id="references">References</h2><ol>...</ol>`; each <li> renders
+          `<a href="{url}">{label}</a>` (label = cleaned host of url: strip scheme + leading www.), a tier badge,
+          `·cited·` when url ∈ citedUrls, and the verbatim takeaway (02_design.html#scope). Order by tier
+          (T1->T2->...; unknown tiers last) then original sources.json order; output byte-stable for identical
+          inputs (D6). Export injectReferences(primerHtml, sources) -> newHtml: derive citedUrls by scanning body
+          `<a href="...">` URLs that lie OUTSIDE any existing #references section (substring/host match per D3),
+          remove any existing `<h2 id="references">...</h2>`-through-section-end block (idempotency, INV-4), then
+          insert renderReferencesFragment output immediately before the closing `</main>` (D7 absolute bottom).
+          HTML escape all interpolated text. No network, no I/O beyond the passed strings (INV-3).
+        verify: >
+          node -e import of the module resolves both exports; a hand call on a tiny fixture emits one
+          #references section with every source, correct ·cited· marks, tier ordering, and second injectReferences
+          call yields identical output.
+
+  - wave: 2
+    name: Wire + codify
+    tasks:
+      - id: T2
+        title: Unit tests for references-section.mjs (AC8)
+        deps: [T1]
+        parallel: true
+        detail: >
+          scripts/tests (or the primer skill's existing test convention) covering: fragment shape + <ol>/<li>
+          structure; tier-then-order sorting; ·cited· detection for a cited vs a background url (one of each);
+          idempotency (injectReferences twice == once, byte-equal); all-sources membership (every url present
+          exactly once); placement immediately before </main>; HTML-escaping of a url/takeaway containing `&`/`<`.
+          Runnable via `node --test` (or the repo script-test wrapper); wire into the skill's test runner.
+        verify: test run exits 0; all cases present and green.
+      - id: T3
+        title: SKILL.md forward wiring — Phase 4/5 + worked example + anti-pattern (AC4, AC5)
+        deps: [T1]
+        parallel: true
+        detail: >
+          Phase 4 (#draft): note that the closing `## References` section is generated deterministically from
+          sources.json (NOT drafted by the model, INV-2) — the model authors prose + `## Where this connects`
+          only. Phase 5 (#eval-write) step 7: after building the content-only {{content}} fragment and BEFORE
+          renderArtifact(), append renderReferencesFragment(sources, citedUrls) as the last content block (shell
+          still from template.html — Anti-pattern #9 preserved, 02_design.html#forward-path); ensure the
+          atomic-trio sections.json id set includes `references` (equals on-page id set, R7). Update the Worked
+          example to mention the References section. Add Anti-pattern: "Hand-authoring the References list instead
+          of generating it from sources.json" (mirrors #9). Keep the frozen non-interactive block byte-identical.
+        verify: >
+          grep shows Phase 4 + Phase 5 step 7 reference the generator and sections.json id; new anti-pattern
+          present; non-interactive block unchanged (lint-non-interactive-inline green).
+      - id: T4
+        title: Guideline — required section (audience-presets) + rubric R11 (AC6, AC7)
+        deps: [T1]
+        parallel: true
+        detail: >
+          reference/audience-presets.md: add `## References` to the required closing-sections contract for both
+          presets (senior-pms + all-pms), placed after `## Where this connects` (02_design.html#enforcement).
+          reference/rubric.md: add R11 (deterministic, trust-tier) — (a) `<h2 id="references">` present; (b) every
+          sources.json[].url appears in the References list (membership; no source dropped, INV-5); (c) `references`
+          id ∈ sections.json. Extend the rubric's declared check-id set to include R11 (Phase-5 orchestrator-side
+          validation compares against this set — SKILL.md Phase 5 step 2 says "MUST equal rubric.md's 10 IDs";
+          update that count to 11). Document R11 as a membership/structure test needing no re-fetch, and note
+          word_count (R10 informational) excludes the References section (D8).
+        verify: >
+          audience-presets required-sections list includes References for both presets; rubric.md has R11 with a
+          clear pass-condition; the "10 IDs"/count reference in SKILL.md Phase 5 is updated to 11 consistently.
+  - wave: 3
+    name: Prove + gate
+    tasks:
+      - id: T5
+        title: Fixture-render proof + skill-eval + lints (AC7, skill-eval, lints)
+        deps: [T2, T3, T4]
+        parallel: false
+        detail: >
+          Prove the forward path end-to-end on a small fixture: assemble a 3-source sources.json fixture + a
+          minimal content fragment, run the Phase-5 render path, and assert the emitted primer HTML contains one
+          `<h2 id="references">` as the last section (before </main>), every fixture url present, correct ·cited·
+          marks, and sections.json id set includes `references` (R11 passes deterministically). Run skill-eval
+          (skill-eval-check.sh [D] + the [J] judge) for the primer skill dir at the resolved target; run the 4
+          hygiene lints (lint-non-interactive-inline, lint-flags-vs-hints, lint-phase-refs, and the audit) +
+          audit-recommended. Fix any residuals within the eval cap.
+        verify: >
+          fixture render shows References last + R11 pass; skill-eval [D] exit 0 (or residuals explicitly
+          accepted) and [J] pass; 4 lints + audit-recommended green.
+
+# Release prerequisites (owned by /complete-dev — Loop 3, NEVER a build wave; §G)
+#   - pmos-learnkit plugin.json ×2 minor version bump.
+#   - Changelog entry; manifest version-sync; no new README row (existing skill).

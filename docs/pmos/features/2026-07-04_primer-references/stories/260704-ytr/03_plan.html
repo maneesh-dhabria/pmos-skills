@@ -1,0 +1,49 @@
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Plan — 260704-ytr /primer References generator + forward + guideline</title>
+<style>
+  body { max-width: 52rem; margin: 2rem auto; padding: 0 1.25rem; font: 16px/1.62 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: #1a1a1a; }
+  h1 { font-size: 1.5rem; margin: 0 0 .25rem; } h2 { font-size: 1.1rem; margin: 1.9rem 0 .5rem; border-bottom: 2px solid #ececec; padding-bottom: .3rem; }
+  .sub { color: #666; margin: 0 0 1.4rem; } code { background: #f2f2f2; padding: .05rem .3rem; border-radius: 4px; font-size: .87em; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; } th,td { text-align: left; vertical-align: top; padding: .45rem .6rem; border-bottom: 1px solid #eee; } th { background: #fafafa; font-size: .75rem; text-transform: uppercase; letter-spacing: .03em; color: #555; }
+  ul { padding-left: 1.3rem; }
+</style>
+
+<h1>Plan — 260704-ytr</h1>
+<p class="sub">Story: /primer References — shared generator + forward wiring + guideline · route: skill ·
+epic 260704-rgt · no deps · machine plan in <code>tasks.yaml</code>. Cites <code>02_design.html</code> §3–§5,
+D1–D8, INV-1/2/4/5.</p>
+
+<h2 id="approach">Approach</h2>
+<p>One deterministic module (<code>references-section.mjs</code>) is the whole story's center of gravity: it
+owns <em>how a reference renders</em> (INV-1), and both the forward write path here and the backfill CLI in
+260704-3jt call it. Everything else is wiring (Phase 5 appends its output; sections.json gains the id) and
+codification (required section + rubric R11). The model never authors the list (INV-2).</p>
+
+<h2 id="waves">Waves</h2>
+<table>
+  <tr><th>Wave</th><th>Task</th><th>Deps</th><th>Output</th></tr>
+  <tr><td>1</td><td>T1 generator module</td><td>—</td><td><code>scripts/references-section.mjs</code>:
+  <code>renderReferencesFragment</code> (pure) + <code>injectReferences</code> (idempotent, before <code>&lt;/main&gt;</code>)</td></tr>
+  <tr><td>2</td><td>T2 unit tests</td><td>T1</td><td>shape, ordering, cited-detection, idempotency, membership, escaping</td></tr>
+  <tr><td>2</td><td>T3 SKILL.md forward wiring</td><td>T1</td><td>Phase 4 note + Phase 5 step 7 append + sections.json id + worked example + anti-pattern</td></tr>
+  <tr><td>2</td><td>T4 guideline</td><td>T1</td><td><code>audience-presets.md</code> required section + <code>rubric.md</code> R11 (+ id-count 10→11)</td></tr>
+  <tr><td>3</td><td>T5 prove + gate</td><td>T2,T3,T4</td><td>fixture render (References last, R11 pass) + skill-eval + 4 lints + audit</td></tr>
+</table>
+
+<h2 id="risks">Risks &amp; decisions in play</h2>
+<ul>
+  <li><strong>Anchor label (D5).</strong> Schema has no title → label = cleaned host; the takeaway carries human
+  attribution. Uniform for forward + backfill; no schema change.</li>
+  <li><strong>Rubric id-count coupling.</strong> SKILL.md Phase 5 step 2 hardcodes "rubric.md's 10 IDs" — R11
+  makes it 11; T3/T4 must update both consistently or Phase-5 orchestrator-side validation breaks.</li>
+  <li><strong>Anti-pattern #9 boundary.</strong> The References fragment is appended to the content-only
+  <code>{{content}}</code> before <code>renderArtifact()</code> — never post-injected into the rendered shell on
+  the forward path (post-injection is the backfill-only path). Keeps the single-render contract.</li>
+  <li><strong>word_count (D8).</strong> R10 informational word_count excludes the References apparatus so the
+  metric stays comparable pre/post.</li>
+</ul>
+
+<h2 id="release-prereqs">Release prerequisites (Loop 3 — /complete-dev, never a build wave)</h2>
+<ul>
+  <li>pmos-learnkit <code>plugin.json</code> ×2 minor bump; changelog entry; manifest version-sync; no new README row.</li>
+</ul>
