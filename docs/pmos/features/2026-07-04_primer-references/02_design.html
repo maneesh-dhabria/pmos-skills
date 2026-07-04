@@ -1,0 +1,193 @@
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Design — /primer References section (pmos-learnkit)</title>
+<style>
+  body { max-width: 54rem; margin: 2rem auto; padding: 0 1.25rem; font: 16px/1.62 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: #1a1a1a; }
+  h1 { font-size: 1.6rem; margin: 0 0 .25rem; } h2 { font-size: 1.14rem; margin: 2.1rem 0 .5rem; border-bottom: 2px solid #ececec; padding-bottom: .3rem; }
+  h3 { font-size: 1.02rem; margin: 1.3rem 0 .35rem; } .sub { color: #666; margin: 0 0 1.4rem; }
+  code { background: #f2f2f2; padding: .05rem .3rem; border-radius: 4px; font-size: .87em; } pre { background: #f7f7f9; border: 1px solid #eee; border-radius: 8px; padding: .8rem 1rem; overflow-x: auto; font-size: .84rem; line-height: 1.5; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; margin: .4rem 0; } th,td { text-align: left; vertical-align: top; padding: .45rem .6rem; border-bottom: 1px solid #eee; } th { background: #fafafa; font-size: .75rem; text-transform: uppercase; letter-spacing: .03em; color: #555; }
+  ul { padding-left: 1.3rem; } section { overflow-x: auto; } .inv { background: #fff8f0; border: 1px solid #f0dcc0; border-radius: 8px; padding: .3rem .8rem; }
+  .dec { background: #f0f6ff; border: 1px solid #cfe0f5; border-radius: 8px; padding: .3rem .8rem; }
+</style>
+
+<h1>Design — <code>/primer</code> References section</h1>
+<p class="sub">pmos-learnkit · epic 260704-rgt · route: skill · the cross-cutting coherence contract for
+stories 260704-ytr (generator + forward wiring + guideline) and 260704-3jt (corpus backfill). Stories cite
+this doc by anchor. Grill-hardened (D1–D10). No epic <code>/spec</code> — this design doc is the skill-epic
+contract; per-skill spec folds into each story's <code>/plan</code>.</p>
+
+<section id="overview">
+<h2 id="overview-h">1. Overview</h2>
+<p>Every <code>/primer</code> is already built on a fully-verified source set persisted as a
+<code>{date}_{slug}.sources.json</code> sidecar (array of <code>{url, takeaway, topic, tier, paywalled}</code>).
+Today that evidence base is invisible in the reader-facing artifact — the HTML ends at
+<code>## Where this connects — adjacent topics</code> and the sources live only in the sidecar JSON. This epic
+<strong>surfaces</strong> that existing data as a <code>## References</code> section at the bottom of every
+primer: the full set of sources the primer was built on (all were read + synthesized), with the ones actually
+cited inline in the prose visually marked.</p>
+<p>The change has three faces, all serving one rule — <em>a reader can see, and trust, exactly what a primer
+was built on</em>:</p>
+<ul>
+  <li><strong>Forward</strong> — new primers emit a References section automatically (story 260704-ytr).</li>
+  <li><strong>Backfill</strong> — all 61 bundled corpus primers get the section injected from their existing
+  sidecars (story 260704-3jt).</li>
+  <li><strong>Guideline</strong> — References becomes a required closing section enforced by a deterministic
+  rubric check, so it never silently regresses (story 260704-ytr).</li>
+</ul>
+</section>
+
+<section id="invariants">
+<h2 id="invariants-h">2. Invariants</h2>
+<div class="inv"><ul>
+  <li><strong>INV-1 — One generator, two callers (§K one-home).</strong> The References HTML is produced by a
+  single deterministic function. The forward write path and the backfill CLI both call it; neither
+  re-implements the rendering. There is exactly one place that decides how a reference renders.</li>
+  <li><strong>INV-2 — Deterministic, not model-authored (§H).</strong> The References list is a pure transform
+  of <code>sources.json</code> + the rendered body. The LLM never hand-writes it; a script does. Hand-authoring
+  a References block is an anti-pattern on par with hand-authoring the primer shell.</li>
+  <li><strong>INV-3 — Data already exists; nothing re-fetched.</strong> Both forward and backfill read only the
+  primer's own <code>sources.json</code>. No network, no re-verification, no new sourcing. Backfill of the
+  corpus is a pure local re-render.</li>
+  <li><strong>INV-4 — Idempotent injection.</strong> Re-running the generator over a primer that already has a
+  References section replaces it in place — never appends a second one. Backfill is safe to re-run; the forward
+  path never double-emits.</li>
+  <li><strong>INV-5 — Show every source, honestly.</strong> The section lists <em>all</em> <code>sources.json</code>
+  entries (every one was read + synthesized = "used in creating"), and marks which also appear as an inline
+  citation. It never silently drops a source, and never claims a source was cited that was not.</li>
+</ul></div>
+</section>
+
+<section id="scope">
+<h2 id="scope-h">3. What the References section is</h2>
+<p>A flat, numbered back-matter list rendered as the final section of the primer body — after
+<code>## Where this connects</code>, immediately before <code>&lt;/main&gt;</code>. The <code>&lt;h2
+id="references"&gt;References&lt;/h2&gt;</code> heading picks up the primer's existing <code>[NN]</code>
+section-signature counter automatically (CSS <code>h2::before</code>), so it reads as the last numbered
+section.</p>
+<p>Each entry (D4 — flat numbered <code>[N]</code>):</p>
+<pre>[1] &lt;a href="{url}"&gt;{label}&lt;/a&gt;  ·cited·   (T2)
+    {takeaway}
+[2] &lt;a href="{url}"&gt;{label}&lt;/a&gt;            (T1)
+    {takeaway}</pre>
+<table>
+  <tr><th>Field</th><th>Source</th><th>Rule</th></tr>
+  <tr><td>ordinal <code>[N]</code></td><td>computed</td><td>Ordered by tier (T1→T2→T3…) then original
+  <code>sources.json</code> order; stable across re-runs (D6).</td></tr>
+  <tr><td>anchor <code>href</code></td><td><code>url</code></td><td>Verbatim <code>sources.json[].url</code>.
+  Books/paid cite the free entry-point URL already stored (matches Phase-3 rule).</td></tr>
+  <tr><td>anchor label</td><td>derived from <code>url</code></td><td>Cleaned host (strip <code>www.</code>,
+  scheme) — deterministic; no <code>title</code> field exists in the schema (D5). Uniform for forward + backfill.</td></tr>
+  <tr><td><code>·cited·</code> marker</td><td>computed</td><td>Present iff <code>url</code> appears inside an
+  <code>&lt;a href&gt;</code> in the primer body <em>outside</em> the References section (D3, D6).</td></tr>
+  <tr><td>tier badge</td><td><code>tier</code></td><td>Rendered as-is (T1/T2/T3…).</td></tr>
+  <tr><td>takeaway</td><td><code>takeaway</code></td><td>The grounded ≤2-sentence summary, verbatim.</td></tr>
+</table>
+</section>
+
+<section id="architecture">
+<h2 id="architecture-h">4. Architecture — the shared generator (INV-1)</h2>
+<p>A new module <code>plugins/pmos-learnkit/skills/primer/scripts/references-section.mjs</code> (zero-dep Node
+ESM, matching <code>build-library.mjs</code>) exports two functions:</p>
+<table>
+  <tr><th>Export</th><th>Signature</th><th>Used by</th></tr>
+  <tr><td><code>renderReferencesFragment</code></td><td><code>(sources, citedUrls) → htmlString</code></td>
+  <td>The single source of truth for the section markup. Returns a content-only
+  <code>&lt;h2 id="references"&gt;…&lt;/h2&gt;&lt;ol&gt;…</code> fragment. Pure; no I/O.</td></tr>
+  <tr><td><code>injectReferences</code></td><td><code>(primerHtml, sources) → newHtml</code></td>
+  <td>Backfill + any post-render path. Parses body <code>&lt;a href&gt;</code> URLs → <code>citedUrls</code>,
+  calls <code>renderReferencesFragment</code>, removes any existing <code>#references</code> section (INV-4),
+  inserts the fragment immediately before the closing <code>&lt;/main&gt;</code>.</td></tr>
+</table>
+<h3 id="forward-path">4.1 Forward path (story 260704-ytr)</h3>
+<p>Phase 5 builds a content-only <code>{{content}}</code> fragment then renders via
+<code>renderArtifact()</code>. The References fragment is produced by <code>renderReferencesFragment(sources,
+citedUrls)</code> — where <code>citedUrls</code> are computed from the drafted body — and <strong>appended to
+<code>content</code> as its last block, before <code>renderArtifact()</code> runs</strong> (not post-injected).
+This keeps the single-render-path contract (Anti-pattern #9) intact: the shell still comes only from
+<code>template.html</code>. The <code>sections.json</code> assembled in the atomic trio must include the
+<code>references</code> id (its id set must equal the on-page id set — rubric R7).</p>
+<h3 id="backfill-path">4.2 Backfill path (story 260704-3jt)</h3>
+<p>A new CLI <code>scripts/backfill-references.mjs</code> walks <code>data/primers/*.html</code>, reads the
+sibling <code>*.sources.json</code>, calls <code>injectReferences(html, sources)</code>, and atomically
+rewrites the HTML in place. Idempotent (INV-4): a second run is a no-op diff. Bundled primers ship
+<strong>no <code>sections.json</code></strong> (confirmed — only <code>.html</code> + <code>.sources.json</code>
+in the corpus), so backfill touches HTML only; there is no sections.json to reconcile for the static corpus.</p>
+</section>
+
+<section id="enforcement">
+<h2 id="enforcement-h">5. Guideline &amp; enforcement (story 260704-ytr)</h2>
+<ul>
+  <li><strong>Required section.</strong> <code>reference/audience-presets.md</code> adds <code>## References</code>
+  to the required closing-sections contract for every preset (senior-pms + all-pms), placed after
+  <code>## Where this connects</code>.</li>
+  <li><strong>New rubric check R11 (deterministic, trust-tier).</strong> Added to
+  <code>reference/rubric.md</code>: (a) a <code>&lt;h2 id="references"&gt;</code> section exists; (b) every
+  <code>sources.json[].url</code> appears in the References list (membership test — no source silently dropped,
+  INV-5); (c) the <code>references</code> id is in <code>sections.json</code>. R11 is a membership/structure
+  test — like R7, it runs deterministically at construction time and does not require re-fetching.</li>
+  <li><strong>SKILL.md.</strong> Phase 4 notes References is generated deterministically (not drafted); Phase 5
+  step 7 appends the fragment + adds the id to <code>sections.json</code>; the worked example and Anti-patterns
+  gain a "don't hand-author References" note mirroring #9.</li>
+</ul>
+</section>
+
+<section id="decisions">
+<h2 id="decisions-h">6. Decisions (grill-hardened)</h2>
+<div class="dec"><ul>
+  <li><strong>D1 — List scope: all sources, cited-marked.</strong> The section lists every
+  <code>sources.json</code> entry (all were read + synthesized), and marks the subset that also appear as inline
+  <code>&lt;a href&gt;</code> citations. Faithful to "used in creating <em>and</em> cited." (Rejected:
+  cited-only bibliography — would hide background sources the primer genuinely rests on.)</li>
+  <li><strong>D2 — Enforcement: required section + rubric check R11.</strong> Durable, eval-gated. (Rejected:
+  procedure-only — silently regresses.)</li>
+  <li><strong>D3 — "cited" is computed, not stored.</strong> Deterministic: URL-substring match inside body
+  <code>&lt;a href&gt;</code> outside the References section. No new sidecar field.</li>
+  <li><strong>D4 — Format: flat numbered <code>[N]</code>, ordered tier-then-appearance.</strong> Matches the
+  primer's <code>[NN]</code> signature aesthetic. (Rejected: grouped-by-H2-topic — heavier, and
+  <code>topic</code> slugs don't always map cleanly to final H2 ids.)</li>
+  <li><strong>D5 — Anchor label = cleaned host.</strong> Schema has no <code>title</code>; a derived host label
+  is deterministic and identical for forward + backfill. The takeaway (which typically names the source, e.g.
+  "Wikipedia defines…") carries the human attribution. No schema change.</li>
+  <li><strong>D6 — Stable, idempotent output.</strong> Ordering + cited-detection are pure functions of inputs,
+  so re-running produces a byte-identical section (INV-4). Backfill re-runs are no-op diffs.</li>
+  <li><strong>D7 — Placement: absolute bottom.</strong> After <code>## Where this connects</code>, before
+  <code>&lt;/main&gt;</code>. References is back-matter apparatus, not teaching.</li>
+  <li><strong>D8 — <code>word_count</code> excludes References.</strong> The library index / R10 word_count counts
+  teaching prose only; the References apparatus is excluded so the metric stays comparable to pre-epic values.
+  Backfill does not recompute or touch <code>primers-index.json</code> (<code>sources_count</code> already
+  present; word_count unchanged by design).</li>
+  <li><strong>D9 — Two stories, generator → backfill.</strong> Story 260704-ytr ships the shared generator +
+  forward wiring + guideline (no deps). Story 260704-3jt backfills the corpus using that generator (deps:
+  260704-ytr; D9 claim-time merge brings the module into the backfill worktree). Both are one skill
+  (<code>/primer</code>), one plugin (pmos-learnkit), one release unit.</li>
+  <li><strong>D10 — No re-verification, no re-sourcing.</strong> Surfacing existing sidecar data is not a
+  research run. Backfill is a pure local transform; no WebFetch, no rubric R1–R3 re-scoring of the corpus.</li>
+</ul></div>
+</section>
+
+<section id="story-split">
+<h2 id="story-split-h">7. Story split</h2>
+<table>
+  <tr><th>Story</th><th>Scope</th><th>Deps</th><th>route</th></tr>
+  <tr><td><strong>260704-ytr</strong> — generator + forward + guideline</td><td>New
+  <code>scripts/references-section.mjs</code> (<code>renderReferencesFragment</code> + <code>injectReferences</code>)
+  + unit tests; SKILL.md Phase 4/5 + worked example + anti-pattern; <code>audience-presets.md</code> required
+  section; <code>rubric.md</code> R11. A newly-generated primer emits References; R11 passes.</td><td>—</td>
+  <td>skill</td></tr>
+  <tr><td><strong>260704-3jt</strong> — corpus backfill</td><td>New <code>scripts/backfill-references.mjs</code>
+  CLI using 260704-ytr's <code>injectReferences</code>; run once over all 61 bundled primers; idempotent verify.
+  All corpus HTML carries the section, matching each sidecar.</td><td>260704-ytr</td><td>skill</td></tr>
+</table>
+<p>Per the D24 litmus: the only cross-story dependency is the shared <code>injectReferences</code> function
+(a story-level dep, resolved by claim-time merge), never a task-in-A-depends-on-task-in-B coupling.</p>
+</section>
+
+<section id="release-prereqs">
+<h2 id="release-prereqs-h">8. Release prerequisites</h2>
+<ul>
+  <li>pmos-learnkit <code>plugin.json</code> ×2 version bump (behavior change to an existing skill → minor).</li>
+  <li>Changelog entry; no new README row (existing skill). Manifest version-sync.</li>
+  <li>All owned by <code>/complete-dev</code> (Loop 3) — never in a build wave (§G).</li>
+  <li>The bundled corpus HTML edits (story 260704-3jt) ship as data changes within the same release.</li>
+</ul>
+</section>
