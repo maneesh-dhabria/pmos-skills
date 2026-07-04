@@ -4,7 +4,7 @@ id: 260704-ytr
 title: "/primer References — shared deterministic generator + forward wiring (Phase 4/5) + guideline (required section + rubric R11): new primers emit a bottom `## References` section listing all sources.json entries, cited ones marked"
 type: feature
 kind: story
-status: in-progress
+status: done
 route: skill
 priority: should
 labels: [pmos-learnkit, primer, references, skill]
