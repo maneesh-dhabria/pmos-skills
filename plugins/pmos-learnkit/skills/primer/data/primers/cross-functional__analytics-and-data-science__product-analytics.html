@@ -1008,8 +1008,78 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
   <li><strong>Data instrumentation and engineering</strong> — the deeper pipeline of how events are collected, validated, and warehoused once a tracking plan exists.</li>
   <li><strong>Behavioral psychology and habit formation</strong> — why retention and stickiness behave the way they do, and what design choices actually bring people back.</li>
 </ul>
-
-  </main>
+<h2 id="references">References</h2>
+<ol class="primer-references">
+<li>
+<a href="https://en.wikipedia.org/wiki/Analytics">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">Wikipedia defines analytics as "the systematic computational analysis of data or statistics," involving "the discovery, interpretation, and communication of meaningful patterns in data" and "applying data patterns toward effective decision-making." Organizations use it to "describe, predict, and improve business performance."</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Mixpanel">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">Wikipedia describes Mixpanel as "a digital analytics service company that tracks user interactions with web and mobile applications." Its technology uses "event-based analytics, which tracks specific user interactions such as button clicks, video plays, and sign-ups, rather than traditional page-view metrics," and "tracks individual user journeys across devices and sessions rather than treating each visit as an isolated event."</p>
+</li>
+<li>
+<a href="https://www.heap.io/topics/what-is-product-analytics">heap.io</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Heap defines product analytics as "a robust set of tools that allow product managers and product teams to assess the performance of the digital experiences they build" — by "tracking the actions users take on your site—all of the clicks, pageviews, formfills, swipes, and other activities involved in navigating a digital product." It distinguishes product analytics (optimizing the product experience) from business-intelligence tools (cross-functional strategy) and web analytics (site traffic and page views).</p>
+</li>
+<li>
+<a href="https://posthog.com/docs/web-analytics/web-vs-product-analytics">posthog.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">PostHog's docs contrast the two: "Web analytics is good for tracking and monitoring high-level website metrics like page views, bounce rate, and the top sources of traffic," whereas "Product analytics is good for diving deep into how specific users, or groups of users, behave." Web analytics gives aggregate traffic in a pre-built dashboard; product analytics enables custom, event-based tracking of specific interactions.</p>
+</li>
+<li>
+<a href="https://amplitude.com/blog/2017/04/04/event-based-analytics">amplitude.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Amplitude defines an event as "any action or behavior that occurs within a digital touchpoint, such as a mobile app, email, product dashboard, CRM, or webpage." Event-based analytics tracks user interactions by combining events with user properties: "This combination of users and events gives you valuable information about how your product is being used and, most importantly, why."</p>
+</li>
+<li>
+<a href="https://amplitude.com/blog/event-taxonomy">amplitude.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Amplitude defines an event taxonomy as "the collection of events and properties you use to define actions your users can take within your product," and stresses that "Capturing accurate data is the single most important factor in using product analytics to successfully build better products." A quality instrumentation foundation gives teams "the confidence to make decisions independently."</p>
+</li>
+<li>
+<a href="https://www.twilio.com/en-us/resource-center/naming-conventions-for-clean-data">twilio.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Twilio Segment recommends the "object-action framework" — combining the object interacted with and the action performed to create readable names like "Product Viewed" — and stresses that "The only thing that really matters is that you keep it consistent!" It also warns to "Avoid dynamically creating new events with unique variables," passing variable data as properties (e.g. "Sign Up {email: 'jake@segment.com'}") rather than baking it into event names.</p>
+</li>
+<li>
+<a href="https://whatfix.com/blog/funnel-analysis/">whatfix.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Whatfix describes funnel analysis through funnel reports that "visualize user journeys across steps, revealing where drop-offs occur and which behaviors correlate with conversion" — letting teams see where users abandon workflows and which actions link to success.</p>
+</li>
+<li>
+<a href="https://amplitude.com/blog/funnel-analysis">amplitude.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Amplitude defines funnel analysis as "a method used to analyze the sequence of events leading up to a point of conversion," where conversion mode "measures the number of users who have converted through each step of your funnel." The payoff is locating leaks: "If there's a severe drop-off of users during one step of the funnel, you'll know where to center your efforts."</p>
+</li>
+<li>
+<a href="https://amplitude.com/explore/analytics/cohort-retention-analysis">amplitude.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Amplitude defines cohort retention as tracking "groups of users who started at the same time" and measuring "how many return over time," with retention rate being "the percentage of users in a cohort who return and take an action in a subsequent period." It "pinpoints churn timing," "measures strategy impact," and helps "separate growth from engagement."</p>
+</li>
+<li>
+<a href="https://amplitude.com/blog/cohort-analysis">amplitude.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Amplitude frames cohort analysis as "where you compare a specific cohort to another group of users," defining a behavioral cohort as "a group of users who interact with your product in a specific way." Comparing cohorts reveals whether a change "affects how the notification-enabled users engage with the platform compared with everyone else."</p>
+</li>
+<li>
+<a href="https://amplitude.com/blog/user-segmentation">amplitude.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Amplitude defines user segmentation as "organizing groups of users by shared demographics or behaviors" to "focus your experiments in order to target only the customers you want." Without behavioral segmentation, results get skewed because mixing high-usage and minimal users "dilutes experiment conclusions with misleading data."</p>
+</li>
+<li>
+<a href="https://www.geckoboard.com/best-practice/kpi-examples/dau-mau-ratio/">geckoboard.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Geckoboard explains that "The Daily Active Users (DAU) to Monthly Active Users (MAU) Ratio measures the stickiness of your product - that is, how often people engage with your product," calculated by dividing DAU by MAU. It cites Sequoia's benchmark: "the standard DAU/MAU ratio ranges from 10-20%, with only a handful of companies exceeding 50%."</p>
+</li>
+<li>
+<a href="https://amplitude.com/blog/product-metrics">amplitude.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Amplitude argues for choosing metrics deliberately: before a release, "set a measurable target that will determine whether or not the release was successful." It warns against "Fun Facts" — contextless numbers that obscure whether a launch actually succeeded — favoring a focused set of metrics tied to outcomes over collecting many.</p>
+</li>
+<li>
+<a href="https://amplitude.com/blog/product-north-star-metric">amplitude.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Amplitude says "Your North Star Metric should be the key measure of success for your company's product team" — defining "the relationship between the customer problems your product team is trying to solve and the revenue you aim to generate." It frames three product "games" a team must choose between: "The Attention Game," "The Transaction Game," and "The Productivity Game."</p>
+</li>
+<li>
+<a href="https://mixpanel.com/blog/north-star-metric/">mixpanel.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Mixpanel defines a North Star metric as "the one measurement that's most predictive of a company's long-term success," which must "lead to revenue, reflect customer value, and measure progress." Its worked examples by sector: ecommerce — "Number of weekly customers completing their first order"; consumer tech — daily active users; B2B SaaS — monthly recurring revenue.</p>
+</li>
+<li>
+<a href="https://mixpanel.com/blog/what-is-self-serve-analytics/">mixpanel.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Mixpanel defines self-serve analytics as "the tools, systems, and processes that companies use to empower non-technical team members to collect and analyze data for themselves" — letting them "investigate outliers, test hypotheses, and make a case for data-driven business decisions—all without relying on data analysts." It removes the bottleneck where data requests "can take days or even weeks to fulfill."</p>
+</li>
+</ol>
+</main>
   <footer class="pmos-artifact-footer" data-pmos-role="footer">
     <a class="pmos-wordmark pmos-wordmark--footer" href="https://github.com/maneesh-dhabria/pmos-skills/tree/main/plugins/pmos-learnkit#readme" target="_blank" rel="noopener noreferrer" data-pmos-role="wordmark" aria-label="pmos">pmos</a>
     <span class="pmos-artifact-source">Source: docs/pmos/primer/2026-06-14_product-analytics.html</span>

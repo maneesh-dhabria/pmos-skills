@@ -1044,8 +1044,70 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
   <li><strong>Product analytics</strong> — the in-product event tracking that complements channel-level marketing measurement.</li>
   <li><strong>Data privacy and consent</strong> — the regulatory and technical shifts (ATT, cookie deprecation, consent management) reshaping what is measurable at all.</li>
 </ul>
-
-  </main>
+<h2 id="references">References</h2>
+<ol class="primer-references">
+<li>
+<a href="https://quoteinvestigator.com/2022/04/11/advertising/">quoteinvestigator.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">The famous lament "about one-half the money I spend for advertising is wasted, but I have never been able to decide which half" is usually pinned on department-store magnate John Wanamaker, but Quote Investigator notes it "has been unable to find a direct citation… hence, this ascription remains uncertain" — the quote itself, traced to a 1919 speech, captures marketing's founding measurement problem.</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Attribution_(marketing)">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">In marketing, attribution "is the identification of a set of user actions ('events' or 'touchpoints') that contribute to a desired outcome, and then the assignment of a value to each of these events" — the discipline of deciding which marketing moments get credit for a sale.</p>
+</li>
+<li>
+<a href="https://www.nielsen.com/insights/2019/methods-models-a-guide-to-multi-touch-attribution/">nielsen.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">Nielsen defines the rules-based models cleanly: in first-touch "the first touchpoint… receives 100% of the credit," in last-touch "the last touchpoint… receives 100% of the credit," linear gives "all touchpoints… equal credit," and time-decay builds credit toward the final touch; multi-touch attribution instead "takes all of the touchpoints… into consideration and assigns fractional credit to each."</p>
+</li>
+<li>
+<a href="https://support.google.com/analytics/answer/3191594?hl=en">support.google.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">Google's data-driven attribution "uses all available path data—including data from both converting and non-converting users—to understand how the presence of particular marketing touchpoints impacts your users' probability of conversion," computing each touchpoint's "counterfactual gains" — the conversion probability with the touchpoint present versus absent.</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Marketing_mix_modeling">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">Marketing mix modeling (MMM) "is a statistical causal inference and forecasting methodology used to estimate the impact of various marketing tactics on product sales," using "statistical models, such as multivariate regressions" on "sales and marketing time-series data" to gauge each element's contribution, efficiency, and return on investment (ROI).</p>
+</li>
+<li>
+<a href="https://www.haus.io/blog/mta-vs-mmm-choosing-between-multi-touch-attribution-and-marketing-mix-modeling">haus.io</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Haus contrasts the two workhorse methods — "MTA analyzes user-level digital interactions to assign credit across touchpoints, while MMM uses aggregated historical data to estimate the incremental impact" — and warns both share a limit: "both methods are observational and only become causal when paired with rigorous experimentation."</p>
+</li>
+<li>
+<a href="https://www.amsive.com/insights/data-intelligence/the-science-behind-data-driven-attribution/">amsive.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Data-driven attribution "uses an algorithm based on a concept from cooperative game theory called the Shapley Value," which "was developed by the economics Nobel Laureate Lloyd S. Shapley as an approach to fairly distributing the output of a team among the constituent team members" — here the team members are channels and the output is conversions.</p>
+</li>
+<li>
+<a href="https://www.within.co/blog/marketing-attribution-is-all-about-causation">within.co</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">WITHIN frames the core trap plainly: "Correlation = two things move together. Causation = one thing caused the other," and warns that "in a complex media mix, relying on a single model oversimplifies reality" — last-touch puts "100% of credit… on the final interaction" and so confuses correlation with cause.</p>
+</li>
+<li>
+<a href="https://www.northbeam.io/blog/what-is-incrementality-in-marketing">northbeam.io</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Northbeam illustrates the organic-baseline problem: "if a paid social campaign generates 1,000 purchases, but the control group, which wasn't shown the ads, still produces 800 purchases, the incremental lift is only 200 purchases" — and stresses that "incrementality seeks to establish causality, not just correlation," unlike click-and-view attribution.</p>
+</li>
+<li>
+<a href="https://improvado.io/blog/marketing-lift">improvado.io</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Improvado defines marketing lift as "the measurable increase in a desired outcome… caused by a specific marketing campaign," measured by splitting audiences into "an exposed group that sees your campaign, and a control group that doesn't"; lift percentage = "((Exposed Group Conversions − Control Group Conversions) ÷ Control Group Conversions) × 100."</p>
+</li>
+<li>
+<a href="https://www.triplewhale.com/blog/geolift-geo-based-incrementality-testing">triplewhale.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Geo-based incrementality testing "works by running a controlled experiment across geographic regions" — treatment markets get ads, control markets don't — and is privacy-durable because it "doesn't rely on user-level identifiers or personal data"; advanced versions use a synthetic control, "a weighted blend of control markets that mirrors how your treatment markets behaved before the test."</p>
+</li>
+<li>
+<a href="https://www.measured.com/faq/what-are-the-pros-and-cons-of-incrementality-testing-versus-mmm-or-mta/">measured.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Measured assigns the three methods distinct roles: incrementality "measures the causal impact of media using controlled test-vs.-control experiments," MMM "estimate[s] each channel's contribution to sales… but measures correlation — not causation," and MTA "tracks user-level digital journeys"; mature teams triangulate, with "incrementality… as the causal foundation that calibrates broader measurement frameworks."</p>
+</li>
+<li>
+<a href="https://improvado.io/blog/mmm-vs-multi-touch-attribution">improvado.io</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Improvado gives concrete selection thresholds: use MMM "when offline channels represent more than 30% of total spend," the sales cycle "exceeds 30 days," or identity resolution "falls below 60%"; use MTA when "sales cycles are under 7 days" with "over 1,000 conversions monthly" — and "mature teams run both: MMM sets quarterly budget envelopes, MTA drives daily campaign optimization."</p>
+</li>
+<li>
+<a href="https://www.admetrics.io/en/post/marketing-attribution-bias">admetrics.io</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Privacy changes are eroding attribution accuracy: "platforms like Meta acknowledging a potential 15% underreporting of iOS web conversions due to iOS privacy regulations," while "most browsers now restrict the lifespan of first-party cookies to between seven to 45 days, complicating long-term user tracking" — so click-based attribution increasingly undercounts delayed and cross-device conversions.</p>
+</li>
+<li>
+<a href="https://lifesight.io/us/article/marketing-measurement/">lifesight.io</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Marketing measurement is "the process of evaluating the effectiveness of marketing efforts by collecting and analyzing data… across various channels," anchored on metrics such as ROAS (return on ad spend), CAC (customer acquisition cost), and ROMI (return on marketing investment); good measurement ensures "every marketing activity is directly tied to measurable financial outcomes."</p>
+</li>
+</ol>
+</main>
   <footer class="pmos-artifact-footer" data-pmos-role="footer">
     <a class="pmos-wordmark pmos-wordmark--footer" href="https://github.com/maneesh-dhabria/pmos-skills/tree/main/plugins/pmos-learnkit#readme" target="_blank" rel="noopener noreferrer" data-pmos-role="wordmark" aria-label="pmos">pmos</a>
     <span class="pmos-artifact-source">Source: docs/pmos/primer/2026-06-14_marketing-measurement-attribution.html</span>

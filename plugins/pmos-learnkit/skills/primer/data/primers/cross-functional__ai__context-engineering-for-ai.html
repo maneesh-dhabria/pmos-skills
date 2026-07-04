@@ -1052,8 +1052,74 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 <li><strong>AI evaluation</strong> — how to measure model and context quality with repeatable tests, the discipline that tells you whether a context change helped.</li>
 <li><strong>Building AI products</strong> — the broader product-management practice of shipping, measuring, and governing AI features responsibly.</li>
 </ul>
-
-  </main>
+<h2 id="references">References</h2>
+<ol class="primer-references">
+<li>
+<a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents">anthropic.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">Anthropic defines context engineering as "the set of strategies for curating and maintaining the optimal set of tokens (information) during LLM inference, including all the other information that may land there outside of the prompts," managing "the entire context state (system instructions, tools, Model Context Protocol (MCP), external data, message history, etc)." It stresses that "context must be treated as a finite resource with diminishing marginal returns," because as context grows the model's ability to recall information decreases.</p>
+</li>
+<li>
+<a href="https://www.firecrawl.dev/blog/context-engineering">firecrawl.dev</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">Firecrawl quotes a working definition: "Context Engineering is the discipline of designing dynamic systems that provide the right information and tools, in the right format, at the right time, to give an LLM everything it needs to accomplish a task," and Shopify CEO Tobi Lutke's framing as "the art of providing all the context for the task to be plausibly solvable by the LLM." It names four failure modes — "Poisoning, distraction, confusion, and clash" — and advises finding "the minimum set of tokens that maximizes the likelihood of your desired outcome."</p>
+</li>
+<li>
+<a href="https://www.elastic.co/search-labs/blog/context-engineering-vs-prompt-engineering">elastic.co</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">Elastic draws the line: "Prompt engineering focuses on how you communicate with the model. Context engineering focuses on what information the model has access to when it generates responses." Context includes "the prompt and instructions," "documents or external data you retrieve through retrieval-augmented generation (RAG)," and "past state, tool calls, or other history." It frames three failure modes: insufficient information (hallucination), excessive information (overflow), and conflicting data.</p>
+</li>
+<li>
+<a href="https://www.memgraph.com/blog/prompt-engineering-vs-context-engineering">memgraph.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">Memgraph contrasts the two questions: prompt engineering "asks: How should the model behave for this task?" while context engineering "asks: What is the model allowed to know and use for this task?" Prompt engineering "shapes language and behaviour" and sits "close to the model"; context engineering "shapes what the model can see" and sits "in the architecture around the model." Its blunt production lesson: "Prompt tweaks cannot fix missing or bad context."</p>
+</li>
+<li>
+<a href="https://www.trychroma.com/research/context-rot">trychroma.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">Chroma's study coins "context rot" — "How Increasing Input Tokens Impacts LLM Performance" — finding that "models do not use their context uniformly; instead, their performance grows increasingly unreliable as input length grows." Across "18 LLMs, including the state-of-the-art GPT-4.1, Claude 4, Gemini 2.5, and Qwen3 models," performance "degrades as input length increases, often in surprising and non-uniform ways," even on simple tasks.</p>
+</li>
+<li>
+<a href="https://research.ibm.com/blog/retrieval-augmented-generation-RAG">research.ibm.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">IBM Research defines RAG as "an AI framework for retrieving facts from an external knowledge base to ground large language models (LLMs) on the most accurate, up-to-date information." Algorithms "search for and retrieve snippets of information relevant to the user's prompt," then "the LLM draws from the augmented prompt" to answer. By grounding on external facts "the model has fewer opportunities to ... 'hallucinate' incorrect or misleading information" — the "difference between an open-book and a closed-book exam."</p>
+</li>
+<li>
+<a href="https://www.databricks.com/glossary/retrieval-augmented-generation-rag">databricks.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">Databricks calls RAG "a hybrid AI framework that bolsters large language models (LLMs) by combining them with external, up-to-date data sources." It "retrieves relevant documents from external data sources and then feed[s] that context into the model," producing outputs that are "more accurate, current and domain-specific" without retraining — which helps "reduce hallucinations, keep responses up to date and tailor outputs to an organization's own content."</p>
+</li>
+<li>
+<a href="https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices">platform.claude.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">Anthropic's prompting guide recommends structuring inputs: "XML tags help Claude parse complex prompts unambiguously, especially when your prompt mixes instructions, context, examples, and variable inputs." On examples: "A few well-crafted examples (known as few-shot or multishot prompting) can dramatically improve accuracy and consistency" — "Include 3–5 examples for best results." For long inputs: "Place your long documents and inputs near the top of your prompt, above your query."</p>
+</li>
+<li>
+<a href="https://developers.openai.com/cookbook/examples/agents_sdk/session_memory">developers.openai.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">OpenAI's cookbook splits agent memory into short-term — "keep only the last N turns (a 'turn' = one user message and everything until the next user message)" — and long-term, which "compresses prior exchanges into structured summaries that persist across session boundaries." Managing context matters for coherence ("keep the agent anchored to the latest user goal without dragging along stale details") and cost ("smaller, sharper prompts cut tokens per turn and attention load"); summaries act as "clean rooms."</p>
+</li>
+<li>
+<a href="https://aws.amazon.com/what-is/agentic-ai/">aws.amazon.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">Amazon Web Services defines agentic AI as "an autonomous AI system that can act independently to achieve pre-determined goals," operating through stages where "the act stage orchestrates several subtasks that the agentic models will then tackle sequentially." Agents use "long-term memory systems to ensure that situational and context-dependent tasks remain consistent" and can "access administrator-installed plugins" (tools) — every tool result becomes new context the agent must manage.</p>
+</li>
+<li>
+<a href="https://www.digitalocean.com/community/tutorials/context-engineering-moving-beyond-prompting-ai">digitalocean.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">DigitalOcean defines context engineering as "the practice of carefully structuring and designing the input (context) and then providing this context to the large language model (LLM) so that the LLM provides useful, accurate, and relevant outputs" — "about managing the entire context window," not "clever single-line prompts." It enumerates what fills the window: instructions, knowledge retrieved via RAG, tools and APIs, conversation history, and external memory (scratchpads and persistent memories), urging teams to "curate, filter, and inject only the most useful content."</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Prompt_engineering">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Wikipedia defines prompt engineering as "the process of structuring natural language inputs (known as prompts) to produce specified outputs from a generative artificial intelligence (GenAI) model." It explains in-context learning: "A model's ability to temporarily learn from prompts is known as in-context learning ... Unlike training and fine-tuning, which produce lasting changes, in-context learning is temporary," and notes a prompt "may include a few examples for a model to learn from in context, an approach called few-shot learning."</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Large_language_model">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Wikipedia describes the context window as the span the attention mechanism works over: "In order to find out which tokens are relevant to each other within the scope of the context window, the attention mechanism calculates 'soft' weights for each token." It gives a historical size marker — the 117M-parameter GPT-2 had "a context window of only 1k tokens" — illustrating that the window is the boundary of what a model can process at once.</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Retrieval-augmented_generation">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Wikipedia defines RAG as "a technique that enables large language models (LLMs) to retrieve and incorporate new information from external data sources." With RAG, "LLMs first refer to a specified set of documents, then respond to user queries," letting them "use domain-specific and/or updated information that is not available in the training data." It "helps reduce AI hallucinations, which have caused chatbots to describe policies that don't exist."</p>
+</li>
+<li>
+<a href="https://learnprompting.org/docs/basics/few_shot">learnprompting.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Learn Prompting defines few-shot prompting as providing "two or more examples, which helps the model recognize patterns and handle more complex tasks," noting "with more examples, the model gains a better understanding of the task, leading to improved accuracy and consistency." It contrasts zero-shot, where "the model has to rely entirely on its pre-trained knowledge to figure out how to complete the task."</p>
+</li>
+<li>
+<a href="https://productschool.com/blog/artificial-intelligence/guide-ai-product-manager">productschool.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Product School tells AI PMs that data fluency is now "part of your concern": "understanding the data your product and business generate, and how AI might use it ... knowing the basics of how models learn from data and the importance of data quality." It urges teams to "Run rigorous AI evals" and "Set dual success metrics" tracking "both product outcomes ... and model evaluation metrics (precision, recall, latency)." Its discipline check: "If simple logic or deterministic rules solve the issue cleanly, use them."</p>
+</li>
+</ol>
+</main>
   <footer class="pmos-artifact-footer" data-pmos-role="footer">
     <a class="pmos-wordmark pmos-wordmark--footer" href="https://github.com/maneesh-dhabria/pmos-skills/tree/main/plugins/pmos-learnkit#readme" target="_blank" rel="noopener noreferrer" data-pmos-role="wordmark" aria-label="pmos">pmos</a>
     <span class="pmos-artifact-source">Source: docs/pmos/primer/2026-06-14_context-engineering-for-ai.html</span>

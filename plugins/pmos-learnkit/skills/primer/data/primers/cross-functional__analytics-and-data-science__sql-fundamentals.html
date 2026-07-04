@@ -1035,8 +1035,82 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 <li><strong>Window functions</strong> — the more advanced SQL (running totals, rankings, period-over-period) that picks up where GROUP BY leaves off.</li>
 <li><strong>Dashboards and business-intelligence tools</strong> — once a query is trustworthy, tools like Looker, Metabase, or Tableau turn it into a reusable, shareable chart.</li>
 </ul>
-
-  </main>
+<h2 id="references">References</h2>
+<ol class="primer-references">
+<li>
+<a href="https://www.thoughtspot.com/sql-tutorial/introduction-to-sql">thoughtspot.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">The widely used analyst SQL tutorial (originally Mode's, now ThoughtSpot's) defines it plainly: "SQL (Structured Query Language) is a programming language designed for managing data in a relational database." It notes analysts can access large datasets directly without copying them elsewhere, and that SQL analysis is "readily auditable and reproducible" — tables work like spreadsheets with rows and columns but with stricter rules, e.g. "each column must have a unique name."</p>
+</li>
+<li>
+<a href="https://www.postgresql.org/docs/current/tutorial-select.html">postgresql.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">PostgreSQL's official tutorial describes a SELECT as three parts — "a select list (the part that lists the columns to be returned), a table list ... and an optional qualification." A query is "qualified" by a WHERE clause containing a Boolean expression, and "The usual Boolean operators (AND, OR, and NOT) are allowed," with results sorted via ORDER BY (e.g. ORDER BY city, temp_lo).</p>
+</li>
+<li>
+<a href="https://www.thoughtspot.com/sql-tutorial/sql-aggregate-functions">thoughtspot.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">ThoughtSpot's tutorial: "Aggregate functions are used to perform operations across entire columns (which could include millions of rows of data or more)." COUNT "counts how many rows are in a particular column," SUM "adds together all the values," MIN and MAX "return the lowest and highest values," and AVG "calculates the average of a group of selected values."</p>
+</li>
+<li>
+<a href="https://www.thoughtspot.com/sql-tutorial/sql-group-by">thoughtspot.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">ThoughtSpot: "GROUP BY allows you to separate data into groups, which can be aggregated independently of one another." You can "group by multiple columns, but you have to separate column names with commas — just as with ORDER BY," and the order of grouping columns does not change the result; use ORDER BY separately to control how grouped results appear.</p>
+</li>
+<li>
+<a href="https://engineering.deptagency.com/sql-101-for-product-managers">engineering.deptagency.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Dept Agency's SQL 101 for PMs argues self-sufficiency is the whole point: "if you can ask a question about your data, you can ask it in SQL," so PMs are not dependent on engineers for every data inquiry. It frames the relational model as "this idea of a join ... allow different tables to be related to one another via one column."</p>
+</li>
+<li>
+<a href="https://hellopm.co/sql-for-product-managers-the-definitive-guide/">hellopm.co</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">HelloPM's guide gives three reasons PMs learn SQL: an "In-depth understanding of your data," the "Ability to uncover insights that are not available with standard tools such as GA, mixpanel etc," and to "Make decisions faster by reducing dependency on your data teams." It lists practice questions like "Number of user registrations every month" and "On which day of the week do you get the most number of users."</p>
+</li>
+<li>
+<a href="https://builder.ai2sql.io/blog/sql-for-product-managers">builder.ai2sql.io</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">AI2SQL's PM guide reduces the field to four ideas — "The core concepts are SELECT (read data), WHERE (filter), GROUP BY (aggregate), and JOIN (combine tables). Once you understand those four, you can answer most product analytics questions yourself." It estimates "Most product managers can learn enough SQL to run the 10 queries in this guide within one to two weeks of casual practice," the queries being DAU/MAU, feature adoption, retention by cohort, funnel, ARPU, churn, and more.</p>
+</li>
+<li>
+<a href="https://www.w3schools.com/sql/sql_select.asp">w3schools.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">W3Schools defines the workhorse statement: "The SELECT statement is used to select data from a database," written as "SELECT column1, column2, ... FROM table_name;". To pull every column you "use the SELECT * syntax" — e.g. SELECT * FROM Customers; — while naming columns (SELECT CustomerName, City FROM Customers;) returns only those.</p>
+</li>
+<li>
+<a href="https://www.w3schools.com/sql/sql_where.asp">w3schools.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">W3Schools: "The WHERE clause is used to filter records" and "extract only those records that fulfill a specific condition," as in SELECT * FROM Customers WHERE Country = 'Mexico';. It supports operators including =, &gt;, &lt;, &gt;=, &lt;=, &lt;&gt; (not equal), BETWEEN, LIKE (pattern matching), and IN (multiple possible values).</p>
+</li>
+<li>
+<a href="https://www.w3schools.com/sql/sql_orderby.asp">w3schools.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">W3Schools: "The ORDER BY keyword is used to sort the result-set in ascending or descending order," and it "sorts the result-set in ascending order (ASC) by default." To reverse it, "use the DESC keyword" — e.g. SELECT * FROM Products ORDER BY Price DESC;.</p>
+</li>
+<li>
+<a href="https://www.w3schools.com/sql/sql_count.asp">w3schools.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">W3Schools: "The COUNT() function returns the number of rows that matches a specified criterion." Critically for accurate metrics, "COUNT(DISTINCT column_name) counts only the unique, non-null values in the column" — so COUNT(Price) counts every entry while COUNT(DISTINCT Price) answers "How many different prices are there?"</p>
+</li>
+<li>
+<a href="https://www.w3schools.com/sql/sql_groupby.asp">w3schools.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">W3Schools: "The GROUP BY statement is used to group rows that have the same values into summary rows, like 'Find the number of customers in each country'." It is "almost always used in conjunction with aggregate functions, like COUNT(), MAX(), MIN(), SUM(), AVG(), to perform calculations on each group."</p>
+</li>
+<li>
+<a href="https://www.w3schools.com/sql/sql_having.asp">w3schools.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">W3Schools: "The HAVING clause is used to filter the results of a GROUP BY query based on aggregate functions." The distinction that trips people up: "Unlike the WHERE clause, which filters individual rows before grouping, the HAVING clause filters groups after the aggregation has been performed" — e.g. GROUP BY Country HAVING COUNT(CustomerID) &gt; 5.</p>
+</li>
+<li>
+<a href="https://www.freecodecamp.org/news/sql-join-types-inner-join-vs-outer-join-example/">freecodecamp.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">freeCodeCamp: "The JOIN operator lets you combine related information in various ways." An inner join "will keep only the information from the two joined tables that is related"; a LEFT JOIN "will keep the unrelated data from the left (the first) table"; a FULL OUTER JOIN keeps "all rows from both tables, and the missing data will be filled in with NULL."</p>
+</li>
+<li>
+<a href="https://www.w3schools.com/sql/sql_primarykey.asp">w3schools.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">W3Schools: "The PRIMARY KEY constraint uniquely identifies each record in a database table." It "ensures unique values, and cannot contain NULL values," and "A table can have only ONE PRIMARY KEY constraint" — the column that gives every row a stable, one-of-a-kind identity.</p>
+</li>
+<li>
+<a href="https://www.w3schools.com/sql/sql_foreignkey.asp">w3schools.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">W3Schools: "The FOREIGN KEY constraint establishes a link between two tables." Concretely, "A FOREIGN KEY is a column in a table that refers to the PRIMARY KEY in another table" — the mechanism that connects, say, an orders table to the customers table, and the basis for joins.</p>
+</li>
+<li>
+<a href="https://www.geeksforgeeks.org/sql/order-of-execution-of-sql-queries/">geeksforgeeks.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">GeeksforGeeks lays out the logical processing order — FROM, WHERE, GROUP BY, HAVING, SELECT, ORDER BY — and stresses it "should be understood as a logical processing order, not the actual execution sequence," since the real plan is chosen by "the query optimizer, which decides the most efficient way to retrieve data." Filtering and grouping happen before the costly SELECT and sort.</p>
+</li>
+<li>
+<a href="https://www.datacamp.com/tutorial/sql-order-of-execution">datacamp.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">DataCamp explains the practical consequence of execution order: "columns defined with aliases in the SELECT clause cannot be referenced directly in the WHERE clause since it is processed before the SELECT." By contrast, "the ORDER BY clause can use column aliases defined in the SELECT statement," because ORDER BY runs after SELECT.</p>
+</li>
+</ol>
+</main>
   <footer class="pmos-artifact-footer" data-pmos-role="footer">
     <a class="pmos-wordmark pmos-wordmark--footer" href="https://github.com/maneesh-dhabria/pmos-skills/tree/main/plugins/pmos-learnkit#readme" target="_blank" rel="noopener noreferrer" data-pmos-role="wordmark" aria-label="pmos">pmos</a>
     <span class="pmos-artifact-source">Source: docs/pmos/primer/2026-06-14_sql-fundamentals.html</span>

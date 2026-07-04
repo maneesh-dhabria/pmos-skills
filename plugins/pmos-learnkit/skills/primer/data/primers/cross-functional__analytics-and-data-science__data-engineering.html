@@ -1043,8 +1043,78 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 <li><strong>Data governance & privacy</strong> — the security and data-management undercurrents: access control, retention, and compliance over everything moving through the pipes.</li>
 <li><strong>APIs</strong> — how data is often extracted from source systems; an <abbr title="Application Programming Interface">API</abbr> (Application Programming Interface) is a common ingestion entry point alongside change data capture.</li>
 </ul>
-
-  </main>
+<h2 id="references">References</h2>
+<ol class="primer-references">
+<li>
+<a href="https://www.oreilly.com/library/view/fundamentals-of-data/9781098108298/">oreilly.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">Reis &amp; Housley's *Fundamentals of Data Engineering* (O'Reilly, 2022) frames the whole field as the data engineering lifecycle — the stages of generation, storage, ingestion, transformation, and serving data. Cutting across all of them are six "undercurrents": security, data management, DataOps, data architecture, orchestration, and software engineering.</p>
+</li>
+<li>
+<a href="https://www.databricks.com/blog/what-is-elt">databricks.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">Databricks defines ELT — "extract, load, transform" — as "a modern data integration approach designed for cloud-native analytics platforms," where data is loaded before transformation, the opposite of traditional ETL. The shift happened because cloud warehouses gave "elastic, massively parallel compute capabilities that made in-warehouse transformations practical," and cheap object storage made retaining raw data feasible.</p>
+</li>
+<li>
+<a href="https://www.fivetran.com/blog/change-data-capture-an-increasingly-critical-mechanism-for-organisations">fivetran.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">Fivetran defines change data capture (CDC) as "a mechanism for identifying and capturing data changes" that "automatically deliver[s] changes that are detected from a data source (such as a database) to a target (such as a cloud data warehouse)." CDC lets organizations "capture data on a faster and timelier cadence" because incremental updates — not full re-syncs — save time and resources.</p>
+</li>
+<li>
+<a href="https://montecarlo.ai/blog-what-is-data-observability/">montecarlo.ai</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">Monte Carlo defines data observability as "full visibility into the health of your data and systems so you are the first to know when the data is wrong, what broke, and how to fix it," and coins "data downtime" as "periods of time when data is partial, erroneous, missing, or otherwise inaccurate." Its five pillars are freshness, quality, volume, schema, and lineage (which "tells you which upstream sources and downstream ingestors were impacted").</p>
+</li>
+<li>
+<a href="https://xebia.com/blog/fundamentals-of-data-engineering/">xebia.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Summarizing Reis &amp; Housley, Xebia describes the data engineering lifecycle as the stages that "turn raw data into a useful end product" — Generation, Storage, Ingestion, Transformation, and Serving Data. The data engineer's job is to build infrastructure that prepares data "for further analysis by data analysts and scientist," i.e., to serve downstream consumers.</p>
+</li>
+<li>
+<a href="https://www.matillion.com/blog/etl-vs-data-pipeline">matillion.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Matillion defines a data pipeline as "a series of data processing steps that move data from one system to another." A data pipeline is broader than ETL — ETL specifically transforms data before loading, while a general data pipeline "may skip the transformation phase entirely, simply moving data between systems as-is."</p>
+</li>
+<li>
+<a href="https://www.rudderstack.com/learn/etl/what-is-etl-pipeline/">rudderstack.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">RudderStack defines an ETL pipeline as "a data processing workflow that extracts data from one or more source systems, transforms it into a structured and consistent format, and loads it into a target system" — typically a warehouse or data lake. Automation is foundational: "as new data is created or updated, the pipeline automatically extracts, transforms, and loads it to the target system."</p>
+</li>
+<li>
+<a href="https://dagster.io/guides/etl-pipelines-5-key-components-and-5-critical-best-practices">dagster.io</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Dagster breaks a pipeline into its components: extraction "focusing on retrieving relevant data from various sources," transformation that "refines raw data into structured formats suitable for analysis," loading that transfers data "into the target system," and orchestration, which is "pivotal to maintaining order and efficiency." Best practices include scalability, robust error handling, automated testing, and monitoring.</p>
+</li>
+<li>
+<a href="https://airbyte.com/top-etl-tools-for-sources/cdc-tools">airbyte.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Airbyte explains CDC as "identifying and capturing changes made to data in a database," most reliably via log-based replication, "where the database transaction log is examined for changes." Tools like Debezium monitor those logs and stream inserts, updates, and deletes downstream, letting ingestion tools replicate a source database incrementally "through change-only transfers" instead of repeatedly copying everything.</p>
+</li>
+<li>
+<a href="https://www.striim.com/blog/batch-processing-vs-stream-processing/">striim.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Striim contrasts the two processing modes: "Batch processing collects data over time and processes it in scheduled chunks," with latency of "hours to days," while "Stream processing handles data continuously the moment it arrives," with "sub-second to seconds" latency. Batch is lower-complexity and cost-predictable; streaming is higher-complexity (ordering, exactly-once semantics, state management) and always-on. "Most modern architectures combine both approaches."</p>
+</li>
+<li>
+<a href="https://www.zenml.io/blog/orchestration-showdown-dagster-vs-prefect-vs-airflow">zenml.io</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">ZenML describes orchestration tools as "conductors for your tech environment, automating the setup, coordination, and management of your systems," scheduling jobs via Directed Acyclic Graphs (DAGs) that "define complex dependencies and task relationships." The three leaders differ in philosophy: Airflow is task-centric, Dagster is asset-centric ("assets are first-class citizens"), and Prefect prioritizes developer experience.</p>
+</li>
+<li>
+<a href="https://www.integrate.io/blog/data-orchestration-vs-etl/">integrate.io</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Integrate.io distinguishes orchestration from ETL: "Data orchestration manages the entire workflow of data processes across an enterprise, while ETL focuses specifically on extracting, transforming, and loading." Orchestration adds "dynamic dependency management," event-driven triggers, and "sophisticated recovery mechanisms," coordinating "multiple data processes across disparate systems" — it conducts the whole orchestra rather than playing one instrument.</p>
+</li>
+<li>
+<a href="https://www.datacamp.com/tutorial/dbt-tests">datacamp.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">DataCamp explains that in dbt, "tests are SQL-based assertions that validate data assumptions," running as automated checks before data reaches users. The four built-in generic tests are not_null, unique ("used commonly for primary keys"), accepted_values ("a predefined set of allowed values"), and relationships ("validates referential integrity between tables"). They "detect data issues early — before downstream dashboards and reports are affected."</p>
+</li>
+<li>
+<a href="https://montecarlo.ai/blog-data-testing-vs-data-quality-monitoring-vs-data-observability-whats-right-for-your-team/">montecarlo.ai</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Monte Carlo distinguishes testing from observability: a test only fires for problems you anticipated — "If a test isn't written ahead of time to cover that specific incident, an alert isn't set" — and "Data testing is not feasible at scale." Observability uses machine learning that "typically do[es] a better job than humans in setting thresholds for what is anomalous," catching unknown issues across all tables at once.</p>
+</li>
+<li>
+<a href="https://montecarlo.ai/blog-data-contracts-explained/">montecarlo.ai</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Monte Carlo defines a data contract as "an agreement between a service provider and data consumers" — "a set of defined rules and technical measures that automatically enforce how data should look and behave," specifying "the exact schema a service will output, the valid range of values for specific fields, and the expected refresh frequency." They exist because when producers "make an update to their service that results in a schema change, these tightly coupled data systems crash."</p>
+</li>
+<li>
+<a href="https://airbyte.com/data-engineering-resources/idempotency-in-data-pipelines">airbyte.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Airbyte defines idempotency as ensuring "operations produce identical results whether executed once or multiple times." The point is that "Idempotent operations allow systems to safely retry failed operations without worrying about duplicate processing" — it prevents "duplicate processing, enables safe retries, and maintains data consistency in distributed systems with inevitable failures."</p>
+</li>
+<li>
+<a href="https://oneuptime.com/blog/post/2026-02-13-etl-best-practices/view">oneuptime.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">OneUptime's reliability guide states "An idempotent pipeline produces the same result whether it runs once or ten times for the same input," achieved via partition overwrites so re-running "for the same date produces the same result." It pairs this with row- and dataset-level validation ("Catching bad data early prevents it from propagating"), retry-with-backoff, and freshness monitoring — and warns that source schemas change, demanding defensive handling.</p>
+</li>
+</ol>
+</main>
   <footer class="pmos-artifact-footer" data-pmos-role="footer">
     <a class="pmos-wordmark pmos-wordmark--footer" href="https://github.com/maneesh-dhabria/pmos-skills/tree/main/plugins/pmos-learnkit#readme" target="_blank" rel="noopener noreferrer" data-pmos-role="wordmark" aria-label="pmos">pmos</a>
     <span class="pmos-artifact-source">Source: docs/pmos/primer/2026-06-14_data-engineering.html</span>
