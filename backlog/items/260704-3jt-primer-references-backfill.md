@@ -4,7 +4,7 @@ id: 260704-3jt
 title: "/primer References — backfill all 61 bundled corpus primers: a `backfill-references.mjs` CLI injects the `## References` section into every data/primers/*.html from its existing sidecar, idempotently"
 type: feature
 kind: story
-status: in-progress
+status: done
 route: skill
 priority: should
 labels: [pmos-learnkit, primer, references, corpus, skill]
@@ -53,3 +53,24 @@ HTML only — there is no sections.json to reconcile for the static corpus.
 - [ ] Conforms to `skill-patterns.md §A–§L`; `skill-eval` (`[D]`+`[J]`) passes (skill body unchanged by this
   story — the guard is that the new script + corpus edits don't regress the rubric); 4 hygiene lints +
   `audit-recommended` green.
+
+## Notes
+
+**Build 2026-07-04 (/loop build --next tick, holder build:b0e236c5): DONE.** Impl on `feat/260704-3jt`
+(commit `d80e63ef`, worktree `agent-skills-260704-3jt`, KEPT unmerged — Loop 3 merges via
+`/complete-dev --epic 260704-rgt`). D9 claim-time merge of done dep `feat/260704-ytr` brought
+`references-section.mjs` in before build. New `backfill-references.mjs` injected the `## References`
+section into all 61 `data/primers/*.html` from their `.sources.json` sidecars.
+
+Gates: coverage 61/61 (all 1006 sources present, cited marks correct, References last before `</main>`);
+idempotent (2nd+3rd run = empty git diff, INV-4); primers-index.json untouched (D8); library.html
+unaffected (gitignored). Generator tests 11/11 regression-free; skill-eval **[D] exit 0**; 4 hygiene
+lints + audit green; §G clean (no release-prereq tasks).
+
+**Accepted pre-existing residual (not a 3jt regression):** skill-eval **[J]** flagged
+`l-dispatch-model-tier` on the primer SKILL.md Phase 5 reviewer dispatch (no model-tier pin / no
+inherit-justification, §L). Proven pre-existing — 3jt touched no SKILL.md; the flagged `Reviewer
+dispatch` line is byte-identical to `main`. This story's guard is regression-freedom on the rubric
+(AC7), which holds. **Follow-up:** worth a separate `/skill-sdlc --from-feedback` against /primer to
+pin the Phase 5 reviewer to a tier (or add the §L inherit-justification) — a primer-skill fix, not
+part of the References epic.
