@@ -4,7 +4,7 @@ id: 260704-3jt
 title: "/primer References — backfill all 61 bundled corpus primers: a `backfill-references.mjs` CLI injects the `## References` section into every data/primers/*.html from its existing sidecar, idempotently"
 type: feature
 kind: story
-status: planned
+status: in-progress
 route: skill
 priority: should
 labels: [pmos-learnkit, primer, references, corpus, skill]
@@ -15,7 +15,9 @@ dependencies: [260704-ytr]
 design_doc: docs/pmos/features/2026-07-04_primer-references/02_design.html
 plan_doc: docs/pmos/features/2026-07-04_primer-references/stories/260704-3jt/03_plan.html
 feature_folder: docs/pmos/features/2026-07-04_primer-references/
-worktree:
+worktree: agent-skills-260704-3jt
+claimed_by: "build:b0e236c5-8aab-4a88-8bd7-4d40d8d8e0bc"
+driver_holder: "build:b0e236c5-8aab-4a88-8bd7-4d40d8d8e0bc"
 ---
 
 ## Context
