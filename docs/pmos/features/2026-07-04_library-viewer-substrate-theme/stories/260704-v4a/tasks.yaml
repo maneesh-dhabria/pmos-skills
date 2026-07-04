@@ -1,0 +1,71 @@
+story: 260704-v4a
+epic: 260704-vde
+route: skill
+spec: ../../02_design.html
+plugin: pmos-learnkit
+depends_on: []
+summary: >
+  Refresh the 61 bundled primer corpus files (primer/data/primers/*.html) whose inlined substrate CSS is a
+  stale "Mono Minimal" snapshot, to the current Editorial Technical style.css. Build a new zero-dep, idempotent
+  retheme-corpus.mjs CLI that marker-scoped-replaces each file's inlined substrate CSS block with the current
+  _shared/html-authoring/assets/style.css content, leaving the primer body (<main>) byte-for-byte unchanged.
+  Independent of story 260704-m7f; CSS-region scoping + idempotence keep it orthogonal to the in-flight primer
+  body epics (260704-rgt References, 260704-dgq enrichment).
+
+waves:
+  - wave: 1
+    name: Build the CLI
+    tasks:
+      - id: T1
+        title: retheme-corpus.mjs — marker-scoped, CSS-region-only, idempotent replace (AC1, AC2, AC3, AC4)
+        deps: []
+        parallel: false
+        detail: >
+          New plugins/pmos-learnkit/skills/primer/scripts/retheme-corpus.mjs (zero-dep Node ESM, mirroring the
+          build-library.mjs / backfill-CLI convention). Read the current stylesheet via
+          `new URL('../../_shared/html-authoring/assets/style.css', import.meta.url)` (confirm the exact relative
+          depth from primer/scripts/ to _shared/html-authoring/). For each file arg (default: glob
+          data/primers/*.html), locate the inlined SUBSTRATE `<style>` block by its header-comment marker
+          (`/* pmos-toolkit html-authoring substrate ... */`) — NOT the first `<style>` — and replace that
+          block's inner CSS with the current style.css content (and comments.css if the corpus inlines it too;
+          detect by its marker). Preserve everything outside the matched region exactly, especially the primer
+          body `<main>...</main>` (INV-5). If a file lacks the marker, exit non-zero listing the offending file
+          (fail loud, AC4). Idempotent: replacing an already-current block yields byte-identical output (AC3).
+          Print a per-file changed/unchanged summary.
+        verify: >
+          On a 2-file fixture (one stale, one already-current): run once → stale file's :root becomes
+          --pmos-bg:#f8f5ef / --pmos-accent:#b8431a, already-current file unchanged; extract <main>..</main>
+          before/after → byte-identical for both; run twice → second run byte-idempotent (no diff); a fixture
+          with no substrate marker → non-zero exit naming the file.
+      - id: T2
+        title: Unit/integration test for retheme-corpus.mjs (AC5)
+        deps: [T1]
+        parallel: true
+        detail: >
+          Test on a small fixture asserting: (a) marker-matched block replaced with current style.css; (b) body
+          <main> bytes unchanged (extract-and-compare); (c) second run byte-idempotent; (d) missing-marker file
+          triggers a loud non-zero error. Runnable via `node --test` (or the repo's script-test convention);
+          wire into the primer skill's test runner (alongside build-library.test.sh / structure.test.sh).
+        verify: test run exits 0; all four cases present and green.
+  - wave: 2
+    name: Apply to the corpus
+    tasks:
+      - id: T3
+        title: Run the CLI over all 61 bundled primers + verify (AC6, AC2, AC3)
+        deps: [T1, T2]
+        parallel: false
+        detail: >
+          Run `node primer/scripts/retheme-corpus.mjs` over data/primers/*.html (all 61). Commit the refreshed
+          files. Spot-check a few in a browser: warm-paper Editorial Technical, serif body, [NN] section
+          counters, burnt-orange accent — matching a freshly-rendered live primer. Confirm the git diff for each
+          file is CSS-region-only (no <main> changes) and that a re-run is a clean no-op.
+        verify: >
+          `git diff --stat` shows all 61 files touched; for a sampled file, the diff hunks are confined to the
+          <style> region; `grep -l 'Mono Minimal' data/primers/*.html` → empty and `grep -l '#f8f5ef'
+          data/primers/*.html` → all 61; re-running the CLI leaves the tree clean.
+
+release_prerequisites: >
+  Owned by /complete-dev (Loop 3), NOT this build (skill-patterns §G): pmos-learnkit plugin.json ×2 minor
+  version bump; changelog entry; manifest version-sync. No new README row. Do NOT include any as build-wave
+  tasks. Build-time sequencing vs epics 260704-rgt / 260704-dgq is the release train's concern (regions are
+  disjoint — see 02_design.html#coordination).

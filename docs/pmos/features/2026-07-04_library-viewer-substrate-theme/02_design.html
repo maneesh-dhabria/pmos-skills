@@ -1,0 +1,222 @@
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Design — library-viewer substrate re-theme (pmos-learnkit)</title>
+<style>
+  body { max-width: 54rem; margin: 2rem auto; padding: 0 1.25rem; font: 16px/1.62 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: #1a1a1a; }
+  h1 { font-size: 1.6rem; margin: 0 0 .25rem; } h2 { font-size: 1.14rem; margin: 2.1rem 0 .5rem; border-bottom: 2px solid #ececec; padding-bottom: .3rem; }
+  h3 { font-size: 1.02rem; margin: 1.3rem 0 .35rem; } .sub { color: #666; margin: 0 0 1.4rem; }
+  code { background: #f2f2f2; padding: .05rem .3rem; border-radius: 4px; font-size: .87em; } pre { background: #f7f7f9; border: 1px solid #eee; border-radius: 8px; padding: .8rem 1rem; overflow-x: auto; font-size: .84rem; line-height: 1.5; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; margin: .4rem 0; } th,td { text-align: left; vertical-align: top; padding: .45rem .6rem; border-bottom: 1px solid #eee; } th { background: #fafafa; font-size: .75rem; text-transform: uppercase; letter-spacing: .03em; color: #555; }
+  ul { padding-left: 1.3rem; } section { overflow-x: auto; } .inv { background: #fff8f0; border: 1px solid #f0dcc0; border-radius: 8px; padding: .3rem .8rem; }
+  .dec { background: #f0f6ff; border: 1px solid #cfe0f5; border-radius: 8px; padding: .3rem .8rem; }
+</style>
+
+<h1>Design — library-viewer substrate re-theme</h1>
+<p class="sub">pmos-learnkit · epic 260704-vde · route: skill · the cross-cutting coherence contract for
+stories 260704-m7f (re-theme the shared library-viewer substrate) and 260704-v4a (refresh the 61 bundled
+primer corpus files). Stories cite this doc by anchor. Decisions D1–D8 maintainer-confirmed (three material
+forks resolved interactively at define time). No epic <code>/spec</code> — this design doc is the skill-epic
+contract; per-skill spec folds into each story's <code>/plan</code>.</p>
+
+<section id="overview">
+<h2 id="overview-h">1. Overview</h2>
+<p>Three pmos-learnkit skills — <code>/frameworks</code>, <code>/primer</code>, <code>/learn-list</code> —
+render an offline, filterable <em>browse / library</em> page through one shared substrate:
+<code>plugins/pmos-learnkit/skills/_shared/library-viewer/lib.mjs</code>. That substrate carries its own
+hand-written, hardcoded <code>BASE_CSS</code> — a <strong>dark</strong>, blue-accent, system-sans theme with a
+private token vocabulary (<code>--bg:#0f1320</code>, <code>--accent:#6ea8fe</code>). It looks nothing like the
+canonical pmos HTML substrate (<code>_shared/html-authoring/assets/style.css</code>, the <em>"Editorial
+Technical"</em> theme — warm-paper <code>#f8f5ef</code>, burnt-orange <code>#b8431a</code> accent, a
+serif/sans/mono three-voice type system, light-default with dark via <code>prefers-color-scheme</code>) through
+which every <em>individual</em> primer, spec, plan, and learn-list artifact already renders.</p>
+<p>The result is a jarring seam: a user opens a warm-paper light primer, clicks "browse the library", and lands
+on a dark blue page that shares no visual DNA with it. This epic closes that seam. Two faces, one rule —
+<em>every page a learnkit skill emits reads as one design system</em>:</p>
+<ul>
+  <li><strong>Browse pages</strong> — re-theme the shared <code>library-viewer</code> substrate so all three
+  browse/library pages inherit the Editorial Technical look (story 260704-m7f).</li>
+  <li><strong>Individual pages</strong> — the only off-theme individual artifacts are the 61 <em>bundled</em>
+  primer corpus files, whose <em>inlined</em> CSS is a stale <em>"Mono Minimal"</em> snapshot
+  (<code>#fafafa</code> stone / <code>#c2410c</code>) of the same token system, not the current warm-paper
+  theme. Refresh them to the current <code>style.css</code> (story 260704-v4a).</li>
+</ul>
+<p>Live-generated primers and learn-list research artifacts already render through the current substrate
+(they <em>link</em> to <code>assets/style.css</code>) and are therefore already correct — out of scope.
+<code>/frameworks</code> emits no individual per-item pages at all (in-page reader panes only).</p>
+</section>
+
+<section id="ground-truth">
+<h2 id="ground-truth-h">2. Ground truth — who consumes the substrate</h2>
+<table>
+  <tr><th>Skill</th><th>Browse page (library-viewer)</th><th>Individual per-item HTML file</th></tr>
+  <tr><td><code>/frameworks</code></td><td><code>{docs_path}/frameworks/index.html</code> — reader panes, inline SVG</td><td>None (in-page only)</td></tr>
+  <tr><td><code>/primer</code></td><td><code>{docs_path}/primer/library.html</code> — iframe reader</td><td>Live: on current substrate ✓ · Bundled corpus (61): stale inlined snapshot ✗</td></tr>
+  <tr><td><code>/learn-list</code></td><td><code>{learn_list_dir}/library.html</code> — reader panes</td><td>Research artifact: on current substrate ✓</td></tr>
+</table>
+<p>All three browse pages are produced by a thin per-skill
+<code>scripts/build-library.mjs</code> that supplies a corpus adapter + config and calls the substrate's single
+entrypoint <code>emitHtml(opts)</code>. Because the three consumers do <strong>not</strong> hand-author CSS, a
+re-theme of the substrate propagates to all three automatically — <em>provided</em> no consumer passes
+old-token CSS through the <code>extraHead</code> seam (audited in 260704-m7f, §4.3).</p>
+</section>
+
+<section id="invariants">
+<h2 id="invariants-h">3. Invariants</h2>
+<p>Rules every story must preserve. A change that breaks one is wrong even if it "looks right".</p>
+<ul>
+  <li class="inv"><strong>INV-1 — offline / zero-request.</strong> The emitted page must remain fully
+  self-contained and render from <code>file://</code> with no network: no external <code>&lt;link&gt;</code>, no
+  CDN, no <code>@import</code>. The canonical <code>style.css</code> is read at <em>build</em> time and
+  <em>inlined</em> into the single output HTML — the offline invariant is unchanged (the consumers' tests already
+  assert "no external stylesheet"; those assertions must still pass).</li>
+  <li class="inv"><strong>INV-2 — single source of truth.</strong> After this epic the browse-page palette,
+  typography, and light/dark behavior come from the canonical <code>style.css</code>, not a hand-copied token
+  block. The substrate reads <code>../html-authoring/assets/style.css</code> (a same-plugin sibling — no
+  cross-plugin dependency) at build time; the library-viewer's own CSS defines <em>only</em> the components
+  <code>style.css</code> does not (browse layout, cards, facets, chips, reader pane) and references
+  <strong>only</strong> <code>--pmos-*</code> tokens — never a hardcoded color. Drift is thereby structurally
+  impossible: a future substrate theme change is picked up on the next browse-page build.</li>
+  <li class="inv"><strong>INV-3 — light default + prefers-color-scheme dark.</strong> Browse pages match the
+  substrate exactly: warm-paper light by default, dark when the OS prefers it. Dark mode is <em>inherited for
+  free</em> because every component color is a <code>--pmos-*</code> token that <code>style.css</code> already
+  flips under <code>@media (prefers-color-scheme: dark)</code>. No component may hardcode a dark-only color.</li>
+  <li class="inv"><strong>INV-4 — skill-agnostic substrate.</strong> <code>lib.mjs</code> stays skill-agnostic
+  (its <code>selftest.sh</code> greps for this, invariant "D12"). Reading a sibling <em>substrate</em> file is
+  not skill-specific and must keep the selftest green; the style.css path is resolved relative to the module's
+  own location (<code>import.meta.url</code>), with a clear error if the file is absent.</li>
+  <li class="inv"><strong>INV-5 — idempotent corpus refresh.</strong> The bundled-primer re-theme
+  (260704-v4a) replaces the inlined substrate CSS block(s) in place and is byte-idempotent: a second run is a
+  no-op diff. It touches <em>only</em> the <code>&lt;style&gt;</code>/CSS region, never the primer body
+  (<code>&lt;main&gt;</code>) — so it stays orthogonal to the in-flight primer content epics (§6).</li>
+  <li class="inv"><strong>INV-6 — no functional/interaction change.</strong> This is a re-skin, not a redesign.
+  Search, faceting, view-switch (compact/detailed/list), the reader pane, and iframe/card-link modes behave
+  exactly as before; only color, type, spacing, and light/dark change.</li>
+</ul>
+</section>
+
+<section id="scope-browse">
+<h2 id="scope-browse-h">4. Story 260704-m7f — re-theme the library-viewer substrate</h2>
+<p>The core story. Rework <code>lib.mjs</code>'s styling so <code>emitHtml()</code> produces Editorial-Technical
+browse pages.</p>
+<h3 id="s41">4.1 — Inline the canonical stylesheet</h3>
+<p>At build time, read <code>../html-authoring/assets/style.css</code> (resolved via
+<code>import.meta.url</code>) and inline it as the <em>base</em> layer of the emitted
+<code>&lt;style&gt;</code> block, ahead of the library-viewer's component CSS. This supplies the
+<code>:root</code> <code>--pmos-*</code> tokens, the <code>prefers-color-scheme: dark</code> overrides, the base
+element styling, and the bundled JetBrains-Mono <code>@font-face</code>. On a missing/unreadable file, fail loud
+with a clear error (do not silently fall back to the old dark CSS — a silent fallback would reintroduce the seam
+this epic removes).</p>
+<h3 id="s42">4.2 — Rewrite component CSS onto <code>--pmos-*</code> tokens</h3>
+<p>Replace the dark <code>BASE_CSS</code> token block and every hardcoded color in the library-viewer's own
+component rules (masthead/<code>header</code>, <code>.layout</code>/<code>.listing</code>, cards + view modes,
+single-select + multi-dropdown facets, applied-filter chips, search box, the <code>.reader</code> sidebar +
+its animation, and <code>IFRAME_READER_CSS</code>) with references to <code>--pmos-*</code> tokens
+(<code>--pmos-surface</code>, <code>--pmos-border</code>, <code>--pmos-rule</code>, <code>--pmos-text</code>,
+<code>--pmos-muted</code>, <code>--pmos-accent</code>, <code>--pmos-accent-bg</code>, spacing/radius/font
+tokens). The three-voice type system applies: sans for controls/headings, serif for reader body prose, mono for
+structural/metadata chrome. Keep every existing class name and DOM structure (INV-6).</p>
+<h3 id="s43">4.3 — Audit consumer <code>extraHead</code> CSS</h3>
+<p>Inspect all three <code>build-library.mjs</code> (<code>/frameworks</code>, <code>/primer</code>,
+<code>/learn-list</code>) for skill-specific CSS passed via the <code>extraHead</code> seam or via card/reader
+config that hardcodes old-theme colors (e.g. a blue accent, a dark card background). Reconcile any such CSS to
+<code>--pmos-*</code> tokens so the three pages are consistent. If none exists, record that finding — the audit
+is a required task, its <em>outcome</em> is not.</p>
+<h3 id="s44">4.4 — Update the substrate's own guards</h3>
+<p><code>_shared/library-viewer/tests/lib.test.mjs</code> (frozen public-API tests) and
+<code>guidelines.md</code> assert specifics of the old CSS (e.g. the dark <code>--bg</code> token, "no external
+stylesheet"). Update them to the new contract: inlines <code>style.css</code>, uses <code>--pmos-*</code>
+tokens, still emits no external <code>&lt;link&gt;</code> (offline preserved), still passes
+<code>selftest.sh</code> (skill-agnostic grep + <code>node --test</code>). The public <em>API</em> surface
+(<code>emitHtml</code> and the named exports) is unchanged — this is a styling change behind a stable
+interface.</p>
+</section>
+
+<section id="scope-corpus">
+<h2 id="scope-corpus-h">5. Story 260704-v4a — refresh the 61 bundled primer corpus files</h2>
+<p>The bundled primers (<code>plugins/pmos-learnkit/skills/primer/data/primers/*.html</code>, 61 files) are
+self-contained: the substrate CSS is <em>inlined</em> (they cannot link to an <code>assets/</code> dir and stay
+single-file-portable). Their inlined CSS is a stale <em>"Mono Minimal"</em> snapshot. No inline/freeze script
+exists today — this story builds one.</p>
+<ul>
+  <li>New idempotent CLI (e.g. <code>primer/scripts/retheme-corpus.mjs</code>, zero-dep Node ESM, mirroring the
+  established backfill-CLI pattern) that, for each corpus file, replaces the inlined substrate
+  <code>&lt;style&gt;</code> region with the current
+  <code>_shared/html-authoring/assets/style.css</code> content (and <code>comments.css</code> if the corpus
+  files inline it too — the transform must detect and replace exactly the substrate style block(s), matched by
+  the substrate header-comment marker, not a naive "first <code>&lt;style&gt;</code>").</li>
+  <li>Run it over all 61 files; the diff must touch only the CSS region of each file (INV-5), never
+  <code>&lt;main&gt;</code>. A second run is a no-op (idempotent).</li>
+  <li>A unit/integration test asserting: the marker-matched block is replaced, body bytes are unchanged, and
+  re-running is byte-idempotent, on a small fixture.</li>
+</ul>
+<p><strong>Dependency:</strong> none on 260704-m7f — different code path (browse-page substrate vs. individual
+primer docs). The two stories are independent and may build in either order.</p>
+</section>
+
+<section id="coordination">
+<h2 id="coordination-h">6. Coordination with in-flight primer epics</h2>
+<p>Two active epics already touch the same 61 bundled primer files: <strong>260704-rgt</strong> (References
+section — injects a <code>## References</code> block into <code>&lt;main&gt;</code>) and
+<strong>260704-dgq</strong> (curated-corpus enrichment — rewrites source sets). Story 260704-v4a touches only
+the <code>&lt;style&gt;</code>/CSS region (INV-5), so it is <em>structurally</em> orthogonal to both (they edit
+body content). Build-time (Loop 2/3) sequencing note: whichever lands second re-touches the files, but because
+the regions are disjoint the transforms compose — the v4a CLI's idempotence + marker-scoped replacement means it
+can safely re-run after a References/enrichment pass. No hard <code>dependencies:</code> edge is declared; the
+release train orders them.</p>
+</section>
+
+<section id="decisions">
+<h2 id="decisions-h">7. Decisions</h2>
+<ul>
+  <li class="dec"><strong>D1 — reuse canonical <code>style.css</code> as single source of truth</strong>
+  (maintainer-confirmed). The substrate reads + inlines the sibling <code>style.css</code> and layers component
+  CSS on <code>--pmos-*</code> tokens, rather than hand-porting the theme values into <code>BASE_CSS</code>.
+  Rationale: zero token drift — the browse pages follow future substrate theme changes automatically. Cost: a
+  more invasive one-time component-class remap (§4.2). Rejected alt: hand-port values (simpler now, drifts
+  later).</li>
+  <li class="dec"><strong>D2 — include the 61 bundled primers</strong> (maintainer-confirmed). The individual
+  pages in scope are exactly the bundled corpus (live-generated pages are already correct). Rejected alt:
+  library-viewer browse pages only.</li>
+  <li class="dec"><strong>D3 — light default + prefers-color-scheme dark</strong> (maintainer-confirmed).
+  Match the substrate exactly; the browse page changes from always-dark to light-by-default. Rejected alt: keep
+  dark-first.</li>
+  <li class="dec"><strong>D4 — same-plugin sibling read, not cross-plugin.</strong> pmos-learnkit carries its
+  own synced <code>_shared/html-authoring/</code> copy, so the substrate reads the learnkit-local
+  <code>style.css</code> — no cross-plugin dependency, no dangling <code>_shared/</code> cite. (The
+  <code>style.css</code> is byte-identical to the toolkit canonical per the sync intersection.)</li>
+  <li class="dec"><strong>D5 — build-time inline, not view-time link.</strong> Reading + inlining at build
+  keeps INV-1 (offline) intact while satisfying INV-2 (single source). The read happens once per browse-page
+  build, not per view.</li>
+  <li class="dec"><strong>D6 — fail loud on a missing <code>style.css</code>.</strong> No silent fallback to
+  the old dark CSS; a broken substrate path is a build error the author must fix.</li>
+  <li class="dec"><strong>D7 — corpus refresh is CSS-region-scoped + idempotent</strong> (INV-5), keeping it
+  orthogonal to the in-flight primer body epics (§6).</li>
+  <li class="dec"><strong>D8 — re-skin only, no redesign</strong> (INV-6). Faceting, search, view modes, and
+  reader behavior are untouched; this epic changes appearance, not interaction.</li>
+</ul>
+</section>
+
+<section id="risks">
+<h2 id="risks-h">8. Risks</h2>
+<ul>
+  <li><strong>Hidden old-token CSS in a consumer <code>extraHead</code></strong> would leave one page
+  inconsistent. Mitigated by the §4.3 audit task (required).</li>
+  <li><strong>Contrast/legibility regressions</strong> from mapping a dark layout onto light tokens (e.g. a
+  card border that vanishes on warm paper). Mitigated by a live render-and-eyeball of all three browse pages in
+  both color schemes during 260704-m7f's <code>/verify</code> (browser-evidence gate).</li>
+  <li><strong>The corpus transform mis-matching the style block</strong> (replacing the wrong
+  <code>&lt;style&gt;</code>, or corrupting body). Mitigated by marker-scoped replacement + the
+  body-bytes-unchanged test (§5) and INV-5 idempotence.</li>
+</ul>
+</section>
+
+<section id="release-prereqs">
+<h2 id="release-prereqs-h">9. Release prerequisites</h2>
+<ul>
+  <li>pmos-learnkit <code>plugin.json</code> ×2 version bump (behavior/appearance change to existing skills →
+  minor).</li>
+  <li>Changelog entry (user-facing: "browse pages and bundled primers now match the shared editorial theme");
+  manifest version-sync; no new README row (existing skills).</li>
+  <li>All owned by <code>/complete-dev</code> (Loop 3) — never in a build wave (skill-patterns §G).</li>
+  <li>Single plugin (pmos-learnkit), one release unit — satisfies the single-plugin validation (D17).</li>
+</ul>
+</section>

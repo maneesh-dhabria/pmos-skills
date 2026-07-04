@@ -1,0 +1,112 @@
+story: 260704-m7f
+epic: 260704-vde
+route: skill
+spec: ../../02_design.html
+plugin: pmos-learnkit
+depends_on: []
+summary: >
+  Re-theme the shared library-viewer substrate (_shared/library-viewer/lib.mjs) so all three browse pages
+  (/frameworks, /primer, /learn-list) inherit the canonical "Editorial Technical" look. emitHtml() reads +
+  inlines the sibling _shared/html-authoring/assets/style.css at build time (base layer), and every component
+  rule (masthead, layout, cards, facets, chips, search, reader, iframe reader) is remapped onto --pmos-* tokens
+  with the old dark token block removed. Light default + prefers-color-scheme dark are inherited for free from
+  style.css. Offline/self-contained and skill-agnostic invariants preserved; consumer extraHead audited; frozen
+  API tests + guidelines + selftest updated. Re-skin only — no interaction change.
+
+waves:
+  - wave: 1
+    name: Re-theme the substrate
+    tasks:
+      - id: T1
+        title: Inline canonical style.css as base CSS layer (AC1; INV-1/INV-2, D5/D6)
+        deps: []
+        parallel: false
+        detail: >
+          In _shared/library-viewer/lib.mjs, resolve the sibling stylesheet path relative to the module via
+          import.meta.url: `new URL('../html-authoring/assets/style.css', import.meta.url)`. Read it at build
+          time inside emitHtml() (or a small readBaseCss() helper) and inline its contents as the FIRST part of
+          the assembled `<style>` block, ahead of the library-viewer component CSS (currently BASE_CSS at
+          lib.mjs lines ~183-267) and IFRAME_READER_CSS. On read failure throw a clear Error naming the expected
+          path (no silent fallback to old dark CSS — D6). Do NOT add an external `<link>` or `@import`; the CSS
+          is inlined so the page stays offline/self-contained (INV-1). Also inline comments.css only if the
+          existing output already did (keep parity).
+        verify: >
+          node -e build of a tiny fixture via emitHtml() emits one `<style>` whose head contains the substrate
+          `:root{--pmos-...}` tokens and the JetBrains-Mono @font-face; output has zero `<link ` and zero
+          `@import`; deleting/renaming style.css makes emitHtml throw with the path in the message.
+      - id: T2
+        title: Remap component CSS onto --pmos-* tokens; remove old dark token block (AC2, AC3, AC4; INV-2/3/6)
+        deps: [T1]
+        parallel: false
+        detail: >
+          Rewrite the library-viewer's own component rules so they reference ONLY --pmos-* tokens
+          (--pmos-surface, --pmos-border, --pmos-rule, --pmos-text, --pmos-muted, --pmos-accent,
+          --pmos-accent-bg, --pmos-accent-strong, spacing --pmos-sp-*, --pmos-radius, fonts --pmos-font-sans/
+          serif/mono, sizes --pmos-fs-*). Delete the old `:root{--bg:#0f1320;--panel;--card;--accent:#6ea8fe;
+          --line;...}` block entirely. Cover every component: masthead/header (was var(--panel)/var(--line)),
+          .layout/.listing, cards + view modes (compact/detailed/list), single-select + multi-dropdown facets,
+          applied-filter chips, search box, the .reader sidebar + its width transition, and IFRAME_READER_CSS.
+          Apply the three-voice type system: --pmos-font-sans for controls/headings, --pmos-font-serif for
+          reader body prose, --pmos-font-mono for structural/metadata chrome. Keep EVERY class name and the DOM
+          structure unchanged (INV-6). Add NO library-viewer-specific `@media (prefers-color-scheme: dark)` rules
+          — dark is inherited because every color is a --pmos-* token that style.css flips (INV-3); no component
+          may hardcode a dark-only color.
+        verify: >
+          grep the assembled component CSS string for hex colors / `#` literals and for `--bg`/`--panel`/`--card`
+          /`--accent:`/`--line` → none remain; grep for `prefers-color-scheme` inside the component block → none;
+          a built fixture page opened in a browser shows warm-paper light, and toggling OS dark mode flips it
+          with legible contrast.
+      - id: T3
+        title: Audit the 3 consumers' extraHead / card / reader CSS (AC5)
+        deps: [T1]
+        parallel: true
+        detail: >
+          Inspect frameworks/scripts/build-library.mjs, primer/scripts/build-library.mjs, and
+          learn-list/scripts/build-library.mjs for skill-specific CSS passed via the extraHead seam or via
+          card/reader config that hardcodes old-theme colors (blue accent, dark card bg, etc.). Reconcile any
+          such CSS to --pmos-* tokens so the three pages are visually consistent. Record a one-line finding per
+          consumer in the story log (a "clean — nothing to change" outcome is valid; the audit is the
+          deliverable, not a mandatory edit).
+        verify: >
+          For each consumer, either a diff reconciling its extraHead CSS to --pmos-* tokens, or a logged
+          "no old-token CSS found" finding; grep of each build-library.mjs for hardcoded hex accent colors is
+          clean or reconciled.
+  - wave: 2
+    name: Guards + evidence
+    tasks:
+      - id: T4
+        title: Update frozen API tests + guidelines.md + selftest (AC6; INV-4)
+        deps: [T2]
+        parallel: true
+        detail: >
+          Update _shared/library-viewer/tests/lib.test.mjs assertions that pin the OLD CSS (e.g. a dark --bg
+          token, specific BASE_CSS strings) to the new contract: emitted `<style>` inlines style.css and contains
+          --pmos-* tokens; still NO external `<link>` (offline preserved); public API surface (emitHtml + named
+          exports esc/renderMarkdown/parseBlocks/renderBody/extractFacets/buildIndex/filterEngine/sortGroups)
+          unchanged. Update guidelines.md's styling/contract section to describe the read-and-inline-style.css
+          approach + --pmos-* token layering. Keep selftest.sh's skill-agnostic source grep green (reading a
+          sibling _shared substrate file is not skill-specific); adjust the grep only if it false-positives on
+          the new style.css read.
+        verify: >
+          `bash _shared/library-viewer/tests/selftest.sh` exits 0 (node --test + skill-agnostic grep both pass);
+          lib.test.mjs asserts the --pmos-* / inlined-style.css / no-external-link contract.
+      - id: T5
+        title: Build all 3 browse pages + browser evidence in both color schemes (AC7)
+        deps: [T2, T3, T4]
+        parallel: false
+        detail: >
+          Regenerate the three browse pages from real corpora: `node frameworks/scripts/build-library.mjs --out
+          <tmp>/frameworks.html`, `node primer/scripts/build-library.mjs --out <tmp>/primer-library.html`,
+          `node learn-list/scripts/build-library.mjs --out <tmp>/learn-list-library.html`. Open each in a
+          browser and capture evidence in BOTH light and prefers-color-scheme dark: warm-paper light default,
+          legible card borders/chips on warm paper, serif reader body, burnt-orange accent, no dark-blue
+          remnants, facets/search/view-switch/reader all still functional (INV-6). Fix any contrast/legibility
+          regression found.
+        verify: >
+          Screenshots (or Playwright snapshots) of all 3 pages in light + dark attached to the story log;
+          the /verify browser-evidence gate is satisfiable; no visual seam vs a rendered substrate primer.
+
+release_prerequisites: >
+  Owned by /complete-dev (Loop 3), NOT this build (skill-patterns §G): pmos-learnkit plugin.json ×2 minor
+  version bump; changelog entry; manifest version-sync; ~/.pmos/learnings.md header bootstrap if needed. No new
+  README row (existing skills). Do NOT include any of these as build-wave tasks.
