@@ -4,7 +4,7 @@ id: 260704-ytr
 title: "/primer References — shared deterministic generator + forward wiring (Phase 4/5) + guideline (required section + rubric R11): new primers emit a bottom `## References` section listing all sources.json entries, cited ones marked"
 type: feature
 kind: story
-status: planned
+status: in-progress
 route: skill
 priority: should
 labels: [pmos-learnkit, primer, references, skill]
@@ -15,7 +15,9 @@ dependencies: []
 design_doc: docs/pmos/features/2026-07-04_primer-references/02_design.html
 plan_doc: docs/pmos/features/2026-07-04_primer-references/stories/260704-ytr/03_plan.html
 feature_folder: docs/pmos/features/2026-07-04_primer-references/
-worktree:
+worktree: agent-skills-260704-ytr
+claimed_by: "build:b0e236c5-8aab-4a88-8bd7-4d40d8d8e0bc"
+driver_holder: "build:b0e236c5-8aab-4a88-8bd7-4d40d8d8e0bc"
 ---
 
 ## Context
