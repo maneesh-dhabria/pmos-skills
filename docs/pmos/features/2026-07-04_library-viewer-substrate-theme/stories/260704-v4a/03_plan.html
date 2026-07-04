@@ -1,0 +1,63 @@
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Plan — 260704-v4a refresh bundled primer corpus theme</title>
+<style>
+  body { max-width: 54rem; margin: 2rem auto; padding: 0 1.25rem; font: 16px/1.62 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: #1a1a1a; }
+  h1 { font-size: 1.5rem; margin: 0 0 .25rem; } h2 { font-size: 1.1rem; margin: 1.9rem 0 .5rem; border-bottom: 2px solid #ececec; padding-bottom: .3rem; }
+  h3 { font-size: 1rem; margin: 1.2rem 0 .3rem; } .sub { color: #666; margin: 0 0 1.3rem; }
+  code { background: #f2f2f2; padding: .05rem .3rem; border-radius: 4px; font-size: .87em; } pre { background: #f7f7f9; border: 1px solid #eee; border-radius: 8px; padding: .8rem 1rem; overflow-x: auto; font-size: .84rem; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; margin: .4rem 0; } th,td { text-align: left; vertical-align: top; padding: .45rem .6rem; border-bottom: 1px solid #eee; } th { background: #fafafa; font-size: .75rem; text-transform: uppercase; letter-spacing: .03em; color: #555; }
+  ul { padding-left: 1.3rem; } section { overflow-x: auto; }
+</style>
+
+<h1>Plan — refresh the 61 bundled primer corpus files</h1>
+<p class="sub">story 260704-v4a · epic 260704-vde · route: skill · pmos-learnkit · plan scoped by
+<code>02_design.html</code> §5–§6 anchors + this story's ACs. Machine-readable task queue:
+<code>tasks.yaml</code>.</p>
+
+<section id="goal">
+<h2 id="goal-h">Goal</h2>
+<p>Replace the stale <em>"Mono Minimal"</em> inlined CSS in all 61 bundled primer corpus files
+(<code>primer/data/primers/*.html</code>) with the current <em>"Editorial Technical"</em>
+<code>style.css</code>, without touching the primer body. Because the bundled primers are deliberately
+self-contained (CSS inlined, not linked), the fix is a marker-scoped, idempotent in-place CSS swap — and no such
+script exists today, so this story builds one.</p>
+</section>
+
+<section id="approach">
+<h2 id="approach-h">Approach</h2>
+<ul>
+  <li><strong>CLI (T1)</strong> — new zero-dep <code>retheme-corpus.mjs</code>. Locate each file's inlined
+  <em>substrate</em> <code>&lt;style&gt;</code> block by its header-comment marker
+  (<code>/* pmos-toolkit html-authoring substrate … */</code>), not the first <code>&lt;style&gt;</code>, and
+  replace only that region's CSS with the current <code>style.css</code>. Preserve
+  <code>&lt;main&gt;</code> byte-for-byte (INV-5). Fail loud on a missing marker; idempotent on re-run.</li>
+  <li><strong>Test (T2)</strong> — fixture-based: marker replaced, body unchanged, idempotent, missing-marker
+  errors loudly.</li>
+  <li><strong>Apply (T3)</strong> — run over all 61, commit refreshed files, spot-check in a browser, confirm
+  region-scoped diff + clean re-run.</li>
+</ul>
+</section>
+
+<section id="waves">
+<h2 id="waves-h">Waves</h2>
+<table>
+  <tr><th>Wave</th><th>Task</th><th>Deps</th></tr>
+  <tr><td>1 — Build the CLI</td><td>T1 retheme-corpus.mjs · T2 unit/integration test</td><td>T2←T1</td></tr>
+  <tr><td>2 — Apply</td><td>T3 run over 61 + browser spot-check + region-scoped-diff check</td><td>T3←T1,T2</td></tr>
+</table>
+</section>
+
+<section id="coordination">
+<h2 id="coordination-h">Coordination</h2>
+<p>Epics 260704-rgt (References) and 260704-dgq (enrichment) also touch these 61 files, but in
+<code>&lt;main&gt;</code>; this story touches only the <code>&lt;style&gt;</code> region (INV-5) and is
+idempotent, so the transforms compose and it can safely re-run after their passes. No hard
+<code>dependencies:</code> edge; the release train sequences them
+(<code>02_design.html#coordination</code>).</p>
+</section>
+
+<section id="release-prereqs">
+<h2 id="release-prereqs-h">Release prerequisites (Loop 3 only)</h2>
+<p>Owned by <code>/complete-dev</code>, never a build wave (§G): pmos-learnkit <code>plugin.json</code> ×2 minor
+bump, changelog, manifest version-sync. No new README row.</p>
+</section>

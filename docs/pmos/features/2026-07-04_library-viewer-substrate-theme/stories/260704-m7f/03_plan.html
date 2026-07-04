@@ -1,0 +1,68 @@
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Plan — 260704-m7f re-theme library-viewer substrate</title>
+<style>
+  body { max-width: 54rem; margin: 2rem auto; padding: 0 1.25rem; font: 16px/1.62 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: #1a1a1a; }
+  h1 { font-size: 1.5rem; margin: 0 0 .25rem; } h2 { font-size: 1.1rem; margin: 1.9rem 0 .5rem; border-bottom: 2px solid #ececec; padding-bottom: .3rem; }
+  h3 { font-size: 1rem; margin: 1.2rem 0 .3rem; } .sub { color: #666; margin: 0 0 1.3rem; }
+  code { background: #f2f2f2; padding: .05rem .3rem; border-radius: 4px; font-size: .87em; } pre { background: #f7f7f9; border: 1px solid #eee; border-radius: 8px; padding: .8rem 1rem; overflow-x: auto; font-size: .84rem; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; margin: .4rem 0; } th,td { text-align: left; vertical-align: top; padding: .45rem .6rem; border-bottom: 1px solid #eee; } th { background: #fafafa; font-size: .75rem; text-transform: uppercase; letter-spacing: .03em; color: #555; }
+  ul { padding-left: 1.3rem; } section { overflow-x: auto; }
+</style>
+
+<h1>Plan — re-theme the library-viewer substrate</h1>
+<p class="sub">story 260704-m7f · epic 260704-vde · route: skill · pmos-learnkit · plan scoped by
+<code>02_design.html</code> §3–§4 anchors + this story's ACs. Machine-readable task queue:
+<code>tasks.yaml</code>.</p>
+
+<section id="goal">
+<h2 id="goal-h">Goal</h2>
+<p>Make <code>_shared/library-viewer/lib.mjs</code> emit browse pages that read as the canonical "Editorial
+Technical" substrate — by <em>consuming</em> the canonical <code>style.css</code> rather than carrying a
+private dark theme. All three consumers (<code>/frameworks</code>, <code>/primer</code>, <code>/learn-list</code>)
+inherit the change for free because they call <code>emitHtml()</code> and never hand-author CSS.</p>
+</section>
+
+<section id="approach">
+<h2 id="approach-h">Approach</h2>
+<ul>
+  <li><strong>Base layer (T1)</strong> — read <code>../html-authoring/assets/style.css</code> via
+  <code>import.meta.url</code> at build time and inline it first in the <code>&lt;style&gt;</code> block; fail
+  loud if absent (design D5/D6). Stays offline — inlined, no <code>&lt;link&gt;</code> (INV-1).</li>
+  <li><strong>Component layer (T2)</strong> — delete the old dark <code>:root</code> block; rewrite masthead,
+  layout, cards, facets, chips, search, reader, iframe reader onto <code>--pmos-*</code> tokens only. Dark mode
+  comes free from <code>style.css</code>'s <code>prefers-color-scheme</code> overrides — add no viewer-specific
+  dark rules (INV-3). No class/DOM change (INV-6).</li>
+  <li><strong>Consumer audit (T3)</strong> — reconcile any old-token CSS the three
+  <code>build-library.mjs</code> pass via <code>extraHead</code>/config.</li>
+  <li><strong>Guards (T4)</strong> — update <code>lib.test.mjs</code> + <code>guidelines.md</code> to the new
+  contract; keep <code>selftest.sh</code> (skill-agnostic grep + <code>node --test</code>) green (INV-4).</li>
+  <li><strong>Evidence (T5)</strong> — build all three pages, eyeball both color schemes in a browser, fix any
+  contrast regression (the <code>/verify</code> browser-evidence gate).</li>
+</ul>
+</section>
+
+<section id="waves">
+<h2 id="waves-h">Waves</h2>
+<table>
+  <tr><th>Wave</th><th>Task</th><th>Deps</th></tr>
+  <tr><td>1 — Re-theme</td><td>T1 inline style.css base · T2 component CSS → --pmos-* · T3 consumer extraHead audit</td><td>T2←T1 · T3←T1</td></tr>
+  <tr><td>2 — Guards + evidence</td><td>T4 tests/guidelines/selftest · T5 build 3 pages + browser evidence (light+dark)</td><td>T4←T2 · T5←T2,T3,T4</td></tr>
+</table>
+</section>
+
+<section id="risks">
+<h2 id="risks-h">Risks &amp; mitigations</h2>
+<ul>
+  <li><strong>Dark-layout-on-light contrast loss</strong> (e.g. invisible card border on warm paper) → T5
+  live render in both schemes.</li>
+  <li><strong>Hidden old-token consumer CSS</strong> → T3 required audit of all three consumers.</li>
+  <li><strong>selftest skill-agnostic grep false-positive</strong> on the new style.css read → T4 adjusts the
+  grep only if it misfires; reading a sibling substrate file is not skill-specific (INV-4).</li>
+</ul>
+</section>
+
+<section id="release-prereqs">
+<h2 id="release-prereqs-h">Release prerequisites (Loop 3 only)</h2>
+<p>Owned by <code>/complete-dev</code>, never a build wave (§G): pmos-learnkit <code>plugin.json</code> ×2 minor
+bump, changelog, manifest version-sync, learnings header if needed. No new README row.</p>
+</section>
