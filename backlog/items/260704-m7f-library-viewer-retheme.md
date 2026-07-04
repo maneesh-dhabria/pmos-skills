@@ -4,7 +4,7 @@ id: 260704-m7f
 title: "Re-theme the shared library-viewer substrate — lib.mjs reads + inlines the canonical _shared/html-authoring/assets/style.css and remaps all component CSS (masthead, layout, cards, facets, chips, search, reader, iframe reader) onto --pmos-* tokens, light-default + prefers-color-scheme dark; /frameworks /primer /learn-list browse pages inherit Editorial Technical"
 type: chore
 kind: story
-status: planned
+status: in-progress
 route: skill
 priority: should
 labels: [pmos-learnkit, library-viewer, html-substrate, theme, skill]
@@ -15,7 +15,9 @@ dependencies: []
 design_doc: docs/pmos/features/2026-07-04_library-viewer-substrate-theme/02_design.html
 plan_doc: docs/pmos/features/2026-07-04_library-viewer-substrate-theme/stories/260704-m7f/03_plan.html
 feature_folder: docs/pmos/features/2026-07-04_library-viewer-substrate-theme/
-worktree:
+worktree: agent-skills-260704-m7f
+claimed_by: "build:b0e236c5-8aab-4a88-8bd7-4d40d8d8e0bc"
+driver_holder: "build:b0e236c5-8aab-4a88-8bd7-4d40d8d8e0bc"
 ---
 
 ## Context
