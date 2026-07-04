@@ -1,0 +1,87 @@
+story: 260704-e3b
+epic: 260704-dgq
+route: skill
+spec: ../../02_design.html
+plugin: pmos-learnkit
+depends_on: [260704-6rq, 260704-rgt]
+summary: >
+  Run the 260704-6rq enrichment engine over all 61 bundled corpus primers, fully unattended and rubric-gated
+  (D5), and commit the enriched data/primers/*.html + *.sources.json plus a per-primer run report. This is the
+  network run that actually closes the retrospective gap: every added source is fetch-verified this run (INV-2);
+  additive and convergent (INV-4/INV-5); a primer failing the rubric after enrichment is reverted, never shipped
+  (INV-6). Reuses the 260704-6rq engine (imported, not re-implemented — INV-1) and 260704-rgt's References
+  section already present on the corpus.
+
+waves:
+  - wave: 1
+    name: Backfill driver
+    tasks:
+      - id: T1
+        title: Backfill driver over all 61 primers — backfill-enrichment.mjs / enrich --all (AC1, AC2; INV-1/INV-6)
+        deps: []
+        parallel: false
+        detail: >
+          New plugins/pmos-learnkit/skills/primer/scripts/backfill-enrichment.mjs (or an --all mode of
+          enrich-references.mjs) that walks data/primers/*.html, reads the sibling *.sources.json, and applies
+          the 260704-6rq enrichPrimer() engine to each (imported, INV-1). Fully unattended, no per-primer human
+          approval (D5): each primer is gated by the engine's own rubric check (R1/R11/trust) and a failing primer
+          is reverted (INV-6). A primer whose every topic is coverage-gate-skipped is a logged no-op, never
+          errored-out. Atomic writes per primer (temp-then-rename for .html + .sources.json). Accept
+          --dry-run and --limit N for a bounded trial before the full 61-run.
+        verify: >
+          --dry-run --limit 3 reports considered/verified/added/skipped/reverted per primer with no file writes;
+          a forced rubric-fail on one primer shows reverted=true and that primer's files unchanged.
+      - id: T2
+        title: Run report (AC3)
+        deps: [T1]
+        parallel: false
+        detail: >
+          Emit a machine + human run report (stdout table + a written report file under the feature folder or
+          the skill's output dir): per primer — sources considered / verified / added / topics skipped /
+          reverted, plus totals (primers enriched, no-op, reverted; total sources added). Every one of the 61
+          primers has a report line — none silently unchanged without a line.
+        verify: report lists all 61 primers with the six columns + a totals footer.
+  - wave: 2
+    name: Full run + prove
+    tasks:
+      - id: T3
+        title: Execute the full 61-primer enrichment + commit corpus (AC5)
+        deps: [T1, T2]
+        parallel: false
+        detail: >
+          Run the driver over all 61 bundled primers (live fetch-verify, INV-2). Commit the enriched
+          data/primers/*.html + *.sources.json as the enrichment data change. If primers-index.json carries
+          sources_count, regenerate it via the existing index step so counts grow honestly with the added sources
+          (word_count excludes References per rgt D8). The gitignored regenerable library.html is untouched.
+          Capture the run report alongside the commit.
+        verify: >
+          git diff shows only additive changes to primer HTML/sources (existing prose/sources preserved);
+          sources_count reflects the additions; enriched primers still open and render.
+      - id: T4
+        title: Convergence + idempotency check (AC4; INV-5)
+        deps: [T3]
+        parallel: false
+        detail: >
+          Re-run the driver over the now-enriched corpus and assert convergence: no already-present source is
+          re-added and no re-weave occurs (dedup by verbatim url against the current sources.json). The second
+          run's report shows added=0 across all primers (modulo genuinely new corpus records, which would only
+          appear if the corpus changed).
+        verify: second run report totals: sources added == 0; no diff to the committed corpus.
+      - id: T5
+        title: skill-eval + lints gate (skill-eval; AC6 scope check)
+        deps: [T3]
+        parallel: false
+        detail: >
+          Run skill-eval (skill-eval-check.sh [D] + [J] judge) for the primer skill dir — the skill body is
+          unchanged by this story beyond the engine already shipped in 260704-6rq; the guard is that the new
+          backfill script + corpus edits do not regress the rubric. Run the 4 hygiene lints + audit-recommended.
+          Confirm no version-bump/changelog/README/manifest/learnings task leaked into any wave (§G).
+        verify: >
+          skill-eval [D] exit 0 (or residuals explicitly accepted) and [J] pass; 4 lints + audit green; no
+          release-prereq task in any wave.
+
+# Release prerequisites (owned by /complete-dev — Loop 3, NEVER a build wave; §G)
+#   - pmos-learnkit plugin.json ×2 minor version bump (shared with 260704-6rq in one epic release).
+#   - Changelog entry; manifest version-sync; no new README row (existing skill).
+#   - Bundled corpus edits ship as data changes within the same release.
+#   - Sequenced after epic 260704-rgt ships.

@@ -1,0 +1,207 @@
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Design — /primer curated-corpus enrichment (pmos-learnkit)</title>
+<style>
+  body { max-width: 54rem; margin: 2rem auto; padding: 0 1.25rem; font: 16px/1.62 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: #1a1a1a; }
+  h1 { font-size: 1.6rem; margin: 0 0 .25rem; } h2 { font-size: 1.14rem; margin: 2.1rem 0 .5rem; border-bottom: 2px solid #ececec; padding-bottom: .3rem; }
+  h3 { font-size: 1.02rem; margin: 1.3rem 0 .35rem; } .sub { color: #666; margin: 0 0 1.4rem; }
+  code { background: #f2f2f2; padding: .05rem .3rem; border-radius: 4px; font-size: .87em; } pre { background: #f7f7f9; border: 1px solid #eee; border-radius: 8px; padding: .8rem 1rem; overflow-x: auto; font-size: .84rem; line-height: 1.5; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; margin: .4rem 0; } th,td { text-align: left; vertical-align: top; padding: .45rem .6rem; border-bottom: 1px solid #eee; } th { background: #fafafa; font-size: .75rem; text-transform: uppercase; letter-spacing: .03em; color: #555; }
+  ul { padding-left: 1.3rem; } section { overflow-x: auto; } .inv { background: #fff8f0; border: 1px solid #f0dcc0; border-radius: 8px; padding: .3rem .8rem; }
+  .dec { background: #f0f6ff; border: 1px solid #cfe0f5; border-radius: 8px; padding: .3rem .8rem; }
+  .rej { color: #a33; }
+</style>
+
+<h1>Design — <code>/primer</code> curated-corpus enrichment</h1>
+<p class="sub">pmos-learnkit · epic 260704-dgq · route: skill · the cross-cutting coherence contract for
+stories 260704-6rq (enrichment engine) and 260704-e3b (corpus backfill). Stories cite this doc by anchor.
+<strong>Depends on epic 260704-rgt</strong> (References section) — sequenced after it. No epic <code>/spec</code>
+— this design doc is the skill-epic contract; per-skill spec folds into each story's <code>/plan</code>.</p>
+
+<section id="overview">
+<h2 id="overview-h">1. Overview &amp; the actual gap</h2>
+<p><code>/primer</code>'s new-primer generation <strong>already factors in</strong> the ~1,800-record curated
+corpus: Phase 3 sourcing runs the <code>curated-references</code> overlay (<code>_shared/topic-research/curated-references.md</code>),
+which prefilters the corpus per topic via <code>curated-references-match.mjs</code> (a pure IDF tag-overlap
+matcher), reranks, and feeds survivors into the same fetch-verify loop as live search. So the
+<em>forward</em> problem — "are these resources wired in for new primers?" — is <strong>already solved</strong>
+(suppressible with <code>--no-curated</code>). This epic does <strong>not</strong> touch that path.</p>
+<p>The gap is purely <strong>retrospective</strong>. The 61 bundled corpus primers
+(<code>data/primers/*.html</code> + <code>*.sources.json</code>) were generated <em>before</em> the overlay
+existed at today's corpus size, so their ~16-source-each evidence sets under-use the 1,797-record corpus. Many
+relevant, already-verified curated resources were never considered when those primers were built.</p>
+<p>This epic closes that gap by <strong>enriching each bundled primer, primer-by-primer</strong>: run the
+existing overlay prefilter over the corpus for that primer's own topics, fetch-verify the top curated
+candidates <em>this run</em>, and — for survivors — <strong>weave them into the relevant teaching section's
+prose</strong> and into <code>sources.json</code>, then regenerate the primer's <code>## References</code>
+section via epic 260704-rgt's shared <code>injectReferences</code> generator. A real refine pass, not a list
+append.</p>
+</section>
+
+<section id="relationship">
+<h2 id="relationship-h">2. Relationship to epic 260704-rgt (hard dependency)</h2>
+<p>260704-rgt <strong>surfaces</strong> each primer's <em>existing</em> <code>sources.json</code> as a bottom
+<code>## References</code> section — its INV-3 is explicit: nothing re-fetched, no new sources. This epic is the
+complement: it <strong>adds new curated sources</strong> to those same primers. The coupling is concrete and
+must be sequenced:</p>
+<ul>
+  <li><strong>Same 61 files.</strong> Both rgt's backfill (story 3jt) and this epic rewrite the same
+  <code>data/primers/*.html</code> and touch <code>sources.json</code>. Running both in-flight would produce
+  commit clashes — the risk the maintainer flagged.</li>
+  <li><strong>Sequencing (D3).</strong> rgt lands first. This epic <code>dependencies: [260704-rgt]</code>. After
+  enrichment mutates a primer's <code>sources.json</code> and prose, it <strong>re-invokes rgt's
+  <code>injectReferences</code></strong> so the References section reflects the enriched, larger source set —
+  reusing rgt's one generator (INV-1 of rgt), never re-implementing it.</li>
+  <li><strong>Honesty preserved.</strong> Because new sources are woven into the teaching prose (not merely
+  listed), rgt's "sources the primer was built on" semantics stay true — an enriched primer <em>was</em> rebuilt
+  on the enriched set.</li>
+</ul>
+</section>
+
+<section id="invariants">
+<h2 id="invariants-h">3. Invariants</h2>
+<div class="inv"><ul>
+  <li><strong>INV-1 — Reuse, don't fork, the corpus matcher.</strong> Candidate selection reuses the existing
+  <code>curated-references-match.mjs</code> prefilter + the <code>curated-references.md</code> overlay procedure.
+  The enrichment engine does not invent a second relevance mechanism; new primers and backfilled primers select
+  curated candidates the same way.</li>
+  <li><strong>INV-2 — Every added source is fetch-verified this run (D2).</strong> A curated record is a
+  <em>candidate</em>, not a verified source. It is admitted only after passing <code>sourcing.md</code>'s
+  existing hard-gate + fetch-verify (~30% yield). No corpus record is written into a primer on trust.
+  Preserves <code>/primer</code>'s core rule: every claim traces to a source fetched this run.</li>
+  <li><strong>INV-3 — References is regenerated, never hand-authored.</strong> After enrichment mutates
+  <code>sources.json</code>, the <code>## References</code> section is regenerated by rgt's deterministic
+  <code>injectReferences</code> (rgt INV-1/INV-2). This epic never hand-writes a References list.</li>
+  <li><strong>INV-4 — Enrichment is additive &amp; non-destructive.</strong> Existing verified sources, prose,
+  and structure are preserved. Enrichment only <em>adds</em> woven sentences/pointers and <em>appends</em> to
+  <code>sources.json</code>; it never rewrites or deletes existing teaching prose or drops existing sources.</li>
+  <li><strong>INV-5 — Re-runnable &amp; convergent.</strong> A second enrichment run over an already-enriched
+  primer adds nothing new it cannot verify and does not re-weave already-present sources (dedup by verbatim
+  <code>url</code> against the current <code>sources.json</code>). It is not required to be byte-idempotent (LLM
+  prose weave is not deterministic — INV-2's fetch-verify and dedup bound it), but it must converge: no
+  duplicate sources, no runaway growth.</li>
+  <li><strong>INV-6 — Rubric-gated, per primer.</strong> Every enriched primer must still pass
+  <code>/primer</code>'s existing <code>rubric.md</code> — R1 (every <code>&lt;a href&gt;</code> ∈
+  <code>sources.json[].url</code>), R11 (References membership, from rgt), and the trust-tier checks. A primer
+  that fails the rubric after enrichment is reverted, not shipped (D5).</li>
+</ul></div>
+</section>
+
+<section id="engine">
+<h2 id="engine-h">4. Architecture — the enrichment engine (story 260704-6rq)</h2>
+<p>A new mode/CLI <code>plugins/pmos-learnkit/skills/primer/scripts/enrich-references.mjs</code> (zero-dep Node
+ESM for the deterministic parts) orchestrates a per-primer refine. It is <strong>engine + orchestration</strong>;
+the prose-weave step is LLM-driven (the only non-script part), gated by the rubric.</p>
+<h3 id="per-primer">4.1 Per-primer procedure</h3>
+<table>
+  <tr><th>Step</th><th>What</th><th>Determinism</th></tr>
+  <tr><td>1. Topics</td><td>Recover the primer's topics from its <code>sources.json[].topic</code> set (the
+  per-H2 evidence map already keys on <code>topic</code>).</td><td>script (pure)</td></tr>
+  <tr><td>2. Prefilter</td><td>For each topic, pick query tags from the corpus tag-vocabulary and run
+  <code>curated-references-match.mjs</code> (INV-1) → top-K candidates. Exclude any whose <code>url</code> is
+  already a verbatim member of the primer's <code>sources.json</code> (dedup, INV-5).</td><td>script + LLM
+  tag-pick (as in the overlay)</td></tr>
+  <tr><td>3. Coverage gate</td><td>Reuse the overlay's per-topic coverage gate (default <code>T=3</code>,
+  <code>S=0</code>): a topic with too few candidates is skipped and logged. A primer whose every topic is
+  skipped is a <strong>no-op</strong> (logged, unchanged).</td><td>script</td></tr>
+  <tr><td>4. Fetch-verify</td><td>Run surviving candidates through <code>sourcing.md</code>'s hard-gate +
+  fetch-verify (INV-2). Cap admitted new sources per primer (D4). Losers are dropped.</td><td>fetch + gate</td></tr>
+  <tr><td>5. Weave</td><td>For each verified new source, weave a grounded sentence/pointer into the relevant
+  H2's prose (the H2 matching the source's <code>topic</code>), and append the entry to
+  <code>sources.json</code>. Additive only (INV-4).</td><td>LLM (rubric-gated)</td></tr>
+  <tr><td>6. Regenerate References</td><td>Call rgt's <code>injectReferences(html, sources)</code> so
+  <code>## References</code> reflects the enriched set (INV-3).</td><td>script (rgt)</td></tr>
+  <tr><td>7. Rubric gate</td><td>Re-score the enriched primer against <code>rubric.md</code> (R1, R11,
+  trust-tier). Pass → write atomically. Fail → revert this primer, log the failure (D5, INV-6).</td><td>script +
+  reviewer</td></tr>
+</table>
+<h3 id="skill-wiring">4.2 SKILL.md wiring</h3>
+<p>A new verb <code>/primer enrich</code> (natural-language: "enrich the bundled primers with curated
+sources") documented in SKILL.md, dispatching the engine. Anti-patterns gains "don't add a curated source
+without fetch-verifying it this run" (mirrors the trust anti-pattern #1). No change to the forward
+generate path — the overlay already covers new primers.</p>
+<h3 id="tests">4.3 Tests</h3>
+<p>Unit tests for the deterministic parts (topic recovery, dedup against existing <code>sources.json</code>,
+coverage-gate no-op, cap enforcement) + a fixture primer proving an added-and-verified source lands in both
+prose and References and passes R1/R11. LLM weave itself is exercised in the story's dogfood, not unit-asserted.</p>
+</section>
+
+<section id="backfill">
+<h2 id="backfill-h">5. The corpus backfill (story 260704-e3b)</h2>
+<p>A CLI run that walks all 61 bundled primers and applies the engine (§4) to each, <strong>fully unattended,
+rubric-gated only</strong> (D6). It is the data change: enriched <code>data/primers/*.html</code> +
+<code>*.sources.json</code> committed together. Depends on 260704-6rq (engine) and 260704-rgt (References
+generator + section already present on the corpus). Emits a run report: per primer, sources considered /
+verified / added / skipped, and any primer reverted for a rubric failure. No index churn beyond
+<code>sources_count</code> (which grows honestly with the added sources); <code>word_count</code> excludes
+References per rgt D8.</p>
+</section>
+
+<section id="decisions">
+<h2 id="decisions-h">6. Decisions (maintainer-settled)</h2>
+<div class="dec"><ul>
+  <li><strong>D1 — Enrichment depth: full refine pass.</strong> Verify curated candidates and weave survivors
+  into teaching prose <em>and</em> References — not a References-only append. Keeps rgt's "built on" semantics
+  honest and delivers the real value. <span class="rej">(Rejected: references-only append — lists sources the
+  primer wasn't built on; hybrid prose-only-where-material — harder to gate deterministically.)</span></li>
+  <li><strong>D2 — Verification: re-fetch-verify this run.</strong> Every added source passes
+  <code>sourcing.md</code>'s fetch-verify, respecting <code>/primer</code>'s trust invariant and guarding
+  against corpus link-rot. <span class="rej">(Rejected: trust the corpus — violates fetch-this-run contract,
+  risks stale links across 61 curated primers.)</span></li>
+  <li><strong>D3 — Depend on 260704-rgt, sequence after.</strong> rgt owns the References format +
+  <code>injectReferences</code> + rubric R11. This epic <code>dependencies: [260704-rgt]</code>; enrichment
+  regenerates References via rgt's generator. Prevents the same-61-files commit clash.
+  <span class="rej">(Rejected: fold into rgt — contradicts rgt's INV-3; run independently — leaves the clash to
+  manual discipline.)</span></li>
+  <li><strong>D4 — Approach: primer-by-primer, capped.</strong> Iterate primers, not tags — maps 1:1 onto the
+  overlay machinery and keeps relevance anchored to each primer's framing. Cap admitted new sources per primer
+  (default small — e.g. up to the depth-floor delta / ~4–6 verified additions) so enrichment stays a refine, not
+  a bloat. <span class="rej">(Rejected: batch-by-tag — inverts the index; a tag-relevant source isn't
+  necessarily relevant to a specific primer's framing.)</span></li>
+  <li><strong>D5 — Review posture: fully unattended, rubric-gated only.</strong> 61 primers × full refine is
+  infeasible to human-review per primer; the run is lights-out, gated by the existing rubric (R1/R11 + trust)
+  and fetch-verify. A primer failing the rubric after enrichment is reverted (INV-6), never shipped.
+  <span class="rej">(Rejected: interactive per-primer — impractical at 61; sample-review — deferred; the rubric
+  gate is the safety net and the run report surfaces every change for post-hoc audit.)</span></li>
+  <li><strong>D6 — Two stories, engine → backfill.</strong> 260704-6rq ships the enrichment engine + SKILL.md
+  verb + tests (deps: 260704-rgt for <code>injectReferences</code>). 260704-e3b runs it over all 61 primers as
+  the data change (deps: 260704-6rq + 260704-rgt). One skill, one plugin (pmos-learnkit), one release unit.</li>
+  <li><strong>D7 — Additive-only enrichment.</strong> Never rewrite or delete existing prose/sources; only weave
+  additions and append. Bounds blast radius and keeps diffs reviewable (INV-4).</li>
+  <li><strong>D8 — Forward path untouched.</strong> New-primer generation already runs the overlay; this epic
+  adds no forward behavior and no new forward verb beyond <code>/primer enrich</code> for the retrospective
+  pass. <code>--no-curated</code> semantics unchanged.</li>
+</ul></div>
+</section>
+
+<section id="story-split">
+<h2 id="story-split-h">7. Story split</h2>
+<table>
+  <tr><th>Story</th><th>Scope</th><th>Deps</th><th>route</th></tr>
+  <tr><td><strong>260704-6rq</strong> — enrichment engine + SKILL.md verb</td><td>New
+  <code>scripts/enrich-references.mjs</code> (per-primer: topic recovery → overlay prefilter (INV-1) → dedup →
+  coverage gate → fetch-verify (INV-2, cap D4) → LLM prose-weave (additive, INV-4) → regenerate References via
+  rgt's <code>injectReferences</code> (INV-3) → rubric gate/revert (INV-6)); <code>/primer enrich</code> verb +
+  anti-pattern in SKILL.md; unit tests for the deterministic parts. Proves one primer enriches + passes
+  R1/R11.</td><td>260704-rgt</td><td>skill</td></tr>
+  <tr><td><strong>260704-e3b</strong> — corpus backfill (61 primers)</td><td>Run the 260704-6rq engine over all
+  61 bundled primers, fully unattended + rubric-gated (D5); commit enriched <code>*.html</code> +
+  <code>*.sources.json</code>; emit a run report. Re-runnable / convergent (INV-5).</td><td>260704-6rq,
+  260704-rgt</td><td>skill</td></tr>
+</table>
+<p>Per the D24 litmus: the only cross-story dependency is the shared engine (a story-level dep, resolved by
+claim-time merge), never a task-in-A-depends-on-task-in-B coupling. The dependency on 260704-rgt is likewise
+story/epic-level: 6rq imports <code>injectReferences</code>; e3b needs the References section already present on
+the corpus.</p>
+</section>
+
+<section id="release-prereqs">
+<h2 id="release-prereqs-h">8. Release prerequisites</h2>
+<ul>
+  <li>pmos-learnkit <code>plugin.json</code> ×2 version bump (behavior change to an existing skill → minor).</li>
+  <li>Changelog entry; no new README row (existing skill). Manifest version-sync.</li>
+  <li>All owned by <code>/complete-dev</code> (Loop 3) — never in a build wave (§G).</li>
+  <li>The bundled corpus edits (story 260704-e3b) ship as data changes within the same release.</li>
+  <li><strong>Sequenced after epic 260704-rgt ships</strong> — this epic's stories are not buildable until rgt's
+  <code>injectReferences</code> + corpus References sections exist on main.</li>
+</ul>
+</section>

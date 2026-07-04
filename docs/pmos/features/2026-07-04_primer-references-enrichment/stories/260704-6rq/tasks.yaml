@@ -1,0 +1,132 @@
+story: 260704-6rq
+epic: 260704-dgq
+route: skill
+spec: ../../02_design.html
+plugin: pmos-learnkit
+depends_on: [260704-rgt]
+summary: >
+  Build the per-primer enrichment engine for /primer and the `/primer enrich` verb. Given an existing primer,
+  recover its topics from sources.json, prefilter the ~1,800-record curated corpus for those topics via the
+  existing curated-references-match.mjs (INV-1), dedup against the primer's current sources, apply the overlay
+  coverage gate, fetch-verify the top candidates THIS run (INV-2, capped per primer), weave verified survivors
+  into the matching H2 prose + append to sources.json (additive only, INV-4), regenerate the ## References
+  section via epic 260704-rgt's injectReferences (INV-3), then rubric-gate the result and revert on failure
+  (INV-6). This story is the sole author of enrich-references.mjs, which story 260704-e3b runs over all 61
+  bundled primers. Reuses (never forks) the corpus matcher and the sourcing.md fetch-verify loop.
+
+waves:
+  - wave: 1
+    name: Engine
+    tasks:
+      - id: T1
+        title: Deterministic engine skeleton — enrich-references.mjs topic recovery + prefilter + dedup + coverage gate (AC1, AC2; INV-1/INV-5)
+        deps: []
+        parallel: false
+        detail: >
+          New plugins/pmos-learnkit/skills/primer/scripts/enrich-references.mjs (zero-dep Node ESM for the
+          deterministic parts, matching build-library.mjs / references-section.mjs style). Export an
+          enrichPrimer({htmlPath, sourcesPath, corpus, opts}) orchestration returning an outcome record
+          {considered, verified, added, skipped_topics, reverted}. This task lands steps 1-3 of design §4.1:
+          (1) recover topics = distinct sources.json[].topic; (2) per topic call the existing
+          curated-references-match.mjs match({tags, corpus, k, scoreFloor}) — import it from
+          _shared/topic-research/curated-references-match.mjs, do NOT re-implement (INV-1); pick ~5-8 query tags
+          from the corpus tag-vocabulary per the curated-references.md overlay procedure; (3) EXCLUDE any
+          candidate whose url is already a verbatim member of the primer's sources.json (dedup, INV-5); apply the
+          overlay coverage gate (default T=3, S=0) per topic, logging skipped topics; a primer with every topic
+          skipped returns a no-op outcome. Pure/no-write in this task (dry-run returns the candidate set).
+        verify: >
+          node -e import resolves enrichPrimer + the imported match; on a fixture primer it returns candidates
+          excluding already-present urls, and a fixture whose topics have no corpus matches returns a no-op
+          outcome (skipped_topics == all topics, added 0).
+      - id: T2
+        title: Fetch-verify + cap (AC3; INV-2/D4)
+        deps: [T1]
+        parallel: false
+        detail: >
+          Route surviving candidates through sourcing.md's hard-gate + fetch-verify loop THIS run (INV-2) —
+          reuse the existing sourcing machinery / verification pass-bar, treating curated survivors identically
+          to live-search candidates; drop unverified ones. Enforce a per-primer cap on ADMITTED new sources
+          (default ~4-6 / the depth-floor delta, configurable via opts). No corpus record is written on trust.
+          When WebFetch is unavailable, degrade per reference/source-floor.md (verification impossible -> add
+          nothing, log the degraded run) rather than admitting unverified sources.
+        verify: >
+          with a stubbed fetch-verify, admitted count never exceeds the cap; unverified candidates are dropped;
+          WebFetch-absent path admits zero and logs the degradation.
+  - wave: 2
+    name: Weave + regenerate + gate
+    tasks:
+      - id: T3
+        title: Weave into prose + append to sources.json, regenerate References (AC4, AC5; INV-3/INV-4/D7)
+        deps: [T2]
+        parallel: false
+        detail: >
+          For each verified new source: weave a grounded sentence/pointer into the H2 whose topic matches the
+          source's topic (additive only — never rewrite or delete existing prose, INV-4); append the entry
+          {url, takeaway, topic, tier, paywalled?} to sources.json. Then call epic 260704-rgt's
+          injectReferences(html, sources) (imported from scripts/references-section.mjs, brought in by the
+          260704-rgt claim-time merge) so ## References reflects the enriched set (INV-3) — never hand-author the
+          list. Writes go through temp-then-rename for BOTH .html and .sources.json (atomic; abort leaves
+          originals intact).
+        verify: >
+          on the fixture, a verified source appears as a woven <a href> inside the matching H2 AND as a new
+          sources.json entry AND in the regenerated References list; existing prose/sources are byte-preserved
+          except the additions.
+      - id: T4
+        title: Rubric gate + revert-on-fail (AC6; INV-6/D5)
+        deps: [T3]
+        parallel: false
+        detail: >
+          After mutation, re-score the enriched primer against reference/rubric.md — R1 (every body <a href> url
+          in sources.json[].url), R11 (References membership from 260704-rgt), and the trust-tier checks (reuse
+          the primer Phase-5 reviewer/orchestrator-validation path, or the deterministic subset for R1/R11).
+          PASS -> commit the atomic writes. FAIL -> revert this primer to its pre-enrichment bytes (restore the
+          saved originals) and set reverted=true in the outcome with the failing check ids. A failing primer is
+          never shipped.
+        verify: >
+          inject a deliberately-broken weave (a body link not added to sources.json) -> engine reverts, outcome
+          reverted=true, files unchanged from pre-run bytes.
+  - wave: 3
+    name: Verb + tests + gate
+    tasks:
+      - id: T5
+        title: SKILL.md `/primer enrich` verb + anti-pattern (AC7; D8)
+        deps: [T1]
+        parallel: true
+        detail: >
+          Add a `/primer enrich` verb to SKILL.md (natural-language trigger: "enrich the bundled primers with
+          curated sources") dispatching enrich-references.mjs; document it as a retrospective, corpus-aware refine
+          that fetch-verifies every addition this run. Add an Anti-pattern: "Adding a curated source without
+          fetch-verifying it this run" (mirrors trust anti-pattern #1). State explicitly that the forward
+          new-primer generate path and --no-curated semantics are UNCHANGED (D8). Keep the frozen
+          non-interactive block byte-identical; if the verb issues any AskUserQuestion, mark it Recommended or
+          defer-tagged (audit-recommended). Argument-hint updated only if a contract flag is added (else nl-sugar).
+        verify: >
+          grep shows the enrich verb + anti-pattern; forward-path-unchanged note present; lint-non-interactive-inline,
+          lint-flags-vs-hints, lint-phase-refs, audit-recommended green.
+      - id: T6
+        title: Unit + fixture tests (AC8)
+        deps: [T2, T4]
+        parallel: true
+        detail: >
+          Tests (primer skill test convention / node --test) covering the deterministic parts: topic recovery;
+          dedup against existing sources.json; coverage-gate no-op; cap enforcement; revert-on-rubric-fail (stub
+          reviewer + fixture primer). One integration-style fixture proves an added-and-verified source (stubbed
+          fetch) lands in prose + sources.json + References and passes R1/R11. Wire into the skill's test runner.
+        verify: test run exits 0; all listed cases present and green.
+      - id: T7
+        title: skill-eval + lints gate (skill-eval; AC9 scope check)
+        deps: [T5, T6]
+        parallel: false
+        detail: >
+          Run skill-eval (skill-eval-check.sh [D] + [J] judge) for the primer skill dir at the resolved target;
+          run the 4 hygiene lints + audit-recommended. Confirm no version-bump/changelog/README/manifest/learnings
+          task leaked into any wave (§G — those live in Release prerequisites only). Fix residuals within the eval
+          cap or record accepted residuals.
+        verify: >
+          skill-eval [D] exit 0 (or residuals explicitly accepted) and [J] pass; 4 lints + audit green; no
+          release-prereq task in any wave.
+
+# Release prerequisites (owned by /complete-dev — Loop 3, NEVER a build wave; §G)
+#   - pmos-learnkit plugin.json ×2 minor version bump.
+#   - Changelog entry; manifest version-sync; no new README row (existing skill).
+#   - Sequenced after epic 260704-rgt ships (injectReferences must exist on main).
