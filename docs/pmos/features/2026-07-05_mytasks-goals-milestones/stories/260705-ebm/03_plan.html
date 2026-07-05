@@ -1,0 +1,55 @@
+<meta name="pmos:skill" content="plan">
+<title>Plan — S2 attachment &amp; cascade (260705-ebm)</title>
+<style>body{max-width:52rem;margin:2rem auto;padding:0 1.25rem;font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;color:#1a1a1a}h1{font-size:1.6rem}h2{font-size:1.15rem;margin:2rem 0 .5rem;border-bottom:2px solid #ececec;padding-bottom:.3rem}code{background:#f2f2f2;padding:.05rem .3rem;border-radius:4px;font-size:.88em}ul,ol{padding-left:1.3rem}section{overflow-x:auto}</style>
+
+<h1>Plan — S2 attachment &amp; cascade</h1>
+<p>Story 260705-ebm · epic 260705-n2n · route: skill · plugin pmos-toolkit · skill_dir <code>plugins/pmos-toolkit/skills/mytasks</code> · <strong>depends on S1 (260705-hbe)</strong></p>
+
+<section id="goal">
+<h2>Goal</h2>
+<p>Connect tasks + projects to goals — the "connect work to goals" half. Binds <code>02_design.html §3</code> (INV-4/5/6), decisions D5 (inherit-by-default, per-task override wins) and D8 (map lives in the goal file, not registry.json). Depends on S1's goal entity — the D9 claim-time branch merge brings S1 in before build.</p>
+</section>
+
+<section id="study">
+<h2>Code study (do first)</h2>
+<ul>
+<li><code>scripts/lib.js</code> — <code>migrateWorkstreamKey</code> (the precedent for the additive load-time normalizer), the item schema + save path.</li>
+<li>S1's goals loader/saver + <code>attached_projects</code> field on the goal schema.</li>
+<li><code>registry.json</code> handling — confirm it is NOT read/written for attachments (D8: it stays the deletable visibility cache).</li>
+</ul>
+</section>
+
+<section id="waves">
+<h2>Waves (TDD — see tasks.yaml)</h2>
+<ol>
+<li><strong>T1</strong> task <code>goal:</code>/<code>milestone:</code> fields + <code>schema_version</code>→3 normalization (test-first; idempotent, ids untouched).</li>
+<li><strong>T2</strong> <code>attached_projects</code> on goals + <code>buildProjectGoals()</code> + two-goals-one-project validation error.</li>
+<li><strong>T3</strong> <code>effectiveGoal</code>/<code>effectiveMilestone</code> resolver — full truth table, no-double-count (after T1+T2).</li>
+<li><strong>T4</strong> attach/detach verbs (task + project; error on missing target, no unrelated mutation).</li>
+<li><strong>T5</strong> dogfood + skill-eval [D] + 4 lints + audit-recommended.</li>
+</ol>
+</section>
+
+<section id="risks">
+<h2>Decisions &amp; risks</h2>
+<ul>
+<li><strong>Resolution precedence (INV-4):</strong> explicit <code>none</code> detaches → direct link wins → project inherit → null. A single function, so a task can't double-count (INV-5).</li>
+<li><strong>Migration safety:</strong> additive only — absent/1/2 tasks stay valid; normalization is idempotent and never rewrites ids or unrelated fields.</li>
+<li><strong>D8:</strong> attachments are durable in the goal file; never make <code>registry.json</code> load-bearing.</li>
+<li>Keep the frozen non-interactive block byte-identical.</li>
+</ul>
+</section>
+
+<section id="verify">
+<h2>Final verification</h2>
+<ul>
+<li><code>node --test</code>: resolver truth table, no-double-count, migration idempotency, two-goals-one-project error, attach/detach round-trips — green.</li>
+<li>Dogfood: project attach cascades to its tasks; per-task override + <code>none</code> detach both win; invalid attach errors cleanly.</li>
+<li><code>skill-eval-check.sh</code> [D] + 4 hygiene lints + <code>audit-recommended</code> green.</li>
+</ul>
+</section>
+
+<section id="release">
+<h2>Release prerequisites (NOT build-wave tasks — §G, /complete-dev owns)</h2>
+<ul><li>Version bump / changelog / manifest-sync ride the epic's single release at Loop 3.</li></ul>
+</section>

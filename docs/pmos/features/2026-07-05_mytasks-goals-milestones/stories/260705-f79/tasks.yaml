@@ -1,0 +1,81 @@
+schema_version: 1
+story: 260705-f79
+epic: 260705-n2n
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-toolkit/skills/mytasks
+# S3 — pace signals, progress & surfacing. Binds 02_design.html §4+§5 (INV-7/8/9), D1/D2/D3/D4/D7.
+# Depends on S1+S2: D9 claim-time merges both branches in (goal entity + effective resolver present).
+# Determinism (§H hard gate): every signal/progress value is a lib.js pure function w/ --selftest; model
+# never estimates a band or number. Release prereqs are /complete-dev's (§G).
+tasks:
+  - id: T1
+    title: "scheduleSignal(goal, today) — dated bands + open-ended→null (TDD, §4.1)"
+    ac: [AC1, AC7]
+    deps: []
+    parallel: false
+    detail: >
+      TEST FIRST: on-track (next milestone far, progress ok), at-risk (due within AT_RISK_DAYS & derived
+      progress < AT_RISK_PCT), behind (next due < today), done (all met), and OPEN-ENDED goal → null (never
+      behind, D2). THEN implement pure scheduleSignal in lib.js with named constants AT_RISK_DAYS=7,
+      AT_RISK_PCT=0.5. `node --test` + lib --selftest green.
+  - id: T2
+    title: "attentionSignal(goal, effectiveTasks, today) — real-progress-only + grace state (TDD, §4.2, D1/D7)"
+    ac: [AC2, AC7]
+    deps: []
+    parallel: false
+    detail: >
+      TEST FIRST: fed (a completed OR created attached task within cadenceWindow); starved (none within window);
+      a bare `updated` bump does NOT feed (D7 — the trust catch); no-tasks-yet on zero effective tasks (INV-9,
+      never falsely starved). Reuse the check-in cadence→window arithmetic. THEN implement pure attentionSignal +
+      cadenceWindow in lib.js. `node --test` green.
+  - id: T3
+    title: "progress — derived + manual milestone met override (TDD, §4.3, D3/INV-8)"
+    ac: [AC3, AC7]
+    deps: []
+    parallel: false
+    detail: >
+      TEST FIRST: derivedProgress = completed/total effective attached tasks; a manual met milestone reads met
+      regardless of task state (INV-8); goal with zero tasks → "no tasks yet" not 0%. THEN implement in lib.js
+      (uses S2's effectiveGoal to gather each goal's tasks). `node --test` green.
+  - id: T4
+    title: "goals view + index summary — derived on read, behind/starved first, quiet when healthy"
+    ac: [AC4]
+    deps: [T1, T2, T3]
+    parallel: false
+    detail: >
+      Implement the `/mytasks goals` render (per-goal: type, schedule band, attention band, progress, next
+      milestone+due; behind/starved sorted first) and a compact `## Goals` summary prepended to the bare
+      `/mytasks` index listing ONLY behind/starved/at-risk goals (empty/quiet when all healthy). Derived on read
+      (no persisted file), mirroring renderIndex. SKILL.md documents the view. Verify with a healthy + a behind +
+      a starved goal.
+  - id: T5
+    title: "morning-brief hook — goalsForBrief() + brief lane (verify against real pipeline)"
+    ac: [AC5]
+    deps: [T1, T2, T3]
+    parallel: false
+    detail: >
+      Add lib.js goalsForBrief() returning behind+starved active goals in the shape /morning-brief consumes;
+      wire /morning-brief to emit a "goals needing attention" lane (read the morning-brief skill's source-read
+      contract and mirror it — integration, not re-implementation). Verify end-to-end that a behind/starved goal
+      appears in an actual /morning-brief run; a healthy-only store adds no lane.
+  - id: T6
+    title: "read-only web — GET /api/goals + web display"
+    ac: [AC6]
+    deps: [T1, T2, T3]
+    parallel: true
+    detail: >
+      Add GET /api/goals to serve.js returning each active goal + computed signals/progress; surface read-only in
+      webapp/. No create/edit in the browser (out of scope). Verify the endpoint + render against a scratch store.
+  - id: T7
+    title: "Dogfood + skill-eval [D] + lints + anti-patterns"
+    ac: [AC7, AC8, AC9]
+    deps: [T4, T5, T6]
+    parallel: false
+    detail: >
+      Full dogfood across a scratch store: a dated on-track goal, a behind goal, a starved goal (cadence lapsed),
+      an open-ended goal (never behind), a zero-task goal (no-tasks-yet). Confirm goals view, index summary,
+      morning-brief lane, and web all agree with the pure functions. SKILL Anti-patterns gains "never estimate a
+      pace band the script computes" + "a trivial edit is not progress". Run skill-eval-check.sh, 4 lints,
+      audit-recommended — all green. No release-prereq edits (§G).

@@ -1,0 +1,103 @@
+<meta name="pmos:skill" content="requirements">
+<title>Requirements — /mytasks goals &amp; milestones</title>
+
+<style>
+  body { max-width: 54rem; margin: 2rem auto; padding: 0 1.25rem; font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: #1a1a1a; }
+  h1 { font-size: 1.7rem; line-height: 1.2; margin: 0 0 .25rem; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 .6rem; padding-bottom: .3rem; border-bottom: 2px solid #ececec; }
+  h3 { font-size: 1.02rem; margin: 1.4rem 0 .4rem; }
+  .sub { color: #666; margin: 0 0 1.5rem; }
+  .tldr { background: #f5f8ff; border: 1px solid #d6e2ff; border-radius: 10px; padding: 1rem 1.2rem; }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; margin: .5rem 0; }
+  th, td { text-align: left; vertical-align: top; padding: .5rem .6rem; border-bottom: 1px solid #eee; }
+  th { background: #fafafa; font-size: .78rem; text-transform: uppercase; letter-spacing: .03em; color: #555; }
+  code { background: #f2f2f2; padding: .05rem .3rem; border-radius: 4px; font-size: .88em; }
+  ul, ol { padding-left: 1.3rem; }
+  .fr { font-weight: 600; color: #0b5; }
+  .tag { display: inline-block; font-size: .72rem; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; padding: .12rem .5rem; border-radius: 999px; background: #eef; color: #335; margin-right: .3rem; }
+  section { overflow-x: auto; }
+</style>
+
+<h1>Goals &amp; milestones in <code>/mytasks</code> — Requirements</h1>
+<p class="sub">Epic 260705-n2n · route: skill · Tier 3 · 2026-07-05 · grounded in <code>docs/pmos/shape/2026-07-05_goals-milestones-mytasks.html</code></p>
+
+<section id="problem">
+<h2>Problem &amp; goal</h2>
+<div class="tldr">
+<p>Maneesh's goals live outside <code>/mytasks</code>, so they go invisible and he steers by his reactive task list; and even when he recalls a goal he has no trustworthy signal of whether he is <strong>on schedule</strong> against its checkpoints or <strong>starving it</strong> of attention. Two co-equal jobs: <strong>A — capture &amp; keep visible</strong>; <strong>B — sense the pace</strong> (dual signal).</p>
+</div>
+<p><strong>Solution direction:</strong> add a durable <em>goal</em> entity to <code>/mytasks</code> with embedded dated <em>milestones</em>; let projects and tasks attach to goals (project attachment cascades to its tasks, per-task override wins); derive two trustworthy pace signals per goal — <em>schedule adherence</em> and <em>attention allocation</em> — and surface goals in the daily flow (a <code>goals</code> view + index summary + a <code>/morning-brief</code> hook).</p>
+<p><strong>Non-negotiable (ceiling-breaker):</strong> the signal must <em>earn trust</em> — open-ended goals never read "behind"; the attention signal is silence-based and per-goal-tunable so it doesn't cry wolf; attachment is low-friction (inheritance) so the data doesn't rot.</p>
+</section>
+
+<section id="decisions">
+<h2>Design decisions (settled with the maintainer)</h2>
+<table>
+<tr><th>#</th><th>Decision</th></tr>
+<tr><td>D1</td><td><strong>Attention signal = per-goal cadence + recency.</strong> Each goal carries a target <code>cadence</code> (a check-in-style enum: daily/weekly/biweekly/monthly). <em>Starved</em> = no <em>active or recently-completed</em> attached task within that window. Silence-based; low upkeep; per-goal so a slow goal isn't nagged like a sprint.</td></tr>
+<tr><td>D2</td><td><strong>Goal <code>type</code>: dated vs open-ended.</strong> <code>dated</code> goals have milestones/deadlines and get the schedule-adherence signal; <code>open-ended</code> (maintenance) goals have no deadline, get only the attention signal, and <em>never</em> read "behind". Kills the cry-wolf failure mode.</td></tr>
+<tr><td>D3</td><td><strong>Progress = derived + manual milestone flag.</strong> Goal/milestone progress is derived from attached-task completion, AND a milestone can be manually marked <code>met</code> regardless of task state (for outcomes tasks only proxy). A milestone can be met without every attached task done.</td></tr>
+<tr><td>D4</td><td><strong>Surfacing = mytasks view + morning-brief hook.</strong> A new <code>/mytasks goals</code> view + a goals summary atop the at-a-glance index; plus a <code>/morning-brief</code> integration that flags behind/starved goals.</td></tr>
+<tr><td>D5</td><td><strong>Cascade = inherit-by-default, per-task override wins.</strong> Tasks in a goal-attached project inherit the goal; a task may set its own <code>goal:</code>/<code>milestone:</code> (or explicit <code>none</code>) to override. Inheritance is a default, not a cage.</td></tr>
+<tr><td>D6</td><td><strong>Storage = new goal entity.</strong> Goals are a new file kind at <code>~/.pmos/tasks/goals/{id}-{slug}.md</code> with milestones embedded in the goal file; tasks/projects link via new <code>goal:</code> (+ <code>milestone:</code>) fields. Reuses the <code>_shared/tracker-crudl.md</code> id/slug/index substrate; keeps goals distinct from <code>project</code> containers.</td></tr>
+</table>
+</section>
+
+<section id="requirements">
+<h2>Functional requirements</h2>
+
+<h3>Goal &amp; milestone model (Story 1)</h3>
+<ul>
+<li><span class="fr">FR-1</span> A <strong>goal</strong> is a markdown file at <code>~/.pmos/tasks/goals/{id}-{slug}.md</code> with frontmatter: <code>schema_version</code>, <code>id</code> (<code>&lt;YYMMDD&gt;-&lt;rand3&gt;</code> per tracker-crudl §2), <code>title</code>, <code>type</code> ∈ {<code>dated</code>, <code>open-ended</code>}, <code>status</code> ∈ {<code>active</code>, <code>achieved</code>, <code>dropped</code>}, <code>cadence</code> (check-in enum; drives the attention signal), optional <code>target</code> (ISO date, dated goals), <code>created</code>/<code>updated</code>. Milestones embedded as a body section.</li>
+<li><span class="fr">FR-2</span> <strong>Milestones</strong> are an ordered list inside the goal file (a <code>## Milestones</code> section or a frontmatter list): each has a stable local <code>ref</code>, a <code>description</code>, a <code>due</code> (ISO date), and a <code>met</code> flag (bool + optional met-date). A goal may have zero or more milestones; open-ended goals typically have none.</li>
+<li><span class="fr">FR-3</span> Goal CRUD verbs: <code>/mytasks goal add</code> (rich-capture via <code>_shared/interactive-prompts.md</code>), <code>/mytasks goal show &lt;id&gt;</code>, <code>/mytasks goals</code> (list/index view), <code>/mytasks goal edit/drop/achieve &lt;id&gt;</code>, <code>/mytasks milestone add &lt;goal&gt;</code>, <code>/mytasks milestone met &lt;goal&gt; &lt;ref&gt;</code>. Natural-language forms per the skill's NL-first convention.</li>
+<li><span class="fr">FR-4</span> Validation: closed enums for <code>type</code>/<code>status</code>/<code>cadence</code>; the skill never invents enum values. Milestone <code>due</code> dates parse via the existing date parser. Reuse the id/slug minting + archive convention from <code>tracker-crudl.md</code>.</li>
+</ul>
+
+<h3>Attachment &amp; cascade (Story 2)</h3>
+<ul>
+<li><span class="fr">FR-5</span> Tasks gain optional <code>goal:</code> (goal id) and <code>milestone:</code> (milestone ref within that goal) frontmatter fields; empty by default (bare keys, per mytasks's empty-optional binding).</li>
+<li><span class="fr">FR-6</span> A <strong>project</strong> may be attached to a goal via a project→goal mapping (in <code>registry.json</code>, the existing add-only visibility cache, or an equivalent durable map). Task markdown stays the source of truth for direct links.</li>
+<li><span class="fr">FR-7</span> <strong>Effective goal resolution (D5):</strong> a task's effective goal = its own <code>goal:</code> if set (including the sentinel <code>none</code> → detached); else the goal mapped to its <code>project:</code>; else none. Deterministic, pure-function, unit-tested. The same rule yields the effective milestone.</li>
+<li><span class="fr">FR-8</span> Verbs: <code>/mytasks attach &lt;task|project&gt; &lt;goal&gt; [milestone]</code>, <code>/mytasks detach &lt;task|project&gt;</code>. Attaching a project sets the mapping; attaching a task sets its <code>goal:</code>. NL forms supported.</li>
+<li><span class="fr">FR-9</span> Dedup / integrity: a task counts toward a goal <strong>once</strong>; resolution never double-counts a task that both directly attaches and inherits. Attaching to a non-existent goal/milestone errors clearly.</li>
+</ul>
+
+<h3>Pace signals, progress &amp; surfacing (Story 3)</h3>
+<ul>
+<li><span class="fr">FR-10</span> <strong>Schedule-adherence signal (dated goals only):</strong> per goal, compute an at-a-glance read from milestone <code>due</code> dates vs. today and their <code>met</code>/derived state → {<code>on-track</code>, <code>at-risk</code>, <code>behind</code>, <code>done</code>}. Open-ended goals never produce this signal (D2). Deterministic; script-computed, never model-estimated (§H).</li>
+<li><span class="fr">FR-11</span> <strong>Attention-allocation signal (all goals):</strong> <code>fed</code> vs <code>starved</code> from the most-recent attached-task activity (created/updated/completed) vs. the goal's <code>cadence</code> window (D1). "No attached activity within cadence → starved." Deterministic.</li>
+<li><span class="fr">FR-12</span> <strong>Progress (D3):</strong> derived progress = completed ÷ total effective-attached tasks (and milestone-level roll-up); PLUS manual milestone <code>met</code> overrides. A goal with no attached tasks reads "no tasks yet", not 0%/behind.</li>
+<li><span class="fr">FR-13</span> <strong>Surfacing (D4):</strong> (a) <code>/mytasks goals</code> renders each goal with type, both signals, progress, next milestone; (b) the bare <code>/mytasks</code> at-a-glance index gains a compact goals summary (behind/starved flagged first); (c) a <code>/morning-brief</code> hook surfaces behind/starved goals in the daily brief. Web app (<code>webapp/</code>) shows goals read-only (full web CRUD is out of scope — see below).</li>
+<li><span class="fr">FR-14</span> All pace/progress computation lives in <code>lib.js</code> pure functions with a <code>--selftest</code>/unit-test surface; the SKILL body cites them and never re-derives arithmetic (§H hard gate).</li>
+</ul>
+</section>
+
+<section id="nfr">
+<h2>Non-functional &amp; constraints</h2>
+<ul>
+<li><strong>Backwards compatible:</strong> existing tasks (no <code>goal:</code>/<code>milestone:</code>) stay valid; <code>schema_version</code> bumps additively with a load-time normalization like the prior <code>workstream→project</code> migration. No task file is rewritten on read except the additive normalization.</li>
+<li><strong>Trust-first (ceiling-breaker):</strong> open-ended goals never "behind"; attention signal silence-based + per-goal-tunable; inheritance keeps attachment low-friction; a goal with zero attached tasks is never falsely "starved" until it has had at least one attachment (grace state).</li>
+<li><strong>Determinism (§H):</strong> every signal/progress value is script-computed; the model authors prose, not numbers.</li>
+<li><strong>Single plugin, one release unit</strong> (pmos-toolkit). Conforms to <code>skill-patterns.md §A–§L</code>; passes <code>skill-eval</code> (<code>[D]</code>+<code>[J]</code>); 4 hygiene lints + <code>audit-recommended</code> green.</li>
+</ul>
+</section>
+
+<section id="scope">
+<h2>Out of scope (this epic)</h2>
+<ul>
+<li>Full web-app CRUD for goals/milestones (create/edit in the browser) — read-only web surfacing only; web authoring is a follow-up.</li>
+<li>Goal hierarchies (sub-goals / OKR key-result trees) — a goal is flat with milestones.</li>
+<li>Cross-goal analytics / historical burndown charts — the signals are point-in-time reads.</li>
+<li>Notifications/reminders beyond the <code>/morning-brief</code> hook and the existing check-in surface.</li>
+</ul>
+</section>
+
+<section id="open">
+<h2>Open questions (carried to design/plan)</h2>
+<ul>
+<li>Milestone storage: frontmatter list vs. a <code>## Milestones</code> body table — resolved in 02_design (frontmatter list for machine-read, mirrored in body for humans).</li>
+<li>Project→goal map home: extend <code>registry.json</code> vs. a new <code>goals</code>-side map — resolved in 02_design.</li>
+<li>Exact "at-risk" threshold for the schedule signal (e.g. next milestone due within X days &amp; &lt;Y% derived progress) — tuned in Story 3 plan.</li>
+</ul>
+</section>
