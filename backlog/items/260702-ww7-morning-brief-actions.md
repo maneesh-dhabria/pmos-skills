@@ -4,18 +4,20 @@ id: 260702-ww7
 title: "/morning-brief action lane — batch-review one-confirm, /mytasks task creation with dedupe, source-native dismissals, observe+correct rule capture"
 type: feature
 kind: story
-status: planned
+status: in-progress
 route: skill
 priority: should
 labels: [pmos-toolkit, morning-brief, mytasks, actions, skill]
 created: 2026-07-02
-updated: 2026-07-02
+updated: 2026-07-05
 parent: 260702-kck
 dependencies: [260702-b6q]
 design_doc: docs/pmos/features/2026-07-02_morning-brief/02_design.html
 plan_doc: docs/pmos/features/2026-07-02_morning-brief/stories/260702-ww7/03_plan.html
 feature_folder: docs/pmos/features/2026-07-02_morning-brief/
-worktree:
+worktree: ../agent-skills-260702-ww7
+claimed_by: build:6ebbc55f-ba70-406e-83ac-4a1c6b85ccd9
+driver_holder: build:6ebbc55f-ba70-406e-83ac-4a1c6b85ccd9
 ---
 
 ## Context
