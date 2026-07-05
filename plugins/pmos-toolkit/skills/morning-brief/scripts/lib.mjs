@@ -384,6 +384,48 @@ export function assembleManifest(model) {
   };
 }
 
+// ── rules.md append (story ww7 T5 — observe+correct capture; §H) ───────────────
+// The DETERMINISTIC half of rule capture: append a synthesized one-line rule under
+// its GTD-4D category heading. The synthesis (turning a confirm-step correction into
+// a rule sentence) and the per-rule approval stay LLM judgment in the SKILL body —
+// this only does the placement + atomic write. No silent writes: callers gate on the
+// user's approval before calling.
+
+export const RULE_CATEGORIES = ['do', 'delegate-reply', 'defer-track', 'drop-FYI'];
+
+// Pure: insert `- <ruleLine>` at the end of the `## <category> …` section. A missing
+// heading is appended at EOF (cold-start safety). Returns the updated text; throws on
+// an unknown category (the four GTD-4D buckets are the closed set).
+export function appendRule(rulesText, category, ruleLine) {
+  if (!RULE_CATEGORIES.includes(category)) {
+    throw new Error(`appendRule: unknown category "${category}" (one of ${RULE_CATEGORIES.join(', ')})`);
+  }
+  const bullet = `- ${String(ruleLine).trim()}`;
+  const lines = String(rulesText).split('\n');
+  const esc = category.replace(/[.*+?^${}()|[\]\\-]/g, '\\$&');
+  const headRe = new RegExp(`^##\\s+${esc}(?=\\s|$)`);
+  const hi = lines.findIndex((l) => headRe.test(l));
+  if (hi === -1) {
+    return String(rulesText).replace(/\n*$/, '\n') + `\n## ${category}\n\n${bullet}\n`;
+  }
+  let end = lines.length;
+  for (let i = hi + 1; i < lines.length; i++) { if (/^##\s/.test(lines[i])) { end = i; break; } }
+  let insertAt = end;
+  while (insertAt > hi + 1 && lines[insertAt - 1].trim() === '') insertAt--;
+  lines.splice(insertAt, 0, bullet);
+  return lines.join('\n');
+}
+
+// I/O wrapper: append a rule to <storeDir>/rules.md atomically (repo-guarded, INV-4).
+// Reads the current file (must exist — seeded on first `rules` use), applies appendRule,
+// writes back. Returns the file path.
+export function appendRuleToStore(storeDir, category, ruleLine, home = os.homedir()) {
+  assertWritableStore(storeDir, home);
+  const f = path.join(storeDir, 'rules.md');
+  const cur = fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '# Morning-brief categorization rules\n';
+  return writeAtomic(f, appendRule(cur, category, ruleLine));
+}
+
 // ── Selftest ──────────────────────────────────────────────────────────────────
 
 function selftest() {
@@ -487,6 +529,22 @@ function selftest() {
   ok('manifest per-source shown-by-tier', man.sources[0].shown.today === 1 && man.sources[0].shown.fyi === 1 && man.sources[0].shown.knowing === 1);
   ok('manifest no-rule-matched list', man.totals.no_rule_matched === 1 && man.no_rule_matched[0].id === 'i2');
   ok('manifest beyond-horizon total', man.totals.beyond_horizon === 2);
+
+  // 8. rule capture append (story ww7 T5)
+  const seed = '# Rules\n\n## do — needs action\n\n- Existing do rule.\n\n## delegate-reply — reply clears it\n\n- Existing delegate rule.\n\n## defer-track — real, not today\n\n## drop-FYI — awareness only\n\n- Existing fyi rule.\n';
+  const r1 = appendRule(seed, 'do', 'Threads from Alice needing sign-off = do.');
+  ok('appendRule inserts under do section', /## do —[\s\S]*- Existing do rule\.\n- Threads from Alice needing sign-off = do\.\n\n## delegate-reply/.test(r1));
+  ok('appendRule does not disturb other sections', r1.includes('- Existing fyi rule.'));
+  const r2 = appendRule(seed, 'defer-track', 'Newsletters to read later = defer-track.');
+  ok('appendRule fills an empty section', /## defer-track —[\s\S]*- Newsletters to read later = defer-track\.\n\n## drop-FYI/.test(r2));
+  const r3 = appendRule('# Rules\n', 'drop-FYI', 'CCs = drop-FYI.');
+  ok('appendRule creates a missing heading', /## drop-FYI\n\n- CCs = drop-FYI\.\n/.test(r3));
+  throws('appendRule rejects unknown category', () => appendRule(seed, 'archive', 'x'));
+  const rf = path.join(store, 'rules.md');
+  fs.writeFileSync(rf, seed);
+  appendRuleToStore(store, 'drop-FYI', 'Automated alerts = drop-FYI.', tmp);
+  ok('appendRuleToStore writes back', fs.readFileSync(rf, 'utf8').includes('- Automated alerts = drop-FYI.'));
+  ok('appendRuleToStore no .tmp orphan', fs.readdirSync(store).every((f) => !f.endsWith('.tmp')));
 
   fs.rmSync(tmp, { recursive: true, force: true });
   console.log(`lib.mjs selftest: ${pass} passed, ${fail} failed`);

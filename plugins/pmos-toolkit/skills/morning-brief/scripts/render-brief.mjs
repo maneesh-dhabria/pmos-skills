@@ -113,7 +113,7 @@ function proposalBlock(model) {
   const props = model.proposals || [];
   if (!props.length) return '';
   const lis = props.map((p) => `<li><span class="act">${esc(p.action)}</span> ${esc(p.summary)}</li>`).join('');
-  return `<section class="proposals"><h2>Proposed actions <span class="info">informational — the confirm/act lane lands in a later story</span></h2><ul>${lis}</ul></section>`;
+  return `<section class="proposals"><h2>Proposed actions <span class="info">printed for reference — reviewed &amp; confirmed in chat (D4)</span></h2><ul>${lis}</ul></section>`;
 }
 
 const CSS = `
@@ -251,7 +251,7 @@ function selftest() {
   ok('fyi collapsed <details>', html.includes('<details>') && html.includes('<summary>gmail'));
   ok('lane overdue + waiting rendered', html.includes('Send Q3 deck') && html.includes('Legal review'));
   ok('lane read-only marker', html.includes('read-only'));
-  ok('proposals informational marker', html.includes('informational'));
+  ok('proposals reference + confirmed-in-chat marker', html.includes('confirmed in chat'));
 
   // suffixing (D7)
   const store = path.join(tmp, 'store');

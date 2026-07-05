@@ -4,11 +4,12 @@ description: >
   Turn a user-declared set of inbound sources (email, calendar, doc-comments, chat, custom)
   into one trustworthy, ranked, show-everything morning view — swept from live source state,
   categorized against your own rules, and emitted as a self-contained HTML brief with a
-  coverage manifest and a read-only /mytasks lane. Use when the user says "morning brief",
-  "what came in overnight", "sweep my inboxes", "plan my morning", "what needs me today", or
-  runs /morning-brief. This story is the read-only core (sweep → categorize → rank → brief);
-  the batch confirm/act lane is a companion skill. Nothing is mutated; nothing is written
-  inside a repo. First run with no config routes into guided source setup.
+  coverage manifest and a /mytasks lane — then clear it in one confirmed pass: create tasks
+  (deduped, through /mytasks), dismiss items via each source's native action, and capture your
+  corrections as candidate rules. Use when the user says "morning brief", "what came in
+  overnight", "sweep my inboxes", "plan my morning", "what needs me today", or runs
+  /morning-brief. Every mutation is confirm-gated and DEFERs under --non-interactive; nothing
+  is written inside a repo. First run with no config routes into guided source setup.
 user-invocable: true
 argument-hint: "[sources | rules] [--non-interactive]"
 ---
@@ -16,9 +17,10 @@ argument-hint: "[sources | rules] [--non-interactive]"
 # /morning-brief
 
 The repo's first connector-reader skill. Turns declared sources into one derived morning
-view. A **pure derived view**: sources and `/mytasks` are the only state stores; this skill
-persists only your configuration, your rules, and a last-run cursor. This story
-(`260702-b6q`) is read-only end-to-end — the batch confirm/act lane lands in `260702-ww7`.
+view, then clears it in one confirmed pass. A **pure derived view**: sources and `/mytasks`
+are the only state stores; this skill persists only your configuration, your rules, and a
+last-run cursor. Every mutation (task creation, source-native dismissal, rule capture) runs
+only from the one user-confirmed batch action set (INV-5) and DEFERs under `--non-interactive`.
 
 Grounded in `docs/pmos/features/2026-07-02_morning-brief/02_design.html` (cite by anchor).
 Per-kind read contracts, the normalized item, and the run-model JSON that the render script
@@ -39,14 +41,19 @@ consumes live in `reference/source-contracts.md`.
   `~/.pmos/morning-brief/` (or `$PMOS_MORNING_BRIEF_DIR`). **Work-comms content is never
   written inside any code repository** — `scripts/lib.mjs` refuses such writes.
   LLM processing of your work content is an accepted, stated premise.
-- **INV-6 — `/mytasks` sole system of record.** The task lane is read-only; this story
-  writes no tasks. (Task creation behind the confirm lane is `260702-ww7`.)
+- **INV-5 — Confirm-gated actions.** The skill informs and recommends; every mutation
+  (task creation, source-native dismissal, rule capture) executes only from the ONE
+  user-confirmed batch action set ([Phase 8](#confirm)). Under `--non-interactive` every
+  mutation DEFERs (destructive) — never auto-executed (the [non-interactive contract](#defer)).
+- **INV-6 — `/mytasks` sole system of record.** The read lane is read-only; task creation
+  goes through `/mytasks`' own data contract with dedupe ([Phase 9](#act)) — never a parallel
+  task store.
 
 ## Verbs (D1)
 
 | Verb | Behavior |
 |---|---|
-| bare `/morning-brief` | The run pipeline: sweep → categorize → rank → emit brief + manifest → advance cursor, then STOP (Phases [4](#sweep)–[8](#cursor)). No `sources.yaml` → route into guided setup ([Phase 2](#sources-verb)) first. |
+| bare `/morning-brief` | The run pipeline: sweep → categorize → rank → emit brief + manifest → batch confirm → act → correct → advance cursor (Phases [4](#sweep)–[11](#cursor)). Steps 5–7 (confirm/act/correct) are confirm-gated (INV-5) and DEFER under `--non-interactive`. No `sources.yaml` → route into guided setup ([Phase 2](#sources-verb)) first. |
 | `/morning-brief sources` | Guided declare/edit of sources + priorities + the two window settings ([Phase 2](#sources-verb)). Writes `sources.yaml`. Never suggests a priority from volume (INV-3). |
 | `/morning-brief rules` | View / add / edit / retire personal categorization rules ([Phase 3](#rules-verb)). Retire = delete. |
 
@@ -56,7 +63,7 @@ All flags are natural-language-first (§I); the only machine-coupled flag is the
 ## Track Progress
 
 This skill has multiple phases. Create one task per phase you will run (the bare run uses
-Phases 1, 4–9; the `sources`/`rules` verbs use Phase 1 then 2 or 3) using your agent's
+Phases 1, 4–12; the `sources`/`rules` verbs use Phase 1 then 2 or 3) using your agent's
 task-tracking tool. Mark each in-progress when you start and completed as soon as it
 finishes — do not batch completions.
 
@@ -173,8 +180,8 @@ Rule edits are free-form authoring, so under `--non-interactive` this DEFERs:
 AskUserQuestion: "Which rule do you want to add, edit, or retire? (rules.md is prose bullets under do / delegate-reply / defer-track / drop-FYI.)"
 ```
 
-Write back atomically. Rules earned from real traffic via the confirm step land in
-`260702-ww7`; this story only supports the manual verb.
+Write back atomically. This verb is the **manual** path; rules are also earned from real
+traffic automatically via the confirm-step correction capture ([Phase 10](#correct)).
 
 ## Phase 4 — Sweep {#sweep}
 
@@ -217,19 +224,101 @@ Ranking sets **prominence, never inclusion** (INV-2). Every item gets exactly on
 
 1. Assemble the run-model JSON (`reference/source-contracts.md` § Run-model): `date`,
    `window`, `sources[]` (with `status` + `counts.{new,carryover,beyond_horizon}`), `items[]`
-   (with `category`, `tier`, `why`, `no_rule_matched`), `lane`, and an **informational**
-   `proposals[]` (create/dismiss/leave suggestions — the confirm/act lane is `260702-ww7`).
+   (with `category`, `tier`, `why`, `no_rule_matched`), `lane`, and the `proposals[]` — the
+   proposed action set `{create-task[], dismiss[], leave[]}` derived from the ranked items
+   (§9). The proposal is **printed in the brief for reference** but reviewed and confirmed in
+   chat ([Phase 8](#confirm), D4) — the HTML has no write path.
 2. `node scripts/render-brief.mjs <model.json> --out <storeDir>` — the script computes all
    manifest counts (§7/§H), enforces INV-2 (every item rendered), writes
    `briefs/YYYY-MM-DD[-N].html` (same-day suffixing, D7), and prints the absolute path.
-3. Print that absolute path to the user, plus a one-line coverage summary and the
-   informational proposal lane (clearly marked "confirm lane lands in a later story"). Then
-   **STOP** — no mutations in this story.
+3. Print that absolute path to the user, plus a one-line coverage summary. Then continue into
+   [Phase 8](#confirm) — the confirmed batch action pass. (Under `--non-interactive` the
+   confirm DEFERs and nothing mutates — see the [non-interactive contract](#defer).)
 
 The brief is self-contained static HTML outside any repo (INV-4) — the pmos-comments overlay
 contract does not apply to home-dir artifacts.
 
-## Phase 8 — Advance cursor {#cursor}
+## Phase 8 — Batch confirm {#confirm}
+
+The mutation lane opens here (INV-5): **one** proposed action set, **one** confirmation.
+Nothing below executes until the user confirms.
+
+1. **Build the proposal.** From the ranked items, derive one set
+   `{create-task[], dismiss[], leave[]}` (§9):
+   - **create-task** — items worth tracking (typically `defer-track`, plus `do` items you will
+     not clear this morning). Each carries a suggested title + the item's source deep link.
+   - **dismiss** — items clearable at the source now (a `delegate-reply` you will answer, an
+     FYI you would archive), each mapped to its source's native `dismiss` action (§4).
+   - **leave** — everything else stays as-is; it re-derives next run (INV-1).
+2. **Dedupe the creates first (AC2 — §H + judgment).** Run
+   `node scripts/dedupe.mjs <tasksDir> <proposals.json>` — exact source-link match against
+   open `/mytasks` items (deterministic; `tasksDir` defaults to `~/.pmos/tasks`). Then apply
+   **title-similarity** judgment to the remaining creates against the open-task titles. Any
+   match is downgraded to **"already tracked"** and shown in the lane rather than proposed as a
+   new create — the user can override it back to a create in the edit step.
+3. **Present it as ONE numbered, editable list** — the `/mytasks import` preview→confirm shape
+   (D4). The user edits by number ("move 3 to dismiss", "retitle 5", re-tier or re-categorize
+   an item), then confirms **once**. No per-item approval chain.
+
+   ```
+   <!-- defer-only: destructive -->
+   AskUserQuestion: "Here is the proposed action set — creates (deduped), dismissals, and leaves. Edit by number, or confirm to act. This creates /mytasks tasks and performs source-native dismissals."
+   ```
+
+   Record which items the user re-tiered / re-categorized / moved between buckets —
+   [Phase 10](#correct) turns those into candidate rules.
+
+### Non-interactive contract {#defer}
+
+Under `--non-interactive` this confirm is `defer-only: destructive` (the tag above): the
+proposed set is already **printed in the emitted brief** (Phase 7) and is flushed to the OQ
+buffer; **zero mutations execute** — no tasks created, no dismissals, no rule writes. Phases 9
+and 10 are skipped; the run advances to the cursor ([Phase 11](#cursor)) only if the sweep was
+clean (D6). This is the W14 unattended contract (§10) — sweep→categorize→rank→emit run
+unattended; the action lane always waits for a human.
+
+## Phase 9 — Act {#act}
+
+Execute **only** the user-confirmed set. Do each group; report every action's outcome verbatim.
+
+1. **Create tasks (AC2, INV-6).** Write the confirmed creates to a `creates.json`
+   (`[{title, link, type?, due?}]`) and run
+   `node scripts/create-task.mjs <tasksDir> <creates.json>`. It mints each through `/mytasks`'
+   own lib (byte-compatible: the shared id minter, the `schema_version 2` shape, and
+   `lib.serializeItem`) with the source deep link written into both the `links` field and the
+   body. Report the created ids verbatim. `/mytasks` stays the sole store (INV-6).
+2. **Source-native dismissals (AC3, INV-1).** For each confirmed dismissal, execute the
+   source's declared native action (§4: archive/label email, respond to invite, resolve/reply
+   comment) using the **run-time-resolved connector tools** (ToolSearch by the source's
+   `connector` hint — never a hardcoded inventory, D5). Report each dismissal with its outcome.
+   A **failure is not retried and stores no state** — the item stays in its source and derives
+   back in as carryover next run (INV-1). Report failures plainly, alongside the successes.
+3. **Leaves** need no action — they re-derive next run.
+
+## Phase 10 — Correct: rule capture {#correct}
+
+Turn the confirm-step corrections into durable rules (AC4). No silent writes.
+
+1. **Diff** the user's [Phase 8](#confirm) edits (re-tiers, re-categorizations, disposition
+   overrides) against the run's own proposals. Each divergence is a signal the rules missed
+   something.
+2. **Synthesize** each into a one-line candidate rule under the matching GTD-4D category
+   (`do` / `delegate-reply` / `defer-track` / `drop-FYI`) — judgment.
+3. **Offer per-rule approval** (Recommended = the synthesized rule; skip freely). Approved
+   rules append to `<storeDir>/rules.md` under the right heading via
+   `lib.appendRuleToStore(storeDir, category, ruleLine)` (§H — deterministic placement + atomic
+   write). Declining every candidate is a clean exit that writes nothing.
+
+   ```
+   <!-- defer-only: destructive -->
+   AskUserQuestion: "You re-tiered or re-categorized these items during confirm. Capture them as rules so next morning's brief gets them right? (Approve per rule; skip any.)"
+   ```
+
+Under `--non-interactive` this capture defers with the rest of the action lane (see the
+[non-interactive contract](#defer)) — the candidate rules land in the OQ flush; `rules.md` is
+untouched.
+
+## Phase 11 — Advance cursor {#cursor}
 
 Write `cursor.yaml` atomically (`lib.writeCursor(storeDir, { last_run: <nowIso>, high_water })`)
 **only when the sweep completed cleanly for all reachable sources** (D6). If any reachable
@@ -238,7 +327,7 @@ next run re-derives them as carryover (INV-1). Failed-because-unreachable source
 the cursor (they are carried in the manifest and re-swept by derive-on-read). No other
 run-state is written.
 
-## Phase 9: Capture Learnings {#capture-learnings}
+## Phase 12: Capture Learnings {#capture-learnings}
 
 If this run surfaced a durable, reusable lesson about `/morning-brief` (a connector quirk, a
 recurring miscategorization, a window-tuning insight), offer to append it under
@@ -248,9 +337,13 @@ recurring miscategorization, a window-tuning insight), offer to append it under
 
 - **§H — deterministic work is in scripts, never prose.** `scripts/lib.mjs`: store-dir +
   repo guard, `sources.yaml`/`cursor.yaml` parse/validate/serialize (atomic), window math,
-  the `/mytasks` lane, manifest count assembly. `scripts/render-brief.mjs`: HTML render +
-  suffixing. LLM keeps judgment: categorization, tiering, summarization. Both scripts are
-  zero-dependency Node with `--selftest`.
+  the `/mytasks` lane, manifest count assembly, and `appendRule`/`appendRuleToStore` (rules.md
+  placement + atomic write). `scripts/render-brief.mjs`: HTML render + suffixing.
+  `scripts/dedupe.mjs`: exact source-link dedupe of proposed creates against open `/mytasks`
+  items. `scripts/create-task.mjs`: mint a task through `/mytasks`' own lib (byte-compatible id
+  + shape + serializer). LLM keeps judgment: categorization, tiering, summarization,
+  title-similarity dedupe, rule synthesis, and executing/reporting source-native dismissals.
+  All four scripts are zero-dependency Node with `--selftest`.
 - **§I — NL-first surface.** `argument-hint` carries only the verbs + `--non-interactive`;
   everything else is inferred from natural language. No machine-coupled flags in v1.
 - **§L — model tiers.** Per-source sweeps MAY dispatch parallel **sonnet** subagents (bounded
