@@ -9,7 +9,7 @@ priority: should
 route: skill
 dependencies: [260702-cqf]
 plugin: pmos-managerkit
-status: in-progress
+status: done
 feature_folder: docs/pmos/features/2026-07-02_interview-guide/
 plan_doc: docs/pmos/features/2026-07-02_interview-guide/02_design.html
 tasks: docs/pmos/features/2026-07-02_interview-guide/stories/260702-jz4/tasks.yaml
@@ -84,3 +84,49 @@ context, D7).
   `--selftest`; optionally a self-eval helper.
 - Model the three output aesthetics on the porter gold-standard
   (`interviewing-pms/.../guidelines/case-study/`) and the moved corpus HTML.
+
+## Build outcome (Loop-2, 2026-07-05)
+
+BUILT via `/feature-sdlc build --next --non-interactive` (route:skill). Impl on **feat/260702-jz4 `2bbb9c4d`,
+UNMERGED** (for Loop-3); this write-back on main. Claim `build:b0e236c5-…` released. Dep cqf's branch
+dep-merged into the worktree at claim-time (D9), so the `../_shared/interview-guidelines/` corpus was present
+for AC7.
+
+Files authored under `plugins/pmos-managerkit/skills/interview-guide/`:
+- `SKILL.md` — two modes (round-requirements | best-practices, D4); three outputs (a interviewer reference,
+  b scoring sheet with the full `scorecard-skeleton` anchors, c case document case-rounds-only, D9); NI block
+  byte-identical to canonical; Platform Adaptation; §J phase anchors; contract flags only (§I) + nl-sugar marks.
+- `scripts/validate-scorecard-anchors.mjs` — §H hard gate on output (b): asserts the anchor set + weights sum
+  to 100 (arithmetic is the script's job, not the model's); `--selftest` over good+broken fixtures (PASS).
+- `reference/{output-shapes.md, case-authoring.md, self-eval-rubric.md}` — anchor contracts + checklists;
+  ground-a-case-in-a-business-context (never fabricate, D11); self-review axes (completeness · alignment ·
+  case realism; manager is the gate, D6).
+
+All 9 ACs met:
+- **AC1** SKILL.md exists, `name: interview-guide` == dir (`a-name-matches-dir` pass), frontmatter + argument-hint
+  correct, NI block byte-identical (`lint-non-interactive-inline` PASS, 57 skills), Platform Adaptation present.
+- **AC2** Collect phase gathers role / competencies / archetype / seniority / (case) business-context; two modes
+  documented; 3 `AskUserQuestion` — 2 `(Recommended)` + 1 `defer-only: free-form` (the case-context ask);
+  `audit-recommended` PASS (0 unmarked). *Catch:* the defer-only tag must be the **literal preceding line** of
+  the `AskUserQuestion:` line (`NR==pending_line+1`) — a tag before the code-fence intervening line failed; moved
+  it inside the fence directly above `AskUserQuestion:`.
+- **AC3** Interviewer Reference phase grounds output (a) in the corpus archetype; markers/probes/mistakes/calibration
+  per `output-shapes.md`; area ids = sheet dim ids 1:1.
+- **AC4** Scoring Sheet phase emits full anchor set; validator script + `--selftest` + dogfood all pass.
+- **AC5** Case phase case-rounds-only ({case-study, case-presentation} or `--case`); authored from supplied
+  business context; NI-with-no-context DEFERs (D11 — never fabricated).
+- **AC6** Self-Review phase scores drafts vs `self-eval-rubric.md`; no enforced citation gate (D6); manager is gate.
+- **AC7** All substrate reads via `../_shared/interview-guidelines/` only; **no** path into `/interview-feedback`'s
+  own dir (negative grep clean). Dogfood 3: product-sense reference `data-area` ids ⇔ sheet `data-dim` ids 1:1.
+- **AC8** Write phase → `./interview-guides/<role-kebab>/<round>/` default, or into a `/interview-feedback` role's
+  `guidelines/<round>/` via `--role-dir` honoring its gitignore guard (INV-3).
+- **AC9** `skill-eval [D] --target claude-code` exit 0; all 4 hygiene lints green; §G clean (zero release-prereq
+  files — no plugin.json / CHANGELOG / README touched).
+
+**Dogfood (live, gates-blind):** authored a real Senior-PM product-sense scoring sheet → validator PASS (5 dims,
+weights=100, reco present); an interop parse (mimicking `fill-scorecard.mjs`) discovered the same anchors →
+sheet is consumable by `/interview-feedback score`; reference-area ⇔ sheet-dim ids 1:1 for the product-sense
+archetype. The case-study path under NI with no business context correctly DEFERs (that IS the designed outcome).
+
+Completes epic **260702-3bb** (cqf + jz4 both built) → ready for Loop-3 `/complete-dev --plugin pmos-managerkit`
+(minor bump from managerkit's current version; merges feat/260702-cqf + feat/260702-jz4).
