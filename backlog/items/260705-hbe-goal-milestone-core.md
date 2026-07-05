@@ -4,7 +4,7 @@ id: 260705-hbe
 title: "/mytasks goal & milestone core — new goal file kind (~/.pmos/tasks/goals/), embedded dated milestones, dated/open-ended type, cadence, goal+milestone CRUD verbs, lib.js load/save, schema.md binding, tests"
 type: feature
 kind: story
-status: planned
+status: in-progress
 route: skill
 priority: should
 labels: [pmos-toolkit, mytasks, goals, milestones, skill]
@@ -15,6 +15,9 @@ dependencies: []
 design_doc: docs/pmos/features/2026-07-05_mytasks-goals-milestones/02_design.html
 plan_doc: docs/pmos/features/2026-07-05_mytasks-goals-milestones/stories/260705-hbe/03_plan.html
 feature_folder: docs/pmos/features/2026-07-05_mytasks-goals-milestones/
+worktree: .claude/worktrees/feat-260705-hbe
+claimed_by: build:59524b3c-a9d3-48f5-a42f-6cc442f3afc3
+driver_holder: build:59524b3c-a9d3-48f5-a42f-6cc442f3afc3
 ---
 
 ## Context
