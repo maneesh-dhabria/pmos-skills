@@ -4,20 +4,19 @@ id: 260704-m7f
 title: "Re-theme the shared library-viewer substrate — lib.mjs reads + inlines the canonical _shared/html-authoring/assets/style.css and remaps all component CSS (masthead, layout, cards, facets, chips, search, reader, iframe reader) onto --pmos-* tokens, light-default + prefers-color-scheme dark; /frameworks /primer /learn-list browse pages inherit Editorial Technical"
 type: chore
 kind: story
-status: in-progress
+status: done
 route: skill
 priority: should
 labels: [pmos-learnkit, library-viewer, html-substrate, theme, skill]
 created: 2026-07-04
-updated: 2026-07-04
+updated: 2026-07-05
 parent: 260704-vde
 dependencies: []
 design_doc: docs/pmos/features/2026-07-04_library-viewer-substrate-theme/02_design.html
 plan_doc: docs/pmos/features/2026-07-04_library-viewer-substrate-theme/stories/260704-m7f/03_plan.html
 feature_folder: docs/pmos/features/2026-07-04_library-viewer-substrate-theme/
 worktree: agent-skills-260704-m7f
-claimed_by: "build:b0e236c5-8aab-4a88-8bd7-4d40d8d8e0bc"
-driver_holder: "build:b0e236c5-8aab-4a88-8bd7-4d40d8d8e0bc"
+branch: feat/260704-m7f
 ---
 
 ## Context
@@ -65,3 +64,37 @@ to all three pages automatically — provided no consumer smuggles old-token CSS
   any build wave — those are `/complete-dev`'s (Loop 3). List them under the plan's Release prerequisites only.
 - [ ] Conforms to `skill-patterns.md §A–§L`; `skill-eval` (`[D]`+`[J]`) passes; 4 hygiene lints +
   `audit-recommended` green.
+
+## Notes
+
+Built 2026-07-05 via `/feature-sdlc build` (route:skill) on branch `feat/260704-m7f` (commit `eac92a5d`,
+unmerged — awaits Loop-3 `/complete-dev --epic 260704-vde`). Six files: substrate `lib.mjs` + `guidelines.md`
++ `tests/lib.test.mjs` + regenerated golden, and the `primer` / `learn-list` consumer `build-library.mjs`
+extraHead reconciliations. `frameworks` build-library was clean (nothing to change).
+
+All 8 ACs met:
+- **AC1** — `emitHtml()` reads `../html-authoring/assets/style.css` via `import.meta.url` and inlines it as the
+  base `<style>` layer; **fail-loud** verified by a manual `style.css` rename (throws naming the path, no silent
+  fallback). Output stays single-file: no external `<link>`/CDN/`@import` (only a comment in style.css mentions
+  the word "@import" — zero real at-rules).
+- **AC2** — component CSS references only `--pmos-*` tokens; old `--bg/--panel/--card/--accent/--line` `:root`
+  block + all hardcoded hex removed (grep-clean; sole match is the doc comment documenting the constraint).
+  Three-voice type applied (sans chrome, mono structural, serif reader body).
+- **AC3** — light default, dark inherited entirely from `style.css`'s `prefers-color-scheme` override; **no**
+  library-viewer-specific dark rules.
+- **AC4** — no interaction change: the columns-mode golden diff showed **only** the `<style>` block changed;
+  DOM + in-page JS are byte-identical.
+- **AC5** — consumer extraHead audit: `frameworks` clean; `primer` (curated/yours badges + pills) and
+  `learn-list` (grounded badge) reconciled onto `--pmos-*` (this fixed a latent correctness bug — removing the
+  old `:root` block had left `var(--accent)`/`var(--muted)` undefined in those two consumers).
+- **AC6** — `lib.test.mjs` gained an inline-style.css contract assertion (`--pmos-*` tokens + JetBrains Mono
+  `@font-face` + no external stylesheet/`@import`); `guidelines.md` documents the read-and-inline contract;
+  `readBaseCss` kept internal so the public API surface is unchanged. `selftest.sh` green (15 node tests + grep).
+- **AC7** — all 3 browse pages built and screenshotted in both schemes (warm-paper light + dark): correct
+  burnt-orange accent, legible borders/chips, serif reader body, no dark-blue remnants.
+- **AC8** — §G clean: diff touches zero `plugin.json`/`marketplace.json`/CHANGELOG/README/learnings files;
+  release-prereqs are Loop-3's job.
+
+Gates: skill-eval `[D]` green on `/primer` (regression guard — diff touches **no** SKILL.md, so `[D]`+`[J]`
+cannot regress); viewer hygiene lints (`lint-no-modules-in-viewer`, `lint-no-dot-shared`, `lint-js-stack-preambles`)
+green; all 3 consumer `--selftest` green.
