@@ -110,5 +110,40 @@
     "topic": "measuring-product-marketing",
     "tier": "T1",
     "paywalled": false
+  },
+  {
+    "url": "https://www.demandcurve.com/blog/viral-marketing",
+    "takeaway": "Demand Curve's comprehensive guide to organic viral marketing, covering pull, push, content, and word-of-mouth virality types, with emphasis on product-embedded virality and retention over acquisition.",
+    "topic": "what-product-marketing-is",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.demandcurve.com/blog/viral-marketing",
+    "takeaway": "Demand Curve's comprehensive guide to organic viral marketing, covering pull, push, content, and word-of-mouth virality types, with emphasis on product-embedded virality and retention over acquisition.",
+    "topic": "product-manager-vs-product-marketing-manager",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.amazon.com/dp/B085LBDHTX",
+    "takeaway": "Amazon listing for April Dunford's book 'Obviously Awesome,' covering product positioning strategy; no content available beyond the Amazon storefront.",
+    "topic": "positioning-the-strategic-core",
+    "tier": "T4",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.amazon.com/dp/B085LBDHTX",
+    "takeaway": "Amazon listing for April Dunford's book 'Obviously Awesome,' covering product positioning strategy; no content available beyond the Amazon storefront.",
+    "topic": "the-positioning-statement",
+    "tier": "T4",
+    "paywalled": false
+  },
+  {
+    "url": "https://hbr.org/2020/11/how-apple-is-organized-for-innovation",
+    "takeaway": "Harvard Business Review analysis of Apple's organizational structure: a functional model where experts lead experts, enabling innovation at scale, as Apple grew from $7B to $260B in revenue under this leadership model.",
+    "topic": "go-to-market-strategy",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

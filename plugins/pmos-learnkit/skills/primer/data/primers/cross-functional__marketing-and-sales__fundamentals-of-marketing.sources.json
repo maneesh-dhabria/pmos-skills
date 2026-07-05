@@ -103,5 +103,40 @@
     "topic": "the-product-life-cycle",
     "tier": "T1",
     "paywalled": false
+  },
+  {
+    "url": "https://sproutsocial.com/",
+    "takeaway": "Sprout Social homepage promoting their social media management platform, highlighting an AI agent called Trellis that converts social conversations into actionable insights.",
+    "topic": "what-marketing-actually-is",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.amazon.com/dp/B085LBDHTX",
+    "takeaway": "Amazon listing for April Dunford's book 'Obviously Awesome,' covering product positioning strategy; no content available beyond the Amazon storefront.",
+    "topic": "customer-value-and-the-value-proposition",
+    "tier": "T4",
+    "paywalled": false
+  },
+  {
+    "url": "https://blog.brianbalfour.com/p/the-four-fits-a-growth-framework?r=2jc0k&triedRedirect=true",
+    "takeaway": "Everything's changed. Here's how to reach $100m at venture speed.",
+    "topic": "the-stp-framework",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://hbr.org/2020/11/how-apple-is-organized-for-innovation",
+    "takeaway": "Harvard Business Review analysis of Apple's organizational structure: a functional model where experts lead experts, enabling innovation at scale, as Apple grew from $7B to $260B in revenue under this leadership model.",
+    "topic": "segmentation-dividing-the-market",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://docs.google.com/document/d/1aXUDXRYlA1eWUh5rGYLNB3Ujeqkq93Jwj8uBvxHkFs8/edit?tab=t.0",
+    "takeaway": "A Google Doc containing a structured set of interview questions for customer persona and ideal customer profile research; full text was inaccessible.",
+    "topic": "positioning-owning-space-in-the-mind",
+    "tier": "T1",
+    "paywalled": false
   }
 ]

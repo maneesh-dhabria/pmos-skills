@@ -152,5 +152,40 @@
     "topic": "security",
     "tier": "T2",
     "paywalled": false
+  },
+  {
+    "url": "https://www.geeksforgeeks.org/computer-science-fundamentals/types-of-internet-protocols",
+    "takeaway": "GeeksForGeeks overview of common internet protocols including TCP/IP, SMTP, FTP, SFTP, HTTP, HTTPS, POP3, and Telnet, explaining the purpose and key characteristics of each.",
+    "topic": "memory-storage",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://blog.bytebytego.com/p/factors-to-consider-in-database-selection",
+    "takeaway": "ByteByteGo deep dive on database selection criteria covering scalability, performance, consistency trade-offs across relational, NoSQL, NewSQL, and time-series databases to guide engineering decisions.",
+    "topic": "dns",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://web.dev/articles/howbrowserswork",
+    "takeaway": "Comprehensive 2011 primer on how browsers work internally — covering rendering engines, networking, JavaScript interpreters, the DOM, CSS parsing, and the full pipeline from URL to painted page.",
+    "topic": "web-request",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.youtube.com/watch?list=PLEiEAq2VkUUJfPOj5nRounXvf3n17PCft&v=LA3fah6i-4A",
+    "takeaway": "18-minute Simplilearn video explaining encryption fundamentals — what it is, how it works, and its role in cryptography and network security.",
+    "topic": "security",
+    "tier": "T4",
+    "paywalled": false
+  },
+  {
+    "url": "https://labs.iximiuz.com/tutorials/container-filesystem-from-scratch",
+    "takeaway": "Hands-on tutorial building a Docker-like container from scratch using Linux tools unshare, mount, and pivot_root, explaining how mount namespaces provide filesystem isolation for containers.",
+    "topic": "memory-storage",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

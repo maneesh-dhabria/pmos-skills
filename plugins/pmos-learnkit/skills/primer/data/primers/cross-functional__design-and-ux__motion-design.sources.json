@@ -103,5 +103,40 @@
     "topic": "accessibility-and-reduced-motion",
     "tier": "T2",
     "paywalled": false
+  },
+  {
+    "url": "https://www.highagency.com/",
+    "takeaway": "Essay arguing high agency — the ability to take initiative and find solutions in difficult situations — is the defining trait of exceptional people, with practical heuristics for spotting high-agency individuals.",
+    "topic": "purpose-of-motion",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://productled.com/blog/best-user-onboarding-examples",
+    "takeaway": "Analysis of 150+ user onboarding experiences identifies eight best practices: leverage social proof, avoid email verification walls, minimize unnecessary steps, make product tours action-focused, segment users, emphasize user goals, use helpful empty states, and send behavior-based emails.",
+    "topic": "accessibility-and-reduced-motion",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://swiped.co/",
+    "takeaway": "Swiped.co is a curated swipe file of high-converting marketing and copywriting examples for inspiration — page was blocked by Cloudflare during access.",
+    "topic": "purpose-of-motion",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://medium.com/@prefixyteam/how-we-built-prefixy-a-scalable-prefix-search-service-for-powering-autocomplete-c20f98e2eff1",
+    "takeaway": "Engineering deep-dive into how Prefixy built a scalable prefix search service to power autocomplete functionality, covering architecture and design decisions.",
+    "topic": "accessibility-and-reduced-motion",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://discourse.suttacentral.net/t/nonviolence-communication-by-marshal-rosenberg/17054",
+    "takeaway": "Overview of Nonviolent Communication (NVC) by Marshall Rosenberg, a compassionate communication framework built on identifying needs, expressing feelings clearly, and collaborating on strategies to meet shared human needs.",
+    "topic": "purpose-of-motion",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

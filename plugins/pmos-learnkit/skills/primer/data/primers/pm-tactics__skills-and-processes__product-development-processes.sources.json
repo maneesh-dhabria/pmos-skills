@@ -117,5 +117,40 @@
     "topic": "waterfall-stage-gate-and-heavy-process",
     "tier": "secondary-curation",
     "paywalled": false
+  },
+  {
+    "url": "https://www.amazon.com/dp/B01BXB1B7K",
+    "takeaway": "Amazon listing for Sprint, the book by Jake Knapp and Google Ventures team on the five-day design sprint process for solving big problems and testing ideas quickly.",
+    "topic": "the-agile-turn",
+    "tier": "T4",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.amazon.com/dp/B01BXB1B7K",
+    "takeaway": "Amazon listing for Sprint, the book by Jake Knapp and Google Ventures team on the five-day design sprint process for solving big problems and testing ideas quickly.",
+    "topic": "scrum-the-dominant-framework",
+    "tier": "T4",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.amazon.com/dp/B01BXB1B7K",
+    "takeaway": "Amazon listing for Sprint, the book by Jake Knapp and Google Ventures team on the five-day design sprint process for solving big problems and testing ideas quickly.",
+    "topic": "scrum-vs-kanban-and-scrumban",
+    "tier": "T4",
+    "paywalled": false
+  },
+  {
+    "url": "https://jpattonassociates.com/dual-track-development/",
+    "takeaway": "Jeff Patton's article explaining dual-track development — running discovery and delivery in parallel rather than sequentially — so teams continuously learn and validate while shipping; page JS-gated.",
+    "topic": "discovery-and-delivery-dual-track",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://jpattonassociates.com/dual-track-development/",
+    "takeaway": "Jeff Patton's article explaining dual-track development — running discovery and delivery in parallel rather than sequentially — so teams continuously learn and validate while shipping; page JS-gated.",
+    "topic": "continuous-discovery",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

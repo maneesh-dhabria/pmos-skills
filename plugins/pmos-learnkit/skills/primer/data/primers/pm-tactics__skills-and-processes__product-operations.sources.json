@@ -104,5 +104,40 @@
     "topic": "the-skeptics-case",
     "tier": "practitioner-blog",
     "paywalled": false
+  },
+  {
+    "url": "https://workingbackwards.com/wbr-app",
+    "takeaway": "Working Backwards explains the Amazon Weekly Business Review (WBR) process: a structured weekly cadence using 6-12 charts and hundreds of metrics to answer how the business performed, whether targets are on track, and what customers experienced.",
+    "topic": "what-product-operations-is",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.firehose.vc/p/firehose-194-operating-leverage-",
+    "takeaway": "Firehose newsletter issue 194 covering operating leverage — how companies scale output faster than input costs through systems, software, and process.",
+    "topic": "business-data-and-insights",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://hbr.org/2020/11/how-apple-is-organized-for-innovation",
+    "takeaway": "Harvard Business Review analysis of Apple's organizational structure: a functional model where experts lead experts, enabling innovation at scale, as Apple grew from $7B to $260B in revenue under this leadership model.",
+    "topic": "customer-and-market-insights",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.focusedchaos.co/p/how-to-use-the-right-metrics-to-motivate",
+    "takeaway": "Metrics matter. But if you track the wrong ones, everything goes to shit. (#4)",
+    "topic": "product-ops-vs-product-management",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://a16z.com/the-hiring-process",
+    "takeaway": "a16z guide to hiring senior executives, covering the MOC (missions, outcomes, competencies) document, building interview panels, sourcing, evaluation, and why a rigorous process shortens a typical 130-day search.",
+    "topic": "structuring-and-hiring-the-function",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

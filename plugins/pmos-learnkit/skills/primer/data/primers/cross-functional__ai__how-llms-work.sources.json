@@ -103,5 +103,40 @@
     "topic": "what-this-means-for-pms",
     "tier": "T2",
     "paywalled": false
+  },
+  {
+    "url": "https://www.linkedin.com/posts/ramar_how-llms-got-better-at-reasoning-activity-7346174865688715267-ynfE?rcm=ACoAAAL6RoYBUt6e51qaMwyoJuoju1wNIUia-Ic",
+    "takeaway": "A LinkedIn explainer deck by Ramar on how reasoning LLMs work and how they got better at reasoning, shared as a downloadable PDF in a repost.",
+    "topic": "what-an-llm-actually-is",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://x.com/alex_prompter/status/1936808918438875553",
+    "takeaway": "Here’s the exact mega prompt we use:\n\n\"You are now my personal AI tutor.\n\nI want you to create a complete, personalized learning course for me based on the topic I give you.\n\nHere’s what I need you to build:\n\n1. A custom curriculum with 4–6 modules that progress logically.\n2. https://t.co/SnNDb2s47A",
+    "topic": "prompting-rag-and-getting-better-output",
+    "tier": "T4",
+    "paywalled": false
+  },
+  {
+    "url": "https://huggingface.co/spaces/lmarena-ai/arena-leaderboard",
+    "takeaway": "The LMArena leaderboard on Hugging Face, a community-run space ranking large language models by human preference votes from head-to-head comparisons.",
+    "topic": "what-an-llm-actually-is",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://parconley.com/prompts",
+    "takeaway": "Personal blog post sharing a curated collection of LLM prompts the author crafted for ChatGPT and Claude, focused on research and learning use cases.",
+    "topic": "prompting-rag-and-getting-better-output",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://github.com/mlabonne/llm-course",
+    "takeaway": "Comprehensive GitHub LLM course with three tracks — fundamentals, scientist, and engineer — covering math prerequisites, fine-tuning, quantization, RAG, and deployment with Colab notebooks and linked articles.",
+    "topic": "what-an-llm-actually-is",
+    "tier": "T2",
+    "paywalled": false
   }
 ]

@@ -110,5 +110,40 @@
     "topic": "what-this-means-for-pms",
     "tier": "T2",
     "paywalled": false
+  },
+  {
+    "url": "https://hbr.org/2020/11/how-apple-is-organized-for-innovation",
+    "takeaway": "Harvard Business Review analysis of Apple's organizational structure: a functional model where experts lead experts, enabling innovation at scale, as Apple grew from $7B to $260B in revenue under this leadership model.",
+    "topic": "what-context-engineering-is",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://hbr.org/2020/11/how-apple-is-organized-for-innovation",
+    "takeaway": "Harvard Business Review analysis of Apple's organizational structure: a functional model where experts lead experts, enabling innovation at scale, as Apple grew from $7B to $260B in revenue under this leadership model.",
+    "topic": "context-engineering-vs-prompt-engineering",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.geeksforgeeks.org/computer-science-fundamentals/types-of-internet-protocols",
+    "takeaway": "GeeksForGeeks overview of common internet protocols including TCP/IP, SMTP, FTP, SFTP, HTTP, HTTPS, POP3, and Telnet, explaining the purpose and key characteristics of each.",
+    "topic": "the-context-window-as-working-memory",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.linkedin.com/posts/ramar_how-llms-got-better-at-reasoning-activity-7346174865688715267-ynfE?rcm=ACoAAAL6RoYBUt6e51qaMwyoJuoju1wNIUia-Ic",
+    "takeaway": "A LinkedIn explainer deck by Ramar on how reasoning LLMs work and how they got better at reasoning, shared as a downloadable PDF in a repost.",
+    "topic": "retrieval-augmented-generation-rag",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.geeksforgeeks.org/computer-science-fundamentals/types-of-internet-protocols",
+    "takeaway": "GeeksForGeeks overview of common internet protocols including TCP/IP, SMTP, FTP, SFTP, HTTP, HTTPS, POP3, and Telnet, explaining the purpose and key characteristics of each.",
+    "topic": "memory-short-and-long-term",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

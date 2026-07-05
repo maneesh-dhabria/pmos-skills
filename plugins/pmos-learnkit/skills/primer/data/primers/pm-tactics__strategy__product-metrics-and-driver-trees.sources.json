@@ -110,5 +110,40 @@
     "topic": "choosing-your-metrics",
     "tier": "primary-practitioner",
     "paywalled": false
+  },
+  {
+    "url": "https://blog.brianbalfour.com/p/the-four-fits-a-growth-framework?r=2jc0k&triedRedirect=true",
+    "takeaway": "Everything's changed. Here's how to reach $100m at venture speed.",
+    "topic": "north-star-framework",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.focusedchaos.co/p/how-to-use-the-right-metrics-to-motivate",
+    "takeaway": "Metrics matter. But if you track the wrong ones, everything goes to shit. (#4)",
+    "topic": "input-vs-output-metrics",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.focusedchaos.co/p/how-to-use-the-right-metrics-to-motivate",
+    "takeaway": "Metrics matter. But if you track the wrong ones, everything goes to shit. (#4)",
+    "topic": "counter-metrics-and-guardrails",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.focusedchaos.co/p/how-to-use-the-right-metrics-to-motivate",
+    "takeaway": "Metrics matter. But if you track the wrong ones, everything goes to shit. (#4)",
+    "topic": "vanity-vs-actionable-metrics",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://blog.brianbalfour.com/p/the-four-fits-a-growth-framework?r=2jc0k&triedRedirect=true",
+    "takeaway": "Everything's changed. Here's how to reach $100m at venture speed.",
+    "topic": "metric-frameworks",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

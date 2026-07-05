@@ -110,5 +110,40 @@
     "topic": "pm-implications",
     "tier": "T2",
     "paywalled": false
+  },
+  {
+    "url": "https://platforms.substack.com/p/ai-wont-eat-your-job-but-it-will",
+    "takeaway": "Instead, I posit that for the vast majority of jobs, the effects of AI will play out something like this:",
+    "topic": "culture",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.focusedchaos.co/p/how-to-use-the-right-metrics-to-motivate",
+    "takeaway": "Metrics matter. But if you track the wrong ones, everything goes to shit. (#4)",
+    "topic": "dora-metrics",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.news.aakashg.com/p/pm-guide-to-wireframes?isFreemail=false&post_id=143198429&publication_id=454003&r=2jc0k&triedRedirect=true",
+    "takeaway": "Aakash Gupta's PM guide on wireframes — how product managers should use and think about wireframes in the product development process.",
+    "topic": "pm-implications",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://blog.bytebytego.com/p/a-crash-course-in-caching-final-part",
+    "takeaway": "Final part of a caching crash course covering reliability challenges including cache avalanche, stampede, and penetration, with mitigation strategies like staggered TTLs, consistent hashing, and circuit breakers.",
+    "topic": "observability",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.mageplaza.com/blog/fundamental-ecommerce-metrics.html",
+    "takeaway": "Guide covering seven essential e-commerce metrics including conversion rates and cart abandonment, with formulas and practical tactics to improve each metric for online stores.",
+    "topic": "dora-metrics",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

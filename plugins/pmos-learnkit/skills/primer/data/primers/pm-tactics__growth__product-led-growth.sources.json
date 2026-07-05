@@ -117,5 +117,40 @@
     "topic": "product-led-sales-and-the-hybrid",
     "tier": "primary-practitioner",
     "paywalled": false
+  },
+  {
+    "url": "https://blog.brianbalfour.com/p/the-four-fits-a-growth-framework?r=2jc0k&triedRedirect=true",
+    "takeaway": "Everything's changed. Here's how to reach $100m at venture speed.",
+    "topic": "what-product-led-growth-is",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://newsletter.aroundthebonfire.com/p/309-growth-loops-?r=2jc0k&triedRedirect=true",
+    "takeaway": "Kevan Lee's Substack post explaining growth loops — self-reinforcing cycles that drive compounding user acquisition and retention, with frameworks for identifying and building them.",
+    "topic": "virality-and-growth-loops",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Nudge_(book)",
+    "takeaway": "Wikipedia article on 'Nudge' by Thaler and Sunstein, the behavioral economics book introducing libertarian paternalism and the use of choice architecture to steer better decisions.",
+    "topic": "the-economics-and-the-case",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://ortto.com/learn/growth-loops",
+    "takeaway": "Explains growth loops as closed, compounding systems that reinvest outputs as new inputs, contrasting them with the linear AARRR funnel framework. Argues loops are better for sustainable SaaS and ecommerce growth.",
+    "topic": "the-plg-funnel-and-metrics",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://productled.com/blog/best-user-onboarding-examples",
+    "takeaway": "Analysis of 150+ user onboarding experiences identifies eight best practices: leverage social proof, avoid email verification walls, minimize unnecessary steps, make product tours action-focused, segment users, emphasize user goals, use helpful empty states, and send behavior-based emails.",
+    "topic": "onboarding-and-the-aha-moment",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

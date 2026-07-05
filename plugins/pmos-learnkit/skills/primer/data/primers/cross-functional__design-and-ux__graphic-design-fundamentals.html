@@ -1101,18 +1101,28 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
   </g>
 </svg>
 
+
+<p class="primer-enriched">Further reading: <a href="https://hbr.org/2020/11/how-apple-is-organized-for-innovation">hbr.org</a> — Harvard Business Review analysis of Apple's organizational structure: a functional model where experts lead experts, enabling innovation at scale, as Apple grew from $7B to $260B in revenue under this leadership model.</p>
 <h2 id="color">Color: theory and restraint</h2>
 <p><strong>Color theory</strong> is "the study of how colors work together and how they affect our emotions and perceptions," per the <a href="https://ixdf.org/literature/topics/color-theory">Interaction Design Foundation</a>, organized around the <strong>color wheel</strong> (a circular map of hues, invented by Isaac Newton in 1666) that sorts colors into primary, secondary, and tertiary. <a href="https://en.wikipedia.org/wiki/Color_theory">Wikipedia</a> describes it as "a historical body of knowledge describing the behavior of colors," covering mixing, contrast, harmony, and symbolism. The part a PM most needs is <strong>color harmony</strong> — "the balanced and aesthetically pleasing interaction of colors," per the <a href="https://ixdf.org/literature/topics/color-harmony">Interaction Design Foundation</a> — achieved through schemes like complementary pairs (colors opposite each other on the wheel, high energy) or analogous sets (colors adjacent on the wheel, calm and cohesive). The most common real-world mistake is too many colors with no system. A disciplined palette is usually one or two main colors plus neutrals (grays), with a single bright accent reserved for the most important action — restraint reads as professional; a rainbow reads as amateur.</p>
 
 <h2 id="contrast-and-accessibility">Contrast and accessibility</h2>
 <p>Contrast is not only an aesthetic lever — it is a measurable accessibility requirement, and this is the one area where a PM should treat the rule as a hard gate, not a preference. The <strong>Web Content Accessibility Guidelines (WCAG)</strong> — the international standard for accessible digital content — set a minimum <strong>contrast ratio</strong> (a number comparing the lightness of text against its background). Per <a href="https://webaim.org/articles/contrast/">WebAIM</a>, Level AA requires "a contrast ratio of at least 4.5:1" for normal text and "at least 3:1" for large text, while the stricter Level AAA wants 7:1 and 4.5:1. The other half of accessible color is not relying on color alone: <a href="https://www.section508.gov/create/making-color-usage-accessible/">Section508.gov</a> (the U.S. government accessibility standard) requires that "color is not used as the only visual means of conveying information" — so a red "error" state also needs a label or icon, since a color-blind user may not see the red. Faint gray text on white, and status shown only by color, are the two violations a PM can catch without any special tools.</p>
 
+
+<p class="primer-enriched">Further reading: <a href="https://productled.com/blog/best-user-onboarding-examples">productled.com</a> — Analysis of 150+ user onboarding experiences identifies eight best practices: leverage social proof, avoid email verification walls, minimize unnecessary steps, make product tours action-focused, segment users, emphasize user goals, use helpful empty states, and send behavior-based emails.</p>
+
+<p class="primer-enriched">Further reading: <a href="https://medium.com/@prefixyteam/how-we-built-prefixy-a-scalable-prefix-search-service-for-powering-autocomplete-c20f98e2eff1">medium.com</a> — Engineering deep-dive into how Prefixy built a scalable prefix search service to power autocomplete functionality, covering architecture and design decisions.</p>
+
+<p class="primer-enriched">Further reading: <a href="https://en.wikipedia.org/wiki/Hick%27s_law">en.wikipedia.org</a> — Wikipedia article on Hick's Law, which describes how the time to make a decision increases with the number and complexity of choices.</p>
 <h2 id="spacing-and-whitespace">Spacing and whitespace</h2>
 <p><strong>Whitespace</strong> (also called negative space — the empty area around and between elements) is the fundamental most non-designers underuse, because empty space feels like wasted space. It is the opposite: per the <a href="https://www.nngroup.com/videos/whitespace/">Nielsen Norman Group</a>, whitespace is "an effective principle to achieve a balanced design, making it easier for your users to scan and read." The discipline that makes spacing look intentional is a <strong>spatial system</strong> — "a set of rules for how you measure, size, and space your UI elements," as <a href="https://www.designsystems.com/space-grids-and-layouts/">Designsystems.com</a> puts it — typically a fixed set of spacing values (say 4, 8, 16, 24, 32 pixels) used everywhere instead of arbitrary gaps. Consistent spacing is also how the Proximity principle gets enforced in practice: related items share tight spacing, unrelated groups get more air. For a PM, cramped, evenly-spaced layouts where everything touches everything are the tell that no spacing system is in use.</p>
 
 <h2 id="layout-and-grids">Layout and grids</h2>
 <p><strong>Page layout</strong> is "the arrangement of visual elements on a page," and the tool that organizes it is the <strong>grid</strong> — "a set of guidelines... for aligning and repeating elements on a page," visible to the designer but invisible to the user, per <a href="https://en.wikipedia.org/wiki/Page_layout">Wikipedia</a>. A grid divides the page into columns separated by gaps (called gutters) so that elements line up on shared edges. The <a href="https://www.nngroup.com/articles/using-grids-in-interface-designs/">Nielsen Norman Group</a> explains grids "improve page readability and scannability." Most digital products use a column grid; the <a href="https://designsystem.digital.gov/utilities/layout-grid/">U.S. Web Design System</a> is typical, using "a series of containers, rows, and columns to lay out and align content" on a 12-column structure that stacks on narrow phone screens and expands on wide ones — the basis of <strong>responsive</strong> design (layouts that adapt to screen size). For a PM, the practical signal is alignment: when elements don't line up on any shared edge, the design is almost always off-grid.</p>
 
+
+<p class="primer-enriched">Further reading: <a href="https://hbr.org/2020/11/how-apple-is-organized-for-innovation">hbr.org</a> — Harvard Business Review analysis of Apple's organizational structure: a functional model where experts lead experts, enabling innovation at scale, as Apple grew from $7B to $260B in revenue under this leadership model.</p>
 <h2 id="judging-quality">Judging quality: a PM's quick checklist</h2>
 <p>You can judge a design's craft without being able to produce it, by running a short mental checklist drawn from the fundamentals above. First, hierarchy: does one element clearly win the <a href="https://ixdf.org/literature/topics/visual-hierarchy">squint test</a>, or does everything compete? Second, alignment: do elements sit on shared lines, or drift? Third, spacing: is whitespace used deliberately, with related things grouped? Fourth, restraint: how many fonts and colors — and is that count justified? This checklist mirrors the approach in <em>Refactoring UI</em> by Adam Wathan and Steve Schoger, an influential practitioner guide whose tagline is "design with tactics, not talent" — its whole premise is that good interface design comes from a learnable set of moves, not innate gift. The reframe that helps PMs most: most quality problems are not "this looks ugly" (taste) but "this violates a specific principle" (craft) — and craft problems are the ones worth a revision cycle.</p>
 
@@ -1204,6 +1214,26 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 <li>
 <a href="https://ixdf.org/literature/topics/gestalt-principles">ixdf.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
 <p class="ref-takeaway">Gestalt principles explain grouping: "We group closer-together elements, separating them from those farther apart" (proximity), and matching visual characteristics read as one group (similarity) — the perceptual basis for proximity and repetition.</p>
+</li>
+<li>
+<a href="https://medium.com/@prefixyteam/how-we-built-prefixy-a-scalable-prefix-search-service-for-powering-autocomplete-c20f98e2eff1">medium.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Engineering deep-dive into how Prefixy built a scalable prefix search service to power autocomplete functionality, covering architecture and design decisions.</p>
+</li>
+<li>
+<a href="https://productled.com/blog/best-user-onboarding-examples">productled.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T3)</span>
+<p class="ref-takeaway">Analysis of 150+ user onboarding experiences identifies eight best practices: leverage social proof, avoid email verification walls, minimize unnecessary steps, make product tours action-focused, segment users, emphasize user goals, use helpful empty states, and send behavior-based emails.</p>
+</li>
+<li>
+<a href="https://hbr.org/2020/11/how-apple-is-organized-for-innovation">hbr.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T3)</span>
+<p class="ref-takeaway">Harvard Business Review analysis of Apple's organizational structure: a functional model where experts lead experts, enabling innovation at scale, as Apple grew from $7B to $260B in revenue under this leadership model.</p>
+</li>
+<li>
+<a href="https://hbr.org/2020/11/how-apple-is-organized-for-innovation">hbr.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T3)</span>
+<p class="ref-takeaway">Harvard Business Review analysis of Apple's organizational structure: a functional model where experts lead experts, enabling innovation at scale, as Apple grew from $7B to $260B in revenue under this leadership model.</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Hick%27s_law">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T3)</span>
+<p class="ref-takeaway">Wikipedia article on Hick's Law, which describes how the time to make a decision increases with the number and complexity of choices. Page was inaccessible (user-agent blocked).</p>
 </li>
 </ol>
 </main>

@@ -117,5 +117,40 @@
     "topic": "retention-curves",
     "tier": "T1",
     "paywalled": false
+  },
+  {
+    "url": "https://brianbalfour.com/essays/traction-vs-growth",
+    "takeaway": "Distinguishes the traction phase (find product-market fit, prioritize retention, minimal volume) from the transition/growth phase (identify growth levers, track growth rate, focus on one channel, build a dedicated growth team).",
+    "topic": "what-pmf-is",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://brianbalfour.com/essays/traction-vs-growth",
+    "takeaway": "Distinguishes the traction phase (find product-market fit, prioritize retention, minimal volume) from the transition/growth phase (identify growth levers, track growth rate, focus on one channel, build a dedicated growth team).",
+    "topic": "pmf-is-a-spectrum",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://brianbalfour.com/essays/traction-vs-growth",
+    "takeaway": "Distinguishes the traction phase (find product-market fit, prioritize retention, minimal volume) from the transition/growth phase (identify growth levers, track growth rate, focus on one channel, build a dedicated growth team).",
+    "topic": "keeping-and-losing-pmf",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://hbr.org/2020/11/how-apple-is-organized-for-innovation",
+    "takeaway": "Harvard Business Review analysis of Apple's organizational structure: a functional model where experts lead experts, enabling innovation at scale, as Apple grew from $7B to $260B in revenue under this leadership model.",
+    "topic": "the-market-comes-first",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.lennysnewsletter.com/p/what-is-a-good-activation-rate",
+    "takeaway": "Lenny Rachitsky and Yuriy Timen present benchmarks from 500+ responses defining good and great activation rates by product type, explain how to set activation milestones, and share the highest-leverage tactics for improving activation.",
+    "topic": "retention-curves",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

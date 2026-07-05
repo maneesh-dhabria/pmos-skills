@@ -117,5 +117,40 @@
     "topic": "designing-as-pm",
     "tier": "T2",
     "paywalled": false
+  },
+  {
+    "url": "https://blog.wahab2.com/api-architecture-best-practices-for-designing-rest-apis-bf907025f5f",
+    "takeaway": "Medium article by Abdul Wahab on REST API architecture best practices, covering design principles such as naming conventions, versioning, error handling, and security.",
+    "topic": "rest",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://blog.wahab2.com/api-architecture-best-practices-for-designing-rest-apis-bf907025f5f",
+    "takeaway": "Medium article by Abdul Wahab on REST API architecture best practices, covering design principles such as naming conventions, versioning, error handling, and security.",
+    "topic": "webhooks",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.news.aakashg.com/p/pm-guide-to-wireframes?isFreemail=false&post_id=143198429&publication_id=454003&r=2jc0k&triedRedirect=true",
+    "takeaway": "Aakash Gupta's PM guide on wireframes — how product managers should use and think about wireframes in the product development process.",
+    "topic": "designing-as-pm",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://blog.bytebytego.com/p/ep53-design-effective-and-safe-apis",
+    "takeaway": "ByteByteGo newsletter on designing effective and safe APIs, covering principles for reliability, security, versioning, and consistent developer experience.",
+    "topic": "rest",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://blog.bytebytego.com/p/ep53-design-effective-and-safe-apis",
+    "takeaway": "ByteByteGo newsletter on designing effective and safe APIs, covering principles for reliability, security, versioning, and consistent developer experience.",
+    "topic": "webhooks",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

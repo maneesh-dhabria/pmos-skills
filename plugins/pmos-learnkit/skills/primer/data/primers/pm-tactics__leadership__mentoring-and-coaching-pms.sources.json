@@ -113,5 +113,40 @@
     "tier": "book-summary",
     "paywalled": false,
     "book_summary": "Cagan & Jones, EMPOWERED: Ordinary People, Extraordinary Products (Wiley, 2020)"
+  },
+  {
+    "url": "https://jennywanger.com/",
+    "takeaway": "Jenny Wanger's consulting practice focused on product team transformations, helping organizations shift to data-driven decision-making and customer-centric product cultures.",
+    "topic": "mentoring-vs-coaching-vs-managing",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://jennywanger.com/",
+    "takeaway": "Jenny Wanger's consulting practice focused on product team transformations, helping organizations shift to data-driven decision-making and customer-centric product cultures.",
+    "topic": "the-coaching-stance-asking-not-telling",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.linkedin.com/posts/benerez_i-love-using-claude-projects-for-rounds-of-activity-7330989160536707072-BZvo?rcm=ACoAAAL6RoYBUt6e51qaMwyoJuoju1wNIUia-Ic",
+    "takeaway": "LinkedIn post arguing AI uncovers customer insights human analysts miss, illustrated with a retail case where AI identified cart abandonment due to unclear sizing information, leading to a 20% sales increase.",
+    "topic": "giving-effective-feedback",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://blog.brianbalfour.com/p/the-four-fits-a-growth-framework?r=2jc0k&triedRedirect=true",
+    "takeaway": "Everything's changed. Here's how to reach $100m at venture speed.",
+    "topic": "competency-frameworks",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://vwo.com/tools/ab-test-duration-calculator",
+    "takeaway": "VWO's free online calculator for estimating how long an A/B test needs to run based on traffic, baseline conversion rate, and desired minimum detectable effect.",
+    "topic": "growth-plans-and-career-ladders",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

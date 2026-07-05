@@ -121,5 +121,40 @@
     "tier": "book-summary",
     "paywalled": false,
     "book_summary": "Grove, High Output Management (Vintage, 1983; rev. 1995)"
+  },
+  {
+    "url": "https://blog.hubspot.com/sales/enterprise-sales",
+    "takeaway": "Explains enterprise sales and how it differs from SMB and mid-market sales across eight dimensions including deal length, number of decision makers, and purchase complexity, with guidance on building an enterprise sales strategy.",
+    "topic": "what-changes-when-you-lead-product",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://jennywanger.com/",
+    "takeaway": "Jenny Wanger's consulting practice focused on product team transformations, helping organizations shift to data-driven decision-making and customer-centric product cultures.",
+    "topic": "coaching-as-the-core-job",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://a16z.com/the-hiring-process",
+    "takeaway": "a16z guide to hiring senior executives, covering the MOC (missions, outcomes, competencies) document, building interview panels, sourcing, evaluation, and why a rigorous process shortens a typical 130-day search.",
+    "topic": "hiring-product-managers",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://hbr.org/2020/11/how-apple-is-organized-for-innovation",
+    "takeaway": "Harvard Business Review analysis of Apple's organizational structure: a functional model where experts lead experts, enabling innovation at scale, as Apple grew from $7B to $260B in revenue under this leadership model.",
+    "topic": "setting-a-product-vision",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://hbr.org/2020/11/how-apple-is-organized-for-innovation",
+    "takeaway": "Harvard Business Review analysis of Apple's organizational structure: a functional model where experts lead experts, enabling innovation at scale, as Apple grew from $7B to $260B in revenue under this leadership model.",
+    "topic": "from-vision-to-product-strategy",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

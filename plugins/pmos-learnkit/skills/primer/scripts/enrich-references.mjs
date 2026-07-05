@@ -202,23 +202,38 @@ function bodyHrefsExcludingReferences(html) {
   return hrefs;
 }
 
+// Decode the handful of HTML entities that appear in URL attributes/text. A URL with query
+// params (`?a=1&b=2`) is entity-encoded to `&amp;` when written into an HTML attribute or link
+// text — correct HTML — but sources.json stores the RAW url. Both R1 and R11 compare hrefs read
+// from the rendered HTML against the raw sources.json urls, so both sides must be normalised to
+// the same (decoded) space or every `&`-bearing url spuriously trips the membership check.
+function decodeEntities(s) {
+  return String(s)
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#0?39;/g, "'")
+    .replace(/&#x27;/gi, "'")
+    .replace(/&amp;/g, '&'); // last, so `&amp;lt;` -> `&lt;`
+}
+
 // Deterministic R1 (cites-real-urls) + R11 (references-complete membership) — the subset the
 // enrichment gate can verify with no re-fetch. Returns { pass, failing_checks: [...] }.
 // The full taste-tier rubric is out of scope here (the enriched body is additive over an
 // already-passing primer); the trust checks R1/R11 are what enrichment can break.
 export function deterministicRubric(html, sources) {
   const failing = [];
-  const urls = new Set((Array.isArray(sources) ? sources : []).map((s) => s && s.url).filter(Boolean));
-  // R1: every inline body href must be a verbatim member of sources.json[].url
+  const urls = new Set((Array.isArray(sources) ? sources : []).map((s) => s && s.url).filter(Boolean).map(decodeEntities));
+  // R1: every inline body href must be a verbatim member of sources.json[].url (entity-normalised)
   for (const h of bodyHrefsExcludingReferences(html)) {
-    if (!urls.has(h)) {
+    if (!urls.has(decodeEntities(h))) {
       failing.push({ check_id: 'R1', evidence: `body href not in sources.json: ${h}` });
       break;
     }
   }
-  // R11: every sources.json url must appear in the References section
+  // R11: every sources.json url must appear in the References section (entity-normalised haystack)
   const refMatch = /<h2\s+id="references"[^>]*>[\s\S]*?(?:<\/main>|$)/i.exec(html);
-  const refBlock = refMatch ? refMatch[0] : '';
+  const refBlock = decodeEntities(refMatch ? refMatch[0] : '');
   for (const u of urls) {
     if (!refBlock.includes(u)) {
       failing.push({ check_id: 'R11', evidence: `sources url missing from References: ${u}` });
@@ -278,6 +293,18 @@ export async function enrichPrimer({ htmlPath, sourcesPath, corpus, tagVocabular
   if (considered === 0) {
     log(`enrich: ${primer} — no candidates after coverage gate (${skipped_topics.length} topics skipped); no-op`);
     return base;
+  }
+
+  // Convergence ceiling (INV-5): the cap is a per-PRIMER total, not per-run. Each source this
+  // mechanism adds welds exactly one `<p class="primer-enriched">` paragraph, so their count is
+  // the ground truth of how much a primer has already been enriched. A re-run may only top up to
+  // the ceiling; a primer already at the cap is a no-op (byte-identical re-run). Without this a
+  // re-run keeps adding the NEXT cap's worth of fresh candidates every time — never convergent.
+  const alreadyEnriched = (htmlBefore.match(/<p class="primer-enriched"/g) || []).length;
+  const remainingCap = Math.max(0, o.cap - alreadyEnriched);
+  if (remainingCap === 0) {
+    log(`enrich: ${primer} — already at cap (${alreadyEnriched}/${o.cap} enriched); convergent no-op`);
+    return { ...base };
   }
 
   // Flatten candidates deterministically, ROUND-ROBIN across topics (topics in first-seen

@@ -153,6 +153,20 @@ test('deterministicRubric passes when every body href is in sources and every so
   assert.equal(pass, true);
 });
 
+test('deterministicRubric normalises HTML entities — a query-string url (&amp;) in prose + References passes R1/R11', () => {
+  const rawUrl = 'https://news.example/p/x?a=1&b=2&c=3';
+  const encUrl = 'https://news.example/p/x?a=1&amp;b=2&amp;c=3';
+  const html = [
+    '<main class="pmos-artifact-body">',
+    `<h2 id="growth">Growth</h2><p>Intro. <a href="${encUrl}">ref</a></p>`,
+    `<h2 id="references">References</h2><ul><li><a href="${encUrl}">Src</a></li></ul>`,
+    '</main>',
+  ].join('\n');
+  const sources = [{ url: rawUrl, takeaway: 't', topic: 'growth', tier: 'T2' }];
+  const { pass, failing_checks } = deterministicRubric(html, sources);
+  assert.equal(pass, true, `expected pass, got failing: ${JSON.stringify(failing_checks)}`);
+});
+
 test('deterministicRubric fails R1 when a body href is not in sources.json', () => {
   const broken = fixtureHtml().replace('<p>Growth intro.</p>', '<p>Growth intro. <a href="https://rogue.example/nope">rogue</a></p>');
   const { pass, failing_checks } = deterministicRubric(broken, SOURCES);
@@ -227,6 +241,28 @@ test('cap enforcement: admitted new sources never exceed the cap', async () => {
   });
   assert.ok(outcome.verified <= 1, `verified ${outcome.verified} must be <= cap 1`);
   assert.ok(outcome.added <= 1);
+});
+
+test('convergence: cap is a per-primer total — a re-run over the enriched primer adds 0 and is byte-identical (INV-5)', async () => {
+  const files = { 'p.html': fixtureHtml(), 'p.sources.json': JSON.stringify(SOURCES, null, 2) };
+  // verify admits three pricing candidates but cap=2: run 1 consumes the ceiling, run 2 must no-op.
+  const h = harness({
+    files,
+    verifyUrls: ['https://b.example/pricing-2', 'https://c.example/pricing-3', 'https://d.example/pricing-4'],
+    cap: 2,
+  });
+  const args = {
+    htmlPath: 'p.html', sourcesPath: 'p.sources.json', corpus: CORPUS,
+    tagVocabulary: TAG_VOCAB, tagSynonyms: TAG_SYN, opts: h.opts, deps: h.deps,
+  };
+  const run1 = await enrichPrimer(args);
+  assert.equal(run1.added, 2, 'run 1 fills the cap');
+  const htmlAfter1 = h.store['p.html'];
+  const srcAfter1 = h.store['p.sources.json'];
+  const run2 = await enrichPrimer(args); // same store — reads run 1's enriched output
+  assert.equal(run2.added, 0, 're-run adds nothing (already at cap)');
+  assert.equal(h.store['p.html'], htmlAfter1, 'html byte-identical after re-run');
+  assert.equal(h.store['p.sources.json'], srcAfter1, 'sources byte-identical after re-run');
 });
 
 test('revert-on-rubric-fail: a broken weave reverts, files unchanged, reverted=true', async () => {

@@ -110,5 +110,40 @@
     "topic": "tactics-to-improve-retention",
     "tier": "secondary-curation",
     "paywalled": true
+  },
+  {
+    "url": "https://www.lennysnewsletter.com/p/what-is-a-good-activation-rate",
+    "takeaway": "Lenny Rachitsky and Yuriy Timen present benchmarks from 500+ responses defining good and great activation rates by product type, explain how to set activation milestones, and share the highest-leverage tactics for improving activation.",
+    "topic": "why-retention-is-the-core-of-growth",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://huggingface.co/spaces/lmarena-ai/arena-leaderboard",
+    "takeaway": "The LMArena leaderboard on Hugging Face, a community-run space ranking large language models by human preference votes from head-to-head comparisons.",
+    "topic": "benchmarks-and-pitfalls",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.lennysnewsletter.com/p/what-is-a-good-activation-rate",
+    "takeaway": "Lenny Rachitsky and Yuriy Timen present benchmarks from 500+ responses defining good and great activation rates by product type, explain how to set activation milestones, and share the highest-leverage tactics for improving activation.",
+    "topic": "reading-cohort-retention",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.lennysnewsletter.com/p/what-is-a-good-activation-rate",
+    "takeaway": "Lenny Rachitsky and Yuriy Timen present benchmarks from 500+ responses defining good and great activation rates by product type, explain how to set activation milestones, and share the highest-leverage tactics for improving activation.",
+    "topic": "choosing-the-right-retention-metric",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.lennysnewsletter.com/p/what-is-a-good-activation-rate",
+    "takeaway": "Lenny Rachitsky and Yuriy Timen present benchmarks from 500+ responses defining good and great activation rates by product type, explain how to set activation milestones, and share the highest-leverage tactics for improving activation.",
+    "topic": "the-retention-lifecycle",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

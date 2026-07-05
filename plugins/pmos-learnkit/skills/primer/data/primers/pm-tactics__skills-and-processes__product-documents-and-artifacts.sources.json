@@ -110,5 +110,40 @@
     "topic": "why-writing-beats-slides",
     "tier": "primary-practitioner",
     "paywalled": false
+  },
+  {
+    "url": "https://blog.hubspot.com/sales/enterprise-sales",
+    "takeaway": "Explains enterprise sales and how it differs from SMB and mid-market sales across eight dimensions including deal length, number of decision makers, and purchase complexity, with guidance on building an enterprise sales strategy.",
+    "topic": "what-product-documents-are-for",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://blog.hubspot.com/sales/enterprise-sales",
+    "takeaway": "Explains enterprise sales and how it differs from SMB and mid-market sales across eight dimensions including deal length, number of decision makers, and purchase complexity, with guidance on building an enterprise sales strategy.",
+    "topic": "the-product-brief",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.departmentofproduct.com/blog/presentation-skills-for-product-managers",
+    "takeaway": "Guide for product managers on improving presentation skills: storytelling techniques, managing audience emotion, separating slide content from scripts, structuring talks around three key takeaways, and making demos narrative-driven rather than feature-focused.",
+    "topic": "the-narrative-memo-and-six-pager",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://hbr.org/2020/11/how-apple-is-organized-for-innovation",
+    "takeaway": "Harvard Business Review analysis of Apple's organizational structure: a functional model where experts lead experts, enabling innovation at scale, as Apple grew from $7B to $260B in revenue under this leadership model.",
+    "topic": "the-strategy-doc-and-vision",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://writingcooperative.com/the-anatomy-of-an-amazon-6-pager-fc79f31a41c9",
+    "takeaway": "Breakdown of the Amazon 6-pager narrative document format, explaining its structure, purpose, and why Amazon uses long-form memos instead of slide decks to drive strategic decision-making.",
+    "topic": "why-writing-beats-slides",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

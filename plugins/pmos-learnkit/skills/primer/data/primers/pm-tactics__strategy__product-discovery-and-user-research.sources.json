@@ -110,5 +110,40 @@
     "topic": "common-pitfalls",
     "tier": "T2",
     "paywalled": false
+  },
+  {
+    "url": "https://jpattonassociates.com/dual-track-development/",
+    "takeaway": "Jeff Patton's article explaining dual-track development — running discovery and delivery in parallel rather than sequentially — so teams continuously learn and validate while shipping; page JS-gated.",
+    "topic": "what-discovery-is",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://jpattonassociates.com/dual-track-development/",
+    "takeaway": "Jeff Patton's article explaining dual-track development — running discovery and delivery in parallel rather than sequentially — so teams continuously learn and validate while shipping; page JS-gated.",
+    "topic": "continuous-discovery",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.amazon.com/dp/B01BXB1B7K",
+    "takeaway": "Amazon listing for Sprint, the book by Jake Knapp and Google Ventures team on the five-day design sprint process for solving big problems and testing ideas quickly.",
+    "topic": "dual-track-agile",
+    "tier": "T4",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.producttalk.org/customer-interviews",
+    "takeaway": "Comprehensive guide by Teresa Torres on conducting customer interviews — covering who to recruit, how to structure conversations, and how to synthesize findings to discover user opportunities within a continuous discovery framework.",
+    "topic": "what-discovery-is",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.producttalk.org/customer-interviews",
+    "takeaway": "Comprehensive guide by Teresa Torres on conducting customer interviews — covering who to recruit, how to structure conversations, and how to synthesize findings to discover user opportunities within a continuous discovery framework.",
+    "topic": "continuous-discovery",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

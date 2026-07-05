@@ -110,5 +110,40 @@
     "topic": "debates-and-common-pitfalls",
     "tier": "T1",
     "paywalled": false
+  },
+  {
+    "url": "https://www.amazon.com/dp/B000FC10H0",
+    "takeaway": "Amazon listing for 'The 22 Immutable Laws of Branding' by Al and Laura Ries, a classic guide to building and maintaining powerful brands in a competitive marketplace.",
+    "topic": "what-a-brand-actually-is",
+    "tier": "T4",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.amazon.com/dp/B000FC10H0",
+    "takeaway": "Amazon listing for 'The 22 Immutable Laws of Branding' by Al and Laura Ries, a classic guide to building and maintaining powerful brands in a competitive marketplace.",
+    "topic": "brand-vs-performance-marketing",
+    "tier": "T4",
+    "paywalled": false
+  },
+  {
+    "url": "https://review.firstround.com/what-i-learned-from-developing-branding-for-airbnb-dropbox-and-thumbtack",
+    "takeaway": "First Round Review interview with Julie Supan on building brand positioning for YouTube, Dropbox, Airbnb, and Thumbtack — centered on identifying the 'high-expectation customer' and crafting precise, emotionally resonant positioning rather than generic messaging.",
+    "topic": "brand-positioning-the-strategic-core",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.amazon.com/dp/B000FC10H0",
+    "takeaway": "Amazon listing for 'The 22 Immutable Laws of Branding' by Al and Laura Ries, a classic guide to building and maintaining powerful brands in a competitive marketplace.",
+    "topic": "brand-identity-the-visual-and-verbal-expression",
+    "tier": "T4",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.amazon.com/dp/B000FC10H0",
+    "takeaway": "Amazon listing for 'The 22 Immutable Laws of Branding' by Al and Laura Ries, a classic guide to building and maintaining powerful brands in a competitive marketplace.",
+    "topic": "brand-awareness-and-mental-availability",
+    "tier": "T4",
+    "paywalled": false
   }
 ]

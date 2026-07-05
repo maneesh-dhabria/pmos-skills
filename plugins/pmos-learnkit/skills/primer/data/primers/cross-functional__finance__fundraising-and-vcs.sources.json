@@ -117,5 +117,40 @@
     "topic": "how-investors-think",
     "tier": "T2",
     "paywalled": false
+  },
+  {
+    "url": "https://www.youtube.com/watch?list=PLUkh9m2BorqmKaLrNBjKtFDhpdFdi8f7C&v=7rW7lpQZpqY",
+    "takeaway": "Aswath Damodaran gives a 12-minute overview of the three core financial statements — income statement, balance sheet, and cash flow — as the foundation for valuation and financial analysis.",
+    "topic": "valuation-pre-and-post-money",
+    "tier": "T4",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.youtube.com/watch?list=PLUkh9m2BorqmKaLrNBjKtFDhpdFdi8f7C&v=ZXXF-rSaE9E",
+    "takeaway": "Aswath Damodaran's 18-minute lecture (Session 6) explaining key financial ratios used to assess company performance, profitability, leverage, and efficiency.",
+    "topic": "valuation-pre-and-post-money",
+    "tier": "T4",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.youtube.com/watch?list=PLUkh9m2BorqndWimijiJ-VCAXjJUrzJQU&v=FXbXksS4kNs",
+    "takeaway": "15-minute lecture by Aswath Damodaran on currency risk in valuation, part of his corporate finance or valuation course series, explaining how to handle multi-currency cash flows.",
+    "topic": "valuation-pre-and-post-money",
+    "tier": "T4",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.investopedia.com/terms/d/dcf.asp",
+    "takeaway": "Discounted cash flow (DCF) is a valuation method used to estimate the attractiveness of an investment opportunity. Learn how it is calculated and when to use it.",
+    "topic": "valuation-pre-and-post-money",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.youtube.com/watch?list=PLUkh9m2BorqmKaLrNBjKtFDhpdFdi8f7C&v=cSuc2HHQpxc",
+    "takeaway": "Session 3 of Aswath Damodaran's finance course covering balance sheet structure, components, and interpretation.",
+    "topic": "valuation-pre-and-post-money",
+    "tier": "T4",
+    "paywalled": false
   }
 ]

@@ -131,5 +131,40 @@
     "topic": "what-this-means-for-pms",
     "tier": "T2",
     "paywalled": false
+  },
+  {
+    "url": "https://github.com/mlabonne/llm-course",
+    "takeaway": "Comprehensive GitHub LLM course with three tracks — fundamentals, scientist, and engineer — covering math prerequisites, fine-tuning, quantization, RAG, and deployment with Colab notebooks and linked articles.",
+    "topic": "a-short-history-of-ai",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://academy.langchain.com/courses/ambient-agents",
+    "takeaway": "Build your own ambient agent to manage your email. You’ll learn the fundamentals of LangGraph as you build an email assistant from scratch, and use LangSmith to evaluate its performance.",
+    "topic": "symbolic-ai-vs-machine-learning",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://sproutsocial.com/",
+    "takeaway": "Sprout Social homepage promoting their social media management platform, highlighting an AI agent called Trellis that converts social conversations into actionable insights.",
+    "topic": "the-subfields-of-ai",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.news.aakashg.com/p/how-to-optimize-your-information",
+    "takeaway": "Aakash Gupta's newsletter article on optimising how you consume and process information.",
+    "topic": "machine-learning-and-deep-learning-the-modern-core",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://hbr.org/2020/11/how-apple-is-organized-for-innovation",
+    "takeaway": "Harvard Business Review analysis of Apple's organizational structure: a functional model where experts lead experts, enabling innovation at scale, as Apple grew from $7B to $260B in revenue under this leadership model.",
+    "topic": "computer-vision",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

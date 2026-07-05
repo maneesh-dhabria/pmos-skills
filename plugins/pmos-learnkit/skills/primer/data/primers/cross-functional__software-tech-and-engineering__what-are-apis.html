@@ -1099,12 +1099,20 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 <h2 id="rest">REST: the dominant style</h2>
 <p><strong>REST</strong> (Representational State Transfer) is the style most web APIs follow, and the default a PM will meet first. Its organizing idea is that everything is a <em>resource</em> addressed by a URL, and you act on it with the standard HTTP methods — a GET to <code>/orders/42</code> reads order 42, a DELETE to the same URL removes it. It is an architecture Roy Fielding defined so that, navigating from one link to the next, "the only identifier that needs to be known is the identifier of the first resource requested" (<a href="https://en.wikipedia.org/wiki/REST">REST</a>). REST's appeal is that it reuses the web's existing machinery — URLs, verbs, status codes — so it is familiar, cacheable, and easy to debug. Its limitation, which motivates the alternatives below, is that endpoints return fixed shapes: you often get more data than you need (over-fetching) or must make several calls to assemble one screen (under-fetching). As one practitioner guide frames the trade, REST suits "systems requiring rapid iteration and standardized HTTP verbiage" (<a href="https://nordicapis.com/when-to-use-what-rest-graphql-webhooks-grpc/">Nordic APIs — when to use what</a>). For most products, REST is the sensible default and the others are reactions to its rough edges.</p>
 
+
+<p class="primer-enriched">Further reading: <a href="https://blog.wahab2.com/api-architecture-best-practices-for-designing-rest-apis-bf907025f5f">blog.wahab2.com</a> — Medium article by Abdul Wahab on REST API architecture best practices, covering design principles such as naming conventions, versioning, error handling, and security.</p>
+
+<p class="primer-enriched">Further reading: <a href="https://blog.bytebytego.com/p/ep53-design-effective-and-safe-apis">blog.bytebytego.com</a> — ByteByteGo newsletter on designing effective and safe APIs, covering principles for reliability, security, versioning, and consistent developer experience.</p>
 <h2 id="graphql">GraphQL: asking for exactly what you need</h2>
 <p><strong>GraphQL</strong> is a query language for APIs, created at Facebook in 2012, that lets the client specify precisely the fields it wants in a single request. Where REST gives you whatever an endpoint returns, GraphQL hands the shaping power to the caller: "A GraphQL server can process a client query using data from separate sources and present the results in a unified graph" (<a href="https://en.wikipedia.org/wiki/GraphQL">GraphQL</a>). The practical win is fewer round-trips and no over-fetching — a mobile screen can ask for a user's name and last three orders in one call instead of three. The trade-offs are real and worth flagging as genuinely contested among engineers: GraphQL moves complexity to the server, makes simple caching harder (every query can differ), and can let a careless client request something expensive. The honest framing is the one practitioners use — GraphQL shines when "the requester needs the data in a specific format for a specific use" (<a href="https://nordicapis.com/when-to-use-what-rest-graphql-webhooks-grpc/">Nordic APIs — when to use what</a>), particularly for rich front-ends with varied data needs; it is not a wholesale replacement for REST.</p>
 
 <h2 id="webhooks">Webhooks: when the API calls you</h2>
 <p>REST and GraphQL are both pull models — your client asks, the server answers. <strong>Webhooks</strong> invert that. Instead of repeatedly polling "has anything changed yet?", you register a URL and the other system calls <em>you</em> when an event occurs. Webhooks are "user-defined HTTP callbacks" where "the source site makes an HTTP request to the URL configured for the webhook" each time something happens (<a href="https://en.wikipedia.org/wiki/Webhook">Webhook</a>). The classic example: instead of asking a payment provider every minute whether a charge succeeded, you give them a webhook URL and they notify you the instant it does. For a PM this is the right pattern whenever timeliness matters and polling would be wasteful or slow — payment confirmations, shipping updates, message-received events. The cost is that you now must <em>run an endpoint</em> that reliably receives and processes those calls, including retries when your side is down. Webhooks are not a competitor to REST or GraphQL so much as the missing half: they handle "tell me when," while the others handle "let me ask."</p>
 
+
+<p class="primer-enriched">Further reading: <a href="https://blog.wahab2.com/api-architecture-best-practices-for-designing-rest-apis-bf907025f5f">blog.wahab2.com</a> — Medium article by Abdul Wahab on REST API architecture best practices, covering design principles such as naming conventions, versioning, error handling, and security.</p>
+
+<p class="primer-enriched">Further reading: <a href="https://blog.bytebytego.com/p/ep53-design-effective-and-safe-apis">blog.bytebytego.com</a> — ByteByteGo newsletter on designing effective and safe APIs, covering principles for reliability, security, versioning, and consistent developer experience.</p>
 <h2 id="auth">Authentication and authorization</h2>
 <p>Two related questions gate every real API: <strong>authentication</strong> (who are you?) and <strong>authorization</strong> (what are you allowed to do?). The simplest mechanism is an <strong>API key</strong> — a secret token identifying the calling application. It is convenient but weak on its own: "API keys are generally not considered secure; they are typically accessible to clients, making it easy for someone to steal an API key" (<a href="https://en.wikipedia.org/wiki/Application_programming_interface_key">API key</a>). The stronger, near-universal standard for letting an app act on a user's behalf is <strong>OAuth</strong> (open authorization), which avoids ever sharing the user's password: it "allows access tokens to be issued to third-party clients by an authorization server, with the approval of the resource owner" (<a href="https://en.wikipedia.org/wiki/OAuth">OAuth</a>). This is the "Sign in with Google" flow and the "allow this app to access your calendar" consent screen. The PM-relevant takeaways: API keys are fine for server-to-server or low-risk access but must be kept secret; OAuth is what you want whenever real users grant a third party limited access to their data; and the scope of that access ("read your profile" versus "post on your behalf") is a product decision with direct trust and privacy stakes.</p>
 
@@ -1120,6 +1128,8 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 <h2 id="designing-as-pm">Designing a good API as a PM</h2>
 <p>You will not write the API specification, but you shape what makes it good — and the criteria are product criteria, not just engineering ones. A useful working checklist drawn from the operational concerns above: name resources clearly and consistently (predictable URLs a developer can guess); return helpful errors (a 400 should say <em>what</em> was wrong, not just that something was); document with real examples (the single biggest driver of whether developers succeed); set rate limits that are generous and clearly communicated in responses (<a href="https://en.wikipedia.org/wiki/Rate_limiting">Rate limiting</a>); and commit to stability, breaking things only across explicit version boundaries (<a href="https://en.wikipedia.org/wiki/Software_versioning">Software versioning</a>). Underneath all of it is one mindset shift, captured by treating the API as a managed product complete with a "subscriber community" and usage analytics (<a href="https://en.wikipedia.org/wiki/API_management">API management</a>): your user is a developer, and developer experience — how fast someone goes from reading your docs to a working call — is the metric that decides whether your API gets adopted. The best API teams measure time-to-first-successful-call the way consumer teams measure activation.</p>
 
+
+<p class="primer-enriched">Further reading: <a href="https://www.news.aakashg.com/p/pm-guide-to-wireframes?isFreemail=false&amp;post_id=143198429&amp;publication_id=454003&amp;r=2jc0k&amp;triedRedirect=true">news.aakashg.com</a> — Aakash Gupta's PM guide on wireframes — how product managers should use and think about wireframes in the product development process.</p>
 <h2 id="next-actions">Concrete next actions you can take this week</h2>
 <ul>
 <li><strong>Read one real API call.</strong> Open your browser's developer tools, go to the Network tab, use your product, and watch the requests and JSON responses fly by. Seeing real endpoints and payloads makes everything above concrete.</li>
@@ -1206,6 +1216,26 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 <li>
 <a href="https://en.wikipedia.org/wiki/API_management">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
 <p class="ref-takeaway">Running an API as a product is its own discipline — API management covers "enforcing their usage policies, controlling access, nurturing the subscriber community, collecting and analyzing usage statistics, and reporting on performance."</p>
+</li>
+<li>
+<a href="https://blog.wahab2.com/api-architecture-best-practices-for-designing-rest-apis-bf907025f5f">blog.wahab2.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T3)</span>
+<p class="ref-takeaway">Medium article by Abdul Wahab on REST API architecture best practices, covering design principles such as naming conventions, versioning, error handling, and security.</p>
+</li>
+<li>
+<a href="https://blog.wahab2.com/api-architecture-best-practices-for-designing-rest-apis-bf907025f5f">blog.wahab2.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T3)</span>
+<p class="ref-takeaway">Medium article by Abdul Wahab on REST API architecture best practices, covering design principles such as naming conventions, versioning, error handling, and security.</p>
+</li>
+<li>
+<a href="https://www.news.aakashg.com/p/pm-guide-to-wireframes?isFreemail=false&amp;post_id=143198429&amp;publication_id=454003&amp;r=2jc0k&amp;triedRedirect=true">news.aakashg.com</a> <span class="ref-tier">(T3)</span>
+<p class="ref-takeaway">Aakash Gupta's PM guide on wireframes — how product managers should use and think about wireframes in the product development process.</p>
+</li>
+<li>
+<a href="https://blog.bytebytego.com/p/ep53-design-effective-and-safe-apis">blog.bytebytego.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T3)</span>
+<p class="ref-takeaway">ByteByteGo newsletter on designing effective and safe APIs, covering principles for reliability, security, versioning, and consistent developer experience.</p>
+</li>
+<li>
+<a href="https://blog.bytebytego.com/p/ep53-design-effective-and-safe-apis">blog.bytebytego.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T3)</span>
+<p class="ref-takeaway">ByteByteGo newsletter on designing effective and safe APIs, covering principles for reliability, security, versioning, and consistent developer experience.</p>
 </li>
 </ol>
 </main>

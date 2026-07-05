@@ -117,5 +117,40 @@
     "topic": "social-proof-and-trust",
     "tier": "T2",
     "paywalled": false
+  },
+  {
+    "url": "https://www.amazon.com/dp/B085LBDHTX",
+    "takeaway": "Amazon listing for April Dunford's book 'Obviously Awesome,' covering product positioning strategy; no content available beyond the Amazon storefront.",
+    "topic": "start-with-the-value-proposition",
+    "tier": "T4",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.news.aakashg.com/p/how-to-optimize-your-information",
+    "takeaway": "Aakash Gupta's newsletter article on optimising how you consume and process information.",
+    "topic": "message-match-and-focus",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://writingcooperative.com/the-anatomy-of-an-amazon-6-pager-fc79f31a41c9",
+    "takeaway": "Breakdown of the Amazon 6-pager narrative document format, explaining its structure, purpose, and why Amazon uses long-form memos instead of slide decks to drive strategic decision-making.",
+    "topic": "writing-headlines-that-work",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://uxdesign.cc/from-consideration-to-purchase-breaking-down-googles-messy-middle-for-product-managers-8f6252ccca1a",
+    "takeaway": "Analysis of Google's \"messy middle\" consumer decision-making model for product managers, explaining how customers oscillate between exploration and evaluation before purchase and how products can influence that journey.",
+    "topic": "the-psychology-of-persuasion",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://uxdesign.cc/from-consideration-to-purchase-breaking-down-googles-messy-middle-for-product-managers-8f6252ccca1a",
+    "takeaway": "Analysis of Google's \"messy middle\" consumer decision-making model for product managers, explaining how customers oscillate between exploration and evaluation before purchase and how products can influence that journey.",
+    "topic": "social-proof-and-trust",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

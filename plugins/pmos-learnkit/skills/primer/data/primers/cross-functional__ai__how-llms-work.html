@@ -1063,6 +1063,12 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 <p>Microsoft Learn offers the most useful framing for a PM: an LLM is <a href="https://learn.microsoft.com/en-us/agent-framework/journey/llm-fundamentals">"just two things"</a> — "model weights — billions of numerical parameters learned during training that encode the model's knowledge," and the "architecture code" that runs them. The weights are the learned part; the architecture is the fixed machinery. Everything the model "knows" lives in those numbers, frozen at the moment training stopped. That single fact explains a surprising amount of its behaviour later in this primer — why it has a knowledge cutoff, why it cannot look anything up on its own, and why it sometimes states yesterday's news as though it never happened.</p>
 <p>It is worth saying plainly what an LLM is <em>not</em>. It is not a database that stores and retrieves facts, and it is not a search engine. It is a pattern-completion engine that has read so much text that its best guess at "what comes next" is usually right. The rest of this primer is the machinery behind that guess.</p>
 
+
+<p class="primer-enriched">Further reading: <a href="https://www.linkedin.com/posts/ramar_how-llms-got-better-at-reasoning-activity-7346174865688715267-ynfE?rcm=ACoAAAL6RoYBUt6e51qaMwyoJuoju1wNIUia-Ic">linkedin.com</a> — A LinkedIn explainer deck by Ramar on how reasoning LLMs work and how they got better at reasoning, shared as a downloadable PDF in a repost.</p>
+
+<p class="primer-enriched">Further reading: <a href="https://huggingface.co/spaces/lmarena-ai/arena-leaderboard">huggingface.co</a> — The LMArena leaderboard on Hugging Face, a community-run space ranking large language models by human preference votes from head-to-head comparisons.</p>
+
+<p class="primer-enriched">Further reading: <a href="https://github.com/mlabonne/llm-course">github.com</a> — Comprehensive GitHub LLM course with three tracks — fundamentals, scientist, and engineer — covering math prerequisites, fine-tuning, quantization, RAG, and deployment with Colab notebooks and linked articles.</p>
 <h2 id="tokens-how-models-read-text">Tokens — how models read text</h2>
 <p>A model never sees your words as words. The first step, run by a component called the <em>tokenizer</em>, is to break text into <em>tokens</em> — small pieces that may be a whole word, part of a word, or a single character. Hugging Face's teaching materials put the reason simply: tokenizers exist to <a href="https://huggingface.co/learn/llm-course/chapter2/4">"translate text into data that can be processed by the model,"</a> because "models can only process numbers." Each token maps to a number, an identifier in the model's fixed vocabulary, and the model works entirely on those numbers.</p>
 <p>Why not just split on words? Hugging Face frames the camps. Word-based tokenization creates enormous vocabularies and chokes on any word it has never seen. Character-based tokenization keeps the vocabulary tiny but produces very long sequences that carry little meaning per piece. The winning compromise, used by nearly every modern model, is <em>subword</em> tokenization, built on "the principle that frequently used words should not be split into smaller subwords, but rare words should be decomposed into meaningful subwords." Common words stay whole; a rare word like "tokenization" might split into "token" and "ization." The payoff is "good coverage with small vocabularies, and close to no unknown tokens."</p>
@@ -1165,6 +1171,12 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 <p>You change an LLM's output without retraining it in two main ways. The first is <em>prompting</em>. The Prompt Engineering Guide defines prompt engineering as <a href="https://www.promptingguide.ai/introduction/basics">"designing effective prompts to instruct the model to perform a desired task,"</a> noting that "the quality of results depends on how much information you provide it and how well-crafted the prompt is." A powerful variant is <em>few-shot</em> prompting — showing the model a handful of worked examples — which triggers "in-context learning, which is the ability of language models to learn tasks given a few demonstrations." This is genuinely surprising: the model picks up the pattern from examples in the prompt itself, with no weights changed.</p>
 <p>The second is <em>retrieval-augmented generation</em> (<abbr title="retrieval-augmented generation">RAG</abbr>), the standard way to make a general model knowledgeable about your specific data. Databricks defines it as <a href="https://www.databricks.com/glossary/retrieval-augmented-generation-rag">"a hybrid AI framework that bolsters large language models (LLMs) by combining them with external, up-to-date data sources."</a> When a question comes in, the system first retrieves "semantically similar documents" from your own knowledge base and pastes them into the prompt, so the model can "produce more accurate, context-aware answers grounded in enterprise-specific or up-to-date data." Because the facts now sit in the context window rather than having to be baked into the weights, RAG "attempts to mitigate the risk of responding with ... hallucinations" and works "without needing to customize the model." It is the most common answer to both the knowledge-cutoff and hallucination problems — though, as the broader literature is careful to note, it reduces hallucination rather than eliminating it.</p>
 
+
+<p class="primer-enriched">Further reading: <a href="https://x.com/alex_prompter/status/1936808918438875553">x.com</a> — Here’s the exact mega prompt we use:
+
+"You are now my personal AI tutor.</p>
+
+<p class="primer-enriched">Further reading: <a href="https://parconley.com/prompts">parconley.com</a> — Personal blog post sharing a curated collection of LLM prompts the author crafted for ChatGPT and Claude, focused on research and learning use cases.</p>
 <h2 id="what-this-means-for-pms">What this means for PMs</h2>
 <p>The mechanics land on a handful of product decisions that are squarely a PM's job. The first is the adaptation choice. Product School lays out the three levers in increasing order of effort: <a href="https://productschool.com/blog/artificial-intelligence/gen-ai-product-managers">prompting via "system prompts,"</a> retrieval ("combine retrieval and generative models" for "highly contextual information"), and fine-tuning on custom datasets. The practical rule that follows from this primer: reach for prompting first, RAG when the model needs facts it does not have, and fine-tuning only when you need to change how the model behaves, not just what it knows.</p>
 <p>The second is economics, and here tokens come back. Product School notes "Larger, more powerful models may incur higher usage fees," typically charging "per token, request, or compute time." Every design choice — how much history you keep, how verbose the output, how big the retrieved context — is a line item. AssemblyAI underlines the scale of the underlying investment: pretraining a frontier model <a href="https://www.assemblyai.com/blog/large-language-models-for-product-managers-5-things-to-know">"like PaLM"</a> has run "10 to 20 million US dollars," which is exactly why almost no product trains its own and most build on a provider's API instead.</p>
@@ -1240,6 +1252,35 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 <li>
 <a href="https://productschool.com/blog/artificial-intelligence/gen-ai-product-managers">productschool.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
 <p class="ref-takeaway">Product School maps the three ways PMs adapt an LLM to a domain: prompting via "system prompts," fine-tuning on custom datasets, and RAG to "combine retrieval and generative models" for "highly contextual information" from organization-specific data. On tradeoffs: "Larger, more powerful models may incur higher usage fees," often charging "per token, request, or compute time," while smaller models can run faster, and operations must "comply with relevant data protection regulations such as GDPR."</p>
+</li>
+<li>
+<a href="https://github.com/mlabonne/llm-course">github.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Comprehensive GitHub LLM course with three tracks — fundamentals, scientist, and engineer — covering math prerequisites, fine-tuning, quantization, RAG, and deployment with Colab notebooks and linked articles.</p>
+</li>
+<li>
+<a href="https://www.linkedin.com/posts/ramar_how-llms-got-better-at-reasoning-activity-7346174865688715267-ynfE?rcm=ACoAAAL6RoYBUt6e51qaMwyoJuoju1wNIUia-Ic">linkedin.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T3)</span>
+<p class="ref-takeaway">A LinkedIn explainer deck by Ramar on how reasoning LLMs work and how they got better at reasoning, shared as a downloadable PDF in a repost.</p>
+</li>
+<li>
+<a href="https://huggingface.co/spaces/lmarena-ai/arena-leaderboard">huggingface.co</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T3)</span>
+<p class="ref-takeaway">The LMArena leaderboard on Hugging Face, a community-run space ranking large language models by human preference votes from head-to-head comparisons.</p>
+</li>
+<li>
+<a href="https://parconley.com/prompts">parconley.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T3)</span>
+<p class="ref-takeaway">Personal blog post sharing a curated collection of LLM prompts the author crafted for ChatGPT and Claude, focused on research and learning use cases.</p>
+</li>
+<li>
+<a href="https://x.com/alex_prompter/status/1936808918438875553">x.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T4)</span>
+<p class="ref-takeaway">Here’s the exact mega prompt we use:
+
+"You are now my personal AI tutor.
+
+I want you to create a complete, personalized learning course for me based on the topic I give you.
+
+Here’s what I need you to build:
+
+1. A custom curriculum with 4–6 modules that progress logically.
+2. https://t.co/SnNDb2s47A</p>
 </li>
 </ol>
 </main>

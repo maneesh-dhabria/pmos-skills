@@ -1102,6 +1102,12 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 <h2 id="sql">SQL and querying</h2>
 <p>You talk to a relational database in <strong>SQL</strong> (Structured Query Language), the long-standing standard for reading and changing relational data. Its original breakthrough was working in sets rather than one record at a time — SQL "introduced the concept of accessing many records with one single command" (<a href="https://en.wikipedia.org/wiki/SQL">SQL</a>). A query like "every order over $100 from the last week, newest first" is a single statement, not a loop an engineer writes by hand. A useful thing for a PM to internalize: SQL is <em>declarative</em>. You describe the result you want, and the database figures out how to get it. That "how" is handled by the <strong>query optimizer</strong>, an automated planner whose "purpose... is to find the way to process a given query in minimum time" (<a href="https://en.wikipedia.org/wiki/Query_optimization">Query optimization</a>). This is why the same question can be fast or slow depending on indexes and data size, even when the SQL is unchanged — the optimizer's options depend on what you have given it to work with.</p>
 
+
+<p class="primer-enriched">Further reading: <a href="https://hellopm.co/sql-for-product-managers-the-definitive-guide">hellopm.co</a> — Definitive SQL guide for product managers explaining relational databases, data retrieval, filtering, aggregates, joins, and how SQL enables PMs to run analyses independently and make faster data-driven decisions.</p>
+
+<p class="primer-enriched">Further reading: <a href="https://towardsdatascience.com/">towardsdatascience.com</a> — Your home for data science and AI.</p>
+
+<p class="primer-enriched">Further reading: <a href="https://technically.dev/posts/sql-for-the-rest-of-us">technically.dev</a> — Beginner-friendly guide to SQL covering database schemas, query structure, and core keywords SELECT, FROM, WHERE, and ORDER BY, using a DTC e-commerce example to illustrate concepts.</p>
 <h2 id="schemas">Schemas and data modeling</h2>
 <p>The <strong>schema</strong> is the database's blueprint — the agreed structure of tables, columns, and relationships. Wikipedia's definition is sweeping on purpose: "the schema defines the tables, fields, relationships, views, indexes, packages, procedures, functions, queues, triggers, types, sequences, materialized views, synonyms" and more (<a href="https://en.wikipedia.org/wiki/Database_schema">Database schema</a>). For product purposes, focus on three pieces.</p>
 <p>First, the <strong>primary key</strong>: the column (or columns) that uniquely identifies each row — "a designated set of attributes (column(s)) that can reliably identify and distinguish between each individual record in a table" (<a href="https://en.wikipedia.org/wiki/Primary_key">Primary key</a>). Every user gets one stable id. Second, the <strong>foreign key</strong>: the column that links one table to another by referencing that other table's key — formally "a set of attributes that references a candidate key" (<a href="https://en.wikipedia.org/wiki/Foreign_key">Foreign key</a>). The <code>user_id</code> on an order is a foreign key pointing at the <code>users</code> table. Third, <strong>normalization</strong>: the practice of splitting data so nothing important is stored twice, designed to "free the collection of relations from undesirable insertion, update and deletion dependencies" (<a href="https://en.wikipedia.org/wiki/Database_normalization">Database normalization</a>). Store a customer's address once, not on every order, and a change updates in one place. The PM-relevant catch: a relational schema is a commitment. Adding or reshaping columns on a large table is a <em>migration</em>, and migrations take engineering time and carry risk — which is exactly why "can we just add a field?" sometimes gets a surprisingly heavy answer.</p>
@@ -1127,6 +1133,10 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 <p>When one server can no longer hold the load, databases grow in two complementary ways, and the words are worth knowing because they show up in incident reviews and capacity planning.</p>
 <p><strong>Replication</strong> keeps multiple copies of the same data on different servers, mainly for availability and read capacity. A common arrangement: "In single-leader (also called primary/replica) replication, one database instance is designated as the leader (primary), which handles all write operations" while copies serve reads (<a href="https://en.wikipedia.org/wiki/Replication_(computing)">Replication (computing)</a>). If the leader fails, a replica can take over. <strong>Sharding</strong> instead splits the rows themselves across servers, so no single machine holds everything: "Each shard may be held on a separate database server instance in order to spread [load] across multiple servers" (<a href="https://en.wikipedia.org/wiki/Shard_(database_architecture)">Shard (database architecture)</a>). Replication copies the whole dataset; sharding partitions it. Most large systems use both. The PM-relevant consequence is that the moment your data lives on more than one machine, a new class of trade-off appears — the subject of the next section.</p>
 
+
+<p class="primer-enriched">Further reading: <a href="https://medium.com/@prefixyteam/how-we-built-prefixy-a-scalable-prefix-search-service-for-powering-autocomplete-c20f98e2eff1">medium.com</a> — Engineering deep-dive into how Prefixy built a scalable prefix search service to power autocomplete functionality, covering architecture and design decisions.</p>
+
+<p class="primer-enriched">Further reading: <a href="https://www.geeksforgeeks.org/system-design/design-bookmyshow-a-system-design-interview-question">geeksforgeeks.org</a> — System design walkthrough for a BookMyShow-style ticket booking platform covering functional and non-functional requirements, seat reservation locking, aggregator-theatre integration strategies, and high-concurrency handling.</p>
 <h2 id="cap-consistency">CAP theorem and consistency trade-offs</h2>
 <p>Once data is replicated across machines, networks between them can fail, and the <strong>CAP theorem</strong> describes the corner you are forced into. CAP stands for Consistency, Availability, and Partition tolerance, and its hard rule is: "if there is a network partition, one has to choose between consistency or availability" (<a href="https://en.wikipedia.org/wiki/CAP_theorem">CAP theorem</a>). A network partition is simply two parts of your system temporarily unable to talk. When that happens you either refuse some requests to keep every copy in agreement (favor consistency) or keep serving and let copies briefly diverge (favor availability). You cannot have both during the partition.</p>
 <svg viewBox="0 0 360 300" role="img" aria-labelledby="cap-title" xmlns="http://www.w3.org/2000/svg">
@@ -1250,6 +1260,26 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 <li>
 <a href="https://en.wikipedia.org/wiki/Online_transaction_processing">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
 <p class="ref-takeaway">Workload shape decides the database: OLTP handles many small live reads/writes, while 'OLAP is generally optimized for read-only operations' for analytics — the same data often lives in both.</p>
+</li>
+<li>
+<a href="https://medium.com/@prefixyteam/how-we-built-prefixy-a-scalable-prefix-search-service-for-powering-autocomplete-c20f98e2eff1">medium.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Engineering deep-dive into how Prefixy built a scalable prefix search service to power autocomplete functionality, covering architecture and design decisions.</p>
+</li>
+<li>
+<a href="https://hellopm.co/sql-for-product-managers-the-definitive-guide">hellopm.co</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T3)</span>
+<p class="ref-takeaway">Definitive SQL guide for product managers explaining relational databases, data retrieval, filtering, aggregates, joins, and how SQL enables PMs to run analyses independently and make faster data-driven decisions.</p>
+</li>
+<li>
+<a href="https://towardsdatascience.com/">towardsdatascience.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T3)</span>
+<p class="ref-takeaway">Your home for data science and AI. The world’s leading publication for data science, data analytics, data engineering, machine learning, and artificial intelligence professionals.</p>
+</li>
+<li>
+<a href="https://www.geeksforgeeks.org/system-design/design-bookmyshow-a-system-design-interview-question">geeksforgeeks.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T3)</span>
+<p class="ref-takeaway">System design walkthrough for a BookMyShow-style ticket booking platform covering functional and non-functional requirements, seat reservation locking, aggregator-theatre integration strategies, and high-concurrency handling.</p>
+</li>
+<li>
+<a href="https://technically.dev/posts/sql-for-the-rest-of-us">technically.dev</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T3)</span>
+<p class="ref-takeaway">Beginner-friendly guide to SQL covering database schemas, query structure, and core keywords SELECT, FROM, WHERE, and ORDER BY, using a DTC e-commerce example to illustrate concepts.</p>
 </li>
 </ol>
 </main>

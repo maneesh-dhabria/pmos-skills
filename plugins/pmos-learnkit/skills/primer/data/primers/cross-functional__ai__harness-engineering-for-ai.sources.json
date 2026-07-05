@@ -117,5 +117,40 @@
     "topic": "what-this-means-for-pms",
     "tier": "T2",
     "paywalled": false
+  },
+  {
+    "url": "https://hbr.org/2020/11/how-apple-is-organized-for-innovation",
+    "takeaway": "Harvard Business Review analysis of Apple's organizational structure: a functional model where experts lead experts, enabling innovation at scale, as Apple grew from $7B to $260B in revenue under this leadership model.",
+    "topic": "what-harness-engineering-is",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://blog.fsck.com/2025/10/09/superpowers",
+    "takeaway": "Developer blog post describing an evolved agentic coding workflow using Anthropic's Claude Code plugin system, including a Superpowers plugin that bakes in brainstorm-plan-implement cycles, git worktrees, parallel subagents, TDD, and reusable skill markdown files.",
+    "topic": "workflows-versus-agents",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://sproutsocial.com/",
+    "takeaway": "Sprout Social homepage promoting their social media management platform, highlighting an AI agent called Trellis that converts social conversations into actionable insights.",
+    "topic": "tools-and-function-calling",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://huggingface.co/spaces/lmarena-ai/arena-leaderboard",
+    "takeaway": "The LMArena leaderboard on Hugging Face, a community-run space ranking large language models by human preference votes from head-to-head comparisons.",
+    "topic": "evaluation-harnesses",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://hbr.org/2020/11/how-apple-is-organized-for-innovation",
+    "takeaway": "Harvard Business Review analysis of Apple's organizational structure: a functional model where experts lead experts, enabling innovation at scale, as Apple grew from $7B to $260B in revenue under this leadership model.",
+    "topic": "harness-versus-prompt-and-context-engineering",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

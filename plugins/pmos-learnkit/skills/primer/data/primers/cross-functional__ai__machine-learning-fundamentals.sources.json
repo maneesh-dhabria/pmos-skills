@@ -110,5 +110,40 @@
     "topic": "what-this-means-for-pms",
     "tier": "T2",
     "paywalled": false
+  },
+  {
+    "url": "https://www.news.aakashg.com/p/how-to-optimize-your-information",
+    "takeaway": "Aakash Gupta's newsletter article on optimising how you consume and process information.",
+    "topic": "what-machine-learning-actually-is",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.news.aakashg.com/p/pm-guide-to-wireframes?isFreemail=false&post_id=143198429&publication_id=454003&r=2jc0k&triedRedirect=true",
+    "takeaway": "Aakash Gupta's PM guide on wireframes — how product managers should use and think about wireframes in the product development process.",
+    "topic": "features-the-raw-material",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.linkedin.com/posts/benerez_i-love-using-claude-projects-for-rounds-of-activity-7330989160536707072-BZvo?rcm=ACoAAAL6RoYBUt6e51qaMwyoJuoju1wNIUia-Ic",
+    "takeaway": "LinkedIn post arguing AI uncovers customer insights human analysts miss, illustrated with a retail case where AI identified cart abandonment due to unclear sizing information, leading to a 20% sales increase.",
+    "topic": "train-validation-and-test-splits",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://uxdesign.cc/from-consideration-to-purchase-breaking-down-googles-messy-middle-for-product-managers-8f6252ccca1a",
+    "takeaway": "Analysis of Google's \"messy middle\" consumer decision-making model for product managers, explaining how customers oscillate between exploration and evaluation before purchase and how products can influence that journey.",
+    "topic": "the-bias-variance-tradeoff",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://eugeneyan.com/writing/evals",
+    "takeaway": "Eugene Yan's practical guide to task-specific LLM evals, covering classification, summarization, translation, copyright detection, and toxicity metrics with methods like ROC-AUC, NLI consistency, and COMET.",
+    "topic": "how-you-measure-success-evaluation-metrics",
+    "tier": "T3",
+    "paywalled": false
   }
 ]
