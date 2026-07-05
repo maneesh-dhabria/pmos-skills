@@ -9,16 +9,17 @@ priority: should
 route: skill
 dependencies: [260702-cqf]
 plugin: pmos-managerkit
-status: planned
+status: in-progress
 feature_folder: docs/pmos/features/2026-07-02_interview-guide/
 plan_doc: docs/pmos/features/2026-07-02_interview-guide/02_design.html
 tasks: docs/pmos/features/2026-07-02_interview-guide/stories/260702-jz4/tasks.yaml
-worktree:
-claimed_by:
-driver_holder:
+worktree: agent-skills-260702-jz4
+branch: feat/260702-jz4
+claimed_by: "build:b0e236c5-8aab-4a88-8bd7-4d40d8d8e0bc"
+driver_holder: "build:b0e236c5-8aab-4a88-8bd7-4d40d8d8e0bc"
 labels: [pmos-managerkit, interview-guide, hiring, skill]
 created: 2026-07-02
-updated: 2026-07-02
+updated: 2026-07-05
 ---
 
 <!-- status: planned at define (Loop 1); tasks.yaml authored, route:skill. Build via /skill-sdlc build --story 260702-jz4 (dep 260702-cqf must be done — claim-time dep-merge, D9) -->
