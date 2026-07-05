@@ -4,7 +4,7 @@ id: 260705-ebm
 title: "/mytasks goal attachment & cascade — goal:/milestone: task fields (+ schema migration), goal-file attached_projects map, effectiveGoal/effectiveMilestone resolver (inherit-by-default, per-task override), attach/detach verbs, tests"
 type: feature
 kind: story
-status: planned
+status: in-progress
 route: skill
 priority: should
 labels: [pmos-toolkit, mytasks, goals, attachment, skill]
@@ -15,6 +15,9 @@ dependencies: [260705-hbe]
 design_doc: docs/pmos/features/2026-07-05_mytasks-goals-milestones/02_design.html
 plan_doc: docs/pmos/features/2026-07-05_mytasks-goals-milestones/stories/260705-ebm/03_plan.html
 feature_folder: docs/pmos/features/2026-07-05_mytasks-goals-milestones/
+worktree: .claude/worktrees/feat-260705-ebm
+claimed_by: build:59524b3c-a9d3-48f5-a42f-6cc442f3afc3
+driver_holder: build:59524b3c-a9d3-48f5-a42f-6cc442f3afc3
 ---
 
 ## Context
