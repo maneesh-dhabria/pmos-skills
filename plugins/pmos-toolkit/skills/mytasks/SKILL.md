@@ -2,7 +2,7 @@
 name: mytasks
 description: Persistent personal task tracker — distinct from Claude Code's session-scoped TaskCreate/TaskList tools. Use for real-world tasks (LNO importance, due dates, people, check-ins, projects, subtasks, recurrence). Lives at ~/.pmos/tasks/. Use when the user says "add a task", "what's on my plate", "tasks for sarah", "what's due this week", "check in on X", "/mytasks", or names a task to capture.
 user-invocable: true
-argument-hint: "[ | <text> | add <text> [--parent <id>] | list [filters] | today | week | overdue | waiting | checkins | for <handle> | in <project> | show <id> | set <id> <field>=<value> | refine <id> | done <id> [note] | drop <id> [reason] | checkin <id> [note] | archive [--quarter <YYYY-QN>] | web | import [<text>]] [--non-interactive | --interactive]"
+argument-hint: "[ | <text> | add <text> [--parent <id>] | list [filters] | today | week | overdue | waiting | checkins | for <handle> | in <project> | show <id> | set <id> <field>=<value> | refine <id> | done <id> [note] | drop <id> [reason] | checkin <id> [note] | archive [--quarter <YYYY-QN>] | web | import [<text>] | goal add <title> [--type <t>] [--cadence <c>] [--target <date>] | goals | goal show <id> | goal edit <id> [<field>=<value>] | goal drop <id> | goal achieve <id> | milestone add <goal> <desc> [--due <date>] | milestone met <goal> <ref> | milestone edit <goal> <ref> [<field>=<value>] | milestone drop <goal> <ref> | attach <task|project> <goal> [<milestone>] | detach <task|project> [--clear]] [--non-interactive | --interactive]"
 ---
 
 # My Tasks
@@ -37,7 +37,7 @@ These instructions use Claude Code tool names. In other environments:
 
 ## References
 
-- `schema.md` — item file shape, **single source for enum values**, index-view format (binds `_shared/tracker-crudl.md`)
+- `schema.md` — item file shape + **Goal Schema** (goal frontmatter, the 3 goal enums, milestone shape, INV-1/2/3), **single source for enum values**, index-view format (binds `_shared/tracker-crudl.md`)
 - `_shared/tracker-crudl.md` — shared tracker contract (id/slug §2, `created`/`updated`/`schema_version` §3, derived-on-read index view §5 INV-1/2/3, archive §6)
 - `inference-heuristics.md` — quick-capture keyword + date + person + `#project`/`+label` token rules (`project` is never auto-inferred — only an explicit `#project` token / prompt / `set` sets it)
 - `output-formats.md` — exact capture report templates and unknown-person prompt copy
@@ -69,7 +69,12 @@ Parse the user's argument to determine the subcommand. Be liberal with the form 
 | `archive [--quarter Q]` | Phase 11 (archive completed/dropped) |
 | `web` | Phase 13 (launch the web UI) |
 | `import [<text>]` | Phase 14 (bulk import an outline) |
+| `goal add <title>` / `goals` / `goal show/edit/drop/achieve <id>` | Phase 15 (goal CRUD — `#goals`) |
+| `milestone add/met/edit/drop <goal> [<ref>]` | Phase 16 (milestone verbs — `#milestones`) |
+| `attach <task\|project> <goal> [<milestone>]` / `detach <task\|project>` | Phase 17 (attach/detach — `#attach`) |
 | (any other to-do-shaped free text) | Phase 2 (quick capture) |
+
+> **Goals are a second collection, not a task type** (`schema.md` "Goal Schema"). The `goal`/`milestone` verbs read and write `~/.pmos/tasks/goals/{id}-{slug}.md` via the same `lib.js` primitives as tasks; a `goal drop` and a `drop <id>` never collide — the `goal` prefix routes to Phase 15, a bare id to Phase 9.
 
 ---
 
@@ -392,3 +397,76 @@ Server-side helpers live in `scripts/registry.js` (registry read/add) and `scrip
 ### Web UI interactions {#web-ui}
 
 The client (`scripts/webapp/{index.html, app.js, app.css, format.js}`) is **inline-everything** — every mutation happens in place, no modal dialogs, using native browser elements only (zero new deps; design §6 is the behavior home — cite, do not restate §K). The surface: the **sidebar** inline-adds projects, labels, and people (`+ Add …` → inline input → the registry/people endpoints), edits a person inline, and shows a **trailing count badge** per smart view / project / label (`/api/counts`; the Overdue badge turns red); **task rows** carry a click-to-edit title (with `@`/`#`/`+` autocomplete, also in quick-add and the below-list `+ Add task`), inline **chips** for project / label / assignee, a **friendly due pill** (relative for near dates, absolute beyond — never raw ISO), a pencil that opens the detail toolbar, a larger completion checkbox with strikethrough-on-complete, and the **LNO letter badge** (design D2 — green "L" leverage / blue "N" neutral / nothing for overhead; click cycles); a **row click outside the title opens the detail panel** (rename is the title click); **subtasks** render nested under their parent, collapsed behind a count chevron (via `include_children=1`), never as separate top-level rows; the **detail toolbar** shows a subtask's parent (with an open affordance), a check-in note input, a `type` dropdown (the 6-value enum, D1), a recurrence control (preset dropdown + a full-width free `every …` field revealed only for the `custom…` preset, validated server-side), a Project dropdown, native `Due`/`Start` datepickers, a tokenized **Labels chip input**, and a people multi-select sourced from `/api/people`. The **detail panel is collapsed until a task is selected** (the list reclaims the freed width). The **Today view leads with an "Overdue · N" group** above the day's tasks (overdue items surfaced atop, FR-5), and each view shows a **keyed explanatory empty state** with a focus-the-quick-add CTA when no task matches. **Quick-add** shows a live token-chip preview while typing and, on submit, a toast naming the destination bucket (project, or Inbox when none) + parsed fields. The `@` autocomplete carries an explicit **+ Add "@handle"** rung that mints a person via `POST /api/people` (a typo'd handle creates nothing unless clicked). **Completing a task** shows a toast with toast-window **Undo** (reverts while visible) and clears the detail panel. Friendly date + overdue-vs-upcoming colour selection live in `scripts/webapp/format.js` (pure, also unit-tested in `tests/run.mjs`). Existing flows (smart views, drag-reorder, the optimistic 409 reload banner) are unchanged — every mutation still carries `expected_version`. The `2026-06-29_mytasks-web-ux-fixes/02_design.html` design is the home for these UX-fix behaviors (§K).
+
+---
+
+## Phase 15: Goal CRUD {#goals}
+
+Triggered by `goal add`, `goals`, `goal show/edit/drop/achieve <id>`. Goals live at `~/.pmos/tasks/goals/{id}-{slug}.md` — a second tracker collection (`schema.md` "Goal Schema"). All I/O goes through the `lib.js` goal primitives (`loadAllGoals`, `loadGoal`, `saveGoal`, `validateGoal`, `mintId`, `archiveGoal`); the skill never hand-writes a goal file. Enum values are **only** the three closed goal enums in `schema.md` — the skill validates against them and never invents a value.
+
+Every write path ends with `saveGoal`, which **regenerates the `## Milestones` body mirror from the frontmatter list (INV-1)** and preserves `## Notes`; a `validateGoal` that returns errors aborts the write and prints them.
+
+### `goal add <title>` {#goal-add}
+
+Rich-capture, mirroring `#rich-capture`. Every field also has a **typed-value flag** for headless determinism (`--type`, `--cadence`, `--target`); a flag overrides its prompt.
+
+1. Ensure `~/.pmos/tasks/goals/` exists; mint the id with `lib.mintId()` (the `<YYMMDD>-<rand3>` scheme, shared with tasks).
+2. Prompt one field at a time via `_shared/interactive-prompts.md` (values per `schema.md` "Goal enum values"):
+   1. **`type`** — `{dated, open-ended}`; default `dated`.
+   2. **`cadence`** — `{daily, weekly, biweekly, monthly}`; default `weekly`.
+   3. **`target`** — an ISO date (or natural-language date per `inference-heuristics.md`). **Prompted only for `dated`** goals; skipped (left a bare key) for `open-ended`.
+3. Assemble `{fm:{schema_version:1, id, title, type, status:active, cadence, target, created:today, updated:today}, milestones:[], body:'## Notes\n'}`. Run `validateGoal`; on errors, print them and abort (no write).
+4. `saveGoal`. Report: `Created goal #{id}: "{title}" ({type}, {cadence} cadence{, target {target} for dated}).`
+
+**`--non-interactive`:** the title comes from the inline arg; `type`/`cadence` default (`dated`/`weekly`) unless a flag is given; `target` comes from `--target` (absent on a `dated` goal → left empty and recorded as an open question via the canonical classifier, per the non-interactive block). No blocking prompt.
+
+### `goals` (list) {#goal-list}
+
+`loadAllGoals` and render a markdown table of the **active** goals (achieved/dropped goals are archived, so absent). Columns `id | type | status | cadence | target | milestones | title`, where `milestones` shows `met/total` (e.g. `1/3`). Sorted `target` asc (open-ended / no-target last) → `updated` desc. Zero goals: `No goals yet. Create one with /mytasks goal add <title>.`
+
+### `goal show <id>` {#goal-show}
+
+Locate via `loadGoal` (id used verbatim — goals only ever carry the `<YYMMDD>-<rand3>` scheme, no legacy serials to normalize). Not found → `No goal with id {id}. Run /mytasks goals to see all goals.` On hit, print the file contents verbatim (fenced markdown) — the `## Milestones` mirror already renders each milestone's checkbox + due + met-date.
+
+### `goal edit <id> [<field>=<value>]` {#goal-edit}
+
+1. Locate via `loadGoal`; not found → the `#goal-show` error.
+2. **Inline form** (`goal edit <id> status=achieved`): validate the field against the goal schema (editable: `title`, `type`, `status`, `cadence`, `target`; skill-managed `id`/`created`/`updated`/`schema_version`/`milestone_seq` are rejected). Enum fields validate against `schema.md`; `target` is ISO-or-empty and rejected on an `open-ended` goal. **Interactive form** (`goal edit <id>` with no assignment): pre-filled walk of `title`/`type`/`cadence`/`target`/`status` via `_shared/interactive-prompts.md`.
+3. Set `updated:` = today; run `validateGoal`; on errors abort. `saveGoal` (rename the file when `title` changed — new slug, same id prefix). Report `Updated goal #{id}: {field} = {value}.` (or `Refined goal #{id}.` for the interactive walk). **Setting `status` to `achieved`/`dropped` via edit does the same archive as `#goal-achieve`/`#goal-drop`.**
+
+### `goal drop <id>` / `goal achieve <id>` {#goal-achieve}
+
+<!-- defer-only: destructive -->
+Terminal transitions — the goal leaves every active surface (INV-3). Under `--non-interactive` these run without a confirm prompt (the verb is the explicit intent); interactively, confirm first per `_shared/interactive-prompts.md`.
+
+1. Locate via `loadGoal`; not found → the `#goal-show` error.
+2. Set `status:` = `achieved` (achieve) or `dropped` (drop), `updated:` = today; `saveGoal`.
+3. `archiveGoal` — move (not delete) the file to `~/.pmos/tasks/archive/YYYY-QN/{id}-{slug}.md` per `_shared/tracker-crudl.md` §6 (shared tasks archive root). Report `Achieved goal #{id}: "{title}" → archived {quarter}.` / `Dropped goal #{id}: "{title}" → archived {quarter}.`
+
+---
+
+## Phase 16: Milestone verbs {#milestones}
+
+Triggered by `milestone add/met/edit/drop <goal> [<ref>]`. A milestone is an embedded entry in its goal's `milestones:` frontmatter list — never its own file (`schema.md` "Milestones"). Every verb loads the goal (`loadGoal`), mutates the in-memory `milestones` array, and calls `saveGoal`, which **regenerates the `## Milestones` body mirror (INV-1)**. `<goal>` locates via `loadGoal` (same not-found message as `#goal-show`); `<ref>` is an `m<N>` handle and an unknown ref prints `Goal #{goal} has no milestone {ref}. Refs: {comma-separated list or "(none)"}.`
+
+- **`milestone add <goal> <description> [--due <date>]`** — mint the ref with `lib.nextMilestoneRef(goal.fm, goal.milestones)` (bumps the goal's monotonic `milestone_seq`, so a previously-dropped ref is **never reused** — INV-2). Push `{ref, description, due (ISO or empty; `--due` or a trailing natural-language date per `inference-heuristics.md`), met:false, met_date:''}`; `saveGoal`. Report `Added {ref} to goal #{goal}: "{description}"{ (due {due})}.`
+- **`milestone met <goal> <ref>`** — set that milestone's `met: true`, `met_date:` = today; `saveGoal`. Report `Marked {ref} met on goal #{goal} ({met N/total}).` **Achieving a milestone never auto-achieves the goal** — `goal achieve` is the explicit transition.
+- **`milestone edit <goal> <ref> [<field>=<value>]`** — inline (`description=…` / `due=…`) or an interactive pre-filled `description`/`due` walk. Validate `due` as ISO-or-empty. `saveGoal`. Report `Updated {ref} on goal #{goal}.`
+- **`milestone drop <goal> <ref>`** — remove the entry with that `ref` from the array; `saveGoal`. The `milestone_seq` counter is **not** decremented, so the dropped ref is retired for good (INV-2). Report `Dropped {ref} from goal #{goal}.`
+
+Set `updated:` on the goal = today on every milestone write (the mutation changed the goal file).
+
+## Phase 17: Attach / detach a task or project to a goal {#attach}
+
+Triggered by `attach <task|project> <goal> [<milestone>]` and `detach <task|project>` — plus the natural-language forms ("attach this to the goals feature goal", "attach the platform-q3 project to #{goal}", "detach this from its goal", "this task counts toward no goal"). This is the **connect-work-to-goals** half (design §3, INV-6): attaching a **task** sets its `goal:`(+optional `milestone:`); attaching a **project** appends its slug to the goal's `attached_projects` so every task in that project **inherits** the goal (`schema.md` [Effective-goal resolution](schema.md) — `effectiveGoal` computes direct-wins / inherit / `none`-detaches; the skill never hand-resolves).
+
+**Target kind (task vs project).** Resolve the first argument with `lib.findItemFile(tasksDir, <arg>)`: a hit ⇒ **task**; otherwise treat `<arg>` as a **project slug** (projects are free strings — an as-yet-taskless project is a valid attach target). The NL forms disambiguate explicitly ("the … project" ⇒ project; "this"/a task id ⇒ task).
+
+All four operations go through the `lib.js` helpers, which **validate the target before any write** — attaching to a non-existent goal or milestone throws and mutates nothing on disk (INV-6). Never hand-edit a task or goal file for attachment.
+
+- **`attach <task> <goal> [<milestone>]`** — `lib.attachTaskToGoal(tasksDir, taskId, goalId, milestoneRef)`. Errors (writing nothing) if the goal is unknown or the milestone ref isn't on that goal; else sets the task's `goal:` + `milestone:` (bumps `updated`). Report `Attached task #{task} to goal #{goal}{ · milestone {ref}}.`
+- **`attach <project> <goal>`** — `lib.attachProjectToGoal(tasksDir, slug, goalId)`. Appends the slug to the goal's `attached_projects` (bumps `updated`). Errors if the goal is unknown, or if the project is **already attached to a different goal** (a project maps to at most one goal — AC2); the error names the current goal so the user can `detach` first. Report `Attached project "{slug}" to goal #{goal} — its {N} task(s) now inherit it.`
+- **`detach <task> [--clear]`** — `lib.detachTask(tasksDir, taskId, {clear})`. Default sets the task's `goal:` → `none` (an **explicit detach** that wins over any project inheritance — the task counts toward no goal); `--clear` (NL: "clear its goal entirely", "let it inherit again") empties `goal:` instead, so the task falls back to inheriting its project's goal. Clears `milestone:`. Report `Detached task #{task}{ (now inheriting its project goal)}.`
+- **`detach <project>`** — `lib.detachProject(tasksDir, slug)`. Removes the slug from whichever goal carries it (errors if no goal does). Report `Detached project "{slug}" — its tasks no longer inherit a goal.`
+
+After any attach/detach, if a goal id or milestone was named that turns out unknown, surface the thrown error verbatim (`no goal '…'`, `goal '…' has no milestone '…'`) — do **not** silently create a goal. Attachment is always to an existing goal (`goal add` first).

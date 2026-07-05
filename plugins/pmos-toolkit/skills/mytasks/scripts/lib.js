@@ -30,7 +30,7 @@ const ENUMS = {
 // Canonical frontmatter field order (mirrors the fixtures + schema.md exactly).
 const FIELD_ORDER = [
   'schema_version', 'id', 'title', 'type', 'importance', 'status',
-  'project', 'parent', 'order', 'recur', 'people', 'labels', 'links',
+  'project', 'goal', 'milestone', 'parent', 'order', 'recur', 'people', 'labels', 'links',
   'due', 'start', 'checkin', 'next_checkin', 'created', 'updated', 'completed',
 ];
 const LIST_FIELDS = new Set(['people', 'labels', 'links']);
@@ -332,12 +332,32 @@ function migrateWorkstreamKey(it) {
   return true;
 }
 
+// Load-time task-schema migration to v3 (story 260705-ebm, AC1). Tasks gain the
+// optional attachment keys `goal:` (goal id | 'none' | empty) and `milestone:`
+// (ref | empty). Mirrors migrateWorkstreamKey: key presence only — adds the bare
+// keys when absent and stamps schema_version:3, never rewriting ids or any other
+// field, so absent/1/2 files stay valid and the pass is a no-op once normalized.
+// Returns true iff this file was rewritten this call.
+function normalizeTaskSchema(it) {
+  const fm = it.fm;
+  const hasGoal = Object.prototype.hasOwnProperty.call(fm, 'goal');
+  const hasMs = Object.prototype.hasOwnProperty.call(fm, 'milestone');
+  if (hasGoal && hasMs && String(fm.schema_version) === '3') return false;
+  if (!hasGoal) fm.goal = '';
+  if (!hasMs) fm.milestone = '';
+  fm.schema_version = '3';
+  writeItemAtomic(it.file, serializeItem(fm, it.body));
+  it.version = versionOf(fs.readFileSync(it.file));
+  return true;
+}
+
 function loadAllItems(tasksDir) {
   const out = [];
   for (const f of listItemFiles(tasksDir)) {
     try {
       const it = readItem(f);
       migrateWorkstreamKey(it); // D6: workstream→project on every read (idempotent)
+      normalizeTaskSchema(it);  // AC1: additive goal:/milestone: + schema_version→3 (idempotent)
       out.push(it);
     } catch (_) { /* skip malformed */ }
   }
@@ -432,12 +452,454 @@ function listSort(items, opts = {}) {
   });
 }
 
+// ══════════════════════════════════════════════════════════════════════════
+// Goals collection — a SECOND tracker store alongside items/ (story 260705-hbe).
+//
+// Goals persist at ~/.pmos/tasks/goals/{id}-{slug}.md, binding the same
+// _shared/tracker-crudl.md substrate as items (id/slug §2, archive §6). The one
+// structural difference from a task file is the embedded `milestones:` frontmatter
+// list (design 02_design.html §2, INV-1/2/3) — a nested block the flat items
+// frontmatter parser cannot represent, so goals get a dedicated parse/serialize
+// pair here. The frontmatter `milestones:` list is the machine-read source of truth
+// (INV-1); the `## Milestones` body block is a human mirror regenerated from it.
+// ══════════════════════════════════════════════════════════════════════════
+
+const GOAL_ENUMS = {
+  type: ['dated', 'open-ended'],
+  status: ['active', 'achieved', 'dropped'],
+  cadence: ['daily', 'weekly', 'biweekly', 'monthly'],
+};
+// Canonical goal frontmatter order. `milestone_seq` is an internal monotonic
+// counter (never decremented) that guarantees milestone refs are never reused
+// after deletion (INV-2) without a global lock; `milestones` is emitted last as a
+// nested block by serializeGoal, not via this scalar order.
+const GOAL_FIELD_ORDER = [
+  'schema_version', 'id', 'title', 'type', 'status', 'cadence', 'target',
+  'created', 'updated', 'milestone_seq', 'attached_projects',
+];
+// Goal frontmatter list-valued keys (rendered `[a, b]` / `[]`, never bare). The
+// project→goal map (D8/AC2) lives here in the goal file, NOT in registry.json.
+const GOAL_LIST_FIELDS = new Set(['attached_projects']);
+
+// ── Id mint — <YYMMDD>-<rand3>, tracker-crudl §2.1 (mirrors serve.js inlineMint;
+// crypto-sourced, never Math.random). Shared by goal + (future) item CLI mints. ──
+const ID_ALPHABET = '0123456789abcdefghjkmnpqrstvwxyz';
+function mintId() {
+  const d = new Date();
+  const ymd = String(d.getFullYear() % 100).padStart(2, '0') +
+    String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+  const b = crypto.randomBytes(3);
+  let r = ''; for (let i = 0; i < 3; i++) r += ID_ALPHABET[b[i] % 32];
+  return `${ymd}-${r}`;
+}
+
+// ── Goal frontmatter parse (scalar keys + the nested milestones: list) ──
+// Returns { fm: {<scalars>}, milestones: [{ref,description,due,met,met_date}], body }.
+function parseGoal(text) {
+  const norm = String(text).replace(/\r\n/g, '\n');
+  if (!norm.startsWith('---\n')) return { fm: {}, milestones: [], body: norm };
+  const end = norm.indexOf('\n---', 3);
+  if (end === -1) return { fm: {}, milestones: [], body: norm };
+  const fmBlock = norm.slice(4, end + 1);
+  const afterClose = norm.slice(end + 4);
+  const body = afterClose.startsWith('\n') ? afterClose.slice(1) : afterClose;
+
+  const fm = {};
+  const milestones = [];
+  const lines = fmBlock.split('\n');
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    if (!line.trim()) { i++; continue; }
+    if (/^milestones:\s*$/.test(line)) {
+      i++;
+      let cur = null;
+      while (i < lines.length) {
+        const ml = lines[i];
+        if (ml.trim() === '') { i++; continue; }
+        if (!/^\s+/.test(ml)) break; // dedent → end of the milestones list
+        const start = ml.match(/^\s*-\s+([A-Za-z0-9_]+):\s?(.*)$/);
+        const cont = ml.match(/^\s+([A-Za-z0-9_]+):\s?(.*)$/);
+        if (start) {
+          if (cur) milestones.push(cur);
+          cur = {};
+          cur[start[1]] = coerceMilestone(start[1], start[2]);
+        } else if (cont && cur) {
+          cur[cont[1]] = coerceMilestone(cont[1], cont[2]);
+        }
+        i++;
+      }
+      if (cur) milestones.push(cur);
+      continue;
+    }
+    const m = line.match(/^([A-Za-z0-9_]+):\s?(.*)$/);
+    if (m) fm[m[1]] = GOAL_LIST_FIELDS.has(m[1]) ? parseScalarOrList(m[2], true) : stripQuotes(m[2].trim());
+    i++;
+  }
+  return { fm, milestones: milestones.map(normalizeMilestone), body };
+}
+
+function coerceMilestone(key, raw) {
+  const v = String(raw).trim();
+  if (key === 'met') return v === 'true';
+  return stripQuotes(v);
+}
+function normalizeMilestone(ms) {
+  return {
+    ref: ms.ref || '',
+    description: ms.description || '',
+    due: ms.due || '',
+    met: ms.met === true,
+    met_date: ms.met_date || '',
+  };
+}
+
+// ── Goal serialize (scalars in canonical order, then the milestones: block) ──
+function serializeGoalFrontmatter(fm, milestones) {
+  const keys = GOAL_FIELD_ORDER.filter((k) => k in fm)
+    .concat(Object.keys(fm).filter((k) => !GOAL_FIELD_ORDER.includes(k) && k !== 'milestones'));
+  const lines = keys.map((k) => {
+    if (GOAL_LIST_FIELDS.has(k)) {
+      const arr = Array.isArray(fm[k]) ? fm[k] : (fm[k] ? [fm[k]] : []);
+      return `${k}: ${arr.length ? '[' + arr.join(', ') + ']' : '[]'}`;
+    }
+    const v = fm[k];
+    const rendered = (v === undefined || v === null || v === '')
+      ? '' : (k === 'title' && needsQuote(String(v)) ? JSON.stringify(String(v)) : String(v));
+    return rendered === '' ? `${k}:` : `${k}: ${rendered}`;
+  });
+  lines.push('milestones:');
+  for (const ms of milestones) {
+    lines.push(`  - ref: ${ms.ref}`);
+    lines.push(msField('description', ms.description));
+    lines.push(msField('due', ms.due));
+    lines.push(`    met: ${ms.met ? 'true' : 'false'}`);
+    lines.push(msField('met_date', ms.met_date));
+  }
+  return lines.join('\n');
+}
+function msField(key, val) {
+  if (val === undefined || val === null || val === '') return `    ${key}:`;
+  const s = String(val);
+  const rendered = (key === 'description' && needsQuote(s)) ? JSON.stringify(s) : s;
+  return `    ${key}: ${rendered}`;
+}
+
+function serializeGoal(fm, milestones, body) {
+  const fmText = serializeGoalFrontmatter(fm, milestones || []);
+  const b = body == null ? '' : String(body);
+  const bodyPart = b === '' ? '' : '\n' + (b.startsWith('\n') ? b.slice(1) : b);
+  return `---\n${fmText}\n---\n${bodyPart}`;
+}
+
+// ── ## Milestones body mirror (regenerated from the frontmatter list — INV-1) ──
+function milestonesBlock(milestones) {
+  const out = ['## Milestones'];
+  if (!milestones.length) { out.push('_No milestones yet._'); return out.join('\n'); }
+  for (const ms of milestones) {
+    const box = ms.met ? '[x]' : '[ ]';
+    const due = ms.due ? ` (due ${ms.due})` : '';
+    const done = ms.met && ms.met_date ? ` — met ${ms.met_date}` : '';
+    out.push(`- ${box} ${ms.ref} — ${ms.description}${due}${done}`);
+  }
+  return out.join('\n');
+}
+// Replace (or insert-at-top) the `## Milestones` section of a goal body, preserving
+// every other section (## Notes, etc.). The body block is never parsed back for
+// computation — it is a pure projection of the frontmatter list (INV-1).
+function regenerateMilestonesBody(body, milestones) {
+  const b = (body == null ? '' : String(body)).replace(/\r\n/g, '\n');
+  const block = milestonesBlock(milestones);
+  const parts = b.split(/(?=^##\s+)/m);
+  let pre = '';
+  const sections = [];
+  for (const p of parts) {
+    if (/^##\s+/.test(p)) {
+      const nl = p.indexOf('\n');
+      const headLine = nl === -1 ? p : p.slice(0, nl);
+      const rest = nl === -1 ? '' : p.slice(nl + 1);
+      sections.push({ heading: headLine.replace(/^##\s+/, '').trim(), body: rest });
+    } else {
+      pre += p;
+    }
+  }
+  const idx = sections.findIndex((s) => s.heading.toLowerCase() === 'milestones');
+  const msSection = { heading: 'Milestones', body: block.replace(/^## Milestones\n?/, '') };
+  if (idx >= 0) sections[idx] = msSection;
+  else sections.unshift(msSection);
+
+  let out = pre.replace(/\s+$/, '');
+  for (const s of sections) {
+    if (out) out += '\n\n';
+    out += `## ${s.heading}\n${s.body.replace(/^\n+/, '').replace(/\s+$/, '')}`;
+  }
+  return out.replace(/\s+$/, '') + '\n';
+}
+
+// ── Milestone ref minting (INV-2: stable, never reused) ──
+// nextMilestoneRef bumps the goal's monotonic milestone_seq; a dropped ref's
+// number is never handed out again because the counter only ever increases.
+function nextMilestoneRef(goalFm, milestones) {
+  const maxExisting = (milestones || []).reduce((mx, ms) => {
+    const n = /^m(\d+)$/.exec(String(ms.ref || ''));
+    return n ? Math.max(mx, +n[1]) : mx;
+  }, 0);
+  const seq = Math.max(parseInt(goalFm.milestone_seq, 10) || 0, maxExisting);
+  const next = seq + 1;
+  goalFm.milestone_seq = String(next);
+  return `m${next}`;
+}
+
+// ── Validation (returns an array of error strings; empty == valid) ──
+function validateGoal(goal) {
+  const fm = goal.fm || {};
+  const errs = [];
+  for (const req of ['id', 'title', 'type', 'status', 'cadence']) {
+    if (fm[req] === undefined || fm[req] === null || fm[req] === '') errs.push(`Goal ${req} is required.`);
+  }
+  for (const f of ['type', 'status', 'cadence']) {
+    if (fm[f] !== undefined && fm[f] !== '' && !GOAL_ENUMS[f].includes(fm[f])) {
+      errs.push(`Unknown goal ${f} '${fm[f]}'. Allowed: ${GOAL_ENUMS[f].join(', ')}.`);
+    }
+  }
+  const target = fm.target;
+  if (fm.type === 'open-ended') {
+    if (target !== undefined && target !== null && target !== '') errs.push('open-ended goals take no target date (leave target empty).');
+  } else if (target !== undefined && target !== null && target !== '') {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(target))) errs.push('target must be an ISO date (YYYY-MM-DD) or empty.');
+  }
+  const seen = new Set();
+  for (const ms of goal.milestones || []) {
+    if (!ms.ref) { errs.push('milestone is missing a ref.'); continue; }
+    if (seen.has(ms.ref)) errs.push(`duplicate milestone ref '${ms.ref}'.`);
+    seen.add(ms.ref);
+    if (ms.due && !/^\d{4}-\d{2}-\d{2}$/.test(String(ms.due))) errs.push(`milestone ${ms.ref} due must be an ISO date or empty.`);
+    if (typeof ms.met !== 'boolean') errs.push(`milestone ${ms.ref} met must be a boolean.`);
+  }
+  return errs;
+}
+
+// ── Goal store I/O (mirrors the item store; goals/ is the second collection) ──
+function goalsDir(tasksDir) { return path.join(tasksDir, 'goals'); }
+function archiveDirFor(tasksDir, iso) {
+  const parts = String(iso || isoToday()).split('-').map(Number);
+  const y = parts[0] || new Date().getUTCFullYear();
+  const m = parts[1] || 1;
+  const q = Math.floor((m - 1) / 3) + 1;
+  return path.join(tasksDir, 'archive', `${y}-Q${q}`);
+}
+function listGoalFiles(tasksDir) {
+  const dir = goalsDir(tasksDir);
+  let names;
+  try { names = fs.readdirSync(dir); } catch (_) { return []; }
+  return names.filter((n) => n.endsWith('.md')).map((n) => path.join(dir, n));
+}
+function readGoal(file) {
+  const bytes = fs.readFileSync(file);
+  const { fm, milestones, body } = parseGoal(bytes.toString('utf8'));
+  return { file, fm, milestones, body, version: versionOf(bytes), id: fm.id || path.basename(file).split('-')[0] };
+}
+function findGoalFile(tasksDir, id) {
+  const dir = goalsDir(tasksDir);
+  let names;
+  try { names = fs.readdirSync(dir); } catch (_) { return null; }
+  const hit = names.find((n) => n === `${id}` || n.startsWith(`${id}-`));
+  return hit ? path.join(dir, hit) : null;
+}
+function loadAllGoals(tasksDir) {
+  const out = [];
+  for (const f of listGoalFiles(tasksDir)) {
+    try { out.push(readGoal(f)); } catch (_) { /* skip malformed */ }
+  }
+  return out;
+}
+function loadGoal(tasksDir, id) {
+  const f = findGoalFile(tasksDir, id);
+  return f ? readGoal(f) : null;
+}
+// Persist a goal, regenerating its ## Milestones body mirror from the frontmatter
+// list (INV-1). Does NOT touch `updated` — callers bump it on a real edit, so a
+// no-op load→save→load is byte-stable. Returns the file path.
+function saveGoal(tasksDir, goal) {
+  const fm = { ...goal.fm };
+  if (fm.schema_version === undefined || fm.schema_version === '') fm.schema_version = '1';
+  const milestones = (goal.milestones || []).map(normalizeMilestone);
+  const body = regenerateMilestonesBody(goal.body || '', milestones);
+  const dir = goalsDir(tasksDir);
+  fs.mkdirSync(dir, { recursive: true });
+  const file = goal.file || path.join(dir, `${fm.id}-${slugify(fm.title)}.md`);
+  writeItemAtomic(file, serializeGoal(fm, milestones, body));
+  return file;
+}
+// Archive a goal (move, not delete — tracker-crudl §6) into archive/YYYY-QN/.
+// achieved/dropped goals leave the active surfaces (INV-3). Returns the new path.
+function archiveGoal(tasksDir, id, todayIso) {
+  const f = findGoalFile(tasksDir, id);
+  if (!f) return null;
+  const dir = archiveDirFor(tasksDir, todayIso);
+  fs.mkdirSync(dir, { recursive: true });
+  const dest = path.join(dir, path.basename(f));
+  fs.renameSync(f, dest);
+  return dest;
+}
+
+// ── Attachment & effective resolution (story 260705-ebm, design §3) ──
+
+// Build the in-memory {project-slug → goal-id} map by scanning goals'
+// attached_projects lists (D8/AC2 — the goal file is the source of truth, never
+// registry.json). A project listed on two goals is a validation error: a project
+// maps to at most one goal. Goals lacking attached_projects contribute nothing.
+function buildProjectGoals(goals) {
+  const map = {};
+  for (const g of goals || []) {
+    const fm = g.fm || {};
+    const slugs = Array.isArray(fm.attached_projects) ? fm.attached_projects : [];
+    for (const slug of slugs) {
+      if (!slug) continue;
+      if (Object.prototype.hasOwnProperty.call(map, slug) && map[slug] !== fm.id) {
+        throw new Error(`project '${slug}' is attached to two goals (${map[slug]} and ${fm.id}); a project maps to at most one goal.`);
+      }
+      map[slug] = fm.id;
+    }
+  }
+  return map;
+}
+
+// Pure effective-goal resolution (INV-4/INV-5, design §3.2). Accepts a loaded item
+// ({fm:{…}}) or a flat frontmatter object. Precedence: explicit detach ('none') →
+// null; a direct task.goal → that id; else the project's inherited goal; else null.
+// Single function ⇒ a task counts toward a goal at most once (no double-count).
+function effectiveGoal(task, projectGoals) {
+  const fm = (task && task.fm) ? task.fm : (task || {});
+  const g = (fm.goal === undefined || fm.goal === null) ? '' : String(fm.goal).trim();
+  if (g === 'none') return null;            // explicit detach wins (D5)
+  if (g !== '') return g;                    // direct link wins over inherit
+  const proj = (fm.project === undefined || fm.project === null) ? '' : String(fm.project).trim();
+  if (proj && projectGoals && Object.prototype.hasOwnProperty.call(projectGoals, proj)) return projectGoals[proj];
+  return null;
+}
+
+// A milestone attaches only when the goal is set DIRECTLY on the task — inherited
+// (project-level) goals attach at goal level, never milestone (design §3.2).
+function effectiveMilestone(task) {
+  const fm = (task && task.fm) ? task.fm : (task || {});
+  const g = (fm.goal === undefined || fm.goal === null) ? '' : String(fm.goal).trim();
+  if (g === '' || g === 'none') return null;
+  const ms = (fm.milestone === undefined || fm.milestone === null) ? '' : String(fm.milestone).trim();
+  return ms === '' ? null : ms;
+}
+
+// ── Attach / detach verbs (INV-6). Each validates its target BEFORE any write, so
+// attaching to a non-existent goal/milestone errors and mutates nothing on disk. ──
+
+function attachTaskToGoal(tasksDir, taskId, goalId, milestoneRef) {
+  const goal = loadGoal(tasksDir, goalId);
+  if (!goal) throw new Error(`no goal '${goalId}'.`);
+  if (milestoneRef) {
+    if (!(goal.milestones || []).some((m) => m.ref === milestoneRef)) {
+      throw new Error(`goal '${goalId}' has no milestone '${milestoneRef}'.`);
+    }
+  }
+  const file = findItemFile(tasksDir, taskId);
+  if (!file) throw new Error(`no task '${taskId}'.`);
+  const it = readItem(file);
+  it.fm.goal = goal.fm.id || goalId;
+  it.fm.milestone = milestoneRef || '';
+  it.fm.schema_version = '3';
+  it.fm.updated = isoToday();
+  writeItemAtomic(file, serializeItem(it.fm, it.body));
+  return file;
+}
+
+function detachTask(tasksDir, taskId, opts) {
+  const file = findItemFile(tasksDir, taskId);
+  if (!file) throw new Error(`no task '${taskId}'.`);
+  const it = readItem(file);
+  it.fm.goal = (opts && opts.clear) ? '' : 'none'; // default: explicit detach (wins over inherit)
+  it.fm.milestone = '';
+  it.fm.schema_version = '3';
+  it.fm.updated = isoToday();
+  writeItemAtomic(file, serializeItem(it.fm, it.body));
+  return file;
+}
+
+function attachProjectToGoal(tasksDir, slug, goalId) {
+  if (!slug) throw new Error('project slug is required.');
+  const goals = loadAllGoals(tasksDir);
+  const target = goals.find((g) => g.fm.id === goalId || path.basename(g.file).startsWith(`${goalId}-`) || path.basename(g.file) === `${goalId}`);
+  if (!target) throw new Error(`no goal '${goalId}'.`);
+  for (const g of goals) { // at-most-one-goal-per-project (AC2)
+    if (g.fm.id === target.fm.id) continue;
+    if ((Array.isArray(g.fm.attached_projects) ? g.fm.attached_projects : []).includes(slug)) {
+      throw new Error(`project '${slug}' is already attached to goal '${g.fm.id}'; detach it first.`);
+    }
+  }
+  const list = Array.isArray(target.fm.attached_projects) ? target.fm.attached_projects.slice() : [];
+  if (!list.includes(slug)) list.push(slug);
+  target.fm.attached_projects = list;
+  target.fm.updated = isoToday();
+  saveGoal(tasksDir, target);
+  return target.file;
+}
+
+function detachProject(tasksDir, slug) {
+  const goals = loadAllGoals(tasksDir);
+  let changed = null;
+  for (const g of goals) {
+    const list = Array.isArray(g.fm.attached_projects) ? g.fm.attached_projects : [];
+    if (list.includes(slug)) {
+      g.fm.attached_projects = list.filter((s) => s !== slug);
+      g.fm.updated = isoToday();
+      saveGoal(tasksDir, g);
+      changed = g.file;
+    }
+  }
+  if (!changed) throw new Error(`project '${slug}' is not attached to any goal.`);
+  return changed;
+}
+
+// ── main-module --selftest (AC6): a quick smoke that never fires on require ──
+function goalSelftest() {
+  const os = require('os');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mytasks-goal-selftest-'));
+  const goal = {
+    fm: { schema_version: '1', id: mintId(), title: 'Ship goals', type: 'dated', status: 'active', cadence: 'weekly', target: '2026-09-30', created: isoToday(), updated: isoToday() },
+    milestones: [], body: '## Notes\nseed\n',
+  };
+  const ref = nextMilestoneRef(goal.fm, goal.milestones);
+  goal.milestones.push({ ref, description: 'Core landed', due: '2026-07-20', met: false, met_date: '' });
+  const file = saveGoal(dir, goal);
+  const g1 = readGoal(file);
+  const b1 = fs.readFileSync(file);
+  saveGoal(dir, g1);
+  const b2 = fs.readFileSync(file);
+  const errs = validateGoal(g1);
+  const ok = b1.equals(b2) && errs.length === 0 && g1.milestones.length === 1 && g1.milestones[0].ref === ref
+    && validateGoal({ fm: { ...goal.fm, type: 'bogus' }, milestones: [] }).length > 0;
+  process.stdout.write(ok ? `lib.js goal selftest: PASS (${ref})\n` : `lib.js goal selftest: FAIL errs=${JSON.stringify(errs)}\n`);
+  return ok ? 0 : 1;
+}
+
 module.exports = {
   ENUMS, FIELD_ORDER, LIST_FIELDS,
   parseFrontmatter, serializeFrontmatter, serializeItem,
-  versionOf, slugify,
+  versionOf, slugify, mintId,
   addDays, addMonthsClamp, nextWeekday, advanceByRecur, isValidRecur,
   validateField, parseNLDate, inferType, parseQuickAdd,
   itemsDir, listItemFiles, readItem, findItemFile, loadAllItems,
-  writeItemAtomic, renderIndex, migrateWorkstreamKey, isoToday, appendToSection, listSort,
+  writeItemAtomic, renderIndex, migrateWorkstreamKey, normalizeTaskSchema, isoToday, appendToSection, listSort,
+  // goals collection
+  GOAL_ENUMS, GOAL_FIELD_ORDER, GOAL_LIST_FIELDS,
+  parseGoal, serializeGoal, serializeGoalFrontmatter, normalizeMilestone,
+  milestonesBlock, regenerateMilestonesBody, nextMilestoneRef, validateGoal,
+  goalsDir, archiveDirFor, listGoalFiles, readGoal, findGoalFile,
+  loadAllGoals, loadGoal, saveGoal, archiveGoal,
+  // attachment & effective resolution (S2)
+  buildProjectGoals, effectiveGoal, effectiveMilestone,
+  attachTaskToGoal, detachTask, attachProjectToGoal, detachProject,
 };
+
+// AC6: --selftest guarded by a main-module check so it never fires on require().
+if (require.main === module && process.argv.includes('--selftest')) {
+  process.exit(goalSelftest());
+}

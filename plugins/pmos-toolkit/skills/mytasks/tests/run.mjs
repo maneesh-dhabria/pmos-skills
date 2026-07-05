@@ -495,6 +495,172 @@ function testFormat() {
   eq('dueStatus: none → none', dueStatus('', now), 'none');
 }
 
+// ── Goals collection (story 260705-hbe): load/save, milestones, enums, archive ──
+function mkGoal(dir, over = {}) {
+  const fm = {
+    schema_version: '1', id: lib.mintId(), title: 'Ship the goals feature',
+    type: 'dated', status: 'active', cadence: 'weekly', target: '2026-09-30',
+    created: '2026-07-05', updated: '2026-07-05', ...(over.fm || {}),
+  };
+  const goal = { fm, milestones: over.milestones || [], body: over.body != null ? over.body : '## Notes\nseed\n' };
+  return goal;
+}
+
+function testGoals() {
+  const dir = mkTmp();
+
+  // id mint format — tracker-crudl §2.1 <YYMMDD>-<rand3>
+  ok('goal: mintId format', /^\d{6}-[0-9a-hj-km-np-tv-z]{3}$/.test(lib.mintId()));
+
+  // 1. save → load round-trip, byte-stable on re-save (no updated bump)
+  const g = mkGoal(dir);
+  const ref1 = lib.nextMilestoneRef(g.fm, g.milestones);
+  g.milestones.push({ ref: ref1, description: 'Data model + CRUD landed', due: '2026-07-20', met: false, met_date: '' });
+  const ref2 = lib.nextMilestoneRef(g.fm, g.milestones);
+  g.milestones.push({ ref: ref2, description: 'Pace signals surfaced', due: '2026-08-15', met: false, met_date: '' });
+  const file = lib.saveGoal(dir, g);
+  const b1 = fs.readFileSync(file);
+  const loaded = lib.readGoal(file);
+  eq('goal: milestones round-trip', loaded.milestones, [
+    { ref: 'm1', description: 'Data model + CRUD landed', due: '2026-07-20', met: false, met_date: '' },
+    { ref: 'm2', description: 'Pace signals surfaced', due: '2026-08-15', met: false, met_date: '' },
+  ]);
+  eq('goal: scalar fm round-trip', [loaded.fm.type, loaded.fm.status, loaded.fm.cadence, loaded.fm.target], ['dated', 'active', 'weekly', '2026-09-30']);
+  lib.saveGoal(dir, loaded);
+  const b2 = fs.readFileSync(file);
+  ok('goal: re-save is byte-stable (updated not bumped)', b1.equals(b2), `b1!=b2`);
+
+  // 2. body ## Milestones mirror regenerated from frontmatter (INV-1); ## Notes preserved
+  ok('goal: body mirrors m1', loaded.body.includes('- [ ] m1 — Data model + CRUD landed (due 2026-07-20)'));
+  ok('goal: body preserves ## Notes', /##\s+Notes\s*\nseed/.test(loaded.body));
+  // mark m1 met → body shows [x] and met date, frontmatter drives it
+  loaded.milestones[0].met = true; loaded.milestones[0].met_date = '2026-07-18';
+  lib.saveGoal(dir, loaded);
+  const met = lib.readGoal(file);
+  ok('goal: met milestone renders [x] in mirror', met.body.includes('- [x] m1 — Data model + CRUD landed (due 2026-07-20) — met 2026-07-18'));
+  eq('goal: met flag persisted', [met.milestones[0].met, met.milestones[0].met_date], [true, '2026-07-18']);
+
+  // 3. enum validation rejects unknown type/status/cadence; open-ended takes no target
+  ok('goal: valid goal has no errors', lib.validateGoal(loaded).length === 0);
+  ok('goal: bad type rejected', lib.validateGoal({ fm: { ...g.fm, type: 'stretch' }, milestones: [] }).some((e) => /Unknown goal type/.test(e)));
+  ok('goal: bad status rejected', lib.validateGoal({ fm: { ...g.fm, status: 'paused' }, milestones: [] }).some((e) => /Unknown goal status/.test(e)));
+  ok('goal: bad cadence rejected', lib.validateGoal({ fm: { ...g.fm, cadence: 'yearly' }, milestones: [] }).some((e) => /Unknown goal cadence/.test(e)));
+  ok('goal: open-ended with target rejected', lib.validateGoal({ fm: { ...g.fm, type: 'open-ended', target: '2026-09-30' }, milestones: [] }).some((e) => /open-ended goals take no target/.test(e)));
+  ok('goal: open-ended without target valid', lib.validateGoal({ fm: { ...g.fm, type: 'open-ended', target: '' }, milestones: [] }).length === 0);
+  ok('goal: non-ISO target rejected', lib.validateGoal({ fm: { ...g.fm, target: 'Q3' }, milestones: [] }).some((e) => /ISO date/.test(e)));
+  ok('goal: duplicate milestone ref rejected', lib.validateGoal({ fm: g.fm, milestones: [{ ref: 'm1', description: 'a', due: '', met: false, met_date: '' }, { ref: 'm1', description: 'b', due: '', met: false, met_date: '' }] }).some((e) => /duplicate milestone ref/.test(e)));
+
+  // 4. ref stability (INV-2) — a dropped ref is NEVER reused, even the highest
+  const g2 = mkGoal(dir, { fm: { id: lib.mintId(), title: 'Ref stability' } });
+  const rA = lib.nextMilestoneRef(g2.fm, g2.milestones); g2.milestones.push({ ref: rA, description: 'A', due: '', met: false, met_date: '' });
+  const rB = lib.nextMilestoneRef(g2.fm, g2.milestones); g2.milestones.push({ ref: rB, description: 'B', due: '', met: false, met_date: '' });
+  eq('goal: sequential refs m1,m2', [rA, rB], ['m1', 'm2']);
+  // drop the HIGHEST (m2) then add — the classic max+1 reuse trap
+  g2.milestones = g2.milestones.filter((m) => m.ref !== rB);
+  const rC = lib.nextMilestoneRef(g2.fm, g2.milestones);
+  ok('goal: dropped highest ref not reused (INV-2)', rC !== rB && rC === 'm3', `got ${rC}`);
+  // persist + reload; counter survives the round-trip
+  g2.milestones.push({ ref: rC, description: 'C', due: '', met: false, met_date: '' });
+  const f2 = lib.saveGoal(dir, g2);
+  const g2r = lib.readGoal(f2);
+  const rD = lib.nextMilestoneRef(g2r.fm, g2r.milestones);
+  ok('goal: milestone_seq persists across reload', rD === 'm4', `got ${rD}`);
+
+  // 5. archive on drop/achieve (INV-3) — move to archive/YYYY-QN, gone from active
+  const dest = lib.archiveGoal(dir, g2r.fm.id, '2026-08-15');
+  ok('goal: archived to archive/2026-Q3', /archive\/2026-Q3\//.test(dest) && fs.existsSync(dest), dest);
+  ok('goal: archived goal absent from live goals dir', lib.findGoalFile(dir, g2r.fm.id) === null);
+  ok('goal: archived goal absent from loadAllGoals', !lib.loadAllGoals(dir).some((x) => x.fm.id === g2r.fm.id));
+
+  // 6. slug in filename
+  ok('goal: filename is {id}-{slug}.md', path.basename(file) === `${g.fm.id}-ship-the-goals-feature.md`, path.basename(file));
+}
+
+// ── attachment & cascade (story 260705-ebm — §3, INV-4/5/6, D5/D8) ──
+function writeTask(dir, over = {}) {
+  const fm = {
+    schema_version: over.schema_version || '2', id: over.id || '260705-tsk',
+    title: over.title || 'A task', type: 'execution', importance: 'neutral', status: 'pending',
+    project: over.project || '', created: '2026-07-05', updated: '2026-07-05', ...(over.fm || {}),
+  };
+  writeItem(dir, fm, over.body || '');
+  return fm.id;
+}
+
+function testAttachment() {
+  const dir = mkTmp();
+
+  // AC1 — load-time migration to v3: a v2 task (no goal/milestone) gains bare keys +
+  // schema_version:3; idempotent (second pass is a byte no-op); ids/fields untouched.
+  writeTask(dir, { id: '260705-mig', title: 'Legacy task', project: 'launch', schema_version: '2' });
+  const migFile = path.join(dir, 'items', '260705-mig-legacy-task.md');
+  lib.loadAllItems(dir);
+  const afterA = fs.readFileSync(migFile);
+  const it = lib.readItem(migFile);
+  eq('attach: migrated fields', [it.fm.goal, it.fm.milestone, String(it.fm.schema_version)], ['', '', '3']);
+  eq('attach: migration preserves id/project/title', [it.fm.id, it.fm.project, it.fm.title], ['260705-mig', 'launch', 'Legacy task']);
+  lib.loadAllItems(dir);
+  const afterB = fs.readFileSync(migFile);
+  ok('attach: migration idempotent (byte no-op on 2nd pass)', afterA.equals(afterB), 'rewrote a normalized file');
+
+  // AC3 — effectiveGoal truth table
+  const pg = { launch: '260705-gaa' };
+  eq('attach: direct link wins over inherit', lib.effectiveGoal({ fm: { goal: '260705-gbb', project: 'launch' } }, pg), '260705-gbb');
+  eq('attach: none detaches (wins over inherit)', lib.effectiveGoal({ fm: { goal: 'none', project: 'launch' } }, pg), null);
+  eq('attach: inherit from project', lib.effectiveGoal({ fm: { goal: '', project: 'launch' } }, pg), '260705-gaa');
+  eq('attach: no match → null', lib.effectiveGoal({ fm: { goal: '', project: 'other' } }, pg), null);
+  eq('attach: neither goal nor project → null', lib.effectiveGoal({ fm: { goal: '', project: '' } }, pg), null);
+  // INV-5 no-double-count: task directly on the SAME goal its project inherits resolves once
+  eq('attach: no double-count (single resolution)', lib.effectiveGoal({ fm: { goal: '260705-gaa', project: 'launch' } }, pg), '260705-gaa');
+
+  // effectiveMilestone — only when goal set directly
+  eq('attach: milestone when goal direct', lib.effectiveMilestone({ fm: { goal: '260705-gaa', milestone: 'm2' } }), 'm2');
+  eq('attach: no milestone when inherited', lib.effectiveMilestone({ fm: { goal: '', project: 'launch', milestone: 'm2' } }), null);
+  eq('attach: no milestone when detached', lib.effectiveMilestone({ fm: { goal: 'none', milestone: 'm2' } }), null);
+
+  // AC2 — buildProjectGoals + two-goals-one-project validation error
+  const gA = mkGoal(dir, { fm: { id: '260705-gaa', title: 'Goal A', attached_projects: ['launch', 'sales'] } });
+  const gB = mkGoal(dir, { fm: { id: '260705-gbb', title: 'Goal B', attached_projects: ['ops'] } });
+  lib.saveGoal(dir, gA); lib.saveGoal(dir, gB);
+  eq('attach: projectGoals map from attached_projects', lib.buildProjectGoals(lib.loadAllGoals(dir)), { launch: '260705-gaa', sales: '260705-gaa', ops: '260705-gbb' });
+  // attached_projects survives the goal round-trip (list field)
+  eq('attach: attached_projects round-trips', lib.loadGoal(dir, '260705-gaa').fm.attached_projects, ['launch', 'sales']);
+  let threw = false;
+  try { lib.buildProjectGoals([{ fm: { id: 'g1', attached_projects: ['x'] } }, { fm: { id: 'g2', attached_projects: ['x'] } }]); } catch (_) { threw = true; }
+  ok('attach: two-goals-one-project is a validation error', threw);
+
+  // AC4 — attach/detach round-trips + write-nothing-on-error (INV-6)
+  const gC = mkGoal(dir, { fm: { id: '260705-gcc', title: 'Goal C' } });
+  const rM = lib.nextMilestoneRef(gC.fm, gC.milestones);
+  gC.milestones.push({ ref: rM, description: 'Milestone one', due: '2026-08-01', met: false, met_date: '' });
+  lib.saveGoal(dir, gC);
+  const tid = writeTask(dir, { id: '260705-att', title: 'Attach me', project: 'design' });
+
+  lib.attachTaskToGoal(dir, tid, '260705-gcc', rM);
+  const at = lib.readItem(lib.findItemFile(dir, tid));
+  eq('attach: task attached to goal+milestone', [at.fm.goal, at.fm.milestone], ['260705-gcc', 'm1']);
+  lib.detachTask(dir, tid);
+  eq('attach: detachTask sets goal none, clears milestone', [lib.readItem(lib.findItemFile(dir, tid)).fm.goal, lib.readItem(lib.findItemFile(dir, tid)).fm.milestone], ['none', '']);
+  lib.detachTask(dir, tid, { clear: true });
+  eq('attach: detachTask --clear empties goal', lib.readItem(lib.findItemFile(dir, tid)).fm.goal, '');
+
+  // attach to non-existent goal / milestone errors and writes NOTHING
+  const beforeErr = fs.readFileSync(lib.findItemFile(dir, tid));
+  let e1 = false; try { lib.attachTaskToGoal(dir, tid, '260705-nope', ''); } catch (_) { e1 = true; }
+  let e2 = false; try { lib.attachTaskToGoal(dir, tid, '260705-gcc', 'm99'); } catch (_) { e2 = true; }
+  ok('attach: missing goal errors', e1);
+  ok('attach: missing milestone errors', e2);
+  ok('attach: errored attach wrote nothing', beforeErr.equals(fs.readFileSync(lib.findItemFile(dir, tid))), 'task file mutated on error');
+
+  // project attach/detach round-trip + at-most-one-goal enforcement
+  lib.attachProjectToGoal(dir, 'design', '260705-gcc');
+  eq('attach: project appended to goal', lib.loadGoal(dir, '260705-gcc').fm.attached_projects, ['design']);
+  let e3 = false; try { lib.attachProjectToGoal(dir, 'design', '260705-gbb'); } catch (_) { e3 = true; }
+  ok('attach: project already on another goal errors', e3);
+  lib.detachProject(dir, 'design');
+  eq('attach: detachProject removes slug', lib.loadGoal(dir, '260705-gcc').fm.attached_projects, []);
+}
+
 async function main() {
   testFormat();
   testFrontmatter();
@@ -502,6 +668,8 @@ async function main() {
   testSpawn();
   testIndex();
   testMigration();
+  testGoals();
+  testAttachment();
   await testApi();
   await testPeople();
   await testRegistryMeta();
