@@ -184,6 +184,31 @@ test('emitHtml — emits a data: favicon so an offline page makes zero network r
   assert.match(html, /<link rel="icon" href="data:,">/, 'inline data: favicon present');
 });
 
+test('emitHtml — inlines the canonical html-authoring style.css as the base theme layer (Editorial Technical, --pmos-* tokens, offline)', () => {
+  const html = emitHtml({
+    cards: [{ id: 'a', name: 'A', category: 'C', summary: '', tags: [], body_html: '' }],
+    facets: [], config: { idField: 'id', nameField: 'name', categoryField: 'category', reader: { columns: [] } },
+    masthead: { wordmark: 'PMOS', title: 'T', subtitleTemplate: '{count}' },
+  });
+  const style = html.match(/<style>([\s\S]*?)<\/style>/)[1];
+  // the canonical style.css is inlined as the base layer: its --pmos-* design tokens are present…
+  assert.match(style, /:root\s*{[\s\S]*--pmos-bg\s*:/, 'canonical style.css :root --pmos-* tokens inlined');
+  assert.match(style, /--pmos-accent\s*:/, 'accent token present (Editorial Technical palette)');
+  // …its self-hosted @font-face faces are inlined (JetBrains Mono — the mono structural voice)…
+  assert.match(style, /@font-face[\s\S]*JetBrains Mono/, 'JetBrains Mono @font-face inlined (mono voice, self-hosted)');
+  // …light is the default and dark is inherited from style.css's media override (no library-viewer-specific dark rules).
+  assert.match(style, /@media\s*\(prefers-color-scheme:\s*dark\)/, 'dark theme inherited from canonical media override');
+  // the library-viewer component layer references only --pmos-* tokens: the old private dark palette is gone.
+  const oldPrivate = [/--bg\s*:/, /--panel\s*:/, /--card\s*:/, /--ink\s*:/, /--line\s*:/, /var\(--accent\)/, /var\(--muted\)/, /var\(--card\)/, /var\(--panel\)/, /var\(--line\)/];
+  for (const re of oldPrivate) assert.doesNotMatch(style, re, `old private token ${re} removed`);
+  assert.doesNotMatch(style, /#0f1320|#171c2e|#1d2438|#6ea8fe|#2a3252|#e7ecf5|#9aa6bf/, 'no hardcoded old dark-blue palette hexes');
+  // the three-voice type system is wired: serif reader body + mono/sans chrome via tokens.
+  assert.match(style, /var\(--pmos-font-serif\)/, 'serif reader body voice via token');
+  // offline preserved: no external stylesheet, no @import, no CDN.
+  assert.doesNotMatch(html, /<link[^>]+href="https?:/i, 'no external stylesheet');
+  assert.doesNotMatch(style, /@import\s/, 'no @import (fully self-contained)');
+});
+
 test('emitHtml — config.card hook: link-out titles + badge + metarow pills (default-off, skill-agnostic)', () => {
   const cards = [
     { id: 'c1', title: 'Curated One', category: 'Cat', collection: 'Curated', audience: 'PMs', depth: 'deep', sources_count: 5, word_count: 2400, date: '2026-01-02', href: 'data/primers/c1.html', exists: true },
