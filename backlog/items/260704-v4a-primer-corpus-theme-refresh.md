@@ -4,7 +4,7 @@ id: 260704-v4a
 title: "Refresh the 61 bundled primer corpus files to the current Editorial Technical theme — new idempotent retheme-corpus.mjs CLI marker-scoped-replaces each corpus file's stale inlined substrate CSS with the current _shared/html-authoring/assets/style.css; body <main> bytes untouched"
 type: chore
 kind: story
-status: in-progress
+status: done
 route: skill
 priority: should
 labels: [pmos-learnkit, primer, corpus, html-substrate, theme, skill]
@@ -62,3 +62,42 @@ individual bundled primer docs — different code path, no shared code). Coordin
   any build wave — those are `/complete-dev`'s (Loop 3). List them under the plan's Release prerequisites only.
 - [ ] Conforms to `skill-patterns.md §A–§L`; `skill-eval` (`[D]`+`[J]`) passes; 4 hygiene lints +
   `audit-recommended` green.
+
+## Notes
+
+Built 2026-07-05 via `/feature-sdlc build` (route:skill) on branch `feat/260704-v4a` (commit
+`b95ba4ad`, UNMERGED — awaits Loop-3 `/complete-dev --epic 260704-vde`). Two new files
+(`scripts/retheme-corpus.mjs`, `tests/retheme-corpus.test.sh`) + all 61 refreshed
+`data/primers/*.html`. SKILL.md untouched.
+
+All 7 ACs met:
+- **AC1** — new zero-dep ESM `retheme-corpus.mjs`. Locates the substrate `<style>` block by its
+  header-comment marker (`/* pmos-toolkit html-authoring substrate` — NOT the first `<style>`) and
+  rebuilds it with render.js's exact assembly (`<style>\n{style.css}\n/* --- comments.css --- */\n{comments.css}\n</style>`),
+  reading the current `_shared/html-authoring/assets/style.css` + `comments.css` via `import.meta.url`.
+- **AC2** — CSS-region-scoped: replacing only the matched `<style>` span leaves everything else
+  verbatim. Verified across all 61 files that `<main>…</main>` is byte-identical to HEAD (a prose
+  `#f8f5ef` in a fixture body proved the CLI never touches non-CSS text).
+- **AC3** — idempotent: a second run over all 61 is a byte-for-byte no-op (0 changed).
+- **AC4** — full corpus (61/61), per-file changed/unchanged summary, **fail-loud** (non-zero exit
+  naming the file) on any missing marker; never silently skips.
+- **AC5** — `tests/retheme-corpus.test.sh` (primer convention): the four cases (marker block replaced
+  with current style.css; body bytes unchanged; second run idempotent; missing-marker fails loud)
+  via the CLI's in-memory `--selftest` + an on-disk stale fixture, plus an AC6 guard that `--check`
+  over the shipped corpus reports zero pending changes. Green alongside `structure` + `build-library`
+  tests. (Live-dogfood catch: the first test draft assumed the shipped corpus stays stale — false
+  after this story re-themes it; rewrote to build its own stale fixture + assert the shipped corpus
+  is current.)
+- **AC6** — all 61 committed files carry the current Editorial Technical `:root`
+  (`--pmos-bg #f8f5ef`, `--pmos-accent #b8431a`); zero stale `#fafafa` / "Mono Minimal" remnants;
+  the re-themed substrate block byte-matches the canonical render.js assembly verbatim. Offline
+  preserved (no external `<link>`/`<script>`/`@import` introduced, INV-1).
+- **AC7 / §G** — diff touches zero `plugin.json`/`marketplace.json`/CHANGELOG/README/learnings;
+  release-prereqs are Loop-3's job.
+
+Gates: `skill-eval` `[D]` all pass on `/primer` (regression guard — diff touches **no** SKILL.md, so
+`[D]`+`[J]` cannot regress from main); `lint-flags-vs-hints`, `lint-phase-refs`, `audit-recommended`
+(9 calls, all marked), `lint-non-interactive-inline` (56 skills) all green.
+
+With m7f (built) + v4a (this), epic 260704-vde is fully built and ready for Loop-3
+`/complete-dev --epic 260704-vde` (merges both unmerged feat branches).
