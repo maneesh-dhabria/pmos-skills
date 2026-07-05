@@ -393,6 +393,7 @@ function renderIndex(tasksDir) {
     return ua < ub ? 1 : ua > ub ? -1 : 0; // updated desc
   };
   let md = `# My Tasks\n`;
+  md += goalsIndexSummary(tasksDir); // compact behind/starved/at-risk goals; quiet when healthy (D4b)
   for (const bucket of ['leverage', 'neutral', 'overhead']) {
     md += `\n## ${bucket}\n`;
     md += `| id | type | status | due | next_checkin | title | project | parent |\n`;
@@ -858,6 +859,216 @@ function detachProject(tasksDir, slug) {
   return changed;
 }
 
+// ── Pace signals, progress & surfacing (story 260705-f79, design §4/§5) ──
+// Determinism (INV-7 / §H): every band and number is computed HERE by a pure function;
+// the model never estimates one. Three trust rules bind these functions:
+//   • Open-ended goals never read "behind" — scheduleSignal returns null (D2).
+//   • A goal with zero effective tasks reads a grace state, never falsely starved/behind
+//     (INV-9): attentionSignal → 'no-tasks-yet', goalProgress → {state:'no-tasks-yet'}.
+//   • Only REAL progress feeds attention: a completed OR created attached task. A bare
+//     `updated` bump does NOT count (D7 — the "trust catch" against crying wolf).
+
+const AT_RISK_DAYS = 7;    // a milestone due within this window is a candidate for at-risk
+const AT_RISK_PCT = 0.5;   // …and at-risk iff its progress is below this
+
+function daysBetween(fromIso, toIso) {
+  const a = toUTC(fromIso), b = toUTC(toIso);
+  if (!a || !b) return 0;
+  return Math.round((b.getTime() - a.getTime()) / 86400000);
+}
+// cadence → the real-progress lookback window in days (reuses the check-in cadence set).
+function cadenceWindow(cadence) {
+  switch (String(cadence || '').toLowerCase()) {
+    case 'daily': return 1;
+    case 'weekly': return 7;
+    case 'biweekly': return 14;
+    case 'monthly': return 30;
+    default: return 7;
+  }
+}
+function goalFm(g) { return (g && g.fm) ? g.fm : (g || {}); }
+function taskFm(t) { return (t && t.fm) ? t.fm : (t || {}); }
+function isTaskDone(t) { return taskFm(t).status === 'completed'; }
+
+// Fraction of a task list that is completed. Empty list → null (INV-9: "no tasks yet",
+// never 0% — a starved-of-work goal must not read as 0% done).
+function derivedProgress(tasks) {
+  const list = tasks || [];
+  if (!list.length) return null;
+  return list.filter(isTaskDone).length / list.length;
+}
+
+// {milestoneRef → 0..1} progress. A manual `met` flag reads 1 regardless of task state
+// (INV-8 — the human's explicit call overrides the derived number); an unmet milestone
+// derives from the effective tasks pinned to it (none → 0).
+function milestoneProgressMap(goal, effectiveTasks) {
+  const map = {};
+  for (const ms of (goal.milestones || [])) {
+    if (ms.met) { map[ms.ref] = 1; continue; }
+    const scoped = (effectiveTasks || []).filter((t) => effectiveMilestone(t) === ms.ref);
+    const p = derivedProgress(scoped);
+    map[ms.ref] = p == null ? 0 : p;
+  }
+  return map;
+}
+
+// The earliest-due incomplete milestone (dated ones first; all-undated → the first).
+function nextIncompleteMilestone(goal) {
+  const incomplete = (goal.milestones || []).filter((m) => !m.met);
+  if (!incomplete.length) return null;
+  const dated = incomplete.filter((m) => m.due);
+  const pool = dated.length ? dated : incomplete;
+  return pool.slice().sort((a, b) => String(a.due || '~').localeCompare(String(b.due || '~')))[0];
+}
+
+// Schedule-adherence band from milestone due dates vs today (FR-10, §4.1, D2).
+// Returns 'done' | 'behind' | 'at-risk' | 'on-track', or NULL for open-ended goals.
+// `milestoneProgress` (optional {ref→pct}) refines at-risk; absent, an unmet near-due
+// milestone reads progress 0. Script-computed — the model never estimates the band.
+function scheduleSignal(goal, today, milestoneProgress) {
+  const gfm = goalFm(goal);
+  if (gfm.type === 'open-ended') return null;                 // D2 — never "behind"
+  const t = today || isoToday();
+  const ms = goal.milestones || [];
+  const incomplete = ms.filter((m) => !m.met);
+  if (ms.length && !incomplete.length) return 'done';         // every milestone met
+  const next = nextIncompleteMilestone(goal);
+  const deadline = (next && next.due) ? next.due : (gfm.target || '');
+  if (!deadline) return 'on-track';                           // nothing dated to be late for
+  if (deadline < t) return 'behind';
+  // at-risk refines a milestone deadline (we have its progress); a bare target date has none.
+  if (next && next.due && daysBetween(t, next.due) <= AT_RISK_DAYS) {
+    const mp = milestoneProgress || {};
+    const prog = mp[next.ref] != null ? mp[next.ref] : (next.met ? 1 : 0);
+    if (prog < AT_RISK_PCT) return 'at-risk';
+  }
+  return 'on-track';
+}
+
+// Per-goal cadence-adherence band (FR-11, §4.2, D1/D7). Returns 'fed' | 'starved' |
+// 'no-tasks-yet'. Fed = real progress (a completed OR created attached task) within the
+// cadence window; a bare `updated` bump is NOT real progress (D7). Zero effective tasks →
+// 'no-tasks-yet' (grace state, INV-9) — never falsely starved.
+function attentionSignal(goal, effectiveTasks, today) {
+  const list = effectiveTasks || [];
+  if (!list.length) return 'no-tasks-yet';                    // INV-9
+  const t = today || isoToday();
+  let last = '';
+  for (const task of list) {
+    const fm = taskFm(task);
+    for (const d of [fm.completed, fm.created]) {             // NOT fm.updated (D7)
+      if (d && String(d) > last) last = String(d);
+    }
+  }
+  if (!last) return 'starved';
+  return daysBetween(last, t) > cadenceWindow(goalFm(goal).cadence) ? 'starved' : 'fed';
+}
+
+// Goal-level progress (FR-12, §4.3, D3/INV-8). Task-derived; zero effective tasks →
+// {state:'no-tasks-yet'} (never 0%, INV-9). The manual-met override lives at the milestone
+// level (milestoneProgressMap), not in this goal headline.
+function goalProgress(goal, effectiveTasks) {
+  const list = effectiveTasks || [];
+  if (!list.length) return { state: 'no-tasks-yet' };
+  const done = list.filter(isTaskDone).length;
+  return { state: 'tracked', done, total: list.length, pct: done / list.length };
+}
+
+// The effective tasks pinned to a goal (direct link OR inherited via project — INV-4/5,
+// resolved once by effectiveGoal so a task counts toward a goal at most once).
+function effectiveTasksForGoal(goalId, allTasks, projectGoals) {
+  return (allTasks || []).filter((t) => effectiveGoal(t, projectGoals) === goalId);
+}
+
+// One goal's full computed pace: both signal bands, progress, next milestone. Pure over
+// its inputs (goal + all tasks + the project→goal map + today).
+function goalPace(goal, allTasks, projectGoals, today) {
+  const gfm = goalFm(goal);
+  const t = today || isoToday();
+  const tasks = effectiveTasksForGoal(gfm.id, allTasks, projectGoals);
+  const mp = milestoneProgressMap(goal, tasks);
+  const next = nextIncompleteMilestone(goal);
+  return {
+    id: gfm.id,
+    title: gfm.title,
+    type: gfm.type,
+    cadence: gfm.cadence,
+    schedule: scheduleSignal(goal, t, mp),
+    attention: attentionSignal(goal, tasks, t),
+    progress: goalProgress(goal, tasks),
+    next: next ? { ref: next.ref, description: next.description, due: next.due || '' } : null,
+    task_count: tasks.length,
+  };
+}
+
+// Urgency rank for sorting/filtering — behind (0) < starved (1) < at-risk (2) < healthy.
+const SCHED_RANK = { behind: 0, 'at-risk': 2, 'on-track': 4, done: 5 };
+const ATTN_RANK = { starved: 1, fed: 4, 'no-tasks-yet': 4 };
+function paceRank(p) {
+  const s = SCHED_RANK[p.schedule] != null ? SCHED_RANK[p.schedule] : 3;
+  const a = ATTN_RANK[p.attention] != null ? ATTN_RANK[p.attention] : 3;
+  return Math.min(s, a);
+}
+function isFlagged(p) {
+  return p.schedule === 'behind' || p.schedule === 'at-risk' || p.attention === 'starved';
+}
+
+// Every active goal's pace, behind/starved sorted first (id ascending on ties). Derived on
+// read: loads goals + items fresh each call, no persisted view (INV-1 for goals surfaces).
+function activeGoalPaces(tasksDir, today) {
+  const t = today || isoToday();
+  const goals = loadAllGoals(tasksDir).filter((g) => (goalFm(g).status || 'active') === 'active');
+  let projectGoals = {};
+  try { projectGoals = buildProjectGoals(goals); } catch (_) { projectGoals = {}; }
+  const items = loadAllItems(tasksDir);
+  return goals
+    .map((g) => goalPace(g, items, projectGoals, t))
+    .sort((a, b) => paceRank(a) - paceRank(b) || String(a.id).localeCompare(String(b.id)));
+}
+
+// The morning-brief hook (D4c): behind + starved active goals, in the shape /morning-brief
+// consumes. An integration point — /morning-brief reads this, mytasks owns the computation.
+function goalsForBrief(tasksDir, today) {
+  return activeGoalPaces(tasksDir, today).filter((p) => p.schedule === 'behind' || p.attention === 'starved');
+}
+
+function progressLabel(pr) {
+  if (!pr || pr.state === 'no-tasks-yet') return 'no tasks yet';
+  return `${Math.round(pr.pct * 100)}% (${pr.done}/${pr.total})`;
+}
+
+// `/mytasks goals` view (D4a) — every active goal, behind/starved first, derived on read.
+function renderGoalsView(tasksDir, today) {
+  const paces = activeGoalPaces(tasksDir, today);
+  let md = '# Goals\n';
+  if (!paces.length) { md += '\n_No active goals. Add one with /mytasks goal add._\n'; return md; }
+  md += `\n| goal | type | schedule | attention | progress | next milestone | due |\n`;
+  md += `|------|------|----------|-----------|----------|----------------|-----|\n`;
+  for (const p of paces) {
+    const next = p.next ? (p.next.description || p.next.ref) : '—';
+    const due = p.next && p.next.due ? p.next.due : '—';
+    md += `| ${cell(p.title)} | ${cell(p.type)} | ${cell(p.schedule || '—')} | ${cell(p.attention)} | ${cell(progressLabel(p.progress))} | ${cell(next)} | ${cell(due)} |\n`;
+  }
+  return md;
+}
+
+// Compact `## Goals` summary for the bare /mytasks index (D4b): ONLY behind/starved/at-risk
+// goals — empty string (quiet) when every goal is healthy. Never cries wolf.
+function goalsIndexSummary(tasksDir, today) {
+  const flagged = activeGoalPaces(tasksDir, today).filter(isFlagged);
+  if (!flagged.length) return '';
+  let md = `\n## Goals\n`;
+  for (const p of flagged) {
+    const flags = [];
+    if (p.schedule === 'behind') flags.push('behind');
+    else if (p.schedule === 'at-risk') flags.push('at-risk');
+    if (p.attention === 'starved') flags.push('starved');
+    const due = p.next && p.next.due ? ` (next due ${p.next.due})` : '';
+    md += `- **${cell(p.title)}** — ${flags.join(', ')}${due}\n`;
+  }
+  return md;
+}
+
 // ── main-module --selftest (AC6): a quick smoke that never fires on require ──
 function goalSelftest() {
   const os = require('os');
@@ -874,9 +1085,22 @@ function goalSelftest() {
   saveGoal(dir, g1);
   const b2 = fs.readFileSync(file);
   const errs = validateGoal(g1);
+  // Pace-signal smoke (S3): a past-due unmet milestone reads behind; open-ended never
+  // behind (null); a zero-task goal reads the no-tasks-yet grace state (INV-9); real
+  // progress feeds attention while a bare updated bump does not (D7).
+  const today = '2026-07-05';
+  const behindGoal = { fm: { type: 'dated', cadence: 'weekly' }, milestones: [{ ref: 'm1', due: '2026-07-01', met: false }] };
+  const openGoal = { fm: { type: 'open-ended', cadence: 'weekly' }, milestones: [{ ref: 'm1', due: '2026-07-01', met: false }] };
+  const fedTask = { fm: { status: 'pending', created: '2026-07-04', updated: '2026-07-04' } };
+  const staleTask = { fm: { status: 'pending', created: '2026-05-01', updated: '2026-07-05' } }; // recent updated must NOT feed
+  const paceOk = scheduleSignal(behindGoal, today) === 'behind'
+    && scheduleSignal(openGoal, today) === null
+    && attentionSignal(behindGoal, [], today) === 'no-tasks-yet'
+    && attentionSignal(behindGoal, [fedTask], today) === 'fed'
+    && attentionSignal(behindGoal, [staleTask], today) === 'starved';
   const ok = b1.equals(b2) && errs.length === 0 && g1.milestones.length === 1 && g1.milestones[0].ref === ref
-    && validateGoal({ fm: { ...goal.fm, type: 'bogus' }, milestones: [] }).length > 0;
-  process.stdout.write(ok ? `lib.js goal selftest: PASS (${ref})\n` : `lib.js goal selftest: FAIL errs=${JSON.stringify(errs)}\n`);
+    && validateGoal({ fm: { ...goal.fm, type: 'bogus' }, milestones: [] }).length > 0 && paceOk;
+  process.stdout.write(ok ? `lib.js goal selftest: PASS (${ref}; pace ok)\n` : `lib.js goal selftest: FAIL errs=${JSON.stringify(errs)} paceOk=${paceOk}\n`);
   return ok ? 0 : 1;
 }
 
@@ -897,6 +1121,12 @@ module.exports = {
   // attachment & effective resolution (S2)
   buildProjectGoals, effectiveGoal, effectiveMilestone,
   attachTaskToGoal, detachTask, attachProjectToGoal, detachProject,
+  // pace signals, progress & surfacing (S3, design §4/§5)
+  AT_RISK_DAYS, AT_RISK_PCT, daysBetween, cadenceWindow,
+  derivedProgress, milestoneProgressMap, nextIncompleteMilestone,
+  scheduleSignal, attentionSignal, goalProgress,
+  effectiveTasksForGoal, goalPace, paceRank, activeGoalPaces,
+  goalsForBrief, progressLabel, renderGoalsView, goalsIndexSummary,
 };
 
 // AC6: --selftest guarded by a main-module check so it never fires on require().

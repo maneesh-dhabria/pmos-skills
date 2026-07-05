@@ -83,7 +83,19 @@ function laneBlock(lane) {
     const lis = rows.map((r) => `<li>${esc(r.title)}${r.when ? ` <span class="when">${esc(r.when)}</span>` : ''} <span class="tid">#${esc(r.id)}</span></li>`).join('');
     return `<div class="bkt"><h3>${name} <span class="n">${rows.length}</span></h3><ul>${lis}</ul></div>`;
   };
-  const blocks = [bucket('Overdue', lane.overdue), bucket('Due today', lane.due), bucket('Check-ins', lane.checkins), bucket('Waiting on', lane.waiting)].filter(Boolean);
+  // Goals needing attention (D4c) — behind/starved goals from /mytasks, read-only.
+  const goalsBlock = (goals) => {
+    if (!goals || !goals.length) return '';
+    const lis = goals.map((gm) => {
+      const flags = [];
+      if (gm.schedule === 'behind') flags.push('behind');
+      if (gm.attention === 'starved') flags.push('starved');
+      const due = gm.next_due ? ` <span class="when">next due ${esc(gm.next_due)}</span>` : '';
+      return `<li>${esc(gm.title)} <span class="flag">${esc(flags.join(', '))}</span>${due} <span class="tid">#${esc(gm.id)}</span></li>`;
+    }).join('');
+    return `<div class="bkt"><h3>Goals needing attention <span class="n">${goals.length}</span></h3><ul>${lis}</ul></div>`;
+  };
+  const blocks = [goalsBlock(lane.goals), bucket('Overdue', lane.overdue), bucket('Due today', lane.due), bucket('Check-ins', lane.checkins), bucket('Waiting on', lane.waiting)].filter(Boolean);
   const inner = blocks.length ? blocks.join('\n') : '<p class="empty">Nothing due, waiting, or checking in.</p>';
   return `<section class="lane"><h2>/mytasks <span class="ro">read-only</span></h2>${inner}</section>`;
 }

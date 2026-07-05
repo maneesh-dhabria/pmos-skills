@@ -420,9 +420,9 @@ Rich-capture, mirroring `#rich-capture`. Every field also has a **typed-value fl
 
 **`--non-interactive`:** the title comes from the inline arg; `type`/`cadence` default (`dated`/`weekly`) unless a flag is given; `target` comes from `--target` (absent on a `dated` goal → left empty and recorded as an open question via the canonical classifier, per the non-interactive block). No blocking prompt.
 
-### `goals` (list) {#goal-list}
+### `goals` (list — pace-enriched) {#goal-list}
 
-`loadAllGoals` and render a markdown table of the **active** goals (achieved/dropped goals are archived, so absent). Columns `id | type | status | cadence | target | milestones | title`, where `milestones` shows `met/total` (e.g. `1/3`). Sorted `target` asc (open-ended / no-target last) → `updated` desc. Zero goals: `No goals yet. Create one with /mytasks goal add <title>.`
+Print `lib.renderGoalsView(tasksDir)` verbatim — a markdown table of the **active** goals (achieved/dropped are archived, so absent), each row carrying its `type`, **both signal bands** (schedule + attention), `progress`, and next milestone+due, **behind/starved sorted first** (`lib.activeGoalPaces` computes + orders; derived on read, no persisted view — INV-1). The bands and numbers are **script-computed** — never estimate one (see [#pace](#pace)). Zero goals: renderGoalsView prints its own `No active goals` line.
 
 ### `goal show <id>` {#goal-show}
 
@@ -470,3 +470,24 @@ All four operations go through the `lib.js` helpers, which **validate the target
 - **`detach <project>`** — `lib.detachProject(tasksDir, slug)`. Removes the slug from whichever goal carries it (errors if no goal does). Report `Detached project "{slug}" — its tasks no longer inherit a goal.`
 
 After any attach/detach, if a goal id or milestone was named that turns out unknown, surface the thrown error verbatim (`no goal '…'`, `goal '…' has no milestone '…'`) — do **not** silently create a goal. Attachment is always to an existing goal (`goal add` first).
+
+## Phase 18: Goal pace signals & surfacing {#pace}
+
+The pace-sensing half (design §4/§5, INV-7/8/9, D1/D2/D3/D7). Every band and number is a **pure `lib.js` function** — the skill reads them, it **never estimates a band or a percentage** (§H hard gate). All three trust rules are enforced in `lib.js`, not by prompt:
+
+- **Schedule** — `lib.scheduleSignal(goal, today, milestoneProgress)` → `on-track | at-risk | behind | done`, or **`null` for open-ended goals** (they have no deadline, so they never read "behind" — D2). `at-risk` = next milestone due within `AT_RISK_DAYS` (7) with progress below `AT_RISK_PCT` (50%).
+- **Attention** — `lib.attentionSignal(goal, effectiveTasks, today)` → `fed | starved | no-tasks-yet`. Starved = no **real progress** (a completed **or created** attached task) within `cadenceWindow(goal.cadence)`. A bare `updated` bump is **not** progress (D7 — the trust catch). Zero effective tasks → `no-tasks-yet` (grace state, INV-9), never falsely starved.
+- **Progress** — `lib.goalProgress` (task-derived; zero tasks → `no tasks yet`, never 0% — INV-9) and `lib.milestoneProgressMap` (a manual `met` flag reads 1 regardless of task state — INV-8). Effective tasks are resolved once via `effectiveGoal` (direct-wins / inherit / `none`-detaches — INV-4/5, no double-count).
+
+**Surfacing (derived on read):**
+- **`goals` view** — [#goal-list](#goal-list), via `lib.renderGoalsView`.
+- **Bare `/mytasks` index** — `renderIndex` prepends a compact `## Goals` summary (`lib.goalsIndexSummary`) listing **only** behind/starved/at-risk goals; **quiet (empty) when every goal is healthy** — it never cries wolf (D4b).
+- **`/morning-brief` hook** — `lib.goalsForBrief(tasksDir, today)` returns behind+starved active goals; `/morning-brief` reads it and renders a "goals needing attention" lane in its `/mytasks` read-only lane (an **integration point** — mytasks owns the computation, the brief only reads + renders; D4c).
+- **Web** — `GET /api/goals` returns each active goal's computed pace; the web app shows goals **read-only** ([#web-api](#web-api), AC6). Goals are created/edited via the terminal verbs only.
+
+## Anti-patterns {#anti-patterns}
+
+- **Never estimate a pace band the script computes.** `schedule`/`attention`/`progress` come only from the `lib.js` pure functions ([#pace](#pace)) — the model does not eyeball "this looks behind". Arithmetic a script can do, a script does (§H).
+- **A trivial edit is not progress.** A bare `updated` bump must never read as attention-feeding activity — only a completed or created attached task counts (D7). This is what keeps the starved signal trustworthy instead of crying wolf.
+- **Never mark an open-ended goal "behind."** Open-ended goals have no deadline; `scheduleSignal` returns `null` for them (D2). Surfacing must render the absence (e.g. `—`), never invent a band.
+- **Goals are edited in the terminal, not the browser.** The web `/api/goals` surface is read-only by design (AC6) — do not add create/edit affordances to the web app.
