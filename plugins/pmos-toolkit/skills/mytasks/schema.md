@@ -12,13 +12,15 @@ Numeric-id store — `id`/`slug` rules per `../_shared/tracker-crudl.md` §2. Bi
 
 ```yaml
 ---
-schema_version: 2                # shared §3; absent == 1, no value == 2 (current)
+schema_version: 3                # shared §3; absent == 1, no value == 2, current == 3
 id: 260613-a3f
 title: Draft Q3 OKRs for Platform team
 type: execution                  # enum
 importance: leverage             # enum (LNO)
 status: pending                  # enum
 project: platform-q3             # optional, user-curated container; default none == Inbox
+goal: 260705-k2p                 # optional goal attachment: goal id | none (explicit detach) | empty (inherit from project)
+milestone: m2                    # optional milestone ref; honored only when goal is set DIRECTLY (not inherited)
 parent:                          # optional id; present on a subtask (a full child task)
 order:                           # optional integer; manual sort within a project
 recur:                           # optional recurrence rule (see "Recurrence" below); empty == non-recurring
@@ -35,7 +37,7 @@ completed:                       # ISO date, set when status -> completed/droppe
 ---
 ```
 
-> **`schema_version`** is `2` as of the project/subtask/recurrence extension. Files written before this (with `schema_version: 1` or the key absent — absent reads as `1`) stay valid: a `1`-era file simply has no `project`/`parent`/`order`/`recur` keys and a `workstream:` key instead. A one-shot load-time normalization in `lib.js loadAllItems` (`migrateWorkstreamKey`) renames `workstream:` → `project:` in place on every read — key only, value preserved; it never rewrites ids or other fields, and is a no-op once no `workstream:` key remains.
+> **`schema_version`** is `3` as of the goal-attachment extension (story 260705-ebm). Files written before this (`schema_version: 2`, `1`, or the key absent) stay valid. Two one-shot load-time normalizations run in `lib.js loadAllItems`, key-presence-only and idempotent, never rewriting ids or other fields: `migrateWorkstreamKey` renames a `1`-era `workstream:` → `project:`, and `normalizeTaskSchema` adds the bare `goal:`/`milestone:` keys and stamps `schema_version: 3` on any `<3` file. Both are no-ops once applied. (New tasks are born at `3` with bare attachment keys, so the pass never rewrites a fresh task out from under a client's optimistic-concurrency version token.)
 
 ### Enum values (the skill MUST validate against these and never invent new ones)
 
@@ -53,9 +55,13 @@ completed:                       # ISO date, set when status -> completed/droppe
 | Field | Shape | Meaning |
 |---|---|---|
 | `project` | optional free string (a project slug) | Todoist-style container. **Replaces** the old `workstream` field. **User-curated and fully manual** — never auto-inferred from repo context (see `inference-heuristics.md` "What is NEVER inferred"). A task with no `project` value belongs to **Inbox**. |
+| `goal` | goal id \| `none` \| empty | Attachment to a [goal](#mytasks-goal-schema). Empty ⇒ **inherit** the goal its `project` is attached to (if any). A goal id ⇒ **direct** link (wins over inherit). `none` ⇒ **explicit detach** (wins over inherit — the task counts toward no goal even if its project is attached). |
+| `milestone` | milestone ref (`m<N>`) \| empty | Optional milestone within the attached goal. Honored **only when `goal` is set directly** — an inherited (project-level) goal attaches at goal level, never milestone. |
 | `parent` | optional task id | When set, this task is a **subtask** — a full child task file (all fields available) whose `parent:` points at another task's id. |
 | `order` | optional integer | Manual sort position within a project. Smart date-views ignore `order:` (they sort by date); it only governs ordering inside a single project/list. |
 | `recur` | optional recurrence rule | Non-empty ⇒ the task recurs (see "Recurrence" below). Empty/absent ⇒ one-shot. |
+
+**Effective-goal resolution (design §3.2, INV-4/INV-5).** A task's effective goal is a single pure function (`lib.js effectiveGoal(task, projectGoals)`) so a task counts toward a goal **at most once** (direct + inherited can never double-count): `goal == 'none'` → none (detach wins) · a set `goal` id → that goal (direct wins) · else the goal its `project` is attached to → inherited · else none. `effectiveMilestone(task)` is the task's `milestone` only when `goal` is set directly, else none. The `project → goal` map is built from goals' `attached_projects` lists (below), **not** from `registry.json`.
 
 **Subtask semantics.** A subtask is an ordinary task file with `parent:` set; it carries its own `status`, `due`, `people`, `importance`, `recur`, etc. **Completing a parent does NOT auto-complete its children** — each child's status is independent. Nesting (indenting children under a parent) is a **view-layer** concern; the stored files stay flat.
 
@@ -76,16 +82,16 @@ Recurrence uses the **spawn-new-instance** model (design D8): on `complete` of a
 
 ### Defaults on quick-capture (`/mytasks <bare text>`)
 
-- `schema_version: 2` (shared §3; absent == 1, still valid)
+- `schema_version: 3` (shared §3; `2`/`1`/absent still valid, normalized on read)
 - `status: pending`
 - `importance: neutral`
 - `type:` per inference (see `inference-heuristics.md`); fallback `execution`
 - `created`, `updated`: today
 - `project:` **absent** by default (lands in Inbox) — `project` is manual, never inferred
-- `parent:`, `order:`, `recur:` — absent by default (bare keys; never auto-set at capture)
+- `goal:`, `milestone:`, `parent:`, `order:`, `recur:` — bare keys by default (never auto-set at capture; attachment is explicit via `/mytasks attach`)
 - `people:` from `@handle` tokens (resolved via `/people find`); unresolved tokens flagged in capture report
 - `due:` from natural-language date parse if present, else empty
-- All other optional fields: written as bare keys with no value (e.g., `start:`, `project:`, `parent:`, `order:`, `recur:`), never omitted — the file shape stays consistent (this is mytasks's §4 empty-optional binding)
+- All other optional fields: written as bare keys with no value (e.g., `start:`, `project:`, `goal:`, `milestone:`, `parent:`, `order:`, `recur:`), never omitted — the file shape stays consistent (this is mytasks's §4 empty-optional binding)
 
 ### Defaults on rich-capture (`/mytasks add`)
 
@@ -178,6 +184,7 @@ target: 2026-09-30                 # ISO date; present for `dated`, a bare key f
 created: 2026-07-05
 updated: 2026-07-05
 milestone_seq: 2                   # internal monotonic ref counter (never decremented) — guarantees INV-2
+attached_projects: [platform-q3]   # project slugs attached to this goal (D8) — the project→goal map's source of truth; `[]` when none
 milestones:                        # embedded list; the machine source of truth (INV-1)
   - ref: m1                        # stable, never reused after deletion (INV-2)
     description: Data model + CRUD landed
@@ -215,6 +222,8 @@ Each entry is `{ref, description, due, met, met_date}`:
 | `met_date` | ISO date or bare | Set when `met` flips to `true`. |
 
 **INV-1 — frontmatter is truth, the body mirrors it.** The `milestones:` frontmatter list is the sole machine-read source. The `## Milestones` body block is a **human mirror regenerated from the frontmatter on every write** (`regenerateMilestonesBody`) — it is never parsed back for computation, so a hand-edit to the body block is overwritten on the next verb, not honored.
+
+**`attached_projects` — the project→goal map lives here (D8).** Each goal owns the list of project slugs attached to it. `lib.js buildProjectGoals(goals)` scans these lists into the in-memory `{slug → goalId}` map the resolver uses; `registry.json` is **never** read or written for attachments (it stays the optional, deletable visibility cache it is documented to be). A single project attached to **two** goals is a validation error — a project maps to at most one goal.
 
 ## Goal body
 

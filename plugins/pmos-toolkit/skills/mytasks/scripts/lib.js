@@ -30,7 +30,7 @@ const ENUMS = {
 // Canonical frontmatter field order (mirrors the fixtures + schema.md exactly).
 const FIELD_ORDER = [
   'schema_version', 'id', 'title', 'type', 'importance', 'status',
-  'project', 'parent', 'order', 'recur', 'people', 'labels', 'links',
+  'project', 'goal', 'milestone', 'parent', 'order', 'recur', 'people', 'labels', 'links',
   'due', 'start', 'checkin', 'next_checkin', 'created', 'updated', 'completed',
 ];
 const LIST_FIELDS = new Set(['people', 'labels', 'links']);
@@ -332,12 +332,32 @@ function migrateWorkstreamKey(it) {
   return true;
 }
 
+// Load-time task-schema migration to v3 (story 260705-ebm, AC1). Tasks gain the
+// optional attachment keys `goal:` (goal id | 'none' | empty) and `milestone:`
+// (ref | empty). Mirrors migrateWorkstreamKey: key presence only — adds the bare
+// keys when absent and stamps schema_version:3, never rewriting ids or any other
+// field, so absent/1/2 files stay valid and the pass is a no-op once normalized.
+// Returns true iff this file was rewritten this call.
+function normalizeTaskSchema(it) {
+  const fm = it.fm;
+  const hasGoal = Object.prototype.hasOwnProperty.call(fm, 'goal');
+  const hasMs = Object.prototype.hasOwnProperty.call(fm, 'milestone');
+  if (hasGoal && hasMs && String(fm.schema_version) === '3') return false;
+  if (!hasGoal) fm.goal = '';
+  if (!hasMs) fm.milestone = '';
+  fm.schema_version = '3';
+  writeItemAtomic(it.file, serializeItem(fm, it.body));
+  it.version = versionOf(fs.readFileSync(it.file));
+  return true;
+}
+
 function loadAllItems(tasksDir) {
   const out = [];
   for (const f of listItemFiles(tasksDir)) {
     try {
       const it = readItem(f);
       migrateWorkstreamKey(it); // D6: workstream→project on every read (idempotent)
+      normalizeTaskSchema(it);  // AC1: additive goal:/milestone: + schema_version→3 (idempotent)
       out.push(it);
     } catch (_) { /* skip malformed */ }
   }
@@ -455,8 +475,11 @@ const GOAL_ENUMS = {
 // nested block by serializeGoal, not via this scalar order.
 const GOAL_FIELD_ORDER = [
   'schema_version', 'id', 'title', 'type', 'status', 'cadence', 'target',
-  'created', 'updated', 'milestone_seq',
+  'created', 'updated', 'milestone_seq', 'attached_projects',
 ];
+// Goal frontmatter list-valued keys (rendered `[a, b]` / `[]`, never bare). The
+// project→goal map (D8/AC2) lives here in the goal file, NOT in registry.json.
+const GOAL_LIST_FIELDS = new Set(['attached_projects']);
 
 // ── Id mint — <YYMMDD>-<rand3>, tracker-crudl §2.1 (mirrors serve.js inlineMint;
 // crypto-sourced, never Math.random). Shared by goal + (future) item CLI mints. ──
@@ -510,7 +533,7 @@ function parseGoal(text) {
       continue;
     }
     const m = line.match(/^([A-Za-z0-9_]+):\s?(.*)$/);
-    if (m) fm[m[1]] = stripQuotes(m[2].trim());
+    if (m) fm[m[1]] = GOAL_LIST_FIELDS.has(m[1]) ? parseScalarOrList(m[2], true) : stripQuotes(m[2].trim());
     i++;
   }
   return { fm, milestones: milestones.map(normalizeMilestone), body };
@@ -536,6 +559,10 @@ function serializeGoalFrontmatter(fm, milestones) {
   const keys = GOAL_FIELD_ORDER.filter((k) => k in fm)
     .concat(Object.keys(fm).filter((k) => !GOAL_FIELD_ORDER.includes(k) && k !== 'milestones'));
   const lines = keys.map((k) => {
+    if (GOAL_LIST_FIELDS.has(k)) {
+      const arr = Array.isArray(fm[k]) ? fm[k] : (fm[k] ? [fm[k]] : []);
+      return `${k}: ${arr.length ? '[' + arr.join(', ') + ']' : '[]'}`;
+    }
     const v = fm[k];
     const rendered = (v === undefined || v === null || v === '')
       ? '' : (k === 'title' && needsQuote(String(v)) ? JSON.stringify(String(v)) : String(v));
@@ -716,6 +743,121 @@ function archiveGoal(tasksDir, id, todayIso) {
   return dest;
 }
 
+// ── Attachment & effective resolution (story 260705-ebm, design §3) ──
+
+// Build the in-memory {project-slug → goal-id} map by scanning goals'
+// attached_projects lists (D8/AC2 — the goal file is the source of truth, never
+// registry.json). A project listed on two goals is a validation error: a project
+// maps to at most one goal. Goals lacking attached_projects contribute nothing.
+function buildProjectGoals(goals) {
+  const map = {};
+  for (const g of goals || []) {
+    const fm = g.fm || {};
+    const slugs = Array.isArray(fm.attached_projects) ? fm.attached_projects : [];
+    for (const slug of slugs) {
+      if (!slug) continue;
+      if (Object.prototype.hasOwnProperty.call(map, slug) && map[slug] !== fm.id) {
+        throw new Error(`project '${slug}' is attached to two goals (${map[slug]} and ${fm.id}); a project maps to at most one goal.`);
+      }
+      map[slug] = fm.id;
+    }
+  }
+  return map;
+}
+
+// Pure effective-goal resolution (INV-4/INV-5, design §3.2). Accepts a loaded item
+// ({fm:{…}}) or a flat frontmatter object. Precedence: explicit detach ('none') →
+// null; a direct task.goal → that id; else the project's inherited goal; else null.
+// Single function ⇒ a task counts toward a goal at most once (no double-count).
+function effectiveGoal(task, projectGoals) {
+  const fm = (task && task.fm) ? task.fm : (task || {});
+  const g = (fm.goal === undefined || fm.goal === null) ? '' : String(fm.goal).trim();
+  if (g === 'none') return null;            // explicit detach wins (D5)
+  if (g !== '') return g;                    // direct link wins over inherit
+  const proj = (fm.project === undefined || fm.project === null) ? '' : String(fm.project).trim();
+  if (proj && projectGoals && Object.prototype.hasOwnProperty.call(projectGoals, proj)) return projectGoals[proj];
+  return null;
+}
+
+// A milestone attaches only when the goal is set DIRECTLY on the task — inherited
+// (project-level) goals attach at goal level, never milestone (design §3.2).
+function effectiveMilestone(task) {
+  const fm = (task && task.fm) ? task.fm : (task || {});
+  const g = (fm.goal === undefined || fm.goal === null) ? '' : String(fm.goal).trim();
+  if (g === '' || g === 'none') return null;
+  const ms = (fm.milestone === undefined || fm.milestone === null) ? '' : String(fm.milestone).trim();
+  return ms === '' ? null : ms;
+}
+
+// ── Attach / detach verbs (INV-6). Each validates its target BEFORE any write, so
+// attaching to a non-existent goal/milestone errors and mutates nothing on disk. ──
+
+function attachTaskToGoal(tasksDir, taskId, goalId, milestoneRef) {
+  const goal = loadGoal(tasksDir, goalId);
+  if (!goal) throw new Error(`no goal '${goalId}'.`);
+  if (milestoneRef) {
+    if (!(goal.milestones || []).some((m) => m.ref === milestoneRef)) {
+      throw new Error(`goal '${goalId}' has no milestone '${milestoneRef}'.`);
+    }
+  }
+  const file = findItemFile(tasksDir, taskId);
+  if (!file) throw new Error(`no task '${taskId}'.`);
+  const it = readItem(file);
+  it.fm.goal = goal.fm.id || goalId;
+  it.fm.milestone = milestoneRef || '';
+  it.fm.schema_version = '3';
+  it.fm.updated = isoToday();
+  writeItemAtomic(file, serializeItem(it.fm, it.body));
+  return file;
+}
+
+function detachTask(tasksDir, taskId, opts) {
+  const file = findItemFile(tasksDir, taskId);
+  if (!file) throw new Error(`no task '${taskId}'.`);
+  const it = readItem(file);
+  it.fm.goal = (opts && opts.clear) ? '' : 'none'; // default: explicit detach (wins over inherit)
+  it.fm.milestone = '';
+  it.fm.schema_version = '3';
+  it.fm.updated = isoToday();
+  writeItemAtomic(file, serializeItem(it.fm, it.body));
+  return file;
+}
+
+function attachProjectToGoal(tasksDir, slug, goalId) {
+  if (!slug) throw new Error('project slug is required.');
+  const goals = loadAllGoals(tasksDir);
+  const target = goals.find((g) => g.fm.id === goalId || path.basename(g.file).startsWith(`${goalId}-`) || path.basename(g.file) === `${goalId}`);
+  if (!target) throw new Error(`no goal '${goalId}'.`);
+  for (const g of goals) { // at-most-one-goal-per-project (AC2)
+    if (g.fm.id === target.fm.id) continue;
+    if ((Array.isArray(g.fm.attached_projects) ? g.fm.attached_projects : []).includes(slug)) {
+      throw new Error(`project '${slug}' is already attached to goal '${g.fm.id}'; detach it first.`);
+    }
+  }
+  const list = Array.isArray(target.fm.attached_projects) ? target.fm.attached_projects.slice() : [];
+  if (!list.includes(slug)) list.push(slug);
+  target.fm.attached_projects = list;
+  target.fm.updated = isoToday();
+  saveGoal(tasksDir, target);
+  return target.file;
+}
+
+function detachProject(tasksDir, slug) {
+  const goals = loadAllGoals(tasksDir);
+  let changed = null;
+  for (const g of goals) {
+    const list = Array.isArray(g.fm.attached_projects) ? g.fm.attached_projects : [];
+    if (list.includes(slug)) {
+      g.fm.attached_projects = list.filter((s) => s !== slug);
+      g.fm.updated = isoToday();
+      saveGoal(tasksDir, g);
+      changed = g.file;
+    }
+  }
+  if (!changed) throw new Error(`project '${slug}' is not attached to any goal.`);
+  return changed;
+}
+
 // ── main-module --selftest (AC6): a quick smoke that never fires on require ──
 function goalSelftest() {
   const os = require('os');
@@ -745,13 +887,16 @@ module.exports = {
   addDays, addMonthsClamp, nextWeekday, advanceByRecur, isValidRecur,
   validateField, parseNLDate, inferType, parseQuickAdd,
   itemsDir, listItemFiles, readItem, findItemFile, loadAllItems,
-  writeItemAtomic, renderIndex, migrateWorkstreamKey, isoToday, appendToSection, listSort,
+  writeItemAtomic, renderIndex, migrateWorkstreamKey, normalizeTaskSchema, isoToday, appendToSection, listSort,
   // goals collection
-  GOAL_ENUMS, GOAL_FIELD_ORDER,
+  GOAL_ENUMS, GOAL_FIELD_ORDER, GOAL_LIST_FIELDS,
   parseGoal, serializeGoal, serializeGoalFrontmatter, normalizeMilestone,
   milestonesBlock, regenerateMilestonesBody, nextMilestoneRef, validateGoal,
   goalsDir, archiveDirFor, listGoalFiles, readGoal, findGoalFile,
   loadAllGoals, loadGoal, saveGoal, archiveGoal,
+  // attachment & effective resolution (S2)
+  buildProjectGoals, effectiveGoal, effectiveMilestone,
+  attachTaskToGoal, detachTask, attachProjectToGoal, detachProject,
 };
 
 // AC6: --selftest guarded by a main-module check so it never fires on require().
