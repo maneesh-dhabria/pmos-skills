@@ -1024,8 +1024,98 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 <li><strong>Analytics and data warehouses</strong> — the OLAP side: how product data flows from the live database into the systems your dashboards read.</li>
 <li><strong>Cloud infrastructure and cost</strong> — managed databases, how replication and storage drive the bill, and the scaling levers behind it.</li>
 </ul>
-
-  </main>
+<h2 id="references">References</h2>
+<ol class="primer-references">
+<li>
+<a href="https://www.mongodb.com/resources/basics/databases/acid-transactions">mongodb.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">ACID is no longer relational-only: 'While early NoSQL databases lacked ACID compliance, modern systems like MongoDB provide full support for ACID transactions at scale.'</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Database">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">A database is an organized collection of data, and the DBMS is the software that manages it: 'a database is an organized collection of data... based on the use of a database management system (DBMS), the software that interacts with end users, applications, and the database itself to capture and analyze the data.'</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Relational_model">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">The relational model, introduced by Edgar Codd in 1969, lets you query data declaratively without knowing how it is stored: it is 'an approach to managing data using a structure and language consistent with first-order predicate logic.'</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Relational_database">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">A relational database organizes data into tables linked by keys: 'A relational model organizes data into one or more tables (or "relations") of columns and rows, with a unique key identifying each row.'</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Table_(database)">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">A table holds related records in rows and columns: 'a table is a set of data elements (values) using a model of vertical columns and horizontal rows.'</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/SQL">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">SQL is the standard language for querying relational data; it 'introduced the concept of accessing many records with one single command,' a leap over earlier record-at-a-time APIs.</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Query_optimization">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">The database, not you, decides how to run a query efficiently: 'The purpose of query optimization, which is an automated process, is to find the way to process a given query in minimum time.'</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Database_schema">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">A schema is the blueprint of the data: 'the schema defines the tables, fields, relationships, views, indexes, packages, procedures, functions, queues, triggers, types, sequences, materialized views, synonyms' and more.</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Primary_key">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">A primary key is the column(s) that uniquely identifies a row: 'a designated set of attributes (column(s)) that can reliably identify and distinguish between each individual record in a table.'</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Foreign_key">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">A foreign key wires one table to another: it is 'a set of attributes that references a candidate key' — usually the primary key of a related table.</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Database_normalization">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Normalization splits data to avoid redundancy and update bugs: a key objective is to 'free the collection of relations from undesirable insertion, update and deletion dependencies.'</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Database_index">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">An index is the trade that makes reads fast and writes a little slower: it 'improves the speed of data retrieval operations on a database table at the cost of additional writes and storage space.'</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Database_transaction">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">A transaction is an all-or-nothing unit of work: it must be 'atomic (it must either be complete in its entirety or have no effect whatsoever).'</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/ACID">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">ACID (Atomicity, Consistency, Isolation, Durability) is the reliability contract for transactions: each one 'is treated as a single "unit", which either succeeds completely or fails completely.'</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/NoSQL">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">NoSQL drops fixed tables for flexible formats and 'scales easily to manage large, often unstructured datasets,' using key-value pairs, documents, and graphs instead of rows and columns.</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Document-oriented_database">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Document stores keep each record as a self-contained unit: 'documents as self-contained units that encapsulate and encode data in a standardized format' such as JSON, so different records can have different shapes.</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Key%E2%80%93value_database">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">A key-value store is the simplest NoSQL shape: it treats 'the value as opaque to the database itself, and typically support[s] only simple operations such as storing, retrieving, updating, and deleting a value by its key.'</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Replication_(computing)">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Replication keeps copies of the data on multiple servers for availability: 'In single-leader (also called primary/replica) replication, one database instance is designated as the leader (primary), which handles all write operations.'</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Shard_(database_architecture)">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Sharding splits the rows themselves across servers to scale out: 'Each shard may be held on a separate database server instance in order to spread [load] across multiple servers.'</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/CAP_theorem">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">The CAP theorem names the unavoidable trade-off in distributed databases: 'if there is a network partition, one has to choose between consistency or availability.'</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Eventual_consistency">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Eventual consistency trades instant agreement for availability: replicas may briefly disagree, but 'a system that has achieved eventual consistency is said to have converged, or achieved replica convergence.'</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Online_transaction_processing">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Workload shape decides the database: OLTP handles many small live reads/writes, while 'OLAP is generally optimized for read-only operations' for analytics — the same data often lives in both.</p>
+</li>
+</ol>
+</main>
   <footer class="pmos-artifact-footer" data-pmos-role="footer">
     <a class="pmos-wordmark pmos-wordmark--footer" href="https://github.com/maneesh-dhabria/pmos-skills/tree/main/plugins/pmos-learnkit#readme" target="_blank" rel="noopener noreferrer" data-pmos-role="wordmark" aria-label="pmos">pmos</a>
     <span class="pmos-artifact-source">Source: docs/pmos/primer/2026-06-13_how-databases-work.html</span>

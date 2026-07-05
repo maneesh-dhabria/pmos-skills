@@ -1042,8 +1042,70 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
   <li><strong>Model fine-tuning and RLHF in practice</strong> — when and how teams actually customize a model's weights, and what it costs versus prompting or retrieval.</li>
   <li><strong>AI ethics, bias, and safety</strong> — how training data shapes behaviour, where bias enters, and what "alignment" and responsible deployment require.</li>
 </ul>
-
-  </main>
+<h2 id="references">References</h2>
+<ol class="primer-references">
+<li>
+<a href="https://learn.microsoft.com/en-us/agent-framework/journey/llm-fundamentals">learn.microsoft.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">Microsoft Learn frames an LLM as "just two things": "Model weights — billions of numerical parameters learned during training that encode the model's knowledge" and the "architecture code" (typically a Transformer) that runs them. It stresses the PM-facing consequence of tokens: "Pricing is typically per-token," "Context windows are measured in tokens," and "Longer prompts use more tokens, cost more, and leave less room for the model's response."</p>
+</li>
+<li>
+<a href="https://developers.google.com/machine-learning/crash-course/llm/transformers">developers.google.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">Google's Machine Learning Crash Course explains self-attention as answering "How much does each other token of input affect the interpretation of this token?" — in "The animal didn't cross the street because it was too tired," attention rates "animal" as most relevant to "it," but swapping "tired" for "wide" makes "street" more relevant. It notes transformers contain "hundreds of billion or even trillions of parameters," and that more parameters "consistently outperform" fewer.</p>
+</li>
+<li>
+<a href="https://huggingface.co/learn/llm-course/chapter2/4">huggingface.co</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">Hugging Face's tokenizers chapter explains that tokenizers "translate text into data that can be processed by the model" because "models can only process numbers." Word-based tokenization creates huge vocabularies and unknown tokens; character-based makes long sequences with little meaning; subword tokenization follows "the principle that frequently used words should not be split into smaller subwords, but rare words should be decomposed into meaningful subwords," giving "good coverage with small vocabularies, and close to no unknown tokens."</p>
+</li>
+<li>
+<a href="https://huggingface.co/learn/llm-course/en/chapter1/4">huggingface.co</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">Hugging Face explains LLMs are trained with self-supervised learning — "the objective is automatically computed from the inputs of the model," so human labels are not needed. Attention layers let a model "pay specific attention to certain words in the sentence ... (and more or less ignore the others)." Pretraining trains "from scratch: the weights are randomly initialized"; fine-tuning is "the training done after a model has been pretrained," needing far less data.</p>
+</li>
+<li>
+<a href="https://jalammar.github.io/illustrated-transformer/">jalammar.github.io</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">Jay Alammar's Illustrated Transformer breaks self-attention into three learned vectors per token: "a Query vector, a Key vector, and a Value vector ... created by multiplying the embedding by three matrices." A score is "the dot product of the query vector with the key vector"; scores are softmax-normalized, then each value is weighted and summed. Multi-head attention "expands the model's ability to focus on different positions" and gives "multiple representation subspaces."</p>
+</li>
+<li>
+<a href="https://magazine.sebastianraschka.com/p/llm-training-rlhf-and-its-alternatives">magazine.sebastianraschka.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">Sebastian Raschka breaks RLHF (reinforcement learning from human feedback) into three steps: supervised fine-tuning on human-written responses; a reward model trained on human rankings of model outputs (its "next-token classification layer is substituted with a regression layer" outputting one score); then policy optimization with "proximal policy optimization (PPO)." Pretraining uses raw "next-word prediction"; supervised fine-tuning uses "instruction-output pairs" on "much smaller datasets."</p>
+</li>
+<li>
+<a href="https://www.databricks.com/glossary/retrieval-augmented-generation-rag">databricks.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">Databricks defines retrieval-augmented generation (RAG) as "a hybrid AI framework that bolsters large language models (LLMs) by combining them with external, up-to-date data sources," retrieving "semantically similar documents" from a vector database and adding them to the prompt to "produce more accurate, context-aware answers grounded in enterprise-specific or up-to-date data." It "attempts to mitigate the risk of responding with ... hallucinations" and works "without needing to customize the model."</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Large_language_model">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Wikipedia defines a large language model as "a neural network trained on a vast amount of text for natural language processing tasks, especially language generation," first pretrained "to predict the next word" then fine-tuned via techniques like RLHF. It names hallucination directly: models "generate syntactically fluent text that appears factually sound, but is internally inconsistent with training data or factually incorrect."</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Word_embedding">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Wikipedia defines a word embedding as "a real-valued vector that encodes the meaning of the word," where "words or phrases from the vocabulary are mapped to vectors of real numbers." The load-bearing principle: "words that are closer in the vector space are expected to be similar in meaning," reflecting that "a word is characterized by the company it keeps."</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Transformer_(deep_learning_architecture)">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Wikipedia describes the transformer as "a family of artificial neural network architectures based on the multi-head attention mechanism, in which text is converted to numerical representations called tokens," each "contextualized within the scope of the context window with other (unmasked) tokens." Born in the 2017 paper "Attention Is All You Need," it "has no recurrent units," needing "less training time than earlier recurrent neural architectures (RNNs)"; its "parallelizability" drove adoption at scale.</p>
+</li>
+<li>
+<a href="https://machinelearningmastery.com/the-journey-of-a-token-what-really-happens-inside-a-transformer/">machinelearningmastery.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Machine Learning Mastery traces a token's path: tokenize to an identifier, add "information about the position of that token in the sequence," pass through multi-headed attention to get "a context-enriched or context-aware token representation," then feed-forward layers that "further transform and refine the token features." A final "linear output layer followed by a softmax" produces logits then probabilities; the next token "is then selected — often the one with the highest probability, though sampling-based decoding strategies are also common."</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Hallucination_(artificial_intelligence)">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Wikipedia defines an AI hallucination as "a response generated by AI that contains false or misleading information presented as fact." The mechanism is structural: predicting the next word "incentivizes GPT models to 'give a guess' about what the next word is, even when they lack information," because training "rewards guessing over acknowledging uncertainty." Hallucinations sound authoritative — models have fabricated citations and "a very impressive-sounding answer that's just dead wrong."</p>
+</li>
+<li>
+<a href="https://www.promptingguide.ai/introduction/basics">promptingguide.ai</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">The Prompt Engineering Guide defines prompt engineering as "designing effective prompts to instruct the model to perform a desired task," where "the quality of results depends on how much information you provide it and how well-crafted the prompt is." Few-shot prompting (showing a few labeled examples) enables "in-context learning, which is the ability of language models to learn tasks given a few demonstrations."</p>
+</li>
+<li>
+<a href="https://www.assemblyai.com/blog/large-language-models-for-product-managers-5-things-to-know">assemblyai.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">AssemblyAI's PM guide flags the economics: pretraining a model "like PaLM" runs "10 to 20 million US dollars," and "the total amount of available training data might be the true bottleneck." It warns LLMs "may exhibit undesirable behavior, such as reproducing harmful or biased content, or generating hallucinations by fabricating false facts," and frames acceptable behavior as helpfulness, truthfulness, and harmlessness — a model meeting these is "aligned" with human values.</p>
+</li>
+<li>
+<a href="https://productschool.com/blog/artificial-intelligence/gen-ai-product-managers">productschool.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Product School maps the three ways PMs adapt an LLM to a domain: prompting via "system prompts," fine-tuning on custom datasets, and RAG to "combine retrieval and generative models" for "highly contextual information" from organization-specific data. On tradeoffs: "Larger, more powerful models may incur higher usage fees," often charging "per token, request, or compute time," while smaller models can run faster, and operations must "comply with relevant data protection regulations such as GDPR."</p>
+</li>
+</ol>
+</main>
   <footer class="pmos-artifact-footer" data-pmos-role="footer">
     <a class="pmos-wordmark pmos-wordmark--footer" href="https://github.com/maneesh-dhabria/pmos-skills/tree/main/plugins/pmos-learnkit#readme" target="_blank" rel="noopener noreferrer" data-pmos-role="wordmark" aria-label="pmos">pmos</a>
     <span class="pmos-artifact-source">Source: docs/pmos/primer/2026-06-14_how-llms-work.html</span>

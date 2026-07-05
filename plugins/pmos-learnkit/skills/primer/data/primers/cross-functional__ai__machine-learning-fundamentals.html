@@ -1040,8 +1040,74 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
   <li><strong>MLOps and model monitoring</strong> — the production discipline of deploying, watching for drift, and retraining models over their lifetime.</li>
   <li><strong>AI ethics, bias, and fairness</strong> — how training data shapes model behaviour, and the responsibilities that come with deploying learned systems.</li>
 </ul>
-
-  </main>
+<h2 id="references">References</h2>
+<ol class="primer-references">
+<li>
+<a href="https://aws.amazon.com/compare/the-difference-between-machine-learning-supervised-and-unsupervised/">aws.amazon.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">AWS frames the master split: "Supervised learning algorithms train on sample data that specifies both the algorithm's input and output" to "Predict an output based on known inputs," while "Unsupervised learning algorithms train on unlabeled data" to "discover hidden patterns in unlabeled data." Supervised suits "problems with known outcomes" like spam classification and price prediction; unsupervised suits recommendation and customer segmentation.</p>
+</li>
+<li>
+<a href="https://developers.google.com/machine-learning/crash-course/linear-regression/gradient-descent">developers.google.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">Google's Machine Learning Crash Course defines gradient descent as "a mathematical technique that iteratively finds the weights and bias that produce the model with the lowest loss." It repeats three steps — calculate the loss with current weight and bias, "Determine the direction to move the weights and bias that reduce loss," then "Move the weight and bias values a small amount in the direction that reduces loss" — until a model converges, when "additional iterations don't reduce loss."</p>
+</li>
+<li>
+<a href="https://www.datacamp.com/tutorial/bias-variance-tradeoff">datacamp.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">DataCamp defines bias as "the error that comes from making overly simple assumptions about your data" (causing underfitting) and variance as how "sensitive your model is to the specific training data you use" (causing overfitting). The tradeoff is the "tension between these two error sources — when you decrease one, you almost always increase the other"; the goal is "the point where their combined effect gives you the lowest test error."</p>
+</li>
+<li>
+<a href="https://developers.google.com/machine-learning/crash-course/classification/accuracy-precision-recall">developers.google.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">Google defines accuracy as "the proportion of all classifications that were correct," precision as "the proportion of all the model's positive classifications that are actually positive," and recall as "the proportion of all actual positives that were classified correctly." It warns accuracy misleads on imbalanced data — "a model that predicts negative 100% of the time would score 99% on accuracy, despite being useless" — and that precision and recall "often show an inverse relationship."</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Machine_learning">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Wikipedia defines machine learning as "a field of study in artificial intelligence concerned with the development and study of statistical algorithms that can learn from data and generalize to unseen data, and thus perform tasks without being explicitly programmed." It cites Tom Mitchell's operational definition — a program "learn[s] from experience E with respect to some class of tasks T and performance measure P if its performance at tasks in T, as measured by P, improves with experience E" — and notes Arthur Samuel coined the term in 1959.</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Reinforcement_learning">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Wikipedia defines reinforcement learning as "concerned with how an intelligent agent should take actions in a dynamic environment in order to maximize a reward signal." The agent learns by trial and error, balancing "trying new actions to learn more about the environment (exploration), or using current knowledge to take the best action (exploitation)," with successes in robot control and game playing (backgammon, checkers, Go).</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Feature_engineering">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Wikipedia explains that in machine learning "Each input comprises several attributes, known as features," and feature engineering "transforms raw data into a more effective set of inputs" by "selecting, creating, transforming, and extracting data features." It matters because "By providing models with relevant information, feature engineering significantly enhances their predictive accuracy," and good feature selection helps "prevent a model from becoming too specific to the training data set (overfitting)."</p>
+</li>
+<li>
+<a href="https://machinelearningmastery.com/gradient-descentthe-engine-of-machine-learning-optimization/">machinelearningmastery.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Machine Learning Mastery frames the loss function as the component that "measures how 'wrong' the model's predictions are; the objective is to minimize this value," and gradient descent as "an iterative optimization algorithm used to minimize a cost (or loss) function by strategically adjusting model parameters" — "descending the mountain of error." The learning rate "determines your step size" and is "a critical hyperparameter that dictates success of the optimization."</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Training,_validation,_and_test_data_sets">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Wikipedia defines the three splits: the training set is "used to fit the parameters (e.g., weights)"; the validation set is "used to tune the hyperparameters (i.e. the architecture)"; and the test set is "independent of the training data set" and gives "an unbiased evaluation of a model fit on the training data set." The test set must stay held out because it "provides an accurate and honest evaluation of the model's final performance on unseen data."</p>
+</li>
+<li>
+<a href="https://www.geeksforgeeks.org/machine-learning/underfitting-and-overfitting-in-machine-learning/">geeksforgeeks.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">GeeksforGeeks defines underfitting as when "the model is too simple and does not cover all real patterns in the data," and overfitting as when "the model learns not just the underlying pattern, but also noise or random quirks in the training data" — performing "very well on training data but poorly on test data." Remedies include "Collect more training data," "Reduce model complexity," "Use regularization," and "Use early stopping."</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Generalization_error">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Wikipedia defines generalization error as a measure of "how accurately an algorithm is able to predict outcomes for previously unseen data," warning that "measurements of prediction error on the current data may not provide much information about the algorithm's predictive ability on new, unseen data." It ties the gap to overfitting: when "the learned function becomes sensitive to the noise in the sample," "the more overfitting occurs, the larger the generalization error."</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Cross-industry_standard_process_for_data_mining">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Wikipedia describes CRISP-DM (the Cross-Industry Standard Process for Data Mining) as six phases: Business Understanding, Data Understanding, Data Preparation, Modeling, Evaluation, and Deployment. It is explicitly iterative — "The sequence of the phases is not strict and moving back and forth between different phases is usually required" — and "A data mining process continues after a solution has been deployed," with lessons triggering new questions.</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Deep_learning">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Wikipedia defines deep learning as "a class of machine learning algorithms in which a hierarchy of layers is used to transform input data into a progressively more abstract and composite representation," where "features are not hand-crafted and the model discovers useful feature representations from the data automatically." "Deep" refers to "the number of layers"; its rise was powered by GPUs, which "by 2019 ... had displaced CPUs as the dominant method for training large-scale commercial cloud AI."</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Concept_drift">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Wikipedia defines concept drift as when "the statistical properties of the target variable, which the model is trying to predict, change over time in unforeseen ways," so "the learned predictions may become invalid." Because "concept drift cannot be avoided for complex phenomena that are not governed by fixed laws of nature," "periodic retraining ... of any model is necessary," and a drifted model "must be replaced by a new one to restore prediction accuracy."</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Leakage_(machine_learning)">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Wikipedia defines data leakage as "the use of information during model training that would not be available at prediction time," producing "overly optimistic performance estimates, as the model appears to perform better during evaluation than it actually would in a production environment." Forms include feature leakage (e.g., using "MonthlySalary" to predict "YearlySalary") and train-test contamination; a 2023 review called it "a widespread failure mode" across 294 publications.</p>
+</li>
+<li>
+<a href="https://productschool.com/blog/artificial-intelligence/great-machine-learning-product-management-google">productschool.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Product School (via Google's Ruben Lozano) lists when to use ML — problems with "very complex logic," that "Scales-up fast," need real-time adaptation or personalization, and have "existing examples of actual answers" — and when to avoid it: problems that "Can be solved by simple rules," don't adapt, "Require full interpretability," or "Require 100% accuracy." PMs must "make tradeoffs" (false positives vs false negatives, white box vs black box), come with "a clear, preferably data-driven, problem and hypothesis," and remember "ML creates tech debt."</p>
+</li>
+</ol>
+</main>
   <footer class="pmos-artifact-footer" data-pmos-role="footer">
     <a class="pmos-wordmark pmos-wordmark--footer" href="https://github.com/maneesh-dhabria/pmos-skills/tree/main/plugins/pmos-learnkit#readme" target="_blank" rel="noopener noreferrer" data-pmos-role="wordmark" aria-label="pmos">pmos</a>
     <span class="pmos-artifact-source">Source: docs/pmos/primer/2026-06-14_machine-learning-fundamentals.html</span>

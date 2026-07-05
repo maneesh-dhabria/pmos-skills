@@ -1004,8 +1004,82 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 <li><strong>DevOps</strong> — how large systems are deployed and kept running in production, where redundancy and high availability become daily operational practice.</li>
 <li><strong>APIs</strong> — the interfaces that let the services and microservices in these architectures talk to each other.</li>
 </ul>
-
-  </main>
+<h2 id="references">References</h2>
+<ol class="primer-references">
+<li>
+<a href="https://github.com/donnemartin/system-design-primer">github.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">The System Design Primer is the canonical free, open-source curation for this topic — its stated goal is to help engineers "Learn how to design large-scale systems" and "Prep for the system design interview," organizing the whole landscape into one map.</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Scalability">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Scalability is a system's capacity to handle growing load, achieved two ways: "Scaling horizontally (out/in) means adding or removing nodes, such as adding a new computer to a distributed software application," versus scaling vertically by adding more power to one machine.</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Latency_(engineering)">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Latency is the delay between a request and its response, and it has a floor you cannot buy your way under: "Latency is physically a consequence of the limited velocity at which any physical interaction can propagate."</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/State_(computer_science)">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">A stateless server keeps no memory of past requests, so any copy can handle any request — which is exactly why stateless designs scale out so easily, while stateful ones "must maintain this history, creating dependencies that complicate horizontal scaling."</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Microservices">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Microservices split one big application into many small, independently deployable services — "Complex service assemblies are abstracted behind simple URI interfaces" — trading a simpler codebase for the operational complexity of running a distributed system.</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Reverse_proxy">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">A reverse proxy (the basis of an API gateway) is the front door that hides the servers behind it: it "appears to any client to be an ordinary web server, but in reality merely acts as an intermediary that forwards the client's requests to one or more ordinary web servers."</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Load_balancing_(computing)">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">A load balancer spreads incoming requests across a pool of servers so none gets overwhelmed, "making their overall processing more efficient" and avoiding the case where some machines are overloaded while others sit idle.</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Cache_(computing)">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">A cache stores copies of hot data in faster storage so repeat requests skip the slow original lookup — and the economics are blunt: "the more requests that can be served from the cache, the faster the system performs."</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Content_delivery_network">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">A content delivery network (CDN) is caching moved geographically close to users, placing copies at edge locations to "provide high availability and performance (\"speed\") through geographical distribution relative to end users."</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Database">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">A database is the organized system of record managed by a database management system (DBMS); the central modern fork is structure versus flexibility — relational SQL databases enforce strict tables, while NoSQL databases "avoid join operations by storing denormalized data."</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Shard_(database_architecture)">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Sharding scales a database by splitting its rows across machines: "Each shard may be held on a separate database server instance in order to spread across multiple servers," which adds capacity at the cost of harder cross-shard queries.</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Replication_(computing)">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Replication keeps multiple copies of data on different machines so that "systems can continue operating when components fail (failover), serve requests from geographically distributed locations, and balance load across multiple machines."</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Message_queue">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">A message queue lets one part of a system hand work to another without waiting: "Messages placed onto the queue are stored until the recipient retrieves them," so a traffic spike fills the queue instead of crashing the worker.</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Redundancy_(engineering)">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Redundancy is the deliberate doubling-up that buys reliability: "the intentional duplication of critical components or functions of a system with the goal of increasing reliability," so one failed part does not stop the whole.</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Single_point_of_failure">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">A single point of failure is the thing you must hunt for and eliminate — "a part of a system that would stop the entire system from working if it were to fail" — and redundancy exists precisely to remove these.</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/High_availability">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">High availability is the goal redundancy serves, stated as a target: "a characteristic of a system that aims to ensure an agreed level of operational performance, usually uptime, for a higher than normal period," commonly quoted in "nines."</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/CAP_theorem">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">The CAP theorem names the trade-off you cannot escape in a distributed system: "if there is a network partition, one has to choose between consistency or availability" — you cannot have both when the network splits.</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Eventual_consistency">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Eventual consistency is the availability-favoring side of that trade-off: "if no new updates are made to a given data item, eventually all read accesses to that item will return the last updated value" — fast and always-on, but briefly out of date.</p>
+</li>
+</ol>
+</main>
   <footer class="pmos-artifact-footer" data-pmos-role="footer">
     <a class="pmos-wordmark pmos-wordmark--footer" href="https://github.com/maneesh-dhabria/pmos-skills/tree/main/plugins/pmos-learnkit#readme" target="_blank" rel="noopener noreferrer" data-pmos-role="wordmark" aria-label="pmos">pmos</a>
     <span class="pmos-artifact-source">Source: docs/pmos/primer/2026-06-14_engineering-system-design.html</span>

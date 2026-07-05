@@ -1003,8 +1003,74 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 <li><strong>Platform engineering and developer experience</strong> — the evolving discipline of building internal platforms as products.</li>
 <li><strong>Security and DevSecOps</strong> — shifting security left into the delivery pipeline rather than bolting it on at the end.</li>
 </ul>
-
-  </main>
+<h2 id="references">References</h2>
+<ol class="primer-references">
+<li>
+<a href="https://cloud.google.com/blog/products/devops-sre/using-the-four-keys-to-measure-your-devops-performance">cloud.google.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T1)</span>
+<p class="ref-takeaway">The four key metrics split into two speed measures (deployment frequency, lead time for changes) and two stability measures (change failure rate, time to restore service); "by measuring these values, and continuously iterating to improve on them, a team can achieve significantly better business outcomes."</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/DevOps">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">DevOps unites software development and IT operations to ship faster without sacrificing stability: it is "a set of practices intended to reduce the time between committing a change to a system and the change being placed into normal production."</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Agile_software_development">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">DevOps extends agile's collaboration ethos from building to running software; agile's lineage is captured in the manifesto value "Individuals and interactions over processes and tools."</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Version_control">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Version control is the bedrock everything else builds on — "the software engineering practice of controlling, organizing, and tracking different versions in history of computer files," giving every change a record and a way back.</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/CI/CD">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">CI/CD is the automated assembly line of DevOps: it "bridges the gaps between development and operation activities and teams by enforcing automation in building, testing and deployment of applications."</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Continuous_integration">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Continuous integration means merging small changes often and checking them automatically: "developers merge changes to an integration branch, and an automated system builds and tests the software system" on every merge.</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Continuous_delivery">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Continuous delivery keeps software always shippable so a release is a business decision, not a scramble; continuous deployment goes further — it "can be considered a more sophisticated form of automation" by removing the manual approval step.</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Continuous_deployment">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Continuous deployment removes the last human gate: it "extends the principles of continuous integration and delivery by including fully automated production deployment without the need for manual approval."</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Infrastructure_as_code">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Infrastructure as code manages servers and networks the way teams manage software — "managing and provisioning computer data center resources through machine-readable definition files, rather than via physical hardware configuration or interactive configuration tools" — making environments reproducible and reviewable.</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Observability_(software)">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Observability is knowing what a live system is doing from the signals it emits — "the ability to measure a system's current state based on the data it generates, such as logs, metrics, and traces" — so teams can debug problems they did not anticipate.</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Incident_management">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Incident management is the discipline of getting back to normal fast: its primary goal is to "restore a normal service operation as quickly as possible and to minimize the impact on business operations."</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Postmortem_documentation">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">After an incident, a postmortem turns failure into learning — a structured review "intended to inform process improvements which mitigate future risks and to promote iterative best practices," ideally blameless so people surface the truth.</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Site_reliability_engineering">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Site reliability engineering (SRE) applies software engineering to operations, owning "a combination of system availability, latency, performance, efficiency, change management, monitoring, emergency response, and capacity planning" via tools like SLOs and error budgets.</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/DevOps_Research_and_Assessment">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">DORA (DevOps Research and Assessment, now at Google Cloud) defines four metrics — deployment frequency, change lead time, failure rate, and recovery time — but cautioned in October 2023 against misusing them "to evaluate team-by-team performance."</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/DevSecOps">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">DevSecOps folds security into the pipeline instead of bolting it on at the end: "Security practices and testing are performed earlier in the development lifecycle, hence the term 'shift left.'"</p>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Platform_engineering">en.wikipedia.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Platform engineering is the evolving next chapter — building internal developer platforms and treating them "as a product, applying product management principles to ensure they meet the evolving needs of engineering teams."</p>
+</li>
+</ol>
+</main>
   <footer class="pmos-artifact-footer" data-pmos-role="footer">
     <a class="pmos-wordmark pmos-wordmark--footer" href="https://github.com/maneesh-dhabria/pmos-skills/tree/main/plugins/pmos-learnkit#readme" target="_blank" rel="noopener noreferrer" data-pmos-role="wordmark" aria-label="pmos">pmos</a>
     <span class="pmos-artifact-source">Source: docs/pmos/primer/2026-06-14_what-is-devops.html</span>
