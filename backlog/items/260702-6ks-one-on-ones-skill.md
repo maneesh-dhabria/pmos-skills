@@ -4,18 +4,21 @@ id: 260702-6ks
 title: "/one-on-one skill — per-report rolling records, add/note/plan/log/career verbs, bundled coaching corpus"
 type: feature
 kind: story
-status: planned
+status: in-progress
 route: skill
 priority: should
 labels: [pmos-managerkit, one-on-one, skill]
 created: 2026-07-02
-updated: 2026-07-02
+updated: 2026-07-05
 parent: 260702-z77
 dependencies: []
+claimed_by: "build:b0e236c5-8aab-4a88-8bd7-4d40d8d8e0bc"
+driver_holder: "build:b0e236c5-8aab-4a88-8bd7-4d40d8d8e0bc"
 design_doc: docs/pmos/features/2026-07-02_one-on-ones/02_design.html
 plan_doc: docs/pmos/features/2026-07-02_one-on-ones/stories/260702-6ks/03_plan.html
 feature_folder: docs/pmos/features/2026-07-02_one-on-ones/
-worktree:
+worktree: agent-skills-260702-6ks
+branch: feat/260702-6ks
 ---
 
 ## Context
