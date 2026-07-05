@@ -4,7 +4,7 @@ id: 260702-ww7
 title: "/morning-brief action lane — batch-review one-confirm, /mytasks task creation with dedupe, source-native dismissals, observe+correct rule capture"
 type: feature
 kind: story
-status: in-progress
+status: done
 route: skill
 priority: should
 labels: [pmos-toolkit, morning-brief, mytasks, actions, skill]
@@ -16,9 +16,25 @@ design_doc: docs/pmos/features/2026-07-02_morning-brief/02_design.html
 plan_doc: docs/pmos/features/2026-07-02_morning-brief/stories/260702-ww7/03_plan.html
 feature_folder: docs/pmos/features/2026-07-02_morning-brief/
 worktree: ../agent-skills-260702-ww7
-claimed_by: build:6ebbc55f-ba70-406e-83ac-4a1c6b85ccd9
-driver_holder: build:6ebbc55f-ba70-406e-83ac-4a1c6b85ccd9
+branch: feat/260702-ww7
+build_commit: 2c610f57
 ---
+
+## Build result (2026-07-05)
+
+**PASS** — /morning-brief action lane built on feat/260702-ww7 (b6q dep-merged). All 7 ACs met.
+
+- **AC1 batch confirm** — Phases 8–10 (confirm→act→correct); one numbered editable proposal
+  {create/dismiss/leave}, confirmed once; proposal printed in the brief (render-brief marker).
+- **AC2 create + dedupe** — `scripts/create-task.mjs` mints via /mytasks' own lib (byte-compatible id/shape/serializer, source link in `links` + body); `scripts/dedupe.mjs` exact source-link match + SKILL-layer title-similarity judgment.
+- **AC3 source-native dismissals** — Phase 9 step 2: runtime-resolved connector actions per §4; per-action verbatim report; failure derives back next run (INV-1).
+- **AC4 observe+correct** — Phase 10: diff confirm-step edits → synthesize → per-rule approval → `lib.appendRuleToStore`.
+- **AC5 NI defer** — `#defer` contract; both mutation asks tagged `defer-only: destructive`; NI-defer fixture proof 6/6.
+- **AC6 tests** — dedupe selftest 10/0; b6q read-only lane regression-free (lib 40/0, render-brief 18/0); create-task 15/0.
+- **AC7 conformance** — skill-eval `[D]` all pass + `[J]` all pass (independent reviewer, no residuals); 4 hygiene lints + audit-recommended (4 calls, 4 defer-only) green.
+
+INV-5 added to the invariants; description/verbs/§H updated; phases renumbered 4–12.
+**Next: Loop-3 `/complete-dev --epic 260702-kck`** merges b6q + ww7 (both feat branches unmerged).
 
 ## Context
 
