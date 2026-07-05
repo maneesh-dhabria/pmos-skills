@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <!--
-  Scorecard — case-presentation round (candidate presents a case to a PANEL).
-  Instantiates the canonical DOM contract in reference/scorecard-skeleton.html.
-  data-weight across dims sums to 100. Self-contained HTML — no external assets.
+  Analytical round scorecard — /interview-feedback (pmos-managerkit).
+  Instantiates the canonical scorecard DOM contract (../../scorecard-skeleton.html).
+  5 dimensions; data-weight values sum to 100. Self-contained HTML — no external assets.
 -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="pmos:skill" content="interview-feedback">
-<title>Scorecard — Case presentation — {{candidate}}</title>
+<title>Scorecard — {{round_name}} — {{candidate}}</title>
 <style>
   :root{
     --bg:#f8f5ef; --surface:#fff; --border:#e2dac9; --rule:#d9cfbd;
@@ -31,9 +31,7 @@
   .scale{display:flex;gap:.4rem;margin:.6rem 0}
   .scale [data-v]{display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;border:1px solid var(--border);border-radius:6px;font-family:var(--mono);cursor:default}
   .scale [data-v][data-selected]{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700}
-  .anchors{display:flex;justify-content:space-between;gap:1rem;font-family:var(--sans);font-size:.78rem;color:var(--muted);margin:.1rem 0 .3rem}
-  .anchors span{max-width:46%}
-  .anchors span:last-child{text-align:right}
+  .scale-caption{font-family:var(--sans);font-size:.78rem;color:var(--muted);margin:.1rem 0 .2rem}
   .notes{font-size:.95rem;margin:.5rem 0 0}
   .notes[data-input^="notes"]:empty::before{content:"— not yet scored —";color:var(--muted);font-style:italic}
   .flags{display:flex;gap:2rem;margin:.6rem 0 0;font-family:var(--sans);font-size:.88rem}
@@ -49,105 +47,90 @@
 </style>
 </head>
 <body>
-<main data-card="scorecard" data-archetype="case-presentation">
-  <h1>Case presentation — Scorecard</h1>
-  <p class="sub">case-presentation round · candidate presents to a panel · weights sum to 100</p>
+<main data-card="scorecard" data-archetype="analytical">
+  <h1>{{round_name}} — Scorecard</h1>
+  <p class="sub">analytical round · weights sum to 100</p>
   <div class="meta">
     <span>Candidate: {{candidate}}</span>
     <span>Round: {{round_name}}</span>
-    <span>Panelist: {{lead_interviewer}}</span>
+    <span>Interviewer: {{lead_interviewer}}</span>
     <span>Date: {{date}}</span>
   </div>
 
-  <section class="dim" data-dim="presentation-structure" data-weight="20">
+  <section class="dim" data-dim="metric-definition" data-weight="20">
     <div class="dim-head">
-      <span class="dim-name">Presentation structure</span>
+      <span class="dim-name">Metric definition</span>
       <span class="weight">weight 20</span>
     </div>
     <div class="scale" data-scale="1-4">
       <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
     </div>
-    <div class="anchors">
-      <span>1 — No narrative arc; slides are a data dump the panel has to assemble.</span>
-      <span>4 — Tight problem → insight → recommendation arc the panel can follow without effort.</span>
-    </div>
-    <div class="notes" data-input="notes:presentation-structure"></div>
+    <p class="scale-caption">1 = vague metrics · 4 = precise, well-chosen metrics with rationale</p>
+    <div class="notes" data-input="notes:metric-definition"></div>
     <div class="flags">
       <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
       <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
     </div>
   </section>
 
-  <section class="dim" data-dim="executive-communication" data-weight="25">
+  <section class="dim" data-dim="problem-structuring" data-weight="20">
     <div class="dim-head">
-      <span class="dim-name">Executive communication</span>
-      <span class="weight">weight 25</span>
-    </div>
-    <div class="scale" data-scale="1-4">
-      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
-    </div>
-    <div class="anchors">
-      <span>1 — In the weeds; makes the panel dig for the takeaway.</span>
-      <span>4 — Leads with the answer at exec-appropriate altitude, drills down only on request.</span>
-    </div>
-    <div class="notes" data-input="notes:executive-communication"></div>
-    <div class="flags">
-      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
-      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
-    </div>
-  </section>
-
-  <section class="dim" data-dim="handling-pushback" data-weight="25">
-    <div class="dim-head">
-      <span class="dim-name">Handling pushback &amp; Q&amp;A</span>
-      <span class="weight">weight 25</span>
-    </div>
-    <div class="scale" data-scale="1-4">
-      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
-    </div>
-    <div class="anchors">
-      <span>1 — Defensive or folds the moment a panelist challenges a claim.</span>
-      <span>4 — Engages challenges head-on; updates with grace or defends with reason.</span>
-    </div>
-    <div class="notes" data-input="notes:handling-pushback"></div>
-    <div class="flags">
-      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
-      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
-    </div>
-  </section>
-
-  <section class="dim" data-dim="depth-under-scrutiny" data-weight="20">
-    <div class="dim-head">
-      <span class="dim-name">Depth under scrutiny</span>
+      <span class="dim-name">Problem structuring</span>
       <span class="weight">weight 20</span>
     </div>
     <div class="scale" data-scale="1-4">
       <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
     </div>
-    <div class="anchors">
-      <span>1 — Reasoning collapses the moment the panel probes a layer deeper.</span>
-      <span>4 — Substance holds up to panel drill-down; knows the work behind the slide.</span>
-    </div>
-    <div class="notes" data-input="notes:depth-under-scrutiny"></div>
+    <p class="scale-caption">1 = unstructured · 4 = clean MECE decomposition of the question</p>
+    <div class="notes" data-input="notes:problem-structuring"></div>
     <div class="flags">
       <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
       <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
     </div>
   </section>
 
-  <section class="dim" data-dim="message-prioritization" data-weight="10">
+  <section class="dim" data-dim="hypothesis-and-diagnosis" data-weight="25">
     <div class="dim-head">
-      <span class="dim-name">Message prioritization</span>
-      <span class="weight">weight 10</span>
+      <span class="dim-name">Hypothesis &amp; diagnosis</span>
+      <span class="weight">weight 25</span>
     </div>
     <div class="scale" data-scale="1-4">
       <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
     </div>
-    <div class="anchors">
-      <span>1 — Buries the point; everything weighted equally so nothing lands.</span>
-      <span>4 — Ruthless about what matters most; the one thing to remember is unmistakable.</span>
+    <p class="scale-caption">1 = guesses · 4 = prioritized hypotheses, isolates the driver with data</p>
+    <div class="notes" data-input="notes:hypothesis-and-diagnosis"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
     </div>
-    <div class="notes" data-input="notes:message-prioritization"></div>
+  </section>
+
+  <section class="dim" data-dim="estimation" data-weight="15">
+    <div class="dim-head">
+      <span class="dim-name">Estimation &amp; sizing</span>
+      <span class="weight">weight 15</span>
+    </div>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <p class="scale-caption">1 = hand-wavy · 4 = transparent assumptions, sanity-checked numbers</p>
+    <div class="notes" data-input="notes:estimation"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
+    </div>
+  </section>
+
+  <section class="dim" data-dim="tradeoff-reasoning" data-weight="20">
+    <div class="dim-head">
+      <span class="dim-name">Tradeoff reasoning</span>
+      <span class="weight">weight 20</span>
+    </div>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <p class="scale-caption">1 = one-sided · 4 = weighs options against the metric, states a defensible call</p>
+    <div class="notes" data-input="notes:tradeoff-reasoning"></div>
     <div class="flags">
       <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
       <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>

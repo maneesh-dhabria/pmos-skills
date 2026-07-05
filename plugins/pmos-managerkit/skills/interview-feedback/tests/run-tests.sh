@@ -17,6 +17,8 @@ fi
 SKILL_DIR="$(cd "$TESTS_DIR/.." && pwd)"
 SCRIPTS="$SKILL_DIR/scripts"
 REF="$SKILL_DIR/reference"
+# The guidelines corpus + skeletons + rubric live in the plugin-shared substrate (story 260702-cqf).
+GUIDE="$SKILL_DIR/../_shared/interview-guidelines"
 
 fail() { echo "FAIL: $*" >&2; exit 1; }
 pass=0
@@ -45,16 +47,16 @@ pass=$((pass+1))
 
 echo "== skill-level smoke: DOM contract coherence =="
 # The scorecard skeleton is THE contract; the rubric + notes skeleton must instantiate it.
-grep -q 'data-card="scorecard"' "$REF/scorecard-skeleton.html"        || fail "scorecard skeleton missing data-card anchor"
-grep -q 'data-ref="round"'       "$REF/reference-skeleton.html"        || fail "reference skeleton missing data-ref anchor"
-grep -q 'data-card="scorecard"'  "$REF/interviewer-effectiveness.html" || fail "rubric does not instantiate the scorecard contract"
+grep -q 'data-card="scorecard"' "$GUIDE/scorecard-skeleton.html"        || fail "scorecard skeleton missing data-card anchor"
+grep -q 'data-ref="round"'       "$GUIDE/reference-skeleton.html"        || fail "reference skeleton missing data-ref anchor"
+grep -q 'data-card="scorecard"'  "$GUIDE/interviewer-effectiveness.html" || fail "rubric does not instantiate the scorecard contract"
 grep -q 'data-output="interviewer-notes"' "$REF/interviewer-notes-skeleton.html" || fail "notes skeleton missing output anchor"
 pass=$((pass+1))
 
 echo "== skill-level smoke: rubric has 8 weighted dimensions summing to 100 =="
-ndim="$(grep -o 'data-dim="[^"]*"' "$REF/interviewer-effectiveness.html" | wc -l | tr -d ' ')"
+ndim="$(grep -o 'data-dim="[^"]*"' "$GUIDE/interviewer-effectiveness.html" | wc -l | tr -d ' ')"
 [ "$ndim" = "8" ] || fail "rubric expected 8 data-dim sections, found $ndim"
-sum="$(grep -o 'data-weight="[0-9]*"' "$REF/interviewer-effectiveness.html" | grep -o '[0-9]*' | awk '{s+=$1} END{print s}')"
+sum="$(grep -o 'data-weight="[0-9]*"' "$GUIDE/interviewer-effectiveness.html" | grep -o '[0-9]*' | awk '{s+=$1} END{print s}')"
 [ "$sum" = "100" ] || fail "rubric weights expected to sum to 100, got $sum"
 pass=$((pass+1))
 

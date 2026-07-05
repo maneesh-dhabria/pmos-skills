@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <!--
-  Analytical round scorecard — /interview-feedback (pmos-managerkit).
-  Instantiates the canonical scorecard DOM contract (reference/scorecard-skeleton.html).
-  5 dimensions; data-weight values sum to 100. Self-contained HTML — no external assets.
+  Behavioral round scorecard — /interview-feedback (pmos-managerkit), design §16.1 + §16.7.
+  Instantiates the canonical scorecard DOM contract (../../scorecard-skeleton.html).
+  5 dimensions, data-weight values sum to 100. STAR-grounded evidence expected in every note.
+  Self-contained HTML — no external assets, editable in a browser.
 -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="pmos:skill" content="interview-feedback">
-<title>Scorecard — {{round_name}} — {{candidate}}</title>
+<title>Scorecard — Behavioral — {{candidate}}</title>
 <style>
   :root{
     --bg:#f8f5ef; --surface:#fff; --border:#e2dac9; --rule:#d9cfbd;
@@ -24,6 +25,8 @@
   h1{font-family:var(--sans);font-size:1.55rem;margin:0 0 .2rem}
   .sub{color:var(--muted);font-size:.9rem;margin:0 0 1.6rem;font-family:var(--sans)}
   .meta{display:flex;flex-wrap:wrap;gap:1.2rem;font-family:var(--sans);font-size:.85rem;color:var(--muted);border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:.7rem 0;margin-bottom:1.8rem}
+  .star{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.8rem 1.1rem;margin:0 0 1.6rem;font-size:.9rem;font-family:var(--sans);color:var(--muted)}
+  .star strong{color:var(--text)}
   .dim{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin:0 0 1rem}
   .dim-head{display:flex;justify-content:space-between;align-items:baseline;gap:1rem}
   .dim-name{font-family:var(--sans);font-weight:600;font-size:1.02rem}
@@ -31,7 +34,9 @@
   .scale{display:flex;gap:.4rem;margin:.6rem 0}
   .scale [data-v]{display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;border:1px solid var(--border);border-radius:6px;font-family:var(--mono);cursor:default}
   .scale [data-v][data-selected]{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700}
-  .scale-caption{font-family:var(--sans);font-size:.78rem;color:var(--muted);margin:.1rem 0 .2rem}
+  .anchors{display:flex;justify-content:space-between;gap:1rem;font-family:var(--sans);font-size:.78rem;color:var(--muted);margin:0 0 .3rem}
+  .anchors .lo{max-width:46%}
+  .anchors .hi{max-width:46%;text-align:right}
   .notes{font-size:.95rem;margin:.5rem 0 0}
   .notes[data-input^="notes"]:empty::before{content:"— not yet scored —";color:var(--muted);font-style:italic}
   .flags{display:flex;gap:2rem;margin:.6rem 0 0;font-family:var(--sans);font-size:.88rem}
@@ -47,90 +52,113 @@
 </style>
 </head>
 <body>
-<main data-card="scorecard" data-archetype="analytical">
-  <h1>{{round_name}} — Scorecard</h1>
-  <p class="sub">analytical round · weights sum to 100</p>
+<main data-card="scorecard" data-archetype="behavioral">
+  <h1>Behavioral — Scorecard</h1>
+  <p class="sub">behavioral round · weights sum to 100</p>
   <div class="meta">
     <span>Candidate: {{candidate}}</span>
-    <span>Round: {{round_name}}</span>
+    <span>Round: Behavioral</span>
     <span>Interviewer: {{lead_interviewer}}</span>
     <span>Date: {{date}}</span>
   </div>
 
-  <section class="dim" data-dim="metric-definition" data-weight="20">
-    <div class="dim-head">
-      <span class="dim-name">Metric definition</span>
-      <span class="weight">weight 20</span>
-    </div>
-    <div class="scale" data-scale="1-4">
-      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
-    </div>
-    <p class="scale-caption">1 = vague metrics · 4 = precise, well-chosen metrics with rationale</p>
-    <div class="notes" data-input="notes:metric-definition"></div>
-    <div class="flags">
-      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
-      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
-    </div>
-  </section>
+  <div class="star">
+    <strong>Score from evidence, not impression.</strong> Each note should cite a real past
+    <strong>S</strong>ituation, the candidate's <strong>T</strong>ask, the specific
+    <strong>A</strong>ctions <em>they</em> took (not "we"), and the measurable
+    <strong>R</strong>esult. Reward concrete, owned STAR stories; discount hypotheticals and
+    vague team-credit.
+  </div>
 
-  <section class="dim" data-dim="problem-structuring" data-weight="20">
+  <section class="dim" data-dim="leadership-and-influence" data-weight="25">
     <div class="dim-head">
-      <span class="dim-name">Problem structuring</span>
-      <span class="weight">weight 20</span>
-    </div>
-    <div class="scale" data-scale="1-4">
-      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
-    </div>
-    <p class="scale-caption">1 = unstructured · 4 = clean MECE decomposition of the question</p>
-    <div class="notes" data-input="notes:problem-structuring"></div>
-    <div class="flags">
-      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
-      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
-    </div>
-  </section>
-
-  <section class="dim" data-dim="hypothesis-and-diagnosis" data-weight="25">
-    <div class="dim-head">
-      <span class="dim-name">Hypothesis &amp; diagnosis</span>
+      <span class="dim-name">Leadership &amp; influence</span>
       <span class="weight">weight 25</span>
     </div>
+    <div class="anchors">
+      <span class="lo">1 — no influence without authority</span>
+      <span class="hi">4 — drives outcomes across teams without authority</span>
+    </div>
     <div class="scale" data-scale="1-4">
       <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
     </div>
-    <p class="scale-caption">1 = guesses · 4 = prioritized hypotheses, isolates the driver with data</p>
-    <div class="notes" data-input="notes:hypothesis-and-diagnosis"></div>
+    <div class="notes" data-input="notes:leadership-and-influence"></div>
     <div class="flags">
       <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
       <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
     </div>
   </section>
 
-  <section class="dim" data-dim="estimation" data-weight="15">
+  <section class="dim" data-dim="conflict-navigation" data-weight="20">
     <div class="dim-head">
-      <span class="dim-name">Estimation &amp; sizing</span>
-      <span class="weight">weight 15</span>
-    </div>
-    <div class="scale" data-scale="1-4">
-      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
-    </div>
-    <p class="scale-caption">1 = hand-wavy · 4 = transparent assumptions, sanity-checked numbers</p>
-    <div class="notes" data-input="notes:estimation"></div>
-    <div class="flags">
-      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
-      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
-    </div>
-  </section>
-
-  <section class="dim" data-dim="tradeoff-reasoning" data-weight="20">
-    <div class="dim-head">
-      <span class="dim-name">Tradeoff reasoning</span>
+      <span class="dim-name">Conflict navigation</span>
       <span class="weight">weight 20</span>
     </div>
+    <div class="anchors">
+      <span class="lo">1 — avoids or escalates blindly</span>
+      <span class="hi">4 — surfaces conflict, finds durable resolution</span>
+    </div>
     <div class="scale" data-scale="1-4">
       <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
     </div>
-    <p class="scale-caption">1 = one-sided · 4 = weighs options against the metric, states a defensible call</p>
-    <div class="notes" data-input="notes:tradeoff-reasoning"></div>
+    <div class="notes" data-input="notes:conflict-navigation"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
+    </div>
+  </section>
+
+  <section class="dim" data-dim="ownership" data-weight="20">
+    <div class="dim-head">
+      <span class="dim-name">Ownership &amp; bias for action</span>
+      <span class="weight">weight 20</span>
+    </div>
+    <div class="anchors">
+      <span class="lo">1 — blames or waits</span>
+      <span class="hi">4 — takes end-to-end ownership, acts under ambiguity</span>
+    </div>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="notes" data-input="notes:ownership"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
+    </div>
+  </section>
+
+  <section class="dim" data-dim="stakeholder-management" data-weight="20">
+    <div class="dim-head">
+      <span class="dim-name">Stakeholder management</span>
+      <span class="weight">weight 20</span>
+    </div>
+    <div class="anchors">
+      <span class="lo">1 — one-directional</span>
+      <span class="hi">4 — aligns execs/eng/design proactively</span>
+    </div>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="notes" data-input="notes:stakeholder-management"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
+    </div>
+  </section>
+
+  <section class="dim" data-dim="self-awareness" data-weight="15">
+    <div class="dim-head">
+      <span class="dim-name">Self-awareness &amp; growth</span>
+      <span class="weight">weight 15</span>
+    </div>
+    <div class="anchors">
+      <span class="lo">1 — no real reflection</span>
+      <span class="hi">4 — specific failures + what changed after</span>
+    </div>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="notes" data-input="notes:self-awareness"></div>
     <div class="flags">
       <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
       <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
