@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-05 — pmos-managerkit 0.4.0: new skill — /one-on-one
+
+**`/one-on-one` helps managers run effective 1:1s across every direct report.** Keep a per-report thread of what you talked about and what you each committed to, and let the skill prepare each upcoming 1:1 for you: it drafts a prep agenda that carries forward open action items, surfaces topics you flagged, and raises coaching prompts — including a nudge when a career conversation is overdue. Log a session afterward in your own words (it won't fabricate a summary from an empty log), track check-in cadence per person, and get an at-a-glance overview across your reports. It's deliberately self-contained — it doesn't reach into `/interview-feedback` or `/mytasks`, and it never writes inside your repo working tree, so your management notes stay in their own store.
+
 ## 2026-07-05 — pmos-toolkit 2.101.0: new skill — /morning-brief
 
 **`/morning-brief` sweeps your declared sources into one trustworthy, show-everything morning brief.** Instead of a tool-by-tool morning check, point it at the sources you care about — email, calendar, doc-collaboration comments, and more — and it produces a single ranked brief of what arrived overnight, with a per-run coverage manifest that tells you honestly which sources it reached and which it couldn't, so you never get a false sense of coverage. It learns from how you triage (observe-and-correct heuristics rather than silent ranking rot), and closes the loop on action: items in the brief can be batch-confirmed into real tracked tasks — minted straight through the `/mytasks` library so they're byte-identical to tasks you create by hand — or dismissed in their source. Built to stay trustworthy in week four, not just on day one.
