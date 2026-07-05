@@ -10,10 +10,11 @@ route: skill
 dependencies: []
 plugin: pmos-managerkit
 status: done
+released: 0.3.0
 feature_folder: docs/pmos/features/2026-07-02_interview-guide/
 plan_doc: docs/pmos/features/2026-07-02_interview-guide/02_design.html
 tasks: docs/pmos/features/2026-07-02_interview-guide/stories/260702-cqf/tasks.yaml
-worktree: agent-skills-260702-cqf
+worktree:
 branch: feat/260702-cqf
 claimed_by: "build:b0e236c5-8aab-4a88-8bd7-4d40d8d8e0bc"
 driver_holder: "build:b0e236c5-8aab-4a88-8bd7-4d40d8d8e0bc"

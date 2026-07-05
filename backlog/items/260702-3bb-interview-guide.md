@@ -4,7 +4,8 @@ id: 260702-3bb
 title: "/interview-guide — author interview guides (interviewer reference + scoring sheet + candidate-facing case document) grounded in the shared PM-round guidelines corpus"
 type: feature
 kind: epic
-status: defined
+status: released
+released: 0.3.0
 route: skill
 priority: should
 labels: [pmos-managerkit, interview-guide, interview-feedback, hiring, skill]
