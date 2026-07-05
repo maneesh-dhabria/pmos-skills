@@ -4,7 +4,8 @@ id: 260704-rgt
 title: "/primer References section — surface each primer's full verified source set as a bottom `## References` section (all sources, cited ones marked), backfill all 61 bundled primers, and make it a rubric-enforced guideline for new primers"
 type: feature
 kind: epic
-status: defined
+status: released
+released: 0.33.0
 route: skill
 priority: should
 labels: [pmos-learnkit, primer, references, corpus, skill]

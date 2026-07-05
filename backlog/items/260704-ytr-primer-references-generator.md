@@ -5,6 +5,7 @@ title: "/primer References — shared deterministic generator + forward wiring (
 type: feature
 kind: story
 status: done
+released: 0.33.0
 route: skill
 priority: should
 labels: [pmos-learnkit, primer, references, skill]
@@ -15,7 +16,7 @@ dependencies: []
 design_doc: docs/pmos/features/2026-07-04_primer-references/02_design.html
 plan_doc: docs/pmos/features/2026-07-04_primer-references/stories/260704-ytr/03_plan.html
 feature_folder: docs/pmos/features/2026-07-04_primer-references/
-worktree: agent-skills-260704-ytr
+worktree:
 claimed_by: "build:b0e236c5-8aab-4a88-8bd7-4d40d8d8e0bc"
 driver_holder: "build:b0e236c5-8aab-4a88-8bd7-4d40d8d8e0bc"
 ---
