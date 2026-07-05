@@ -113,7 +113,7 @@ Resolve the **storage root** and the **inputs**.
 
 1. **Root.** Precedence: `--root <path>` → `.pmos/settings.yaml :: managerkit.interview_root` → built-in default `./interviews/`. Call `scripts/storage.sh resolve-root` (it applies the same precedence and prints the absolute root). Inside a git repo, `storage.sh` installs/refreshes a **gitignore guard** so confidential candidate data is never committed; if the guard cannot be written, warn and continue (the operator is responsible — see § Confidentiality).
 2. **Locate the round.** From the inputs (or `--round`/`--candidate`), resolve the round folder under the role per the storage layout (§ Storage). New candidate → `scripts/storage.sh new-candidate <role> <round> <candidate>` creates the folder and copies each raw input into `inputs/` verbatim (never mutate originals).
-3. **Reference resolution.** Resolve the round's interviewer-reference + scorecard: `--reference <path>` wins; else the round-level guideline under `guidelines/<round>/`; else fall back to the role-level default. Under `--non-interactive`, if resolution is ambiguous, **DEFER** (log an open question) rather than guessing — see the non-interactive block. (Full precedence + the interviewer model lead/shadow/panel wiring live in `reference/reference-resolution.md`.)
+3. **Reference resolution.** Resolve the round's interviewer-reference + scorecard: `--reference <path>` wins; else the round-level guideline under `guidelines/<round>/`; else fall back to the role-level default. Under `--non-interactive`, if resolution is ambiguous, **DEFER** (log an open question) rather than guessing — see the non-interactive block. (Full precedence + the interviewer model lead/shadow/panel wiring live in `../_shared/interview-guidelines/reference-resolution.md`.)
 
 ## Phase: Transcribe {#transcribe}
 
@@ -137,7 +137,7 @@ Every subjective claim in either output carries `<cite data-cite-tier="transcrip
 
 ## Phase: Score {#score}
 
-Fill the scorecard. Read the round's scorecard via its machine anchors (`reference/scorecard-skeleton.html` is the contract: `data-dim`, `data-weight`, `data-scale`, `data-v`, `data-input="notes:<dim>"`, `data-flags`, `data-input="reco"`). `scripts/fill-scorecard.mjs` parses the anchors → dimensions/scales/flags and produces `filled-scorecard.html`.
+Fill the scorecard. Read the round's scorecard via its machine anchors (`../_shared/interview-guidelines/scorecard-skeleton.html` is the contract: `data-dim`, `data-weight`, `data-scale`, `data-v`, `data-input="notes:<dim>"`, `data-flags`, `data-input="reco"`). `scripts/fill-scorecard.mjs` parses the anchors → dimensions/scales/flags and produces `filled-scorecard.html`.
 
 **Foreign scorecard (no anchors).** If the round's scorecard lacks the anchors, infer the dimensions/scales from its DOM, then: interactive → echo the inferred structure for confirmation before filling; non-interactive → fill but log every inference as an open question. Never silently guess.
 
@@ -183,11 +183,11 @@ Score each dimension on its own scale with grounded notes + flags, then set the 
 
 ## Phase: Coach {#coach}
 
-Emit **interviewer-effectiveness notes** (output b), one section per interviewer, scored against `reference/interviewer-effectiveness.html` (the bundled researched rubric — structured/consistent questioning, probing depth, leading-question avoidance, talk-time balance, coverage, bias mitigation, note quality, calibration). Each interviewer's lead/shadow/panel role (from `role.json`) sets expectations. Subjective claims carry the same `data-cite-tier`; per-interviewer claims that could not be attributed are flagged with attribution-confidence. Re-run `check-citations.mjs` over this output too.
+Emit **interviewer-effectiveness notes** (output b), one section per interviewer, scored against `../_shared/interview-guidelines/interviewer-effectiveness.html` (the bundled researched rubric — structured/consistent questioning, probing depth, leading-question avoidance, talk-time balance, coverage, bias mitigation, note quality, calibration). Each interviewer's lead/shadow/panel role (from `role.json`) sets expectations. Subjective claims carry the same `data-cite-tier`; per-interviewer claims that could not be attributed are flagged with attribution-confidence. Re-run `check-citations.mjs` over this output too.
 
 ## Phase: Setup {#setup}
 
-Scaffold a role's interview process. Compile the JD + process into `role/00_jd-and-process.html`; define the rounds (each an archetype from the 7 bundled PM round types or `custom`); for each round, attach the provided interviewer-reference + scorecard or generate them by instantiating `reference/reference-skeleton.html` + `reference/scorecard-skeleton.html`. Write `role.json` (§ role.json). `setup` runs unattended under `--non-interactive` (round/archetype choices AUTO-PICK their Recommended option; genuinely missing inputs DEFER).
+Scaffold a role's interview process. Compile the JD + process into `role/00_jd-and-process.html`; define the rounds (each an archetype from the 7 bundled PM round types or `custom`); for each round, attach the provided interviewer-reference + scorecard or generate them by instantiating `../_shared/interview-guidelines/reference-skeleton.html` + `../_shared/interview-guidelines/scorecard-skeleton.html`. Write `role.json` (§ role.json). `setup` runs unattended under `--non-interactive` (round/archetype choices AUTO-PICK their Recommended option; genuinely missing inputs DEFER).
 
 ## Phase: List {#list}
 
