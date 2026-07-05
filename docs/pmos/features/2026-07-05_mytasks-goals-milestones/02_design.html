@@ -1,0 +1,145 @@
+<meta name="pmos:skill" content="spec">
+<title>Design — /mytasks goals &amp; milestones</title>
+
+<style>
+  body { max-width: 56rem; margin: 2rem auto; padding: 0 1.25rem; font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: #1a1a1a; }
+  h1 { font-size: 1.7rem; line-height: 1.2; margin: 0 0 .25rem; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 .6rem; padding-bottom: .3rem; border-bottom: 2px solid #ececec; }
+  h3 { font-size: 1.02rem; margin: 1.4rem 0 .4rem; }
+  .sub { color: #666; margin: 0 0 1.5rem; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; margin: .5rem 0; }
+  th, td { text-align: left; vertical-align: top; padding: .5rem .6rem; border-bottom: 1px solid #eee; }
+  th { background: #fafafa; font-size: .78rem; text-transform: uppercase; letter-spacing: .03em; color: #555; }
+  code { background: #f2f2f2; padding: .05rem .3rem; border-radius: 4px; font-size: .88em; }
+  pre { background: #f7f7f7; border: 1px solid #eee; border-radius: 8px; padding: .8rem 1rem; overflow-x: auto; font-size: .85rem; }
+  ul, ol { padding-left: 1.3rem; }
+  .inv { font-weight: 600; color: #b8431a; }
+  section { overflow-x: auto; }
+</style>
+
+<h1>/mytasks goals &amp; milestones — Design</h1>
+<p class="sub">Epic 260705-n2n · route: skill · the cross-story coherence contract (stories cite these anchors) · 2026-07-05</p>
+
+<section id="overview">
+<h2>1. Overview &amp; architecture</h2>
+<p>Add a durable <strong>goal</strong> entity (new file kind) to the existing <code>/mytasks</code> store, with embedded dated <strong>milestones</strong>. Tasks and projects <em>attach</em> to goals; two deterministic <strong>pace signals</strong> per goal (schedule adherence + attention allocation) plus derived progress are computed in <code>lib.js</code> pure functions and surfaced in a <code>goals</code> view, the at-a-glance index, and <code>/morning-brief</code>.</p>
+<p>The design reuses the <code>_shared/tracker-crudl.md</code> substrate (id/slug, <code>created</code>/<code>updated</code>/<code>schema_version</code>, derived-on-read index, archive) — goals are a second tracker collection alongside <code>items/</code>, not a bolt-on. All new machinery lands in the existing skill at <code>plugins/pmos-toolkit/skills/mytasks/</code>.</p>
+</section>
+
+<section id="model">
+<h2>2. Goal &amp; milestone model (binds Story 1)</h2>
+<h3>2.1 Goal file — <code>~/.pmos/tasks/goals/{id}-{slug}.md</code></h3>
+<pre>---
+schema_version: 1
+id: 260705-k2p
+title: Ship the goals feature in /mytasks
+type: dated            # enum: dated | open-ended
+status: active         # enum: active | achieved | dropped
+cadence: weekly        # enum: daily | weekly | biweekly | monthly  (drives attention signal)
+target: 2026-09-30     # optional ISO date (dated goals); bare key on open-ended
+created: 2026-07-05
+updated: 2026-07-05
+milestones:            # ordered list; embedded (machine-read source of truth)
+  - ref: m1
+    description: Data model + CRUD landed
+    due: 2026-07-20
+    met: false
+    met_date:
+  - ref: m2
+    description: Pace signals surfaced
+    due: 2026-08-15
+    met: false
+    met_date:
+---
+
+## Milestones
+- [ ] m1 — Data model + CRUD landed (due 2026-07-20)
+- [ ] m2 — Pace signals surfaced (due 2026-08-15)
+
+## Notes
+Free-form.</pre>
+<p><span class="inv">INV-1</span> The frontmatter <code>milestones:</code> list is the machine-read source of truth; the <code>## Milestones</code> body block is a human mirror regenerated from it (never hand-parsed for computation). <span class="inv">INV-2</span> Milestone <code>ref</code>s are stable within a goal and never reused after deletion.</p>
+<h3>2.2 Enums (closed — the skill validates, never invents)</h3>
+<table>
+<tr><th>Field</th><th>Values</th></tr>
+<tr><td>goal <code>type</code></td><td><code>dated</code>, <code>open-ended</code></td></tr>
+<tr><td>goal <code>status</code></td><td><code>active</code>, <code>achieved</code>, <code>dropped</code></td></tr>
+<tr><td>goal <code>cadence</code></td><td><code>daily</code>, <code>weekly</code>, <code>biweekly</code>, <code>monthly</code> (reuses the check-in enum + window arithmetic)</td></tr>
+</table>
+<p><span class="inv">INV-3</span> <code>achieved</code>/<code>dropped</code> goals are excluded from the active index/pace surfaces and archived per tracker-crudl §6 (archive root <code>~/.pmos/tasks/archive/</code>).</p>
+</section>
+
+<section id="attachment">
+<h2>3. Attachment &amp; effective resolution (binds Story 2)</h2>
+<h3>3.1 Fields &amp; mapping</h3>
+<ul>
+<li>Tasks gain <code>goal:</code> (goal id | <code>none</code> sentinel | empty) and <code>milestone:</code> (milestone ref | empty). Empty = bare key (mytasks empty-optional binding). Task <code>schema_version</code> → 3 (additive; absent/1/2 stay valid via load-time normalization, mirroring <code>migrateWorkstreamKey</code>).</li>
+<li><strong>Project→goal mapping lives in the goal file (D8, grill-2):</strong> each goal carries <code>attached_projects: [&lt;project-slug&gt;, …]</code> in frontmatter — the durable source of truth. The resolver builds the in-memory <code>projectGoals</code> map by scanning goals' <code>attached_projects</code>; <code>registry.json</code> stays the optional, deletable visibility cache it is documented to be (never load-bearing for attachments). A project attached to two goals is a validation error (a project maps to at most one goal).</li>
+</ul>
+<h3>3.2 Effective-goal function (pure, unit-tested — <span class="inv">INV-4</span>)</h3>
+<pre>effectiveGoal(task, projectGoals):
+  if task.goal == 'none':          return null          # explicit detach wins (D5)
+  if task.goal is a valid id:      return task.goal     # direct link wins
+  if task.project in projectGoals: return projectGoals[task.project]   # inherit
+  return null
+effectiveMilestone(task): task.milestone if task.goal set directly; else null
+                          (inherited goals attach at goal level, not milestone)</pre>
+<p><span class="inv">INV-5</span> A task counts toward a goal <strong>at most once</strong> — resolution is a single function, so direct+inherited can't double-count. <span class="inv">INV-6</span> Attaching/detaching never mutates unrelated fields; attach to a non-existent goal/milestone errors and writes nothing.</p>
+</section>
+
+<section id="signals">
+<h2>4. Pace signals &amp; progress (binds Story 3)</h2>
+<p><span class="inv">INV-7 (determinism, §H hard gate)</span> every value below is computed by a <code>lib.js</code> pure function with a <code>--selftest</code>; the model never estimates a number or a band.</p>
+<h3>4.1 Schedule adherence — dated goals only (FR-10)</h3>
+<pre>scheduleSignal(goal, today):
+  if goal.type == 'open-ended': return null            # D2 — never 'behind'
+  incomplete = milestones where not met and not derived-complete
+  if none and all met:          return 'done'
+  next = earliest-due incomplete milestone
+  if next.due &lt; today:          return 'behind'
+  if next.due &lt;= today + AT_RISK_DAYS and derivedProgress(next) &lt; AT_RISK_PCT:
+                                return 'at-risk'
+  return 'on-track'</pre>
+<p><code>AT_RISK_DAYS</code> / <code>AT_RISK_PCT</code> are named constants tuned in the Story 3 plan (default 7 days / 50%).</p>
+<h3>4.2 Attention allocation — all goals (FR-11, D1)</h3>
+<pre>attentionSignal(goal, effectiveTasks, today):
+  if effectiveTasks is empty:   return 'no-tasks-yet'   # grace state — never falsely 'starved'
+  # D7 (grill-1): only REAL progress feeds a goal — a trivial `updated` bump does not.
+  lastProgress = max over effectiveTasks of: completed date, created date
+                 (a bare `updated` timestamp is NOT counted). NOTE: mytasks stamps
+                 `created` + `completed` but not an in-progress transition; if a
+                 status-change stamp is added later, include it here. Plan S3 confirms.
+  window = cadenceWindow(goal.cadence)                  # 1/7/14/~30 days
+  return 'starved' if (today - lastProgress) &gt; window else 'fed'</pre>
+<h3>4.3 Progress (FR-12, D3)</h3>
+<pre>derivedProgress(scope) = completed(effectiveTasks in scope) / total(effectiveTasks in scope)
+milestone.progress = 'met' (manual flag wins) OR derivedProgress(tasks whose milestone==ref)
+goal.progress      = met-milestones + derived roll-up; 'no tasks yet' when total==0</pre>
+<p><span class="inv">INV-8</span> A manual milestone <code>met</code> flag overrides derived progress for that milestone (a milestone can be met without every task done). <span class="inv">INV-9</span> A goal with zero effective tasks reads <em>no-tasks-yet</em> on both progress and attention — never 0% / starved / behind.</p>
+</section>
+
+<section id="surfacing">
+<h2>5. Surfacing (binds Story 3, D4)</h2>
+<ul>
+<li><code>/mytasks goals</code> — derived-on-read view: one row/block per active goal with <code>type</code>, schedule band, attention band, progress, next milestone + due. Behind/starved sorted first.</li>
+<li>Bare <code>/mytasks</code> index — a compact <code>## Goals</code> summary section above the importance buckets, listing only goals that are behind/starved/at-risk (quiet when all healthy).</li>
+<li><code>/morning-brief</code> hook — the brief's pipeline reads the goals collection and emits a "goals needing attention" lane (behind + starved). Integration point, not a new build: mytasks exposes a <code>goalsForBrief()</code> lib function the brief consumes (mirrors how morning-brief reads other sources).</li>
+<li>Web app (<code>webapp/</code> + <code>serve.js</code>) — read-only goal display via a new <code>GET /api/goals</code>; full web CRUD is out of scope.</li>
+</ul>
+</section>
+
+<section id="story-split">
+<h2>6. Story split (3 stories, linear deps)</h2>
+<table>
+<tr><th>Story</th><th>Scope</th><th>Deps</th></tr>
+<tr><td><strong>S1 — goal &amp; milestone core</strong></td><td>§2: goal file kind, schema.md binding, milestones, enums, goal/milestone CRUD verbs, load/save in lib.js, id/slug reuse, tests. No attachment, no signals.</td><td>—</td></tr>
+<tr><td><strong>S2 — attachment &amp; cascade</strong></td><td>§3: <code>goal:</code>/<code>milestone:</code> task fields + migration, <code>projectGoals</code> map, <code>effectiveGoal</code>/<code>effectiveMilestone</code> resolver (INV-4/5/6), <code>attach</code>/<code>detach</code> verbs, tests.</td><td>S1</td></tr>
+<tr><td><strong>S3 — pace signals, progress &amp; surfacing</strong></td><td>§4+§5: schedule + attention signals, derived+manual progress, <code>goals</code> view, index summary, morning-brief hook, read-only web, tests.</td><td>S1, S2</td></tr>
+</table>
+<p>Each story is one <code>/execute</code> run (one session, one PR). Vertical, dependency-clean (D24 litmus holds: S2/S3 depend on S1/S2 at the <em>story</em> level, brought in by the D9 claim-time branch merge). Single plugin (pmos-toolkit), one release unit.</p>
+</section>
+
+<section id="decisions">
+<h2>7. Decisions (D1–D6)</h2>
+<p>See <code>01_requirements.html#decisions</code> — D1 per-goal cadence+recency attention; D2 dated vs open-ended type; D3 derived + manual milestone flag; D4 mytasks view + morning-brief; D5 inherit-by-default, per-task override; D6 new goal entity. <strong>D7 (grill-1):</strong> only real progress (completed/created, not a trivial <code>updated</code> bump) feeds a goal's attention signal. <strong>D8 (grill-2):</strong> the project→goal map lives in the goal file's <code>attached_projects</code>, not in the deletable <code>registry.json</code>. This design realizes them; the invariants above (INV-1…INV-9) are the coherence contract each story's <code>/plan</code> cites by anchor.</p>
+</section>

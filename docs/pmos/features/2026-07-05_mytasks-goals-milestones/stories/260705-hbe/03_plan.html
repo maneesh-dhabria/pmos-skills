@@ -1,0 +1,53 @@
+<meta name="pmos:skill" content="plan">
+<title>Plan — S1 goal &amp; milestone core (260705-hbe)</title>
+<style>body{max-width:52rem;margin:2rem auto;padding:0 1.25rem;font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;color:#1a1a1a}h1{font-size:1.6rem}h2{font-size:1.15rem;margin:2rem 0 .5rem;border-bottom:2px solid #ececec;padding-bottom:.3rem}code{background:#f2f2f2;padding:.05rem .3rem;border-radius:4px;font-size:.88em}ul,ol{padding-left:1.3rem}section{overflow-x:auto}</style>
+
+<h1>Plan — S1 goal &amp; milestone core</h1>
+<p>Story 260705-hbe · epic 260705-n2n · route: skill · plugin pmos-toolkit · skill_dir <code>plugins/pmos-toolkit/skills/mytasks</code></p>
+
+<section id="goal">
+<h2>Goal</h2>
+<p>Build the durable goal entity + embedded dated milestones + CRUD — the "capture" half of Job A. Binds <code>02_design.html §2</code> (INV-1/2/3), decisions D2 (dated/open-ended type), D6 (new goal file kind). No attachment (S2), no signals (S3).</p>
+</section>
+
+<section id="study">
+<h2>Code study (do first)</h2>
+<ul>
+<li><code>scripts/lib.js</code> — the items loader/saver, <code>renderIndex</code>, <code>migrateWorkstreamKey</code>; mirror its shape for a goals collection.</li>
+<li><code>schema.md</code> + <code>_shared/tracker-crudl.md</code> — id/slug rules (§2), created/updated/schema_version (§3), archive (§6). Goals are a second collection under the same substrate.</li>
+<li>The check-in <code>monthly</code> clamp + cadence enum (SKILL <code>#checkin</code>) — reused for the goal <code>cadence</code> enum.</li>
+</ul>
+</section>
+
+<section id="waves">
+<h2>Waves (TDD — see tasks.yaml)</h2>
+<ol>
+<li><strong>T1</strong> schema.md Goals binding (docs, parallel).</li>
+<li><strong>T2</strong> lib.js goals loader/saver + enum validation + body-mirror (test-first; <code>--selftest</code> main-module-guarded).</li>
+<li><strong>T3</strong> goal CRUD verbs (after T2). <strong>T4</strong> milestone verbs (after T2).</li>
+<li><strong>T5</strong> dogfood + skill-eval [D] + 4 lints + audit-recommended.</li>
+</ol>
+</section>
+
+<section id="risks">
+<h2>Decisions &amp; risks</h2>
+<ul>
+<li>Milestone storage = frontmatter list (machine truth) + regenerated body mirror (INV-1) — do not hand-parse the body for computation.</li>
+<li><code>--selftest</code> must be main-module-guarded so it doesn't fire on import (known repo catch).</li>
+<li>Keep the frozen non-interactive block byte-identical (lint is source of truth).</li>
+</ul>
+</section>
+
+<section id="verify">
+<h2>Final verification</h2>
+<ul>
+<li><code>node --test</code> (goal + milestone round-trips, enum validation, archive) green.</li>
+<li>Dogfood: dated goal w/ 2 milestones + open-ended goal; show/edit/met/achieve all correct.</li>
+<li><code>skill-eval-check.sh</code> [D] + 4 hygiene lints + <code>audit-recommended</code> green.</li>
+</ul>
+</section>
+
+<section id="release">
+<h2>Release prerequisites (NOT build-wave tasks — §G, /complete-dev owns)</h2>
+<ul><li>pmos-toolkit <code>plugin.json</code> ×2 minor bump · changelog entry · manifest version-sync · no new README row · learnings header bootstrap. All at Loop 3.</li></ul>
+</section>

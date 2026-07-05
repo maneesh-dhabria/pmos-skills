@@ -1,0 +1,58 @@
+<meta name="pmos:skill" content="plan">
+<title>Plan — S3 pace signals, progress &amp; surfacing (260705-f79)</title>
+<style>body{max-width:52rem;margin:2rem auto;padding:0 1.25rem;font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;color:#1a1a1a}h1{font-size:1.6rem}h2{font-size:1.15rem;margin:2rem 0 .5rem;border-bottom:2px solid #ececec;padding-bottom:.3rem}code{background:#f2f2f2;padding:.05rem .3rem;border-radius:4px;font-size:.88em}ul,ol{padding-left:1.3rem}section{overflow-x:auto}</style>
+
+<h1>Plan — S3 pace signals, progress &amp; surfacing</h1>
+<p>Story 260705-f79 · epic 260705-n2n · route: skill · plugin pmos-toolkit · skill_dir <code>plugins/pmos-toolkit/skills/mytasks</code> · <strong>depends on S1 (260705-hbe) + S2 (260705-ebm)</strong></p>
+
+<section id="goal">
+<h2>Goal</h2>
+<p>The pace-sensing half (Job B) + the visibility half of Job A. Binds <code>02_design.html §4+§5</code> (INV-7 determinism / INV-8 manual-met override / INV-9 grace state), decisions D1/D2/D3/D4/D7. Depends on S1 (goal entity) + S2 (effective resolver) — D9 claim-time merges both branches in.</p>
+</section>
+
+<section id="study">
+<h2>Code study (do first)</h2>
+<ul>
+<li>S2's <code>effectiveGoal</code>/<code>effectiveMilestone</code> — the signals gather each goal's tasks through it.</li>
+<li>The check-in cadence→window arithmetic (reused by <code>cadenceWindow</code>) and <code>renderIndex</code> (mirror for the goals view + <code>## Goals</code> summary).</li>
+<li>The <code>/morning-brief</code> skill's source-read contract — mirror how it reads other sources for the <code>goalsForBrief()</code> hook (integration, not re-implementation).</li>
+<li><code>serve.js</code> route table + <code>webapp/</code> render — for the read-only <code>GET /api/goals</code>.</li>
+</ul>
+</section>
+
+<section id="waves">
+<h2>Waves (TDD — see tasks.yaml)</h2>
+<ol>
+<li><strong>T1</strong> <code>scheduleSignal</code> — dated bands + open-ended→null (named constants AT_RISK_DAYS=7 / AT_RISK_PCT=0.5).</li>
+<li><strong>T2</strong> <code>attentionSignal</code> — real-progress-only (a bare <code>updated</code> bump does NOT feed, D7) + no-tasks-yet grace state (INV-9).</li>
+<li><strong>T3</strong> progress — derived + manual milestone <code>met</code> override (INV-8).</li>
+<li><strong>T4</strong> goals view + index summary (behind/starved first; quiet when healthy) — after T1–T3.</li>
+<li><strong>T5</strong> morning-brief hook — <code>goalsForBrief()</code> + brief lane, verified against the real pipeline.</li>
+<li><strong>T6</strong> read-only web — <code>GET /api/goals</code> (parallel).</li>
+<li><strong>T7</strong> dogfood + skill-eval [D] + 4 lints + audit-recommended + Anti-patterns entries.</li>
+</ol>
+</section>
+
+<section id="risks">
+<h2>Decisions &amp; risks (the ceiling-breaker lives here)</h2>
+<ul>
+<li><strong>Determinism (INV-7, §H hard gate):</strong> every band/number is a <code>lib.js</code> pure function with a <code>--selftest</code>; the SKILL body never estimates a signal.</li>
+<li><strong>Trust — no cry-wolf (the epic's ceiling-breaker):</strong> open-ended goals return <code>null</code> from the schedule signal (never "behind", D2); a zero-task goal reads <em>no-tasks-yet</em> not 0%/starved (INV-9); a trivial <code>updated</code> edit does not feed a goal (D7).</li>
+<li><strong>morning-brief hook</strong> is an integration point — verify a behind/starved goal actually appears in a real <code>/morning-brief</code> run; a healthy-only store adds no lane.</li>
+<li>Web is read-only by design; full web CRUD is out of scope.</li>
+</ul>
+</section>
+
+<section id="verify">
+<h2>Final verification</h2>
+<ul>
+<li><code>node --test</code> + <code>lib --selftest</code>: schedule bands incl. open-ended→null, attention incl. no-tasks-yet + updated-bump-does-not-feed, derived+manual progress, goals-for-brief filter, quiet-when-healthy summary — green.</li>
+<li>Dogfood across on-track / behind / starved / open-ended / zero-task goals; goals view, index summary, morning-brief lane, and web all agree with the pure functions.</li>
+<li><code>skill-eval-check.sh</code> [D] + 4 hygiene lints + <code>audit-recommended</code> green.</li>
+</ul>
+</section>
+
+<section id="release">
+<h2>Release prerequisites (NOT build-wave tasks — §G, /complete-dev owns)</h2>
+<ul><li>The epic's single pmos-toolkit minor release (plugin.json ×2, changelog, manifest-sync) at Loop 3 — after all three stories build.</li></ul>
+</section>

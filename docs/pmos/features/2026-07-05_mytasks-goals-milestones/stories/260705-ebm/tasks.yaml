@@ -1,0 +1,63 @@
+schema_version: 1
+story: 260705-ebm
+epic: 260705-n2n
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-toolkit/skills/mytasks
+# S2 — attachment & cascade. Binds 02_design.html §3 (INV-4/5/6), decisions D5/D8.
+# Depends on S1 (260705-hbe): D9 claim-time merges S1's branch in before build (goal entity present).
+# Reference: skill-patterns.md §A–§L + host CLAUDE.md. Release prereqs are /complete-dev's (§G).
+tasks:
+  - id: T1
+    title: "task schema migration — goal:/milestone: fields + schema_version→3 normalization (TDD)"
+    ac: [AC1]
+    deps: []
+    parallel: false
+    detail: >
+      TEST FIRST: a v2/v1 task (no goal:/milestone:) loads valid and gains bare goal:/milestone: keys on
+      normalization; normalization is idempotent (no-op once done); ids/other fields untouched. THEN in lib.js:
+      extend the item schema with optional goal: (id|'none'|empty) + milestone: (ref|empty), bump written
+      schema_version to 3, add a load-time normalizer mirroring migrateWorkstreamKey (key presence only).
+      Update schema.md task frontmatter section. `node --test` green.
+  - id: T2
+    title: "attached_projects on goals + projectGoals map builder + two-goals-one-project validation (TDD)"
+    ac: [AC2]
+    deps: []
+    parallel: false
+    detail: >
+      TEST FIRST: building projectGoals from goals' attached_projects yields {slug→goalId}; a project listed on
+      two goals raises a clear validation error; registry.json is never read/written for attachments. THEN add
+      attached_projects: [] to the goal schema (S1 loader) + buildProjectGoals(goals) in lib.js. schema.md note:
+      map lives in the goal file, NOT registry.json (D8).
+  - id: T3
+    title: "effectiveGoal/effectiveMilestone resolver — pure, truth-table tested (INV-4/5)"
+    ac: [AC3]
+    deps: [T1, T2]
+    parallel: false
+    detail: >
+      TEST FIRST the full truth table (§3.2): task.goal=='none' → null (detach wins); valid task.goal → that id
+      (direct wins over inherit); no task.goal but project mapped → inherited goal; neither → null;
+      effectiveMilestone = task.milestone only when goal set directly (inherited → null); no-double-count (a task
+      both directly-attached and project-inherited resolves once). THEN implement the two pure functions in
+      lib.js. `node --test` green.
+  - id: T4
+    title: "attach/detach verbs — task + project, error on missing target (INV-6, NL-first)"
+    ac: [AC4]
+    deps: [T3]
+    parallel: false
+    detail: >
+      Add `attach <task|project> <goal> [milestone]` and `detach <task|project>` to SKILL.md + dispatch:
+      attaching a project appends to the goal's attached_projects; attaching a task sets goal:(+milestone:);
+      detach sets task goal:→'none' (or clears project from attached_projects). Attaching to a non-existent
+      goal/milestone errors and writes NOTHING; no unrelated field mutated. NL forms ("attach this to <goal>").
+      Keep the frozen non-interactive block byte-identical. Verify both target kinds end-to-end.
+  - id: T5
+    title: "Dogfood + skill-eval [D] + lints"
+    ac: [AC5, AC6, AC7]
+    deps: [T4]
+    parallel: false
+    detail: >
+      Dogfood: attach a project to a goal, confirm its tasks inherit; override one task to a different goal and
+      one to 'none'; confirm effectiveGoal matches; try an invalid attach (errors cleanly). Run skill-eval-check.sh,
+      4 lints, audit-recommended — all green. No release-prereq edits (§G).

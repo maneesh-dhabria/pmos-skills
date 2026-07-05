@@ -1,0 +1,66 @@
+schema_version: 1
+story: 260705-hbe
+epic: 260705-n2n
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-toolkit/skills/mytasks
+# S1 — goal & milestone core. Binds 02_design.html §2 (INV-1/2/3), decisions D2/D6.
+# Reference: feature-sdlc/reference/skill-patterns.md §A–§L + host CLAUDE.md (canonical skill path).
+# Reuse the tracker-crudl substrate (id/slug/archive) — goals are a 2nd collection alongside items/.
+# Determinism (§H): enum validation + id minting are code, not model judgement.
+# Release prereqs (version/changelog/README/manifest) are /complete-dev's — NOT story tasks (§G).
+tasks:
+  - id: T1
+    title: "schema.md — Goals collection binding (frontmatter, enums, milestones, archive)"
+    ac: [AC1, AC2, AC3, AC7]
+    deps: []
+    parallel: true
+    detail: >
+      Add a "## Goals collection" section to plugins/pmos-toolkit/skills/mytasks/schema.md binding
+      _shared/tracker-crudl.md for ~/.pmos/tasks/goals/{id}-{slug}.md: frontmatter (schema_version, id, title,
+      type, status, cadence, target?, created, updated, milestones[]), the three closed enums (§2.2), milestone
+      shape {ref, description, due, met, met_date}, INV-1 (frontmatter list is source of truth; body mirror),
+      INV-3 (achieved/dropped archive to ~/.pmos/tasks/archive/). Docs-only; no code.
+  - id: T2
+    title: "lib.js — goals loader/saver + enum validation + body-mirror regeneration (TDD)"
+    ac: [AC1, AC2, AC3, AC6]
+    deps: []
+    parallel: false
+    detail: >
+      TEST FIRST (tests/): goal file round-trip (load→save→load byte-stable), milestones[] round-trip, the
+      `## Milestones` body block regenerated from frontmatter (INV-1), enum validation rejects unknown
+      type/status/cadence, id/slug mint reuses tracker-crudl rules, ref-stability (dropped ref not reused).
+      THEN implement in plugins/pmos-toolkit/skills/mytasks/scripts/lib.js: loadAllGoals()/loadGoal(id)/saveGoal(),
+      a validateGoal() with the closed enums, and regenerateMilestonesBody(goal). Mirror the items loader shape.
+      Guard any --selftest behind a main-module check so it does NOT run on import (known catch). `node --test` green.
+  - id: T3
+    title: "SKILL.md + verbs — goal add/show/edit/drop/achieve + goals list (NL-first)"
+    ac: [AC4, AC7]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Add goal CRUD verbs to SKILL.md and their dispatch: `goal add` (rich-capture via
+      _shared/interactive-prompts.md — prompt title/type/cadence/target/first milestone), `goal show <id>`,
+      `goals` (list active), `goal edit <id>`, `goal drop <id>`, `goal achieve <id>` (archive per INV-3).
+      NL-first phrasings ("add a goal", "show my goals"); machine-coupled flags only per §I. Keep the frozen
+      non-interactive block byte-identical. Verify each verb end-to-end against a scratch ~/.pmos store.
+  - id: T4
+    title: "milestone verbs — add/met/edit/drop with body-mirror refresh"
+    ac: [AC5, AC7]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Add `milestone add <goal>` (description + due, mints a stable ref), `milestone met <goal> <ref>` (met:true
+      + met_date=today), `milestone edit/drop <goal> <ref>`. Each write calls regenerateMilestonesBody (T2).
+      Dropping a ref must not reuse it (INV-2). NL forms. Verify: add two milestones, mark one met, confirm
+      frontmatter + body mirror agree and the ref is stable.
+  - id: T5
+    title: "Dogfood + skill-eval [D] + lints"
+    ac: [AC6, AC7, AC8]
+    deps: [T3, T4]
+    parallel: false
+    detail: >
+      Live dogfood: create a dated goal with 2 milestones + an open-ended goal; show, edit, mark a milestone met,
+      achieve one (confirm archive). Run tools/skill-eval-check.sh <mytasks dir>, the 4 hygiene lints, and
+      audit-recommended on SKILL.md; all green. Fix any [D] miss. Do NOT touch version/changelog/README (§G).

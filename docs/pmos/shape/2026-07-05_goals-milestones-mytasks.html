@@ -1,0 +1,126 @@
+<meta name="pmos:skill" content="shape">
+<meta name="pmos:shape-phase" content="complete">
+<title>Shaped problem — goals &amp; milestones in /mytasks</title>
+
+<style>
+  body { max-width: 52rem; margin: 2rem auto; padding: 0 1.25rem; font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: #1a1a1a; }
+  h1 { font-size: 1.7rem; line-height: 1.2; margin: 0 0 .25rem; }
+  h2 { font-size: 1.15rem; margin: 2.2rem 0 .6rem; padding-bottom: .3rem; border-bottom: 2px solid #ececec; }
+  h3 { font-size: 1rem; margin: 1.3rem 0 .4rem; }
+  .sub { color: #666; margin: 0 0 1.5rem; }
+  .tldr { background: #f5f8ff; border: 1px solid #d6e2ff; border-radius: 10px; padding: 1rem 1.2rem; }
+  .tag { display: inline-block; font-size: .72rem; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; padding: .12rem .5rem; border-radius: 999px; background: #eef; color: #335; margin-right: .3rem; }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; margin: .5rem 0; }
+  th, td { text-align: left; vertical-align: top; padding: .5rem .6rem; border-bottom: 1px solid #eee; }
+  th { background: #fafafa; font-size: .78rem; text-transform: uppercase; letter-spacing: .03em; color: #555; }
+  code { background: #f2f2f2; padding: .05rem .3rem; border-radius: 4px; font-size: .88em; }
+  .star { color: #c8860a; font-weight: 700; }
+  .disp-ans { color: #1a7f37; font-weight: 600; }
+  .disp-park { color: #9a6700; font-weight: 600; }
+  .disp-open { color: #8250df; font-weight: 600; }
+  .disp-na { color: #999; font-weight: 600; }
+  blockquote { margin: .6rem 0; padding: .4rem 0 .4rem 1rem; border-left: 3px solid #cbd5e1; color: #333; }
+  ul { padding-left: 1.3rem; }
+  .src { color: #777; font-size: .85em; }
+  section { overflow-x: auto; }
+</style>
+
+<h1>Goals &amp; milestones in <code>/mytasks</code></h1>
+<p class="sub">Shaped problem · 2026-07-05 · via <code>/shape</code></p>
+
+<section id="tldr">
+<h2>The shaped problem (TL;DR)</h2>
+<div class="tldr">
+<p><strong>Maneesh's goals live outside <code>/mytasks</code> — in his head, a doc, or a new-year note — so day-to-day they go invisible and he steers by his reactive task list instead of by his goals. And even when he does recall a goal, he has no trustworthy signal of whether he is <em>on schedule</em> against its checkpoints or <em>starving it</em> of attention — so he cannot tell whether his daily work is adding up to what he set out to do.</strong></p>
+<p style="margin-bottom:0"><strong>Who:</strong> Maneesh, sole user of his personal <code>/mytasks</code> system. <strong>When:</strong> during daily / weekly task triage (goals are absent from the surface he actually works on) <strong>and</strong> in recurring moments of doubt — "am I doing enough?" — where no signal exists to answer honestly. <strong>Why now:</strong> <code>/mytasks</code> has matured (projects, subtasks, due dates, people, recurrence); goals are the missing top layer everything else could hang from.</p>
+</div>
+<p><em>This is a <strong>problem</strong> brief. It deliberately proposes no solution — the goals → milestones → attachment model you sketched is captured below as a <strong>proposed direction</strong> for <code>/requirements</code>, not as a shaped decision. See Handoff.</em></p>
+</section>
+
+<section id="felt-problem">
+<h2>Felt problem (HMW + JTBD)</h2>
+<p><strong>HMW:</strong> How might we make Maneesh's goals a durable, ever-present part of <code>/mytasks</code> so they stop vanishing — and give each goal an <em>honest</em> read of whether he's on pace, both on schedule and in attention?</p>
+<p><strong>JTBD:</strong> <em>When</em> Maneesh plans his day / week, or wonders whether he's actually making progress, <em>he wants</em> his goals present in the tool he already works in <em>and</em> a trustworthy per-goal pace signal, <em>so he can</em> steer his work by his goals instead of only reacting to his task list — and catch a goal that's drifting before it's too late.</p>
+<p><strong>Felt pain (confirmed this session):</strong> the root is <em>capture</em> — goals were <strong>never in the system</strong> (they live in his head / a doc), so they're invisible where he works. On top of that, "doing enough" is genuinely <strong>two signals, both wanted</strong>: <em>schedule adherence</em> (hitting dated checkpoints) <em>and</em> <em>attention allocation</em> (not letting a goal starve). A goal can be on-schedule but starved, or well-fed but slipping — he wants to catch either.</p>
+</section>
+
+<section id="context-classification">
+<h2>Context classification</h2>
+<p><span class="tag">feature-in-product</span> <span class="tag">internal-tool character</span> Source: workstream signal — this extends the shipped <code>/mytasks</code> skill (<code>~/.pmos/tasks/</code>), Maneesh's own single-user productivity system. Used silently — lens floor downshifted; <strong>strategic-positioning / market lenses are N/A</strong> (no market, one user). The judgment weight sits on felt-problem fidelity and signal trust, not positioning.</p>
+</section>
+
+<section id="ladder">
+<h2>Abstraction ladder</h2>
+<ul>
+<li><strong>Symptom (seed):</strong> "I want to attach projects / tasks to goals and give goals milestones, so I can track whether I'm doing enough."</li>
+<li><strong>↓ How (surfaced &amp; set aside):</strong> the attachment/inheritance data model — a <em>mechanism</em>, not the felt problem.</li>
+<li><strong>↑ Why:</strong> I do a lot of tasks but can't tell if it's adding up to my goals.</li>
+<li><strong>↑ Why:</strong> my goals aren't in front of me day-to-day, so I steer by the task list, not the goal.</li>
+<li><strong>↑ Why:</strong> goals have no home in <code>/mytasks</code> — they live in my head or a doc, so they can't be surfaced or connected to work at all.</li>
+<li><strong>★ Root altitude (chosen):</strong> <code>/mytasks</code> has no goal object, so goals can neither be <em>surfaced</em> (they vanish) nor <em>connected</em> to work — and there is no pace signal (schedule <em>or</em> attention) to tell whether the work is adding up.</li>
+</ul>
+</section>
+
+<section id="decomposition">
+<h2>Decomposition</h2>
+<table>
+<tr><th>Sub-problem</th><th>Leverage</th></tr>
+<tr><td><strong>Capture</strong> — a durable goal object that lives inside <code>/mytasks</code> (the root prerequisite; everything else depends on it)</td><td><span class="star">★ real leverage</span></td></tr>
+<tr><td><strong>Visibility</strong> — goals surfaced in the daily / weekly view so they stop vanishing (distinct from attachment: a goal can be perfectly attached and still never appear in front of you)</td><td><span class="star">★ co-leverage</span></td></tr>
+<tr><td><strong>Schedule pace</strong> — dated milestones + an at-a-glance on-track / behind read (Job B, signal 1)</td><td><span class="star">★ real leverage</span></td></tr>
+<tr><td><strong>Attention pace</strong> — a fed / starved read from how recently &amp; how much work has flowed to the goal (Job B, signal 2)</td><td><span class="star">★ real leverage</span></td></tr>
+<tr><td><strong>Attachment mechanics</strong> — project→goal cascade to its tasks, task→milestone links; the <em>plumbing</em> that feeds the two pace signals</td><td>supporting (mechanism)</td></tr>
+<tr><td><strong>Signal trust</strong> — open-ended goals must not read "behind" forever; stale attachment data must not cry "starved" falsely</td><td><span class="star">★ the sleeper</span> (see ceiling-breaker)</td></tr>
+</table>
+<p><strong>Both Job A (capture + visibility) and Job B (dual pace signal) are co-equal prizes</strong> — confirmed this session. B depends on A, but neither is "later."</p>
+</section>
+
+<section id="framings">
+<h2>Competing framings (ripple on the framing)</h2>
+<p><strong>Framing A — "Goals as a reporting layer."</strong> Goals collect attached tasks and roll up a count / % complete. <em>Ripple:</em> gives you a number, but the number is a weak proxy for "enough"; it leans hard on diligent attachment (stale-data trap) and doesn't inherently put the goal in front of you. Rejected as the core — it's a rollup, not a rudder.</p>
+<p><strong>Framing B — "Goals as a steering layer." ✅ CHOSEN (unified framing).</strong> Goals are <em>present in the daily flow</em> and carry a <em>dual pace signal</em> (schedule + attention) you actually steer by. <em>Ripple:</em> forces surfacing and a <em>trustworthy</em> signal to be first-class, not by-products of a rollup; more to build, and it must solve signal-trust (below) or it collapses back into Framing A's noise.</p>
+<p><strong>Framing C — "Goals as a periodic reckoning."</strong> A weekly / monthly ritual puts goal-vs-actual in your face. <em>Ripple:</em> strong for accountability, but you de-prioritized it against "goals always present." Kept as a <em>possible surface</em> for Job B (e.g. a <code>/morning-brief</code> or weekly-review channel), not the frame.</p>
+<p><strong>Chosen framing:</strong> B — a steering layer, carrying both pace signals.</p>
+</section>
+
+<section id="lens-ledger">
+<h2>Lens ledger</h2>
+<table>
+<tr><th>Lens</th><th>Disposition</th><th>Note (evidence / reason / why dropped)</th></tr>
+<tr><td>Felt problem / JTBD</td><td class="disp-ans">Answered</td><td>Root = goals absent from the system; overlaid with a two-signal "am I doing enough?" (schedule + attention).</td></tr>
+<tr><td>Who &amp; when</td><td class="disp-ans">Answered</td><td>Maneesh solo; daily/weekly triage + recurring doubt moments.</td></tr>
+<tr><td>Altitude</td><td class="disp-ans">Answered</td><td>Root = no goal object → no surfacing, no connection, no pace signal.</td></tr>
+<tr><td>Framing choice</td><td class="disp-ans">Answered</td><td>Framing B — steering layer with a dual pace signal.</td></tr>
+<tr><td>Job weighting</td><td class="disp-ans">Answered</td><td>Capture-and-visible AND pace-sensing are co-equal; both must land.</td></tr>
+<tr><td>Proposed data model (adaptive)</td><td class="disp-park">Parked</td><td>goals → milestones (desc + date); projects/tasks attach to goals; project-attachment cascades to its tasks; tasks attach to milestones. A <em>solution direction</em> — belongs to <code>/requirements</code>, deliberately not decided here.</td></tr>
+<tr><td>Signal trust (adaptive, off-deck)</td><td class="disp-open">Open ★</td><td>Open-ended/habitual goals must not read "behind" forever; attention signal is only as true as attachment discipline. Core design constraint — see ceiling-breaker.</td></tr>
+<tr><td>Effort / adoption cost</td><td class="disp-open">Open</td><td>Attaching tasks to goals/milestones must be near-zero friction, or the attention signal rots and lies. A single-user tool has no one else to keep the data clean.</td></tr>
+<tr><td>Interop with existing <code>/mytasks</code> model</td><td class="disp-open">Open</td><td>How goals sit atop projects/subtasks; how milestone dates relate to existing task due-dates + recurrence; whether <code>/morning-brief</code> is the surfacing channel.</td></tr>
+<tr><td>Strategic positioning / market</td><td class="disp-na">N/A</td><td>Single-user personal tool — dropped per the context downshift.</td></tr>
+</table>
+<h3>Ceiling-breaker (mandatory off-deck probe)</h3>
+<p><strong>Ceiling-breaker:</strong> <strong>Off-deck probe — the signal can recreate the very problem it solves.</strong> This is not a generic lens; it's the dimension most likely to sink the build. A pace-sensing system has two self-defeating failure modes. <strong>(1) Crying wolf on open-ended goals</strong> — "stay healthy", "keep learning" have no finish line, so a schedule-adherence signal flags them "behind" forever and you learn to ignore it. <strong>(2) Stale attachment data</strong> — the "starved / neglected" read is only as true as your discipline in attaching tasks; if attaching is friction, the data rots and the tool confidently tells you you're neglecting a goal you've actually been working. Either way the reckoning becomes noise, you tune it out, and goals go invisible again — through <em>avoidance</em> instead of <em>absence</em>. <strong>Design implication:</strong> any solution has to <em>earn trust in its signal</em> (goal types with/without deadlines; frictionless or automatic attachment; a way to say "this is a maintenance goal, don't alarm me"), not merely display a signal.</p>
+</section>
+
+<section id="open-questions">
+<h2>Open questions (for /requirements)</h2>
+<ul>
+<li><strong>Quantifying "enough" (attention signal):</strong> what defines fed vs. starved — a recency threshold ("no task in N days"), a count, time logged, or a per-goal target cadence?</li>
+<li><strong>Open-ended goals:</strong> do habitual/maintenance goals get a mode with no schedule-behind alarm? How is a goal typed as dated vs. open-ended?</li>
+<li><strong>Cascade semantics:</strong> if a project is attached to a goal, is inheritance to its tasks hard (all tasks, always) or overridable per task? What happens when a task moves projects?</li>
+<li><strong>Milestone dates vs. existing model:</strong> how do milestone dates relate to task due-dates and recurrence? Can a milestone be "met" without every attached task being done?</li>
+<li><strong>Progress source of truth:</strong> is goal/milestone progress <em>derived</em> from attached-task completion, or a manual value the user sets — or both?</li>
+<li><strong>Surfacing channel:</strong> where do goals appear so they stop vanishing — a new <code>/mytasks</code> view, the daily agenda, and/or <code>/morning-brief</code>?</li>
+</ul>
+</section>
+
+<section id="handoff">
+<h2>Handoff</h2>
+<p>The problem is shaped. Solution work begins downstream — <code>/shape</code> dispatches nothing automatically. Candidate next steps:</p>
+<ul>
+<li><code>/requirements goals-milestones-mytasks</code> — carry this brief into acceptance criteria. The goals → milestones → attachment model is the <strong>leading proposed direction</strong> to spec; make <em>signal trust</em> (open-ended goals + frictionless attachment) an explicit requirement, not an afterthought.</li>
+<li><code>/backlog add --kind epic "Goals &amp; milestones in /mytasks"</code> — capture the shaped problem as work.</li>
+<li><code>/ideate goals-milestones-mytasks</code> — if you'd rather explore how to make the pace signal trustworthy before committing to the attachment model.</li>
+</ul>
+<p><strong>Interop worth flagging now:</strong> <code>/morning-brief</code> is a natural surfacing channel for "here's a goal you haven't fed in a while" — note it as an integration point rather than a separate build.</p>
+</section>
