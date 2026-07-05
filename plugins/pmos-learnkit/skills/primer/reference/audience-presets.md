@@ -15,6 +15,8 @@ For experienced PMs who already speak the PM dialect fluently. The primer should
 
 A primer MAY add 1–2 additional H2s (e.g., `## How the smart teams are using it`) when the topic warrants, but the four above are the floor.
 
+**Required closing sections (both presets):** every primer ends with `## Where this connects — adjacent topics`, followed by `## References` as the final section. `## References` is **generated deterministically** from the primer's `sources.json` by `scripts/references-section.mjs` (SKILL.md Phase 5 step 7) — never hand-authored (INV-2) — and lists every source the primer was built on, cited ones marked `·cited·`. Enforced by rubric R11.
+
 **Vocab posture:**
 
 No inline definitions of common PM concepts. The reader is assumed fluent in PLG, ARR, NPS, OKRs, RICE, CAC, LTV, CSAT, activation, retention cohorts, north-star metrics, and similar staples. Define only terms specific to the topic on first use — and only when the term is genuinely narrower than the common PM vocabulary (e.g., `RFM`, `NDR`, a vendor-specific framework, a niche academic construct). When in doubt, omit the definition; senior PMs would rather look up a word than read a definition they didn't need.
@@ -35,6 +37,8 @@ For PMs across all experience levels, including those new to the field or new to
 - `## Concrete next actions you can take this week` — 3–5 numbered, scoped, do-able steps.
 
 A primer MAY add 1–2 additional H2s (e.g., `## Common mistakes`, `## When this does not apply`) when the topic warrants, but the four above are the floor.
+
+**Required closing sections (both presets):** every primer ends with `## Where this connects — adjacent topics`, followed by `## References` as the final section. `## References` is **generated deterministically** from the primer's `sources.json` by `scripts/references-section.mjs` (SKILL.md Phase 5 step 7) — never hand-authored (INV-2) — and lists every source the primer was built on, cited ones marked `·cited·`. Enforced by rubric R11.
 
 **Vocab posture:**
 
