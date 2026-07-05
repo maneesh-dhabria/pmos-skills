@@ -4,18 +4,21 @@ id: 260704-v4a
 title: "Refresh the 61 bundled primer corpus files to the current Editorial Technical theme — new idempotent retheme-corpus.mjs CLI marker-scoped-replaces each corpus file's stale inlined substrate CSS with the current _shared/html-authoring/assets/style.css; body <main> bytes untouched"
 type: chore
 kind: story
-status: planned
+status: in-progress
 route: skill
 priority: should
 labels: [pmos-learnkit, primer, corpus, html-substrate, theme, skill]
 created: 2026-07-04
-updated: 2026-07-04
+updated: 2026-07-05
 parent: 260704-vde
 dependencies: []
 design_doc: docs/pmos/features/2026-07-04_library-viewer-substrate-theme/02_design.html
 plan_doc: docs/pmos/features/2026-07-04_library-viewer-substrate-theme/stories/260704-v4a/03_plan.html
 feature_folder: docs/pmos/features/2026-07-04_library-viewer-substrate-theme/
-worktree:
+worktree: agent-skills-260704-v4a
+branch: feat/260704-v4a
+claimed_by: "build:b0e236c5-8aab-4a88-8bd7-4d40d8d8e0bc"
+driver_holder: "build:b0e236c5-8aab-4a88-8bd7-4d40d8d8e0bc"
 ---
 
 ## Context
