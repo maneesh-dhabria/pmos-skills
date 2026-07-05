@@ -495,6 +495,87 @@ function testFormat() {
   eq('dueStatus: none → none', dueStatus('', now), 'none');
 }
 
+// ── Goals collection (story 260705-hbe): load/save, milestones, enums, archive ──
+function mkGoal(dir, over = {}) {
+  const fm = {
+    schema_version: '1', id: lib.mintId(), title: 'Ship the goals feature',
+    type: 'dated', status: 'active', cadence: 'weekly', target: '2026-09-30',
+    created: '2026-07-05', updated: '2026-07-05', ...(over.fm || {}),
+  };
+  const goal = { fm, milestones: over.milestones || [], body: over.body != null ? over.body : '## Notes\nseed\n' };
+  return goal;
+}
+
+function testGoals() {
+  const dir = mkTmp();
+
+  // id mint format — tracker-crudl §2.1 <YYMMDD>-<rand3>
+  ok('goal: mintId format', /^\d{6}-[0-9a-hj-km-np-tv-z]{3}$/.test(lib.mintId()));
+
+  // 1. save → load round-trip, byte-stable on re-save (no updated bump)
+  const g = mkGoal(dir);
+  const ref1 = lib.nextMilestoneRef(g.fm, g.milestones);
+  g.milestones.push({ ref: ref1, description: 'Data model + CRUD landed', due: '2026-07-20', met: false, met_date: '' });
+  const ref2 = lib.nextMilestoneRef(g.fm, g.milestones);
+  g.milestones.push({ ref: ref2, description: 'Pace signals surfaced', due: '2026-08-15', met: false, met_date: '' });
+  const file = lib.saveGoal(dir, g);
+  const b1 = fs.readFileSync(file);
+  const loaded = lib.readGoal(file);
+  eq('goal: milestones round-trip', loaded.milestones, [
+    { ref: 'm1', description: 'Data model + CRUD landed', due: '2026-07-20', met: false, met_date: '' },
+    { ref: 'm2', description: 'Pace signals surfaced', due: '2026-08-15', met: false, met_date: '' },
+  ]);
+  eq('goal: scalar fm round-trip', [loaded.fm.type, loaded.fm.status, loaded.fm.cadence, loaded.fm.target], ['dated', 'active', 'weekly', '2026-09-30']);
+  lib.saveGoal(dir, loaded);
+  const b2 = fs.readFileSync(file);
+  ok('goal: re-save is byte-stable (updated not bumped)', b1.equals(b2), `b1!=b2`);
+
+  // 2. body ## Milestones mirror regenerated from frontmatter (INV-1); ## Notes preserved
+  ok('goal: body mirrors m1', loaded.body.includes('- [ ] m1 — Data model + CRUD landed (due 2026-07-20)'));
+  ok('goal: body preserves ## Notes', /##\s+Notes\s*\nseed/.test(loaded.body));
+  // mark m1 met → body shows [x] and met date, frontmatter drives it
+  loaded.milestones[0].met = true; loaded.milestones[0].met_date = '2026-07-18';
+  lib.saveGoal(dir, loaded);
+  const met = lib.readGoal(file);
+  ok('goal: met milestone renders [x] in mirror', met.body.includes('- [x] m1 — Data model + CRUD landed (due 2026-07-20) — met 2026-07-18'));
+  eq('goal: met flag persisted', [met.milestones[0].met, met.milestones[0].met_date], [true, '2026-07-18']);
+
+  // 3. enum validation rejects unknown type/status/cadence; open-ended takes no target
+  ok('goal: valid goal has no errors', lib.validateGoal(loaded).length === 0);
+  ok('goal: bad type rejected', lib.validateGoal({ fm: { ...g.fm, type: 'stretch' }, milestones: [] }).some((e) => /Unknown goal type/.test(e)));
+  ok('goal: bad status rejected', lib.validateGoal({ fm: { ...g.fm, status: 'paused' }, milestones: [] }).some((e) => /Unknown goal status/.test(e)));
+  ok('goal: bad cadence rejected', lib.validateGoal({ fm: { ...g.fm, cadence: 'yearly' }, milestones: [] }).some((e) => /Unknown goal cadence/.test(e)));
+  ok('goal: open-ended with target rejected', lib.validateGoal({ fm: { ...g.fm, type: 'open-ended', target: '2026-09-30' }, milestones: [] }).some((e) => /open-ended goals take no target/.test(e)));
+  ok('goal: open-ended without target valid', lib.validateGoal({ fm: { ...g.fm, type: 'open-ended', target: '' }, milestones: [] }).length === 0);
+  ok('goal: non-ISO target rejected', lib.validateGoal({ fm: { ...g.fm, target: 'Q3' }, milestones: [] }).some((e) => /ISO date/.test(e)));
+  ok('goal: duplicate milestone ref rejected', lib.validateGoal({ fm: g.fm, milestones: [{ ref: 'm1', description: 'a', due: '', met: false, met_date: '' }, { ref: 'm1', description: 'b', due: '', met: false, met_date: '' }] }).some((e) => /duplicate milestone ref/.test(e)));
+
+  // 4. ref stability (INV-2) — a dropped ref is NEVER reused, even the highest
+  const g2 = mkGoal(dir, { fm: { id: lib.mintId(), title: 'Ref stability' } });
+  const rA = lib.nextMilestoneRef(g2.fm, g2.milestones); g2.milestones.push({ ref: rA, description: 'A', due: '', met: false, met_date: '' });
+  const rB = lib.nextMilestoneRef(g2.fm, g2.milestones); g2.milestones.push({ ref: rB, description: 'B', due: '', met: false, met_date: '' });
+  eq('goal: sequential refs m1,m2', [rA, rB], ['m1', 'm2']);
+  // drop the HIGHEST (m2) then add — the classic max+1 reuse trap
+  g2.milestones = g2.milestones.filter((m) => m.ref !== rB);
+  const rC = lib.nextMilestoneRef(g2.fm, g2.milestones);
+  ok('goal: dropped highest ref not reused (INV-2)', rC !== rB && rC === 'm3', `got ${rC}`);
+  // persist + reload; counter survives the round-trip
+  g2.milestones.push({ ref: rC, description: 'C', due: '', met: false, met_date: '' });
+  const f2 = lib.saveGoal(dir, g2);
+  const g2r = lib.readGoal(f2);
+  const rD = lib.nextMilestoneRef(g2r.fm, g2r.milestones);
+  ok('goal: milestone_seq persists across reload', rD === 'm4', `got ${rD}`);
+
+  // 5. archive on drop/achieve (INV-3) — move to archive/YYYY-QN, gone from active
+  const dest = lib.archiveGoal(dir, g2r.fm.id, '2026-08-15');
+  ok('goal: archived to archive/2026-Q3', /archive\/2026-Q3\//.test(dest) && fs.existsSync(dest), dest);
+  ok('goal: archived goal absent from live goals dir', lib.findGoalFile(dir, g2r.fm.id) === null);
+  ok('goal: archived goal absent from loadAllGoals', !lib.loadAllGoals(dir).some((x) => x.fm.id === g2r.fm.id));
+
+  // 6. slug in filename
+  ok('goal: filename is {id}-{slug}.md', path.basename(file) === `${g.fm.id}-ship-the-goals-feature.md`, path.basename(file));
+}
+
 async function main() {
   testFormat();
   testFrontmatter();
@@ -502,6 +583,7 @@ async function main() {
   testSpawn();
   testIndex();
   testMigration();
+  testGoals();
   await testApi();
   await testPeople();
   await testRegistryMeta();
