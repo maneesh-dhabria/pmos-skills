@@ -1,0 +1,74 @@
+schema_version: 1
+story: 260705-vr5
+epic: 260705-x92
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-toolkit/skills/wayrttd
+# S1 (Story A) — /wayrttd standalone skill. Binds 02_design.html §3–§5, INV-1..5, D1/D4/D5/D6/D7.
+# Derived from 03_plan.html (Wave 1 skeleton+engine, Wave 2 artifact+non-interactive+eval).
+# Author the skill in eval-passing form up front (single-line quoted description, literal ## Phase N: headings
+# incl. a Capture Learnings phase with a colon, Track Progress + Platform Adaptation, byte-identical
+# non-interactive block, NL-first argument-hint, name matches dir). Release prereqs (version bump / changelog /
+# tag) are /complete-dev's at epic release (§G) — see the plan's Release prerequisites, not build tasks.
+tasks:
+  - id: T1
+    title: "wayrttd/SKILL.md skeleton — frontmatter + description + Track Progress + Platform Adaptation"
+    ac: [AC5, AC6]
+    deps: []
+    parallel: false
+    detail: >
+      Create plugins/pmos-toolkit/skills/wayrttd/SKILL.md frontmatter + description with triggers ("what am I
+      really trying to do", "wayrttd", "am I solving the right problem", "surface the real goal behind this ask")
+      + a Track Progress section + a Platform Adaptation section. Assert the frontmatter name matches the
+      directory (a-name-matches-dir). NL-first argument-hint (contract flags only). This is the skeleton the
+      engine phases (T2/T3) extend.
+  - id: T2
+    title: "Engine phases 1–2 — capture Solution X verbatim + intent-climb ladder (§3, INV-1/INV-4)"
+    ac: [AC1, AC2]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Phase 1 — capture the assumed Solution X verbatim, first-person (INV-1). Phase 2 — the intent-climb ladder
+      ("and what would that get you?"), one question per turn in interactive mode, stopping at the highest
+      actionable rung and stating the stop reason (INV-4). Literal ## Phase N: headings.
+  - id: T3
+    title: "Engine phases 3–5 — name Problem Y + re-test X + verdict & handoff (§3, INV-2/INV-5)"
+    ac: [AC1, AC3]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Phase 3 — name Problem Y as a single first-person sentence. Phase 4 — re-test X against Y and surface 1–3
+      bounded alternatives / cheaper-or-already-available paths (INV-2). Phase 5 — a proceed/reconsider/pivot
+      verdict plus named handoff lines to /shape // /ideate (INV-5 — depth is a handoff, never absorbed). Fast by
+      construction (INV-3/INV-5/D5).
+  - id: T4
+    title: "Compact HTML capture (D4) via html-authoring substrate + inline-comments contract"
+    ac: [AC4]
+    deps: [T3]
+    parallel: false
+    detail: >
+      Emit a compact HTML capture via the html-authoring substrate (renderArtifact(), content-only fragment):
+      Solution X → ladder rungs → Problem Y → alternatives → verdict. Bake the inline pmos-comments block +
+      <meta name="pmos:skill" content="wayrttd">; add the apply-edit-at-anchor shim + tests per the inline-comments
+      contract. (Render via renderArtifact() with a content-only fragment — never hand-author the HTML.)
+  - id: T5
+    title: "Non-interactive contract — byte-identical block + autonomous single-pass path (D6/D7)"
+    ac: [AC5]
+    deps: [T3]
+    parallel: false
+    detail: >
+      Inline the byte-identical non-interactive block (lint is source of truth). Implement the autonomous
+      single-pass path (D7) so a --non-interactive run reaches a Problem-Y + verdict without deadlock. Mark the
+      one AskUserQuestion (if any) with a (Recommended) option or an adjacent defer-only tag (audit-recommended).
+  - id: T6
+    title: "Register in manifest + README row; skill-eval + 4 hygiene lints green"
+    ac: [AC6]
+    deps: [T4, T5]
+    parallel: false
+    detail: >
+      Add wayrttd to the pmos-toolkit manifest skills load + a README row (row only; version bump is release-time,
+      §G). Run skill-eval-check.sh (both halves pass or documented accepted residuals) + the four hygiene lints
+      (lint-non-interactive-inline.sh, audit-recommended.sh, lint-flags-vs-hints.sh, lint-phase-refs.sh) to green;
+      name matches dir. Live dogfood: /wayrttd on a real assumed-solution ask reaches a first-person Y + verdict
+      in ≤~5 exchanges; artifact opens, renders the ladder, carries the pmos:skill meta, apply-edit tests pass.

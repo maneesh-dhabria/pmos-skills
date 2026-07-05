@@ -4,12 +4,12 @@ id: 260705-y3f
 title: "/shape optional WAYRTTD upfront hook — additive, skippable pre-check that runs /wayrttd before /shape's lens work and threads the surfaced Problem-Y forward as the shaping seed; standalone /shape unchanged when declined/absent"
 type: feature
 kind: story
-status: ready
+status: planned
 route: skill
 priority: should
 labels: [pmos-toolkit, wayrttd, shape, skill]
 created: 2026-07-05
-updated: 2026-07-05
+updated: 2026-07-06
 parent: 260705-x92
 dependencies: [260705-vr5]
 design_doc: docs/pmos/features/2026-07-05_wayrttd-skill/02_design.html

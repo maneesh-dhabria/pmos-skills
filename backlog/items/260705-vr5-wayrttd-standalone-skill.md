@@ -4,12 +4,12 @@ id: 260705-vr5
 title: "/wayrttd standalone skill — five-step solution→problem inversion ladder (capture X → climb to intent → name Problem Y → re-test X → verdict), first-person POV, compact HTML capture, NL-first + non-interactive contract"
 type: feature
 kind: story
-status: ready
+status: planned
 route: skill
 priority: should
 labels: [pmos-toolkit, wayrttd, thinking-tool, skill]
 created: 2026-07-05
-updated: 2026-07-05
+updated: 2026-07-06
 parent: 260705-x92
 dependencies: []
 design_doc: docs/pmos/features/2026-07-05_wayrttd-skill/02_design.html

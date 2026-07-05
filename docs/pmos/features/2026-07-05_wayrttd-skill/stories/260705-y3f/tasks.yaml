@@ -1,0 +1,51 @@
+schema_version: 1
+story: 260705-y3f
+epic: 260705-x92
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-toolkit/skills/shape
+# S2 (Story B) — optional /wayrttd upfront hook in /shape. Binds 02_design.html §2, §6, INV-6.
+# Depends on 260705-vr5: D9 claim-time transitive-closure merge brings /wayrttd into this worktree so the hook
+# has a real skill to call and skill-eval sees it. Derived from 03_plan.html (Wave 1 gate, Wave 2 ni+resume+eval).
+# Additive + non-breaking: standalone /shape stays byte-unchanged when the hook is declined or /wayrttd is absent.
+# Release prereqs ride story A's pmos-toolkit release unit (§G) — /complete-dev owns version bump + changelog + tag.
+tasks:
+  - id: T1
+    title: "Optional skippable WAYRTTD pre-check phase in shape/SKILL.md (INV-6)"
+    ac: [AC1]
+    deps: []
+    parallel: false
+    detail: >
+      Insert an early phase in shape/SKILL.md — a fractional phase number, NO renumber of existing phases (per the
+      /shape learnings) — a "WAYRTTD pre-check": one AskUserQuestion offering "Run a 2-min WAYRTTD gut-check first
+      (Recommended)" / "Skip — go straight to shaping". Skippable; the Recommended option is context-appropriate.
+  - id: T2
+    title: "Run → thread Problem Y forward; Skip/absent → today's flow verbatim (INV-6)"
+    ac: [AC2, AC3]
+    deps: [T1]
+    parallel: false
+    detail: >
+      On Run: invoke /wayrttd with /shape's seed and pass its Problem-Y statement forward as the shaping seed, so
+      /shape shapes the surfaced goal rather than the assumed solution (AC2). On Skip / /wayrttd absent: proceed
+      exactly as today — no state written, cursor advances past the phase — back-compat by absence (AC3, INV-6).
+  - id: T3
+    title: "Non-interactive (no deadlock) + resume-cursor handles the new phase's absence"
+    ac: [AC4]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Non-interactive: default = Skip with an explicit log line (no deadlock); if run, /wayrttd's autonomous path
+      feeds the seed forward. Give the new phase a stable {#kebab-slug} anchor and ensure the resume cursor
+      handles its absence in pre-hook artifacts (a resume state predating the phase advances past it).
+  - id: T4
+    title: "Relationship note in /shape + skill-eval + 4 lints green (carry proven residuals)"
+    ac: [AC5]
+    deps: [T3]
+    parallel: false
+    detail: >
+      Update /shape's "When NOT to use" / relationship note to point at /wayrttd as the fast pre-check. Run
+      skill-eval-check.sh + all four hygiene lints on /shape; carry any PRE-EXISTING residuals (prove via HEAD^1)
+      and fix cheap in-branch ones. No phase-ref or flag-hint drift. Live dogfood: /shape presents the WAYRTTD
+      gate; Run threads Y forward; Skip reproduces today's flow verbatim; INV-6 held (declining/absence leaves
+      standalone /shape unchanged).
