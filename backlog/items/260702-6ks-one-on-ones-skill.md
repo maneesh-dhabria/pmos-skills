@@ -5,6 +5,7 @@ title: "/one-on-one skill — per-report rolling records, add/note/plan/log/care
 type: feature
 kind: story
 status: done
+released: 0.4.0
 route: skill
 priority: should
 labels: [pmos-managerkit, one-on-one, skill]
@@ -17,7 +18,7 @@ driver_holder: "build:b0e236c5-8aab-4a88-8bd7-4d40d8d8e0bc"
 design_doc: docs/pmos/features/2026-07-02_one-on-ones/02_design.html
 plan_doc: docs/pmos/features/2026-07-02_one-on-ones/stories/260702-6ks/03_plan.html
 feature_folder: docs/pmos/features/2026-07-02_one-on-ones/
-worktree: agent-skills-260702-6ks
+worktree:
 branch: feat/260702-6ks
 ---
 

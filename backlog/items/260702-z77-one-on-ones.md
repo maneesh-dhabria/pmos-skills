@@ -4,7 +4,8 @@ id: 260702-z77
 title: "/one-on-one — help managers run effective 1:1s: per-report rolling records (goals, performance/coaching feedback, standing themes, action items), zero-friction discussion-item capture, and actively-coached session prep grounded in a bundled 1:1 best-practices corpus"
 type: feature
 kind: epic
-status: defined
+status: released
+released: 0.4.0
 route: skill
 priority: should
 labels: [pmos-managerkit, one-on-one, 1-1, management, coaching, skill]
