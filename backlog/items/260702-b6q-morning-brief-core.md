@@ -4,18 +4,21 @@ id: 260702-b6q
 title: "/morning-brief core coverage — source abstraction + sweep, GTD-4D categorize/rank, show-everything brief with coverage manifest, /mytasks read-only lane, cursor"
 type: feature
 kind: story
-status: planned
+status: in-progress
 route: skill
 priority: should
 labels: [pmos-toolkit, morning-brief, coverage, connectors, skill]
 created: 2026-07-02
-updated: 2026-07-02
+updated: 2026-07-05
 parent: 260702-kck
 dependencies: []
 design_doc: docs/pmos/features/2026-07-02_morning-brief/02_design.html
 plan_doc: docs/pmos/features/2026-07-02_morning-brief/stories/260702-b6q/03_plan.html
 feature_folder: docs/pmos/features/2026-07-02_morning-brief/
-worktree:
+worktree: agent-skills-260702-b6q
+branch: feat/260702-b6q
+claimed_by: "build:b0e236c5-8aab-4a88-8bd7-4d40d8d8e0bc"
+driver_holder: "build:b0e236c5-8aab-4a88-8bd7-4d40d8d8e0bc"
 ---
 
 ## Context
