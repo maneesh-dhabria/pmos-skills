@@ -4,7 +4,7 @@ id: 260705-f79
 title: "/mytasks goal pace signals & surfacing — schedule-adherence (dated) + attention/starved (per-goal cadence, real-progress-only) signals, derived+manual progress, goals view + index summary + morning-brief hook + read-only web, tests"
 type: feature
 kind: story
-status: ready
+status: planned
 route: skill
 priority: should
 labels: [pmos-toolkit, mytasks, goals, signals, morning-brief, skill]

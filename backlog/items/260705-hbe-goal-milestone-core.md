@@ -4,7 +4,7 @@ id: 260705-hbe
 title: "/mytasks goal & milestone core — new goal file kind (~/.pmos/tasks/goals/), embedded dated milestones, dated/open-ended type, cadence, goal+milestone CRUD verbs, lib.js load/save, schema.md binding, tests"
 type: feature
 kind: story
-status: ready
+status: planned
 route: skill
 priority: should
 labels: [pmos-toolkit, mytasks, goals, milestones, skill]
