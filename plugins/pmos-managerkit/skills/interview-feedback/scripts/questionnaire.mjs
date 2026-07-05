@@ -113,8 +113,8 @@ function build(scorecardHtml, referenceHtml, format) {
 
 function selftest() {
   const here = dirname(fileURLToPath(import.meta.url));
-  const skeleton = readFileSync(join(here, '..', 'reference', 'scorecard-skeleton.html'), 'utf8');
-  const refSkeleton = readFileSync(join(here, '..', 'reference', 'reference-skeleton.html'), 'utf8');
+  const skeleton = readFileSync(join(here, '..', '..', '_shared', 'interview-guidelines', 'scorecard-skeleton.html'), 'utf8');
+  const refSkeleton = readFileSync(join(here, '..', '..', '_shared', 'interview-guidelines', 'reference-skeleton.html'), 'utf8');
   let pass = 0, total = 0;
   const check = (name, cond) => { total++; if (cond) { pass++; } else { console.error(`FAIL: ${name}`); } };
 

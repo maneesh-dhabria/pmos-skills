@@ -1,33 +1,16 @@
 <!DOCTYPE html>
 <!--
-  Canonical scorecard skeleton — /interview-feedback (pmos-managerkit), design §16.1 + §16.7.
-
-  THE single DOM contract. Every bundled round scorecard (Story B), the interviewer-effectiveness
-  rubric (reference/interviewer-effectiveness.html), and any skill-emitted scorecard instantiate
-  THIS structure, so the filler (scripts/fill-scorecard.mjs) targets exactly one contract.
-
-  Machine anchors (a filler MUST be able to discover dimensions/scales/flags deterministically):
-    - data-card="scorecard"                  on the root <main>; identifies an anchored sheet.
-    - data-dim="<id>"                         one per scored dimension (kebab id, stable).
-    - data-weight="<n>"                       integer weight; the weights across dims should sum to 100.
-    - data-scale="1-4"                        the scale container for that dimension.
-        - each option carries data-v="<n>"    selectable score; data-selected on the chosen one.
-    - data-input="notes:<dim>"                the qualitative/citation slot for that dimension.
-    - data-flags="green" / data-flags="red"   the per-dimension flag containers (0+ <li> each).
-    - data-input="reco"                       the single overall hire/no-hire control.
-        - each option carries data-reco="strong-yes|yes|no|strong-no".
-
-  Filling discipline (design §9, §12, §16.4): every filled note that makes a subjective claim
-  carries a <cite data-cite-tier="transcript|notes|recalled" data-source="…">…</cite>; transcript
-  citations are verbatim ≥40-char substrings of transcript.refined.txt (enforced by
-  scripts/check-citations.mjs). Self-contained HTML — no external assets, editable in a browser.
+  Technical round scorecard — /interview-feedback (pmos-managerkit).
+  Instantiates the canonical scorecard DOM contract (../../scorecard-skeleton.html).
+  PM-flavored technical/system round: judges technical JUDGMENT a PM needs to partner with eng,
+  NOT coding/implementation. Weights sum to 100. Self-contained HTML.
 -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="pmos:skill" content="interview-feedback">
-<title>Scorecard — {{round_name}} — {{candidate}}</title>
+<title>Scorecard — Technical round — {{candidate}}</title>
 <style>
   :root{
     --bg:#f8f5ef; --surface:#fff; --border:#e2dac9; --rule:#d9cfbd;
@@ -49,6 +32,7 @@
   .scale{display:flex;gap:.4rem;margin:.6rem 0}
   .scale [data-v]{display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;border:1px solid var(--border);border-radius:6px;font-family:var(--mono);cursor:default}
   .scale [data-v][data-selected]{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700}
+  .scale-caption{display:flex;justify-content:space-between;gap:1rem;font-family:var(--sans);font-size:.78rem;color:var(--muted);margin:.1rem 0 0}
   .notes{font-size:.95rem;margin:.5rem 0 0}
   .notes[data-input^="notes"]:empty::before{content:"— not yet scored —";color:var(--muted);font-style:italic}
   .flags{display:flex;gap:2rem;margin:.6rem 0 0;font-family:var(--sans);font-size:.88rem}
@@ -64,42 +48,105 @@
 </style>
 </head>
 <body>
-<main data-card="scorecard" data-archetype="{{archetype}}">
-  <h1>{{round_name}} — Scorecard</h1>
-  <p class="sub">{{archetype}} round · weights sum to 100</p>
+<main data-card="scorecard" data-archetype="technical">
+  <h1>Technical round — Scorecard</h1>
+  <p class="sub">technical round · weights sum to 100</p>
   <div class="meta">
     <span>Candidate: {{candidate}}</span>
-    <span>Round: {{round_name}}</span>
+    <span>Round: Technical</span>
     <span>Interviewer: {{lead_interviewer}}</span>
     <span>Date: {{date}}</span>
   </div>
 
-  <!-- One <section.dim> per scored dimension. Replace these two examples with the round's
-       real dimensions; keep every data-* anchor. data-weight values must sum to 100. -->
-  <section class="dim" data-dim="example-dimension-one" data-weight="50">
+  <section class="dim" data-dim="system-understanding" data-weight="25">
     <div class="dim-head">
-      <span class="dim-name">Example dimension one</span>
-      <span class="weight">weight 50</span>
+      <span class="dim-name">System understanding</span>
+      <span class="weight">weight 25</span>
     </div>
     <div class="scale" data-scale="1-4">
       <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
     </div>
-    <div class="notes" data-input="notes:example-dimension-one"></div>
+    <div class="scale-caption">
+      <span>1 — can't reason about components/data flow</span>
+      <span>4 — clear mental model of the system</span>
+    </div>
+    <div class="notes" data-input="notes:system-understanding"></div>
     <div class="flags">
       <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
       <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
     </div>
   </section>
 
-  <section class="dim" data-dim="example-dimension-two" data-weight="50">
+  <section class="dim" data-dim="technical-tradeoffs" data-weight="25">
     <div class="dim-head">
-      <span class="dim-name">Example dimension two</span>
-      <span class="weight">weight 50</span>
+      <span class="dim-name">Technical tradeoffs</span>
+      <span class="weight">weight 25</span>
     </div>
     <div class="scale" data-scale="1-4">
       <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
     </div>
-    <div class="notes" data-input="notes:example-dimension-two"></div>
+    <div class="scale-caption">
+      <span>1 — no tradeoff awareness</span>
+      <span>4 — reasons about latency/cost/complexity/consistency tradeoffs</span>
+    </div>
+    <div class="notes" data-input="notes:technical-tradeoffs"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
+    </div>
+  </section>
+
+  <section class="dim" data-dim="eng-collaboration" data-weight="20">
+    <div class="dim-head">
+      <span class="dim-name">Engineering collaboration</span>
+      <span class="weight">weight 20</span>
+    </div>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="scale-caption">
+      <span>1 — defers everything / over-specifies</span>
+      <span>4 — partners well, knows where PM input belongs</span>
+    </div>
+    <div class="notes" data-input="notes:eng-collaboration"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
+    </div>
+  </section>
+
+  <section class="dim" data-dim="feasibility-judgment" data-weight="15">
+    <div class="dim-head">
+      <span class="dim-name">Feasibility judgment</span>
+      <span class="weight">weight 15</span>
+    </div>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="scale-caption">
+      <span>1 — unrealistic scope</span>
+      <span>4 — scopes an MVP, sequences by risk</span>
+    </div>
+    <div class="notes" data-input="notes:feasibility-judgment"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
+    </div>
+  </section>
+
+  <section class="dim" data-dim="data-api-literacy" data-weight="15">
+    <div class="dim-head">
+      <span class="dim-name">Data &amp; API literacy</span>
+      <span class="weight">weight 15</span>
+    </div>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="scale-caption">
+      <span>1 — cannot reason about data/contracts</span>
+      <span>4 — comfortable with schemas, APIs, instrumentation</span>
+    </div>
+    <div class="notes" data-input="notes:data-api-literacy"></div>
     <div class="flags">
       <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
       <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>

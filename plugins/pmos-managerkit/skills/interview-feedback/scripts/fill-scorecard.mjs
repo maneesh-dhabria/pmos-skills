@@ -2,7 +2,7 @@
 // fill-scorecard.mjs — scorecard parser + filler for /interview-feedback (pmos-managerkit).
 //
 // Zero-dependency, Node built-ins only. Operates on the canonical scorecard DOM contract
-// (reference/scorecard-skeleton.html): root <main data-card="scorecard">, per-dimension
+// (../_shared/interview-guidelines/scorecard-skeleton.html): root <main data-card="scorecard">, per-dimension
 // <section data-dim data-weight> with a data-scale="1-4" container of data-v options, a
 // data-input="notes:<dim>" slot, and data-flags="green"/"red" lists; plus an overall
 // data-input="reco" control of data-reco options and a data-input="notes:reco" slot.
@@ -21,7 +21,7 @@ import { dirname, join, resolve } from 'node:path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const SKELETON = resolve(__dirname, '..', 'reference', 'scorecard-skeleton.html');
+const SKELETON = resolve(__dirname, '..', '..', '_shared', 'interview-guidelines', 'scorecard-skeleton.html');
 
 // ---------------------------------------------------------------------------
 // helpers

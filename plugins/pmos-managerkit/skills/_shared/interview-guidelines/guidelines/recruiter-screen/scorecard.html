@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <!--
-  Product-sense round scorecard — /interview-feedback (pmos-managerkit).
-  Instantiates the canonical scorecard DOM contract (reference/scorecard-skeleton.html).
-  Five dimensions, data-weight sums to 100. Self-contained HTML, editable in a browser.
+  Recruiter-screen scorecard — /interview-feedback (pmos-managerkit).
+  Instantiates ../../scorecard-skeleton.html (THE DOM contract). Blank candidate sheet:
+  scales unselected, notes empty, flag <ul>s empty (ticked at scoring time).
 -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="pmos:skill" content="interview-feedback">
-<title>Scorecard — Product sense — {{candidate}}</title>
+<title>Scorecard — Recruiter / HM Screen — {{candidate}}</title>
 <style>
   :root{
     --bg:#f8f5ef; --surface:#fff; --border:#e2dac9; --rule:#d9cfbd;
@@ -28,10 +28,10 @@
   .dim-head{display:flex;justify-content:space-between;align-items:baseline;gap:1rem}
   .dim-name{font-family:var(--sans);font-weight:600;font-size:1.02rem}
   .weight{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+  .scale-caption{font-family:var(--sans);font-size:.8rem;color:var(--muted);margin:.5rem 0 0}
   .scale{display:flex;gap:.4rem;margin:.6rem 0}
   .scale [data-v]{display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;border:1px solid var(--border);border-radius:6px;font-family:var(--mono);cursor:default}
   .scale [data-v][data-selected]{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700}
-  .scale-caption{font-family:var(--sans);font-size:.78rem;color:var(--muted);margin:0 0 .2rem}
   .notes{font-size:.95rem;margin:.5rem 0 0}
   .notes[data-input^="notes"]:empty::before{content:"— not yet scored —";color:var(--muted);font-style:italic}
   .flags{display:flex;gap:2rem;margin:.6rem 0 0;font-family:var(--sans);font-size:.88rem}
@@ -47,90 +47,90 @@
 </style>
 </head>
 <body>
-<main data-card="scorecard" data-archetype="product-sense">
-  <h1>Product sense — Scorecard</h1>
-  <p class="sub">product-sense round · weights sum to 100</p>
+<main data-card="scorecard" data-archetype="recruiter-screen">
+  <h1>Recruiter / HM Screen — Scorecard</h1>
+  <p class="sub">recruiter-screen round · weights sum to 100</p>
   <div class="meta">
     <span>Candidate: {{candidate}}</span>
-    <span>Round: Product sense</span>
+    <span>Round: Recruiter / HM Screen</span>
     <span>Interviewer: {{lead_interviewer}}</span>
     <span>Date: {{date}}</span>
   </div>
 
-  <section class="dim" data-dim="user-empathy" data-weight="20">
+  <section class="dim" data-dim="motivation-and-fit" data-weight="25">
     <div class="dim-head">
-      <span class="dim-name">User empathy</span>
-      <span class="weight">weight 20</span>
+      <span class="dim-name">Motivation &amp; role fit</span>
+      <span class="weight">weight 25</span>
     </div>
-    <p class="scale-caption">1 = ignores users or names themselves as the user · 4 = segments users and names real, evidenced pains</p>
     <div class="scale" data-scale="1-4">
       <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
     </div>
-    <div class="notes" data-input="notes:user-empathy"></div>
+    <p class="scale-caption">1 = no real reason for this role/company &middot; 4 = specific, credible motivation tied to the team's mission</p>
+    <div class="notes" data-input="notes:motivation-and-fit"></div>
     <div class="flags">
       <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
       <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
     </div>
   </section>
 
-  <section class="dim" data-dim="problem-structuring" data-weight="20">
+  <section class="dim" data-dim="communication-clarity" data-weight="20">
     <div class="dim-head">
-      <span class="dim-name">Problem structuring</span>
+      <span class="dim-name">Communication clarity</span>
       <span class="weight">weight 20</span>
     </div>
-    <p class="scale-caption">1 = jumps straight to features · 4 = clear framework, goal → user → pain → solution</p>
     <div class="scale" data-scale="1-4">
       <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
     </div>
-    <div class="notes" data-input="notes:problem-structuring"></div>
+    <p class="scale-caption">1 = rambling/unclear &middot; 4 = crisp, structured, listener-aware</p>
+    <div class="notes" data-input="notes:communication-clarity"></div>
     <div class="flags">
       <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
       <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
     </div>
   </section>
 
-  <section class="dim" data-dim="product-creativity" data-weight="20">
+  <section class="dim" data-dim="role-and-domain-understanding" data-weight="20">
     <div class="dim-head">
-      <span class="dim-name">Product creativity</span>
+      <span class="dim-name">Role &amp; domain understanding</span>
       <span class="weight">weight 20</span>
     </div>
-    <p class="scale-caption">1 = one obvious idea · 4 = several differentiated, non-obvious ideas</p>
     <div class="scale" data-scale="1-4">
       <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
     </div>
-    <div class="notes" data-input="notes:product-creativity"></div>
+    <p class="scale-caption">1 = misreads what a PM does here &middot; 4 = accurate grasp of the role + domain</p>
+    <div class="notes" data-input="notes:role-and-domain-understanding"></div>
     <div class="flags">
       <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
       <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
     </div>
   </section>
 
-  <section class="dim" data-dim="prioritization" data-weight="20">
+  <section class="dim" data-dim="seniority-signal" data-weight="20">
     <div class="dim-head">
-      <span class="dim-name">Prioritization</span>
+      <span class="dim-name">Seniority signal</span>
       <span class="weight">weight 20</span>
     </div>
-    <p class="scale-caption">1 = no criteria, picks at random · 4 = explicit impact / effort / strategic-fit tradeoffs</p>
     <div class="scale" data-scale="1-4">
       <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
     </div>
-    <div class="notes" data-input="notes:prioritization"></div>
+    <p class="scale-caption">1 = scope below the bar &middot; 4 = clear evidence of the target level's scope/impact</p>
+    <div class="notes" data-input="notes:seniority-signal"></div>
     <div class="flags">
       <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
       <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
     </div>
   </section>
 
-  <section class="dim" data-dim="success-metrics" data-weight="20">
+  <section class="dim" data-dim="logistics-alignment" data-weight="15">
     <div class="dim-head">
-      <span class="dim-name">Success metrics</span>
-      <span class="weight">weight 20</span>
+      <span class="dim-name">Logistics &amp; alignment</span>
+      <span class="weight">weight 15</span>
     </div>
-    <p class="scale-caption">1 = vanity metrics · 4 = a north-star plus guardrail metrics tied to the goal</p>
     <div class="scale" data-scale="1-4">
       <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
     </div>
-    <div class="notes" data-input="notes:success-metrics"></div>
+    <p class="scale-caption">1 = comp/location/timeline misaligned &middot; 4 = fully aligned, no blockers</p>
+    <div class="notes" data-input="notes:logistics-alignment"></div>
     <div class="flags">
       <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
       <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
