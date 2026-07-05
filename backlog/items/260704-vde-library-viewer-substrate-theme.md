@@ -4,7 +4,8 @@ id: 260704-vde
 title: "library-viewer browse pages don't match the shared html-authoring substrate — re-theme the shared library-viewer (BASE_CSS → consume canonical style.css, --pmos-* tokens, light-default + prefers-color-scheme dark) so /frameworks /primer /learn-list browse pages match Editorial Technical, and refresh the 61 bundled primer corpus files to the current theme"
 type: chore
 kind: epic
-status: defined
+status: released
+released: 0.34.0
 route: skill
 priority: should
 labels: [pmos-learnkit, library-viewer, html-substrate, theme, styling, skill]

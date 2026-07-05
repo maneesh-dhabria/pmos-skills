@@ -5,6 +5,7 @@ title: "Re-theme the shared library-viewer substrate — lib.mjs reads + inlines
 type: chore
 kind: story
 status: done
+released: 0.34.0
 route: skill
 priority: should
 labels: [pmos-learnkit, library-viewer, html-substrate, theme, skill]
@@ -15,7 +16,7 @@ dependencies: []
 design_doc: docs/pmos/features/2026-07-04_library-viewer-substrate-theme/02_design.html
 plan_doc: docs/pmos/features/2026-07-04_library-viewer-substrate-theme/stories/260704-m7f/03_plan.html
 feature_folder: docs/pmos/features/2026-07-04_library-viewer-substrate-theme/
-worktree: agent-skills-260704-m7f
+worktree:
 branch: feat/260704-m7f
 ---
 

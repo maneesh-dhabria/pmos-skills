@@ -5,6 +5,7 @@ title: "Refresh the 61 bundled primer corpus files to the current Editorial Tech
 type: chore
 kind: story
 status: done
+released: 0.34.0
 route: skill
 priority: should
 labels: [pmos-learnkit, primer, corpus, html-substrate, theme, skill]
@@ -15,7 +16,7 @@ dependencies: []
 design_doc: docs/pmos/features/2026-07-04_library-viewer-substrate-theme/02_design.html
 plan_doc: docs/pmos/features/2026-07-04_library-viewer-substrate-theme/stories/260704-v4a/03_plan.html
 feature_folder: docs/pmos/features/2026-07-04_library-viewer-substrate-theme/
-worktree: agent-skills-260704-v4a
+worktree:
 branch: feat/260704-v4a
 claimed_by: "build:b0e236c5-8aab-4a88-8bd7-4d40d8d8e0bc"
 driver_holder: "build:b0e236c5-8aab-4a88-8bd7-4d40d8d8e0bc"
