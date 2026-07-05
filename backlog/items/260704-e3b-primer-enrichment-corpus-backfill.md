@@ -4,18 +4,20 @@ id: 260704-e3b
 title: "/primer enrichment corpus backfill — run the 260704-6rq engine over all 61 bundled primers, fully unattended + rubric-gated; commit enriched *.html + *.sources.json + a per-primer run report"
 type: feature
 kind: story
-status: planned
+status: in-progress
 route: skill
 priority: should
 labels: [pmos-learnkit, primer, references, corpus, enrichment, skill]
 created: 2026-07-04
-updated: 2026-07-04
+updated: 2026-07-05
 parent: 260704-dgq
 dependencies: [260704-6rq, 260704-rgt]
 design_doc: docs/pmos/features/2026-07-04_primer-references-enrichment/02_design.html
 plan_doc: docs/pmos/features/2026-07-04_primer-references-enrichment/stories/260704-e3b/03_plan.html
 feature_folder: docs/pmos/features/2026-07-04_primer-references-enrichment/
-worktree:
+worktree: .claude/worktrees/feat-260704-e3b
+claimed_by: build:59524b3c-a9d3-48f5-a42f-6cc442f3afc3
+driver_holder: build:59524b3c-a9d3-48f5-a42f-6cc442f3afc3
 ---
 
 ## Context
