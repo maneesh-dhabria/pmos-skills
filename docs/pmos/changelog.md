@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-05 — pmos-learnkit 0.34.0: primer & learn-list library browsers match the shared house style
+
+**The `/primer` and `/learn-list` library browsers now wear the same editorial theme as the rest of pmos.** The shared library-viewer engine was re-themed to the canonical palette — warm off-white background, signature accent — and defaults to a light reading surface, so browsing your primers and reading lists feels consistent with every other pmos artifact. All 61 bundled primers were refreshed to the same palette in one marker-scoped pass that leaves their content untouched, and because the viewer engine is shared, `/frameworks` picks up the identical look with no change to its own behavior.
+
 ## 2026-07-05 — pmos-learnkit 0.33.0: /primer shows its sources in a References section
 
 **Every `/primer` now ends with a full, verified References section.** Instead of citations buried inline, each primer closes with a dedicated References list surfacing the fetch-verified sources it drew on, so you can see and follow the primary sources behind what you just read. New primers get the section automatically, and all 61 bundled primers in the library have been backfilled with their references — a single generator drives both paths, so an authored primer and a backfilled one are identical in structure.
