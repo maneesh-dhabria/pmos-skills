@@ -151,3 +151,84 @@ Both lists hold slug-normalized, deduped, sorted entries. Its sole purpose is to
 - The terminal verbs are **registry-agnostic** (D5): `/mytasks` CLI never reads or writes `registry.json` and derives projects/labels purely from task files. Deleting `registry.json` loses only the empty-container hints; no task data is affected.
 
 It is an optional, additive convenience cache (empty-container hints only), not a record of truth — distinct from the at-a-glance index view, which is never persisted and is always derived on read (§5 INV-1).
+
+---
+
+# /mytasks Goal Schema
+
+> Also binds [`../_shared/tracker-crudl.md`](../_shared/tracker-crudl.md). **Goals are a second tracker collection** alongside `items/` — the same id/slug rules (§2), the same `created`/`updated`/`schema_version` (§3), the same move-not-delete archive (§6). The one structural addition is an **embedded `milestones:` frontmatter list**, described below. Grounds in feature `02_design.html` §2 (INV-1/INV-2/INV-3, decisions D2/D6).
+
+Every goal is a markdown file at `~/.pmos/tasks/goals/{id}-{slug}.md` — a sibling directory to `items/`, not a task type. Goals and tasks never share a file; a task *references* a goal by id in later stories (out of scope here).
+
+## Goal filename
+
+Numeric-id store — `id`/`slug` per `../_shared/tracker-crudl.md` §2 (`<YYMMDD>-<rand3>`, minted by `lib.js mintId` from the same Crockford-base32 alphabet as tasks). The `goals/` directory is the collection namespace; ids are drawn from the shared per-user space.
+
+## Goal frontmatter
+
+```yaml
+---
+schema_version: 1
+id: 260705-k2p
+title: Ship the goals & milestones feature
+type: dated                        # enum {dated, open-ended}
+status: active                     # enum {active, achieved, dropped}
+cadence: weekly                    # enum {daily, weekly, biweekly, monthly} — reuses the check-in cadence set
+target: 2026-09-30                 # ISO date; present for `dated`, a bare key for `open-ended`
+created: 2026-07-05
+updated: 2026-07-05
+milestone_seq: 2                   # internal monotonic ref counter (never decremented) — guarantees INV-2
+milestones:                        # embedded list; the machine source of truth (INV-1)
+  - ref: m1                        # stable, never reused after deletion (INV-2)
+    description: Data model + CRUD landed
+    due: 2026-07-20                # ISO date or bare
+    met: false                     # boolean
+    met_date:                      # ISO date, set when met -> true
+  - ref: m2
+    description: Pace signals surfaced
+    due: 2026-08-15
+    met: false
+    met_date:
+---
+```
+
+### Goal enum values (the skill MUST validate against these and never invent new ones)
+
+| Field | Allowed values |
+|---|---|
+| `type` | `dated`, `open-ended` |
+| `status` | `active`, `achieved`, `dropped` |
+| `cadence` | `daily`, `weekly`, `biweekly`, `monthly` |
+
+`type`, `status`, and `cadence` are closed enums (`validateGoal` rejects any other value — AC3/§2.2). `target` is required-ish for a `dated` goal (an ISO date) and **must be empty** for an `open-ended` goal; a non-ISO `target`, or a `target` on an open-ended goal, is a validation error.
+
+### Milestones (`milestones:` — the embedded list)
+
+Each entry is `{ref, description, due, met, met_date}`:
+
+| Field | Shape | Meaning |
+|---|---|---|
+| `ref` | `m<N>` | Stable handle, unique within the goal. Minted by `nextMilestoneRef` off the goal's `milestone_seq` counter, which **only ever increases** — so a dropped ref's number is **never handed out again** (INV-2), even when the highest-numbered milestone is the one dropped. |
+| `description` | free string | What the milestone is. |
+| `due` | ISO date or bare | Target date; optional. |
+| `met` | boolean | `true` once reached. |
+| `met_date` | ISO date or bare | Set when `met` flips to `true`. |
+
+**INV-1 — frontmatter is truth, the body mirrors it.** The `milestones:` frontmatter list is the sole machine-read source. The `## Milestones` body block is a **human mirror regenerated from the frontmatter on every write** (`regenerateMilestonesBody`) — it is never parsed back for computation, so a hand-edit to the body block is overwritten on the next verb, not honored.
+
+## Goal body
+
+```markdown
+## Milestones
+- [ ] m1 — Data model + CRUD landed (due 2026-07-20)
+- [x] m2 — Pace signals surfaced (due 2026-08-15) — met 2026-08-14
+
+## Notes
+Free-form. User-written. Preserved verbatim across milestone-mirror regeneration.
+```
+
+The `## Milestones` block is machine-owned (regenerated — INV-1); every other section (e.g. `## Notes`) is preserved verbatim.
+
+## Goal archive
+
+Goals archive per `../_shared/tracker-crudl.md` §6, **sharing the tasks archive root**: an `achieved` or `dropped` goal moves (not deleted) to `~/.pmos/tasks/archive/YYYY-QN/{id}-{slug}.md` and leaves every active surface (INV-3). `loadAllGoals` scans only the live `goals/` directory, so an archived goal is absent from lists and lookups.
