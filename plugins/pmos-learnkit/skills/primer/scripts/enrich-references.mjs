@@ -171,10 +171,21 @@ export function defaultWeaver(html, source) {
 
 // ---- step 7: deterministic rubric subset (R1 + R11) ------------------------
 
-// Body hrefs, excluding the References section (which lists every source by design and must
-// not self-trip R1). Mirrors references-section.mjs's strip+collect without importing privates.
+// Teaching-body hrefs, excluding the References section (which lists every source by design
+// and must not self-trip R1). Scoped to the <main class="pmos-artifact-body"> subtree so the
+// primer's footer/header CHROME links (the pmos wordmark, repo brand-mark) — which are not and
+// must not be sources.json members — never trip R1. Mirrors references-section.mjs's
+// strip+collect without importing privates.
 function bodyHrefsExcludingReferences(html) {
   let body = String(html);
+  // Scope to the teaching body; chrome (toolbar/footer) lives outside <main>.
+  const mainOpen = /<main[^>]*class="[^"]*pmos-artifact-body[^"]*"[^>]*>/i.exec(body);
+  if (mainOpen) {
+    const afterOpen = mainOpen.index + mainOpen[0].length;
+    const rest = body.slice(afterOpen);
+    const close = rest.search(/<\/main>/i);
+    body = close === -1 ? rest : rest.slice(0, close);
+  }
   const refStart = /<h2\s+id="references"[^>]*>/i.exec(body);
   if (refStart) {
     const after = body.slice(refStart.index + refStart[0].length);
@@ -269,19 +280,29 @@ export async function enrichPrimer({ htmlPath, sourcesPath, corpus, tagVocabular
     return base;
   }
 
-  // Flatten candidates deterministically: topics in first-seen order, each topic's candidates
-  // already score-sorted by corpusMatch. Fetch-verify until the per-primer cap is hit (D4).
+  // Flatten candidates deterministically, ROUND-ROBIN across topics (topics in first-seen
+  // order, each topic's candidates already score-sorted by corpusMatch) so the per-primer cap
+  // (D4) spreads enrichment across sections instead of draining one topic. Fetch-verify in that
+  // order until the cap is hit.
+  const queues = topics.map((t) => (perTopic[t] ? { topic: t, cands: perTopic[t].slice() } : null)).filter(Boolean);
+  const flat = [];
+  for (let more = true; more; ) {
+    more = false;
+    for (const q of queues) {
+      const c = q.cands.shift();
+      if (c) {
+        flat.push({ ...c, topic: q.topic });
+        more = true;
+      }
+    }
+  }
   const verified = [];
   let attemptedAny = false;
-  outer: for (const topic of topics) {
-    const cands = perTopic[topic];
-    if (!cands) continue;
-    for (const c of cands) {
-      if (verified.length >= o.cap) break outer;
-      attemptedAny = true;
-      const v = await verify({ ...c, topic });
-      if (v && v.url) verified.push({ url: v.url, takeaway: v.takeaway || '', topic, tier: v.tier || 'T3', paywalled: !!v.paywalled });
-    }
+  for (const c of flat) {
+    if (verified.length >= o.cap) break;
+    attemptedAny = true;
+    const v = await verify(c);
+    if (v && v.url) verified.push({ url: v.url, takeaway: v.takeaway || '', topic: c.topic, tier: v.tier || 'T3', paywalled: !!v.paywalled });
   }
 
   if (attemptedAny && verified.length === 0 && deps.verify == null) {
