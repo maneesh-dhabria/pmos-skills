@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-05 — pmos-managerkit 0.3.0: new skill — /interview-guide
+
+**`/interview-guide` turns an interview archetype into a ready-to-run guide for the interviewer.** Give it a role and an interview type — recruiter screen, product sense, technical, case study, or case presentation — and it produces an interviewer reference (what to probe for, what a strong vs. weak answer looks like), a scoring sheet whose anchors line up exactly with `/interview-feedback`'s scorecard, and — for case rounds only — a candidate-facing case document. A built-in validator checks that every scoring dimension is anchored and that the dimension weights sum to 100, so the guide you interview from and the scorecard you grade with always speak the same contract. The shared interview-guidelines corpus both skills draw on now lives in one home (`_shared/interview-guidelines/`), so `/interview-guide` and `/interview-feedback` can never drift on what "good" means.
+
 ## 2026-07-01 — pmos-toolkit 2.100.0: /landing-page shows, not just tells
 
 **`/landing-page` now holds itself to a higher substance bar.** Before drafting, every claim on the page must be paired with a way to *show* it — a real embedded artifact, screenshot, or demo — and a hard do > show > tell gate refuses a page that only asserts value without evidence. Multi-product pages can override the target persona per product, the hero embeds a real artifact rather than a stock mock, and new self-checks verify value coverage and match asset claims to what's actually shown. Developer-tool pages get a dedicated hero-subhead check so the pitch reads right for a technical audience.
