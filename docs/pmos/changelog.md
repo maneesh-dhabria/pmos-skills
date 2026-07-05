@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-05 — pmos-toolkit 2.101.0: new skill — /morning-brief
+
+**`/morning-brief` sweeps your declared sources into one trustworthy, show-everything morning brief.** Instead of a tool-by-tool morning check, point it at the sources you care about — email, calendar, doc-collaboration comments, and more — and it produces a single ranked brief of what arrived overnight, with a per-run coverage manifest that tells you honestly which sources it reached and which it couldn't, so you never get a false sense of coverage. It learns from how you triage (observe-and-correct heuristics rather than silent ranking rot), and closes the loop on action: items in the brief can be batch-confirmed into real tracked tasks — minted straight through the `/mytasks` library so they're byte-identical to tasks you create by hand — or dismissed in their source. Built to stay trustworthy in week four, not just on day one.
+
 ## 2026-07-05 — pmos-managerkit 0.3.0: new skill — /interview-guide
 
 **`/interview-guide` turns an interview archetype into a ready-to-run guide for the interviewer.** Give it a role and an interview type — recruiter screen, product sense, technical, case study, or case presentation — and it produces an interviewer reference (what to probe for, what a strong vs. weak answer looks like), a scoring sheet whose anchors line up exactly with `/interview-feedback`'s scorecard, and — for case rounds only — a candidate-facing case document. A built-in validator checks that every scoring dimension is anchored and that the dimension weights sum to 100, so the guide you interview from and the scorecard you grade with always speak the same contract. The shared interview-guidelines corpus both skills draw on now lives in one home (`_shared/interview-guidelines/`), so `/interview-guide` and `/interview-feedback` can never drift on what "good" means.
