@@ -152,11 +152,11 @@ const PRIMER_CARD = {
 const PRIMER_CSS = `.card .top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:2px}
 .card h4.name{margin:2px 0 0}
 .badge{font-size:10px;text-transform:uppercase;letter-spacing:.05em;border-radius:999px;padding:2px 8px;font-weight:700}
-.badge.curated{background:rgba(14,165,164,.16);color:#5fe3df;border:1px solid #1f6b69}
-.badge.yours{background:rgba(110,168,254,.16);color:var(--accent);border:1px solid #345}
+.badge.curated{background:var(--pmos-accent-bg);color:var(--pmos-accent-strong);border:1px solid var(--pmos-border)}
+.badge.yours{background:var(--pmos-surface-2);color:var(--pmos-muted);border:1px solid var(--pmos-border)}
 .metarow{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.pill{background:#2a3252;color:#cdd8ef;border-radius:999px;padding:2px 8px;font-size:11px}
-.pill.warn{background:#3a2230;color:#f3b0c0;border:1px solid #5a3344}
+.pill{background:var(--pmos-surface-2);color:var(--pmos-muted);border-radius:999px;padding:2px 8px;font-size:var(--pmos-fs-xs)}
+.pill.warn{background:var(--pmos-surface-2);color:var(--pmos-warning);border:1px solid var(--pmos-warning)}
 ul.listview .badge{margin-right:6px}
 ul.listview .metarow{margin-top:4px}`;
 

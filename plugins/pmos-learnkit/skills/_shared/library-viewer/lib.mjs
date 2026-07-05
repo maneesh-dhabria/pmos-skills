@@ -8,6 +8,29 @@
 //
 // Skill-agnostic invariant (D12): this module never names or branches on a specific skill.
 
+import { readFileSync } from 'node:fs';
+
+// Read + return the canonical Editorial-Technical stylesheet that lives in the sibling
+// _shared/html-authoring/ substrate. It carries the :root --pmos-* tokens (light default), the
+// prefers-color-scheme dark overrides, the @font-face declarations, and base element styling —
+// the single source of truth every pmos HTML artifact shares (D1/D5, INV-2). emitHtml inlines it
+// as the base layer of the emitted <style> ahead of this module's component CSS, so all three
+// browse pages inherit the theme with zero external requests (INV-1). Fail loud on a
+// missing/unreadable file, naming the resolved path — never silently fall back (D6, INV-1).
+// Internal (not exported): the public API surface stays emitHtml + the named exports (AC6).
+function readBaseCss() {
+  const cssUrl = new URL('../html-authoring/assets/style.css', import.meta.url);
+  try {
+    return readFileSync(cssUrl, 'utf8');
+  } catch (err) {
+    throw new Error(
+      `library-viewer: cannot read canonical stylesheet at ${cssUrl.pathname} `
+      + `(expected the _shared/html-authoring/assets/style.css substrate as a sibling of library-viewer/). `
+      + `Underlying error: ${err.message}`,
+    );
+  }
+}
+
 // ---- pure helpers ---------------------------------------------------------
 
 export function esc(s) {
@@ -180,100 +203,109 @@ export function sortGroups(names, opts) {
 
 // ---- the emitted page -----------------------------------------------------
 
-const BASE_CSS = `:root{--bg:#0f1320;--panel:#171c2e;--card:#1d2438;--ink:#e7ecf5;--muted:#9aa6bf;--accent:#6ea8fe;--line:#2a3252}
-*{box-sizing:border-box}
-body{margin:0;font:15px/1.55 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
-a{color:var(--accent)}
+// Component CSS layer. The canonical style.css (read + inlined ahead of this by emitHtml, see
+// readBaseCss) supplies the :root --pmos-* tokens, the prefers-color-scheme dark overrides, the
+// @font-face, and base element styling. This block styles ONLY the library-viewer's own
+// components (browse layout, cards, facets, chips, reader) and references --pmos-* tokens
+// exclusively — never a hardcoded color and never a private --bg/--panel/--card/--accent/--line
+// token (INV-2). Light default + dark are inherited for free from the tokens (INV-3): no
+// component here hardcodes a dark-only value or adds its own prefers-color-scheme rule. Text on
+// an accent fill uses --pmos-surface (the theme-inverse of text — white on burnt-orange in
+// light, near-black on light-orange in dark), so it reads in both schemes. Three-voice type:
+// sans for controls/headings, serif for reader prose, mono for structural/metadata chrome.
+const BASE_CSS = `body{margin:0;font-family:var(--pmos-font-sans);font-size:var(--pmos-fs-md);line-height:1.55;background:var(--pmos-bg);color:var(--pmos-text)}
+a{color:var(--pmos-accent)}
 .layout{display:flex;align-items:flex-start}
 .listing{flex:1;min-width:0}
-header{position:sticky;top:0;background:var(--panel);border-bottom:1px solid var(--line);padding:14px 20px;z-index:5}
+header{position:sticky;top:0;background:var(--pmos-surface-2);border-bottom:1px solid var(--pmos-border);padding:14px 20px;z-index:5}
 .masthead{display:flex;align-items:center;gap:14px;margin-bottom:12px}
-.wordmark{font-weight:800;letter-spacing:.06em;font-size:14px;color:#0f1320;background:linear-gradient(135deg,#6ea8fe,#0ea5a4);padding:6px 10px;border-radius:8px}
-.mast-text h1{margin:0;font-size:19px}
-.subtitle{color:var(--muted);font-size:13px;margin-top:2px}
+.wordmark{font-family:var(--pmos-font-mono);font-weight:700;letter-spacing:.06em;font-size:var(--pmos-fs-base);color:var(--pmos-surface);background:var(--pmos-accent);padding:6px 10px;border-radius:var(--pmos-radius)}
+.mast-text h1{margin:0;font-family:var(--pmos-font-sans);font-size:19px}
+.subtitle{color:var(--pmos-muted);font-size:var(--pmos-fs-sm);margin-top:2px}
 .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-.controls input,.controls select{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px}
+.controls input,.controls select{font-family:var(--pmos-font-sans);background:var(--pmos-surface);color:var(--pmos-text);border:1px solid var(--pmos-border);border-radius:var(--pmos-radius);padding:8px 10px;font-size:var(--pmos-fs-base)}
 .controls input{flex:1;min-width:200px}
 .searchwrap{flex:1;min-width:200px;position:relative;display:flex}
 .searchwrap input{flex:1;width:100%}
-.search-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:0;color:var(--muted);font-size:15px;cursor:pointer;padding:2px 4px;line-height:1}
-.search-clear:hover{color:var(--ink)}
-.controls label{color:var(--muted);font-size:13px;display:flex;gap:6px;align-items:center}
-.viewswitch{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
-.viewswitch button{background:var(--card);color:var(--muted);border:0;padding:8px 12px;font-size:13px;cursor:pointer}
-.viewswitch button.active{background:var(--accent);color:#0f1320;font-weight:600}
+.search-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:0;color:var(--pmos-muted);font-size:15px;cursor:pointer;padding:2px 4px;line-height:1}
+.search-clear:hover{color:var(--pmos-text)}
+.controls label{color:var(--pmos-muted);font-size:var(--pmos-fs-sm);display:flex;gap:6px;align-items:center}
+.viewswitch{display:inline-flex;border:1px solid var(--pmos-border);border-radius:var(--pmos-radius);overflow:hidden}
+.viewswitch button{font-family:var(--pmos-font-sans);background:var(--pmos-surface);color:var(--pmos-muted);border:0;padding:8px 12px;font-size:var(--pmos-fs-sm);cursor:pointer}
+.viewswitch button.active{background:var(--pmos-accent);color:var(--pmos-surface);font-weight:600}
 .viewswitch button svg{width:13px;height:13px;vertical-align:-2px;margin-right:5px;fill:currentColor}
-.count{color:var(--muted);font-size:13px;margin-left:auto}
+.count{color:var(--pmos-muted);font-family:var(--pmos-font-mono);font-size:var(--pmos-fs-sm);margin-left:auto}
 .filterbar{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;position:relative}
 .dropdown{position:relative}
-.dd-trigger{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:13px;cursor:pointer}
-.dropdown.open .dd-trigger{border-color:var(--accent)}
-.dropdown .panel{position:absolute;top:calc(100% + 4px);left:0;z-index:10;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px;min-width:230px;max-height:340px;overflow:auto;box-shadow:0 8px 24px rgba(0,0,0,.45)}
-.dropdown .panel .opt{display:flex;align-items:center;gap:8px;padding:4px 6px;font-size:13px;color:var(--ink);cursor:pointer;border-radius:6px}
-.dropdown .panel .opt:hover{background:var(--card)}
-.dropdown .panel .opt .cnt{color:var(--muted);font-size:12px;margin-left:auto}
-.tag-search{width:100%;margin-bottom:6px;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-size:13px}
+.dd-trigger{font-family:var(--pmos-font-sans);background:var(--pmos-surface);color:var(--pmos-text);border:1px solid var(--pmos-border);border-radius:var(--pmos-radius);padding:8px 12px;font-size:var(--pmos-fs-sm);cursor:pointer}
+.dropdown.open .dd-trigger{border-color:var(--pmos-accent)}
+.dropdown .panel{position:absolute;top:calc(100% + 4px);left:0;z-index:10;background:var(--pmos-surface);border:1px solid var(--pmos-border);border-radius:var(--pmos-radius);padding:8px;min-width:230px;max-height:340px;overflow:auto;box-shadow:var(--pmos-shadow-lg)}
+.dropdown .panel .opt{display:flex;align-items:center;gap:8px;padding:4px 6px;font-size:var(--pmos-fs-sm);color:var(--pmos-text);cursor:pointer;border-radius:var(--pmos-radius)}
+.dropdown .panel .opt:hover{background:var(--pmos-surface-2)}
+.dropdown .panel .opt .cnt{color:var(--pmos-muted);font-family:var(--pmos-font-mono);font-size:var(--pmos-fs-xs);margin-left:auto}
+.tag-search{width:100%;margin-bottom:6px;background:var(--pmos-surface);color:var(--pmos-text);border:1px solid var(--pmos-border);border-radius:var(--pmos-radius);padding:6px 8px;font-size:var(--pmos-fs-sm)}
 .applied{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;align-items:center}
 .applied:empty{display:none}
-.applied-chip{background:#243;color:#9fe0b8;border:1px solid #33523f;border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer}
-.applied-chip:hover{border-color:var(--accent)}
-.applied .clear-all{background:none;color:var(--muted);border:1px dashed var(--line);border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer}
-.applied .clear-all:hover{color:var(--ink);border-color:var(--accent)}
+.applied-chip{background:var(--pmos-accent-bg);color:var(--pmos-accent-strong);border:1px solid var(--pmos-border);border-radius:999px;padding:3px 10px;font-size:var(--pmos-fs-xs);cursor:pointer}
+.applied-chip:hover{border-color:var(--pmos-accent)}
+.applied .clear-all{background:none;color:var(--pmos-muted);border:1px dashed var(--pmos-border);border-radius:999px;padding:3px 10px;font-size:var(--pmos-fs-xs);cursor:pointer}
+.applied .clear-all:hover{color:var(--pmos-text);border-color:var(--pmos-accent)}
 #groups{padding:18px 20px}
 .group{margin-bottom:26px}
-.group>h3{margin:0 0 12px;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:6px}
+.group>h3{margin:0 0 12px;font-family:var(--pmos-font-mono);font-size:var(--pmos-fs-sm);text-transform:uppercase;letter-spacing:.05em;color:var(--pmos-muted);border-bottom:1px solid var(--pmos-rule);padding-bottom:6px}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;cursor:pointer;transition:border-color .15s}
-.card:hover,.card.open{border-color:var(--accent)}
-.card .thumb{background:#fff;border-radius:8px;padding:6px;margin:-2px 0 10px;max-height:130px;overflow:hidden;display:flex;justify-content:center}
-.card .thumb[data-thumb]:empty{min-height:60px;background:var(--card);border:1px dashed var(--line)}
+.card{background:var(--pmos-surface);border:1px solid var(--pmos-border);border-radius:var(--pmos-radius-lg);padding:14px 16px;cursor:pointer;transition:border-color .15s}
+.card:hover,.card.open{border-color:var(--pmos-accent)}
+.card .thumb{background:var(--pmos-surface);border-radius:var(--pmos-radius);padding:6px;margin:-2px 0 10px;max-height:130px;overflow:hidden;display:flex;justify-content:center}
+.card .thumb[data-thumb]:empty{min-height:60px;background:var(--pmos-surface-2);border:1px dashed var(--pmos-border)}
 .card .thumb svg{max-width:100%;max-height:118px;height:auto}
-.card h4.name{margin:0 0 4px;font-size:16px}
-.card .cat{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
-.card .sum{margin:8px 0 10px;color:var(--ink)}
+.card h4.name{margin:0 0 4px;font-family:var(--pmos-font-sans);font-size:16px}
+.card .cat{color:var(--pmos-muted);font-family:var(--pmos-font-mono);font-size:var(--pmos-fs-sm);text-transform:uppercase;letter-spacing:.04em}
+.card .sum{margin:8px 0 10px;color:var(--pmos-text)}
 .tags{display:flex;flex-wrap:wrap;gap:6px}
-.tag{background:#243;color:#9fe0b8;border:1px solid #33523f;border-radius:999px;padding:2px 8px;font-size:11px}
-.dt{display:inline-block;background:#2a3252;color:var(--accent);border-radius:999px;padding:2px 8px;font-size:11px;margin-top:8px}
+.tag{background:var(--pmos-accent-bg);color:var(--pmos-accent-strong);border:1px solid var(--pmos-border);border-radius:999px;padding:2px 8px;font-size:var(--pmos-fs-xs)}
+.dt{display:inline-block;background:var(--pmos-surface-2);color:var(--pmos-accent);border-radius:999px;padding:2px 8px;font-size:var(--pmos-fs-xs);margin-top:8px}
 .compact .row{margin:4px 0;line-height:1.7}
 .compact .row a{margin-right:2px}
-.compact .row a.selected{color:#0f1320;background:var(--accent);border-radius:4px;padding:1px 5px;font-weight:600}
+.compact .row a.selected{color:var(--pmos-surface);background:var(--pmos-accent);border-radius:4px;padding:1px 5px;font-weight:600}
 ul.listview{margin:0;padding-left:18px}
 ul.listview li{margin:6px 0}
-ul.listview li.selected{background:#1a2236;border-radius:6px;padding:2px 8px;margin-left:-8px;border-left:3px solid var(--accent)}
-ul.listview li.selected>a{color:var(--accent);font-weight:600}
-ul.listview .ls{color:var(--muted)}
-.empty{color:var(--muted);text-align:center;padding:40px}
-.reader{width:0;overflow:hidden;background:var(--panel);border-left:1px solid var(--line);transition:width .18s ease;align-self:stretch;position:sticky;top:0;max-height:100vh;overflow-y:auto}
+ul.listview li.selected{background:var(--pmos-accent-bg);border-radius:var(--pmos-radius);padding:2px 8px;margin-left:-8px;border-left:3px solid var(--pmos-accent)}
+ul.listview li.selected>a{color:var(--pmos-accent);font-weight:600}
+ul.listview .ls{color:var(--pmos-muted)}
+.empty{color:var(--pmos-muted);text-align:center;padding:40px}
+.reader{width:0;overflow:hidden;background:var(--pmos-surface-2);border-left:1px solid var(--pmos-border);transition:width .18s ease;align-self:stretch;position:sticky;top:0;max-height:100vh;overflow-y:auto}
 .layout.reader-open .reader{width:min(440px,42%);padding:18px 20px}
-.reader h2{margin:0 2px 2px 0}
-.reader .meta{color:var(--muted);font-size:13px;margin-bottom:12px}
+.reader h2{margin:0 2px 2px 0;font-family:var(--pmos-font-sans)}
+.reader .meta{color:var(--pmos-muted);font-family:var(--pmos-font-mono);font-size:var(--pmos-fs-sm);margin-bottom:12px}
 .reader .actions{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 14px}
-.reader .actions button{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer}
-.reader .actions button:hover{border-color:var(--accent)}
-.reader button.close{float:right;color:var(--muted)}
-.take{background:#1a2236;border-left:3px solid var(--accent);padding:10px 14px;border-radius:6px;margin:12px 0;color:#cdd8ef}
-.take b{color:var(--accent)}
+.reader .actions button{font-family:var(--pmos-font-sans);background:var(--pmos-surface);color:var(--pmos-text);border:1px solid var(--pmos-border);border-radius:var(--pmos-radius);padding:6px 10px;font-size:var(--pmos-fs-sm);cursor:pointer}
+.reader .actions button:hover{border-color:var(--pmos-accent)}
+.reader button.close{float:right;color:var(--pmos-muted)}
+.reader .body{font-family:var(--pmos-font-serif)}
+.take{background:var(--pmos-accent-bg);border-left:3px solid var(--pmos-accent);padding:10px 14px;border-radius:var(--pmos-radius);margin:12px 0;color:var(--pmos-text)}
+.take b{color:var(--pmos-accent-strong)}
 .when{display:flex;gap:18px;flex-wrap:wrap;margin:10px 0}
 .when div{flex:1;min-width:160px}
-.when h4{margin:0 0 4px;font-size:12px;text-transform:uppercase;color:var(--muted)}
+.when h4{margin:0 0 4px;font-family:var(--pmos-font-mono);font-size:var(--pmos-fs-sm);text-transform:uppercase;color:var(--pmos-muted)}
 .body ul{margin:6px 0;padding-left:20px}
-.body blockquote{border-left:3px solid var(--line);margin:8px 0;padding:2px 12px;color:var(--muted)}
+.body blockquote{border-left:3px solid var(--pmos-rule);margin:8px 0;padding:2px 12px;color:var(--pmos-muted)}
 .diagram{margin:10px 0}
-.diagram svg{max-width:100%;height:auto;background:#fff;border-radius:8px;padding:8px}
+.diagram svg{max-width:100%;height:auto;background:var(--pmos-surface);border-radius:var(--pmos-radius);padding:8px}
 .diagrams-lead{margin-bottom:8px}
 .refs a{margin-right:12px}
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--accent);color:#0f1320;font-weight:600;padding:8px 16px;border-radius:8px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--pmos-accent);color:var(--pmos-surface);font-weight:600;padding:8px 16px;border-radius:var(--pmos-radius);opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
 .toast.show{opacity:1}
-@media(max-width:720px){.layout{flex-direction:column}.layout.reader-open .reader{width:100%;border-left:0;border-top:1px solid var(--line);position:static;max-height:none}}`;
+@media(max-width:720px){.layout{flex-direction:column}.layout.reader-open .reader{width:100%;border-left:0;border-top:1px solid var(--pmos-border);position:static;max-height:none}}`;
 
 // Additive reader-mode seam (default-off): styles for config.reader.mode === 'iframe'. Injected
 // into <style> ONLY in iframe mode, so a consumer that does not opt in emits byte-identical CSS.
 const IFRAME_READER_CSS = `
 .reader-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 0 12px}
 .reader-head h2{margin:0}
-.reader .open-tab{font-size:13px;white-space:nowrap}
-.reader-frame{width:100%;height:calc(100vh - 96px);border:1px solid var(--line);border-radius:8px;background:#fff}
-.reader-empty{color:var(--muted);text-align:center;padding:36px 8px}`;
+.reader .open-tab{font-size:var(--pmos-fs-sm);white-space:nowrap}
+.reader-frame{width:100%;height:calc(100vh - 96px);border:1px solid var(--pmos-border);border-radius:var(--pmos-radius);background:var(--pmos-surface)}
+.reader-empty{color:var(--pmos-muted);text-align:center;padding:36px 8px}`;
 
 // default inline-SVG glyphs for the view switch (decorative, offline-safe).
 const DEFAULT_VIEW_ICONS = {
@@ -402,7 +434,8 @@ export function emitHtml(opts) {
   // iframe reader-mode CSS/runtime are appended ONLY when opted in; '' otherwise → byte-identical.
   const iframeReaderCss = reader.mode === 'iframe' ? IFRAME_READER_CSS : '';
   const iframeReaderRuntime = reader.mode === 'iframe' ? IFRAME_READER_RUNTIME : '';
-  const style = `<style>\n${BASE_CSS}${iframeReaderCss}${o.extraHead ? '\n' + o.extraHead : ''}\n</style>`;
+  const canonicalCss = readBaseCss();
+  const style = `<style>\n${canonicalCss}\n${BASE_CSS}${iframeReaderCss}${o.extraHead ? '\n' + o.extraHead : ''}\n</style>`;
   // bake the default view as a literal so `view: '<v>'` is correct before any JS runs / config reads.
   const client = CLIENT_RUNTIME.replace('__DEFAULT_VIEW__', defaultView) + iframeReaderRuntime + (o.extraScript ? '\n' + o.extraScript : '');
 

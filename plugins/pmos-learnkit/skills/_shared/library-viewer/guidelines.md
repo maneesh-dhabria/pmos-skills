@@ -107,8 +107,30 @@ absent). Thumbnails are **never** inlined at first paint.
 ## Masthead & theme
 
 A sticky header carries a PMOS **wordmark**, a title, and a subtitle whose **count is dynamic**
-(read from the corpus length / `DATA.length` at runtime — never a hard-coded number). A single
-dark theme ships by default; consumers may pass `extraHead` CSS to extend it.
+(read from the corpus length / `DATA.length` at runtime — never a hard-coded number).
+
+The page wears the canonical **"Editorial Technical"** theme. `emitHtml()` reads the shared
+`../html-authoring/assets/style.css` (resolved relative to `lib.mjs` via `import.meta.url`) at
+**build time** and inlines it as the **base** layer of the emitted `<style>`, ahead of the
+library-viewer's own component CSS. The component layer references **only** `--pmos-*` design
+tokens (surface / border / rule / text / muted / accent / accent-bg + spacing / radius / font
+tokens) — no hardcoded colors and no library-viewer-private `:root` palette. Consequences:
+
+- **Single source of truth.** The palette, type scale, and `@font-face` faces all live in
+  `style.css`; the substrate never restates them. Text on an accent fill uses `var(--pmos-surface)`
+  (the theme-inverse of text, legible in both schemes).
+- **Light default, dark inherited.** Pages render warm-paper light and flip under
+  `@media (prefers-color-scheme: dark)` **entirely** from `style.css`'s token overrides — the
+  library-viewer ships **no** theme-specific dark rules.
+- **Three-voice type.** Sans for controls/headings, mono for structural chrome (counts, group
+  headers, card categories, reader meta), serif for the reader body — all via `--pmos-font-*`.
+- **Fail-loud.** A missing/unreadable `style.css` throws an error naming the expected path — there
+  is **no** silent fallback to an inline default (INV-1/INV-2). The style-read helper is
+  **internal** to `lib.mjs` (not exported), so the public API surface is unchanged.
+
+Consumers may still pass `extraHead` CSS to extend the page, but any `extraHead` rule that sets a
+color **must** use a `--pmos-*` token — never an old private token or a raw hex — or the page will
+diverge from the theme.
 
 ## Hard constraints (every emitted page MUST satisfy)
 

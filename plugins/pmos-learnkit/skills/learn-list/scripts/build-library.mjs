@@ -65,8 +65,8 @@ function toCard(r) {
 }
 
 // Extra CSS — small presentational touches layered over the substrate BASE_CSS.
-const LL_CSS = `.badge-grounded{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:#5fe3df}
-.muted{color:var(--muted)}`;
+const LL_CSS = `.badge-grounded{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--pmos-accent-strong)}
+.muted{color:var(--pmos-muted)}`;
 
 // buildHtml(records) — records is the raw corpus array (possibly empty). Empty → a page with a
 // visible empty-state (graceful degrade), never a crash.
