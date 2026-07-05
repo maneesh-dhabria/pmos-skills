@@ -5,6 +5,7 @@ title: "/morning-brief core coverage — source abstraction + sweep, GTD-4D cate
 type: feature
 kind: story
 status: done
+released: 2.101.0
 route: skill
 priority: should
 labels: [pmos-toolkit, morning-brief, coverage, connectors, skill]
@@ -15,7 +16,7 @@ dependencies: []
 design_doc: docs/pmos/features/2026-07-02_morning-brief/02_design.html
 plan_doc: docs/pmos/features/2026-07-02_morning-brief/stories/260702-b6q/03_plan.html
 feature_folder: docs/pmos/features/2026-07-02_morning-brief/
-worktree: agent-skills-260702-b6q
+worktree:
 branch: feat/260702-b6q
 claimed_by: "build:b0e236c5-8aab-4a88-8bd7-4d40d8d8e0bc"
 driver_holder: "build:b0e236c5-8aab-4a88-8bd7-4d40d8d8e0bc"

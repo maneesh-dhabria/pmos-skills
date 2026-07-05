@@ -5,6 +5,7 @@ title: "/morning-brief action lane — batch-review one-confirm, /mytasks task c
 type: feature
 kind: story
 status: done
+released: 2.101.0
 route: skill
 priority: should
 labels: [pmos-toolkit, morning-brief, mytasks, actions, skill]
@@ -15,7 +16,7 @@ dependencies: [260702-b6q]
 design_doc: docs/pmos/features/2026-07-02_morning-brief/02_design.html
 plan_doc: docs/pmos/features/2026-07-02_morning-brief/stories/260702-ww7/03_plan.html
 feature_folder: docs/pmos/features/2026-07-02_morning-brief/
-worktree: ../agent-skills-260702-ww7
+worktree:
 branch: feat/260702-ww7
 build_commit: 2c610f57
 ---
