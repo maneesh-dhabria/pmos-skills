@@ -16,7 +16,7 @@ dependencies: []
 design_doc: docs/pmos/features/2026-07-05_wayrttd-skill/02_design.html
 plan_doc: docs/pmos/features/2026-07-05_wayrttd-skill/stories/260705-vr5/03_plan.html
 feature_folder: docs/pmos/features/2026-07-05_wayrttd-skill/
-worktree: .claude/worktrees/feat-260705-vr5
+worktree:
 ---
 
 ## Context

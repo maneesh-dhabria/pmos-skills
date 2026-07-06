@@ -13,7 +13,7 @@ updated: 2026-07-06
 parent: 260705-x92
 released: v2.103.0
 dependencies: [260705-vr5]
-worktree: .claude/worktrees/feat-260705-y3f
+worktree:
 design_doc: docs/pmos/features/2026-07-05_wayrttd-skill/02_design.html
 plan_doc: docs/pmos/features/2026-07-05_wayrttd-skill/stories/260705-y3f/03_plan.html
 feature_folder: docs/pmos/features/2026-07-05_wayrttd-skill/
