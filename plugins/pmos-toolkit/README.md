@@ -15,6 +15,7 @@
 
 ### Discovery & design
 - **/shape** — Collaboratively explore the problem space before solutioning — floor/ceiling/context lens-ledger probing into a converged problem brief.
+- **/wayrttd** — Fast "what am I really trying to do?" gut-check — invert an assumed solution back to the real problem via a first-person intent ladder, then re-test the solution and hand off.
 - **/ideate** — Turn a fuzzy idea into a pressure-tested one-page brief.
 - **/grill** — Adversarially interview you about a plan, spec, or design to surface shaky assumptions.
 - **/creativity** — Apply structured creativity techniques to requirements before /spec.
