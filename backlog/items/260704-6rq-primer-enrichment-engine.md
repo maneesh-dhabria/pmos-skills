@@ -16,7 +16,7 @@ dependencies: [260704-rgt]
 design_doc: docs/pmos/features/2026-07-04_primer-references-enrichment/02_design.html
 plan_doc: docs/pmos/features/2026-07-04_primer-references-enrichment/stories/260704-6rq/03_plan.html
 feature_folder: docs/pmos/features/2026-07-04_primer-references-enrichment/
-worktree: .claude/worktrees/feat-260704-6rq
+worktree:
 claimed_by: build:59524b3c-a9d3-48f5-a42f-6cc442f3afc3
 driver_holder: build:59524b3c-a9d3-48f5-a42f-6cc442f3afc3
 ---
