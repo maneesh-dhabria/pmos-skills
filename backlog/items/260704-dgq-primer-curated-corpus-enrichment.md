@@ -4,15 +4,16 @@ id: 260704-dgq
 title: "/primer curated-corpus enrichment — retrofit the 61 bundled primers with relevant, fetch-verified sources from the ~1,800-record /learn-list curated corpus (primer-by-primer full refine: weave into prose + sources.json, regenerate References via 260704-rgt)"
 type: feature
 kind: epic
-status: defined
+status: released
 route: skill
 priority: should
 labels: [pmos-learnkit, primer, references, corpus, enrichment, skill]
 created: 2026-07-04
-updated: 2026-07-04
+updated: 2026-07-06
 design_doc: docs/pmos/features/2026-07-04_primer-references-enrichment/02_design.html
 feature_folder: docs/pmos/features/2026-07-04_primer-references-enrichment/
 parent:
+released: v0.35.0
 dependencies: [260704-rgt]
 ---
 

@@ -9,8 +9,9 @@ route: skill
 priority: should
 labels: [pmos-learnkit, primer, references, corpus, enrichment, skill]
 created: 2026-07-04
-updated: 2026-07-05
+updated: 2026-07-06
 parent: 260704-dgq
+released: v0.35.0
 dependencies: [260704-6rq, 260704-rgt]
 design_doc: docs/pmos/features/2026-07-04_primer-references-enrichment/02_design.html
 plan_doc: docs/pmos/features/2026-07-04_primer-references-enrichment/stories/260704-e3b/03_plan.html
