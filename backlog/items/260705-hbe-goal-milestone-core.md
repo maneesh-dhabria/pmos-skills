@@ -16,7 +16,7 @@ dependencies: []
 design_doc: docs/pmos/features/2026-07-05_mytasks-goals-milestones/02_design.html
 plan_doc: docs/pmos/features/2026-07-05_mytasks-goals-milestones/stories/260705-hbe/03_plan.html
 feature_folder: docs/pmos/features/2026-07-05_mytasks-goals-milestones/
-worktree: .claude/worktrees/feat-260705-hbe
+worktree:
 claimed_by:
 driver_holder:
 ---
