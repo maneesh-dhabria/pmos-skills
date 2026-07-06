@@ -4,15 +4,16 @@ id: 260705-n2n
 title: "/mytasks goals & milestones — a durable goal object with dated milestones, project/task attachment (project-attachment cascades to tasks), and a dual pace signal (schedule adherence + attention allocation) surfaced so goals stop going invisible"
 type: feature
 kind: epic
-status: defined
+status: released
 route: skill
 priority: should
 labels: [pmos-toolkit, mytasks, goals, milestones, skill]
 created: 2026-07-05
-updated: 2026-07-05
+updated: 2026-07-06
 design_doc: docs/pmos/features/2026-07-05_mytasks-goals-milestones/02_design.html
 feature_folder: docs/pmos/features/2026-07-05_mytasks-goals-milestones/
 parent:
+released: v2.102.0
 dependencies: []
 ---
 

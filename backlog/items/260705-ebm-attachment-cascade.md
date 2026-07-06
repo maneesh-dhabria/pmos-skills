@@ -9,8 +9,9 @@ route: skill
 priority: should
 labels: [pmos-toolkit, mytasks, goals, attachment, skill]
 created: 2026-07-05
-updated: 2026-07-05
+updated: 2026-07-06
 parent: 260705-n2n
+released: v2.102.0
 dependencies: [260705-hbe]
 design_doc: docs/pmos/features/2026-07-05_mytasks-goals-milestones/02_design.html
 plan_doc: docs/pmos/features/2026-07-05_mytasks-goals-milestones/stories/260705-ebm/03_plan.html
