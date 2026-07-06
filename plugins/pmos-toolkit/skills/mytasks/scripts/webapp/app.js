@@ -82,6 +82,10 @@ function renderSidebar() {
     a.onclick = () => { state.view = { kind: 'smart', key: v.key, q: v.q, label: v.label }; refresh(); };
     sv.appendChild(a);
   }
+  // Read-only Goals view (story 260705-f79, AC6).
+  const gv = sideItem('side-item' + (state.view.kind === 'goals' ? ' active' : ''), 'Goals');
+  gv.onclick = () => { state.view = { kind: 'goals', label: 'Goals' }; refresh(); };
+  sv.appendChild(gv);
   const pj = $('#projects'); pj.innerHTML = '';
   const inbox = sideItem('side-item' + (isProj('') ? ' active' : ''), 'Inbox', (state.counts.projects || {})['']);
   inbox.onclick = () => { state.view = { kind: 'project', key: '', label: 'Inbox' }; refresh(); };
@@ -184,6 +188,15 @@ async function loadCounts() { try { state.counts = await api('/counts'); } catch
 async function refresh() {
   try { await loadMeta(); await loadPeople(); await loadCounts(); showServerModal(false); }
   catch (e) { showServerModal(true); return; }
+  // Goals view is read-only (story 260705-f79, AC6): fetch computed pace + render a table,
+  // no create/edit surfaces. Goals are edited via /mytasks in the terminal.
+  if (state.view.kind === 'goals') {
+    try { const g = await api('/goals'); state.goals = g.goals || []; }
+    catch (e) { state.goals = []; }
+    renderSidebar();
+    renderGoals();
+    return;
+  }
   try {
     const sep = viewQuery() ? '&' : '';
     const r = await api('/tasks?' + viewQuery() + sep + 'include_children=1');
@@ -200,6 +213,43 @@ async function refresh() {
   } catch (e) { /* transient */ }
 }
 function isTodayView() { return state.view.kind === 'smart' && state.view.key === 'today'; }
+
+// Read-only goals view (AC6): a table of active goals with their computed schedule/
+// attention bands + progress, behind/starved first (the server already sorts). No edit
+// affordances — goals are managed via /mytasks in the terminal.
+function progressText(pr) {
+  if (!pr || pr.state === 'no-tasks-yet') return 'no tasks yet';
+  return Math.round((pr.pct || 0) * 100) + '% (' + pr.done + '/' + pr.total + ')';
+}
+function renderGoals() {
+  $('#view-title').textContent = 'Goals';
+  const ul = $('#task-list'); ul.innerHTML = '';
+  $('#list-footer').innerHTML = '';
+  const goals = state.goals || [];
+  if (!goals.length) {
+    ul.appendChild(el('li', 'empty-state muted', 'No active goals. Add one with /mytasks goal add in the terminal.'));
+    return;
+  }
+  const head = el('li', 'goal-row goal-head');
+  for (const h of ['Goal', 'Schedule', 'Attention', 'Progress', 'Next milestone']) head.appendChild(el('span', 'goal-cell', h));
+  ul.appendChild(head);
+  for (const g of goals) {
+    const row = el('li', 'goal-row');
+    const title = el('span', 'goal-cell goal-title', g.title || g.id);
+    row.appendChild(title);
+    const sched = el('span', 'goal-cell');
+    if (g.schedule) sched.appendChild(el('span', 'goal-band band-' + g.schedule, g.schedule));
+    else sched.textContent = '—';
+    row.appendChild(sched);
+    const attn = el('span', 'goal-cell');
+    attn.appendChild(el('span', 'goal-band band-' + g.attention, g.attention));
+    row.appendChild(attn);
+    row.appendChild(el('span', 'goal-cell', progressText(g.progress)));
+    const next = g.next ? ((g.next.description || g.next.ref) + (g.next.due ? ' · ' + friendlyOrDash(g.next.due) : '')) : '—';
+    row.appendChild(el('span', 'goal-cell goal-next', next));
+    ul.appendChild(row);
+  }
+}
 
 function renderList() {
   $('#view-title').textContent = state.view.label || 'Tasks';

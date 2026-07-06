@@ -376,6 +376,14 @@ async function handleApi(tasksDir, peopleDir, req, res, pathname, query) {
     return sendJson(res, 405, { error: 'method-not-allowed' });
   }
 
+  // GET /api/goals — read-only (story 260705-f79, AC6). Each active goal with its
+  // script-computed signals + progress + next milestone, behind/starved first. The web
+  // app shows goals read-only; full web CRUD is out of scope (goals are edited via
+  // /mytasks in the terminal). Derived on read — no persisted goals view.
+  if (pathname === '/api/goals' && req.method === 'GET') {
+    return sendJson(res, 200, { goals: lib.activeGoalPaces(tasksDir, today) });
+  }
+
   return sendJson(res, 404, { error: 'no-route', path: pathname });
 }
 

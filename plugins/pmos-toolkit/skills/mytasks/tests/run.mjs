@@ -274,6 +274,18 @@ async function testApi() {
     });
     eq('cross-origin write 403', r.status, 403);
 
+    // GET /api/goals — read-only goals lane (story 260705-f79, AC6). Seed a behind goal,
+    // confirm the endpoint returns it with a computed schedule band.
+    fs.mkdirSync(path.join(dir, 'goals'), { recursive: true });
+    lib.saveGoal(dir, { fm: { schema_version: '1', id: '260705-gapi', title: 'API goal', type: 'dated', status: 'active', cadence: 'weekly', target: '', created: '2026-07-05', updated: '2026-07-05' }, milestones: [{ ref: 'm1', description: 'x', due: '2020-01-01', met: false }], body: '## Notes\nx\n' });
+    r = await reqJson(port, 'GET', '/api/goals');
+    eq('GET /api/goals 200', r.status, 200);
+    ok('goals endpoint returns the goal', Array.isArray(r.json.goals) && r.json.goals.some((g) => g.id === '260705-gapi'), JSON.stringify(r.json.goals));
+    eq('goals endpoint computes schedule band', r.json.goals.find((g) => g.id === '260705-gapi').schedule, 'behind');
+    // read-only: POST /api/goals is not a route
+    r = await reqJson(port, 'POST', '/api/goals', { title: 'nope' });
+    eq('POST /api/goals is not a route (read-only)', r.status, 404);
+
   } finally {
     server.close();
     fs.rmSync(dir, { recursive: true, force: true });
@@ -661,6 +673,99 @@ function testAttachment() {
   eq('attach: detachProject removes slug', lib.loadGoal(dir, '260705-gcc').fm.attached_projects, []);
 }
 
+// ── pace signals, progress & surfacing (story 260705-f79 — §4/§5, INV-7/8/9, D1/D2/D3/D4/D7) ──
+function paceGoal(over = {}) {
+  return { fm: { id: over.id || 'g1', title: over.title || 'A goal', type: over.type || 'dated', status: over.status || 'active', cadence: over.cadence || 'weekly', target: over.target || '', ...(over.fm || {}) }, milestones: over.milestones || [], body: '' };
+}
+function t(status, extra = {}) { return { fm: { status, ...extra } }; }
+
+function testPace() {
+  const TODAY = '2026-07-05';
+
+  // T1/AC1 — scheduleSignal bands (script-computed; open-ended → null, D2)
+  eq('pace: schedule behind (next due past)', lib.scheduleSignal(paceGoal({ milestones: [{ ref: 'm1', due: '2026-07-01', met: false }] }), TODAY), 'behind');
+  eq('pace: schedule at-risk (due≤7d, prog<50%)', lib.scheduleSignal(paceGoal({ milestones: [{ ref: 'm1', due: '2026-07-09', met: false }] }), TODAY), 'at-risk');
+  eq('pace: schedule on-track when prog≥50%', lib.scheduleSignal(paceGoal({ milestones: [{ ref: 'm1', due: '2026-07-09', met: false }] }), TODAY, { m1: 0.6 }), 'on-track');
+  eq('pace: schedule on-track (due far)', lib.scheduleSignal(paceGoal({ milestones: [{ ref: 'm1', due: '2026-09-30', met: false }] }), TODAY), 'on-track');
+  eq('pace: schedule done (all met)', lib.scheduleSignal(paceGoal({ milestones: [{ ref: 'm1', due: '2026-07-01', met: true }] }), TODAY), 'done');
+  eq('pace: open-ended → null (never behind, D2)', lib.scheduleSignal(paceGoal({ type: 'open-ended', target: '', milestones: [{ ref: 'm1', due: '2026-07-01', met: false }] }), TODAY), null);
+  eq('pace: target-only deadline behind', lib.scheduleSignal(paceGoal({ target: '2026-07-01', milestones: [] }), TODAY), 'behind');
+
+  // T2/AC2 — attentionSignal: real-progress-only (D7) + grace state (INV-9)
+  const g = paceGoal({ cadence: 'weekly' });
+  eq('pace: attention fed (created within window)', lib.attentionSignal(g, [t('pending', { created: '2026-07-02', updated: '2026-07-02' })], TODAY), 'fed');
+  eq('pace: attention fed (completed within window)', lib.attentionSignal(g, [t('completed', { created: '2026-05-01', completed: '2026-07-04' })], TODAY), 'fed');
+  eq('pace: attention starved (nothing within window)', lib.attentionSignal(g, [t('pending', { created: '2026-06-01', updated: '2026-06-01' })], TODAY), 'starved');
+  // D7 — the trust catch: a bare `updated` bump does NOT feed (old created, recent updated → starved)
+  eq('pace: bare updated bump does NOT feed (D7)', lib.attentionSignal(g, [t('pending', { created: '2026-05-01', updated: '2026-07-05' })], TODAY), 'starved');
+  eq('pace: attention no-tasks-yet (zero tasks, INV-9)', lib.attentionSignal(g, [], TODAY), 'no-tasks-yet');
+  eq('pace: monthly cadence widens window', lib.attentionSignal(paceGoal({ cadence: 'monthly' }), [t('pending', { created: '2026-06-20', updated: '2026-06-20' })], TODAY), 'fed');
+
+  // T3/AC3 — progress: derived + manual milestone met override (INV-8); zero tasks → no-tasks-yet (INV-9)
+  eq('pace: derivedProgress 1/2', lib.derivedProgress([t('completed'), t('pending')]), 0.5);
+  eq('pace: derivedProgress empty → null (not 0)', lib.derivedProgress([]), null);
+  eq('pace: milestone manual met overrides (INV-8)', lib.milestoneProgressMap({ milestones: [{ ref: 'm1', met: true }] }, []), { m1: 1 });
+  eq('pace: milestone derived from scoped tasks', lib.milestoneProgressMap({ milestones: [{ ref: 'm1', met: false }] }, [t('completed', { goal: 'g1', milestone: 'm1' }), t('pending', { goal: 'g1', milestone: 'm1' })]), { m1: 0.5 });
+  eq('pace: goalProgress zero tasks → no-tasks-yet (INV-9)', lib.goalProgress(paceGoal(), []), { state: 'no-tasks-yet' });
+  eq('pace: goalProgress tracked pct', lib.goalProgress(paceGoal(), [t('completed'), t('completed'), t('pending')]).pct, 2 / 3);
+
+  // goalPace integration — inherited goal via project (INV-4/5, no double-count)
+  const goalG = paceGoal({ id: 'g1', milestones: [{ ref: 'm1', due: '2026-07-01', met: false }] });
+  const projectGoals = { launch: 'g1' };
+  const tasks = [
+    t('completed', { id: 'a', project: 'launch', created: '2026-07-02', completed: '2026-07-03' }), // inherits g1
+    t('pending', { id: 'b', goal: 'g1', created: '2026-07-04', updated: '2026-07-04' }),           // direct g1
+    t('pending', { id: 'c', goal: 'none', project: 'launch', created: '2026-07-04' }),             // detached (INV) — excluded
+  ];
+  const pace = lib.goalPace(goalG, tasks, projectGoals, TODAY);
+  eq('pace: goalPace effective task count (detach excluded)', pace.task_count, 2);
+  eq('pace: goalPace schedule behind', pace.schedule, 'behind');
+  eq('pace: goalPace attention fed', pace.attention, 'fed');
+  eq('pace: goalPace progress 1/2', pace.progress.pct, 0.5);
+
+  // T4/T5 surfacing — build a scratch store: behind, starved, healthy, open-ended, zero-task
+  const dir = mkTmp();
+  const gd = (id, over) => { const go = paceGoal({ id, ...over }); lib.saveGoal(dir, { fm: { ...go.fm, created: '2026-07-05', updated: '2026-07-05' }, milestones: go.milestones, body: '## Notes\nx\n' }); };
+  gd('260705-gA', { title: 'Behind goal', milestones: [{ ref: 'm1', description: 'Alpha', due: '2026-07-01', met: false }] });
+  gd('260705-gB', { title: 'Starved goal', cadence: 'weekly', milestones: [{ ref: 'm1', description: 'Beta', due: '2026-12-01', met: false }] });
+  gd('260705-gH', { title: 'Healthy goal', milestones: [{ ref: 'm1', description: 'Gamma', due: '2026-12-01', met: false }] });
+  gd('260705-gO', { title: 'Open goal', type: 'open-ended', target: '', cadence: 'weekly', milestones: [] });
+  gd('260705-gZ', { title: 'Zero-task goal', milestones: [{ ref: 'm1', description: 'Delta', due: '2026-12-01', met: false }] });
+  // tasks: gA has a stale task (starved-schedule already behind); gB starved (old task); gH+recent, gO+recent, gZ none
+  writeTask(dir, { id: '260705-ta', title: 'A work', fm: { goal: '260705-gA', milestone: 'm1', created: '2026-07-04', updated: '2026-07-04' } });
+  writeTask(dir, { id: '260705-tb', title: 'B work', fm: { goal: '260705-gB', created: '2026-06-01', updated: '2026-06-01' } });
+  writeTask(dir, { id: '260705-th', title: 'H work', fm: { goal: '260705-gH', created: '2026-07-04', updated: '2026-07-04' } });
+  writeTask(dir, { id: '260705-to', title: 'O work', fm: { goal: '260705-gO', created: '2026-07-04', updated: '2026-07-04' } });
+
+  const paces = lib.activeGoalPaces(dir, TODAY);
+  eq('pace: activeGoalPaces count', paces.length, 5);
+  eq('pace: behind/starved sorted first', [paces[0].id, paces[1].id], ['260705-gA', '260705-gB']);
+  eq('pace: open-ended schedule null', paces.find((p) => p.id === '260705-gO').schedule, null);
+  eq('pace: zero-task attention no-tasks-yet', paces.find((p) => p.id === '260705-gZ').attention, 'no-tasks-yet');
+
+  // T5 — goalsForBrief filters to behind + starved only
+  const brief = lib.goalsForBrief(dir, TODAY);
+  eq('pace: goalsForBrief returns only behind+starved', brief.map((p) => p.id).sort(), ['260705-gA', '260705-gB']);
+
+  // T4 — index summary: flagged goals listed; quiet when all healthy
+  const summary = lib.goalsIndexSummary(dir, TODAY);
+  ok('pace: index summary lists behind goal', summary.includes('Behind goal') && /behind/.test(summary), summary);
+  ok('pace: index summary lists starved goal', summary.includes('Starved goal') && /starved/.test(summary), summary);
+  ok('pace: index summary omits healthy goal', !summary.includes('Healthy goal'), summary);
+  // quiet-when-healthy: a store with only a healthy goal → empty summary
+  const dir2 = mkTmp();
+  const gh = paceGoal({ id: '260705-gok', title: 'All good', milestones: [{ ref: 'm1', description: 'x', due: '2026-12-01', met: false }] });
+  lib.saveGoal(dir2, { fm: { ...gh.fm, created: '2026-07-05', updated: '2026-07-05' }, milestones: gh.milestones, body: '## Notes\nx\n' });
+  writeTask(dir2, { id: '260705-tok', title: 'ok', fm: { goal: '260705-gok', created: '2026-07-04', updated: '2026-07-04' } });
+  eq('pace: index summary QUIET when all healthy (D4b)', lib.goalsIndexSummary(dir2, TODAY), '');
+  ok('pace: renderIndex embeds no ## Goals when healthy', !lib.renderIndex(dir2).includes('## Goals'));
+
+  // T4 — goals view renders each goal, behind first
+  const view = lib.renderGoalsView(dir, TODAY);
+  ok('pace: goals view is a table with all 5', view.includes('# Goals') && view.includes('Behind goal') && view.includes('Open goal'), view.slice(0, 80));
+  ok('pace: goals view behind row before healthy row', view.indexOf('Behind goal') < view.indexOf('Healthy goal'));
+}
+
 async function main() {
   testFormat();
   testFrontmatter();
@@ -670,6 +775,7 @@ async function main() {
   testMigration();
   testGoals();
   testAttachment();
+  testPace();
   await testApi();
   await testPeople();
   await testRegistryMeta();

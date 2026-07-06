@@ -292,7 +292,7 @@ export function mytasksLane(tasksDir, todayIso) {
   const itemsDir = path.join(tasksDir, 'items');
   if (!fs.existsSync(itemsDir)) return { absent: true };
   const items = loadMytasksItems(tasksDir, itemsDir);
-  const lane = { overdue: [], due: [], checkins: [], waiting: [] };
+  const lane = { overdue: [], due: [], checkins: [], waiting: [], goals: goalsNeedingAttention(tasksDir, today) };
   for (const it of items) {
     const status = it.status || 'pending';
     const active = ACTIVE.has(status);
@@ -310,6 +310,23 @@ export function mytasksLane(tasksDir, todayIso) {
 }
 function row(it, dateField) {
   return { id: it.id, title: it.title || '(untitled)', when: it[dateField] ? String(it[dateField]).slice(0, 10) : null };
+}
+// Goals needing attention (D4c, story 260705-f79). Integration point, NOT a
+// re-implementation: /mytasks OWNS the pace computation (lib.goalsForBrief returns the
+// behind + starved active goals); the brief just reads + renders. Absent goals dir or an
+// older mytasks lib without the hook → [] (no goals lane). Never estimates a band here.
+function goalsNeedingAttention(tasksDir, todayIso) {
+  try {
+    const require = createRequire(import.meta.url);
+    const mt = require(path.join(__dirname, '..', '..', 'mytasks', 'scripts', 'lib.js'));
+    if (typeof mt.goalsForBrief === 'function') {
+      return mt.goalsForBrief(tasksDir, todayIso).map((p) => ({
+        id: p.id, title: p.title, schedule: p.schedule, attention: p.attention,
+        next_due: p.next && p.next.due ? p.next.due : null,
+      }));
+    }
+  } catch { /* mytasks lib absent → no goals lane */ }
+  return [];
 }
 function loadMytasksItems(tasksDir, itemsDir) {
   // Preferred path: the /mytasks lib (same files, byte-compatible read).

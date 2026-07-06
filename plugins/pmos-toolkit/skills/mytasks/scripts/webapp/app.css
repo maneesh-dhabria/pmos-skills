@@ -182,3 +182,16 @@ select.field-input[multiple] { height: auto; cursor: default; }
 .recur-row { flex-wrap: wrap; }
 .recur-row .recur-wrap { flex: 1 1 100%; display: flex; gap: 6px; margin-top: 4px; }
 .recur-row .recur-free { flex: 1; }
+
+/* Read-only Goals view (story 260705-f79, AC6). A simple grid table; behind/starved
+   rows carry a coloured band. Non-text colour semantics only — the band text is the
+   source of truth (accessibility). */
+.goal-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1.1fr 2fr; gap: 8px; align-items: center; padding: 8px; border-bottom: 1px solid #eceef2; list-style: none; }
+.goal-head { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600; }
+.goal-title { font-weight: 600; }
+.goal-next, .goal-head .goal-cell { color: var(--muted); }
+.goal-band { display: inline-block; font-size: 11px; font-weight: 600; border-radius: 9px; padding: 1px 8px; }
+.band-behind, .band-starved { background: #fdeceb; color: var(--accent-ink); }
+.band-at-risk { background: #fff4e0; color: #8a5a00; }
+.band-on-track, .band-fed, .band-done { background: #e7f4ea; color: #256a37; }
+.band-no-tasks-yet { background: #eceef2; color: var(--muted); }
