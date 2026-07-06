@@ -32,6 +32,7 @@ prefix. The plugin each skill belongs to is in the last column.
 | Take an idea all the way to shipped code | `/feature-sdlc <idea>` | toolkit |
 | Pressure-test a half-formed idea before writing it up | `/ideate` | toolkit |
 | Shape a fuzzy problem before any solution or requirements | `/shape` | toolkit |
+| Fast gut-check: am I solving the right thing? (2-min inversion) | `/wayrttd` | toolkit |
 | Shape just requirements (no code yet) | `/requirements` | toolkit |
 | Mock up the UI before specifying it | `/wireframes` → `/prototype` | toolkit |
 | Run the discovery half only (no /plan or /execute) | `/prototype-sdlc <seed>` | toolkit |
