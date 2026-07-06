@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-06 — pmos-learnkit 0.35.0: every bundled /primer now draws on more verified sources
+
+**The 61 bundled `/primer` topics are now enriched with additional fetch-verified sources drawn from the ~1,800-record curated reading-list corpus.** Each primer was matched against the corpus for its own topics, the best candidates were fetch-verified this run, and the survivors were woven into the primer's prose and its References section — so the primers you read ship already grounded in more of the field's primary sources, not just their original citations. A new `/primer enrich` verb applies the same engine to any primer on demand: it prefilters the corpus for that primer's topics, verifies candidates live, weaves in what passes, and regenerates the References section — and it's idempotent, so re-running never duplicates a source already present.
+
 ## 2026-07-05 — pmos-learnkit 0.34.0: primer & learn-list library browsers match the shared house style
 
 **The `/primer` and `/learn-list` library browsers now wear the same editorial theme as the rest of pmos.** The shared library-viewer engine was re-themed to the canonical palette — warm off-white background, signature accent — and defaults to a light reading surface, so browsing your primers and reading lists feels consistent with every other pmos artifact. All 61 bundled primers were refreshed to the same palette in one marker-scoped pass that leaves their content untouched, and because the viewer engine is shared, `/frameworks` picks up the identical look with no change to its own behavior.
