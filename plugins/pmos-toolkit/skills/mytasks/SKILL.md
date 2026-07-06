@@ -2,7 +2,7 @@
 name: mytasks
 description: Persistent personal task tracker — distinct from Claude Code's session-scoped TaskCreate/TaskList tools. Use for real-world tasks (LNO importance, due dates, people, check-ins, projects, subtasks, recurrence). Lives at ~/.pmos/tasks/. Use when the user says "add a task", "what's on my plate", "tasks for sarah", "what's due this week", "check in on X", "/mytasks", or names a task to capture.
 user-invocable: true
-argument-hint: "[ | <text> | add <text> [--parent <id>] | list [filters] | today | week | overdue | waiting | checkins | for <handle> | in <project> | show <id> | set <id> <field>=<value> | refine <id> | done <id> [note] | drop <id> [reason] | checkin <id> [note] | archive [--quarter <YYYY-QN>] | web | import [<text>] | goal add <title> [--type <t>] [--cadence <c>] [--target <date>] | goals | goal show <id> | goal edit <id> [<field>=<value>] | goal drop <id> | goal achieve <id> | milestone add <goal> <desc> [--due <date>] | milestone met <goal> <ref> | milestone edit <goal> <ref> [<field>=<value>] | milestone drop <goal> <ref>] [--non-interactive | --interactive]"
+argument-hint: "[ | <text> | add <text> [--parent <id>] | list [filters] | today | week | overdue | waiting | checkins | for <handle> | in <project> | show <id> | set <id> <field>=<value> | refine <id> | done <id> [note] | drop <id> [reason] | checkin <id> [note] | archive [--quarter <YYYY-QN>] | web | import [<text>] | goal add <title> [--type <t>] [--cadence <c>] [--target <date>] | goals | goal show <id> | goal edit <id> [<field>=<value>] | goal drop <id> | goal achieve <id> | milestone add <goal> <desc> [--due <date>] | milestone met <goal> <ref> | milestone edit <goal> <ref> [<field>=<value>] | milestone drop <goal> <ref> | attach <task|project> <goal> [<milestone>] | detach <task|project> [--clear]] [--non-interactive | --interactive]"
 ---
 
 # My Tasks
@@ -71,6 +71,7 @@ Parse the user's argument to determine the subcommand. Be liberal with the form 
 | `import [<text>]` | Phase 14 (bulk import an outline) |
 | `goal add <title>` / `goals` / `goal show/edit/drop/achieve <id>` | Phase 15 (goal CRUD — `#goals`) |
 | `milestone add/met/edit/drop <goal> [<ref>]` | Phase 16 (milestone verbs — `#milestones`) |
+| `attach <task\|project> <goal> [<milestone>]` / `detach <task\|project>` | Phase 17 (attach/detach — `#attach`) |
 | (any other to-do-shaped free text) | Phase 2 (quick capture) |
 
 > **Goals are a second collection, not a task type** (`schema.md` "Goal Schema"). The `goal`/`milestone` verbs read and write `~/.pmos/tasks/goals/{id}-{slug}.md` via the same `lib.js` primitives as tasks; a `goal drop` and a `drop <id>` never collide — the `goal` prefix routes to Phase 15, a bare id to Phase 9.
@@ -454,3 +455,18 @@ Triggered by `milestone add/met/edit/drop <goal> [<ref>]`. A milestone is an emb
 - **`milestone drop <goal> <ref>`** — remove the entry with that `ref` from the array; `saveGoal`. The `milestone_seq` counter is **not** decremented, so the dropped ref is retired for good (INV-2). Report `Dropped {ref} from goal #{goal}.`
 
 Set `updated:` on the goal = today on every milestone write (the mutation changed the goal file).
+
+## Phase 17: Attach / detach a task or project to a goal {#attach}
+
+Triggered by `attach <task|project> <goal> [<milestone>]` and `detach <task|project>` — plus the natural-language forms ("attach this to the goals feature goal", "attach the platform-q3 project to #{goal}", "detach this from its goal", "this task counts toward no goal"). This is the **connect-work-to-goals** half (design §3, INV-6): attaching a **task** sets its `goal:`(+optional `milestone:`); attaching a **project** appends its slug to the goal's `attached_projects` so every task in that project **inherits** the goal (`schema.md` [Effective-goal resolution](schema.md) — `effectiveGoal` computes direct-wins / inherit / `none`-detaches; the skill never hand-resolves).
+
+**Target kind (task vs project).** Resolve the first argument with `lib.findItemFile(tasksDir, <arg>)`: a hit ⇒ **task**; otherwise treat `<arg>` as a **project slug** (projects are free strings — an as-yet-taskless project is a valid attach target). The NL forms disambiguate explicitly ("the … project" ⇒ project; "this"/a task id ⇒ task).
+
+All four operations go through the `lib.js` helpers, which **validate the target before any write** — attaching to a non-existent goal or milestone throws and mutates nothing on disk (INV-6). Never hand-edit a task or goal file for attachment.
+
+- **`attach <task> <goal> [<milestone>]`** — `lib.attachTaskToGoal(tasksDir, taskId, goalId, milestoneRef)`. Errors (writing nothing) if the goal is unknown or the milestone ref isn't on that goal; else sets the task's `goal:` + `milestone:` (bumps `updated`). Report `Attached task #{task} to goal #{goal}{ · milestone {ref}}.`
+- **`attach <project> <goal>`** — `lib.attachProjectToGoal(tasksDir, slug, goalId)`. Appends the slug to the goal's `attached_projects` (bumps `updated`). Errors if the goal is unknown, or if the project is **already attached to a different goal** (a project maps to at most one goal — AC2); the error names the current goal so the user can `detach` first. Report `Attached project "{slug}" to goal #{goal} — its {N} task(s) now inherit it.`
+- **`detach <task> [--clear]`** — `lib.detachTask(tasksDir, taskId, {clear})`. Default sets the task's `goal:` → `none` (an **explicit detach** that wins over any project inheritance — the task counts toward no goal); `--clear` (NL: "clear its goal entirely", "let it inherit again") empties `goal:` instead, so the task falls back to inheriting its project's goal. Clears `milestone:`. Report `Detached task #{task}{ (now inheriting its project goal)}.`
+- **`detach <project>`** — `lib.detachProject(tasksDir, slug)`. Removes the slug from whichever goal carries it (errors if no goal does). Report `Detached project "{slug}" — its tasks no longer inherit a goal.`
+
+After any attach/detach, if a goal id or milestone was named that turns out unknown, surface the thrown error verbatim (`no goal '…'`, `goal '…' has no milestone '…'`) — do **not** silently create a goal. Attachment is always to an existing goal (`goal add` first).

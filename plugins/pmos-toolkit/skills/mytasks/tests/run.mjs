@@ -576,6 +576,91 @@ function testGoals() {
   ok('goal: filename is {id}-{slug}.md', path.basename(file) === `${g.fm.id}-ship-the-goals-feature.md`, path.basename(file));
 }
 
+// ── attachment & cascade (story 260705-ebm — §3, INV-4/5/6, D5/D8) ──
+function writeTask(dir, over = {}) {
+  const fm = {
+    schema_version: over.schema_version || '2', id: over.id || '260705-tsk',
+    title: over.title || 'A task', type: 'execution', importance: 'neutral', status: 'pending',
+    project: over.project || '', created: '2026-07-05', updated: '2026-07-05', ...(over.fm || {}),
+  };
+  writeItem(dir, fm, over.body || '');
+  return fm.id;
+}
+
+function testAttachment() {
+  const dir = mkTmp();
+
+  // AC1 — load-time migration to v3: a v2 task (no goal/milestone) gains bare keys +
+  // schema_version:3; idempotent (second pass is a byte no-op); ids/fields untouched.
+  writeTask(dir, { id: '260705-mig', title: 'Legacy task', project: 'launch', schema_version: '2' });
+  const migFile = path.join(dir, 'items', '260705-mig-legacy-task.md');
+  lib.loadAllItems(dir);
+  const afterA = fs.readFileSync(migFile);
+  const it = lib.readItem(migFile);
+  eq('attach: migrated fields', [it.fm.goal, it.fm.milestone, String(it.fm.schema_version)], ['', '', '3']);
+  eq('attach: migration preserves id/project/title', [it.fm.id, it.fm.project, it.fm.title], ['260705-mig', 'launch', 'Legacy task']);
+  lib.loadAllItems(dir);
+  const afterB = fs.readFileSync(migFile);
+  ok('attach: migration idempotent (byte no-op on 2nd pass)', afterA.equals(afterB), 'rewrote a normalized file');
+
+  // AC3 — effectiveGoal truth table
+  const pg = { launch: '260705-gaa' };
+  eq('attach: direct link wins over inherit', lib.effectiveGoal({ fm: { goal: '260705-gbb', project: 'launch' } }, pg), '260705-gbb');
+  eq('attach: none detaches (wins over inherit)', lib.effectiveGoal({ fm: { goal: 'none', project: 'launch' } }, pg), null);
+  eq('attach: inherit from project', lib.effectiveGoal({ fm: { goal: '', project: 'launch' } }, pg), '260705-gaa');
+  eq('attach: no match → null', lib.effectiveGoal({ fm: { goal: '', project: 'other' } }, pg), null);
+  eq('attach: neither goal nor project → null', lib.effectiveGoal({ fm: { goal: '', project: '' } }, pg), null);
+  // INV-5 no-double-count: task directly on the SAME goal its project inherits resolves once
+  eq('attach: no double-count (single resolution)', lib.effectiveGoal({ fm: { goal: '260705-gaa', project: 'launch' } }, pg), '260705-gaa');
+
+  // effectiveMilestone — only when goal set directly
+  eq('attach: milestone when goal direct', lib.effectiveMilestone({ fm: { goal: '260705-gaa', milestone: 'm2' } }), 'm2');
+  eq('attach: no milestone when inherited', lib.effectiveMilestone({ fm: { goal: '', project: 'launch', milestone: 'm2' } }), null);
+  eq('attach: no milestone when detached', lib.effectiveMilestone({ fm: { goal: 'none', milestone: 'm2' } }), null);
+
+  // AC2 — buildProjectGoals + two-goals-one-project validation error
+  const gA = mkGoal(dir, { fm: { id: '260705-gaa', title: 'Goal A', attached_projects: ['launch', 'sales'] } });
+  const gB = mkGoal(dir, { fm: { id: '260705-gbb', title: 'Goal B', attached_projects: ['ops'] } });
+  lib.saveGoal(dir, gA); lib.saveGoal(dir, gB);
+  eq('attach: projectGoals map from attached_projects', lib.buildProjectGoals(lib.loadAllGoals(dir)), { launch: '260705-gaa', sales: '260705-gaa', ops: '260705-gbb' });
+  // attached_projects survives the goal round-trip (list field)
+  eq('attach: attached_projects round-trips', lib.loadGoal(dir, '260705-gaa').fm.attached_projects, ['launch', 'sales']);
+  let threw = false;
+  try { lib.buildProjectGoals([{ fm: { id: 'g1', attached_projects: ['x'] } }, { fm: { id: 'g2', attached_projects: ['x'] } }]); } catch (_) { threw = true; }
+  ok('attach: two-goals-one-project is a validation error', threw);
+
+  // AC4 — attach/detach round-trips + write-nothing-on-error (INV-6)
+  const gC = mkGoal(dir, { fm: { id: '260705-gcc', title: 'Goal C' } });
+  const rM = lib.nextMilestoneRef(gC.fm, gC.milestones);
+  gC.milestones.push({ ref: rM, description: 'Milestone one', due: '2026-08-01', met: false, met_date: '' });
+  lib.saveGoal(dir, gC);
+  const tid = writeTask(dir, { id: '260705-att', title: 'Attach me', project: 'design' });
+
+  lib.attachTaskToGoal(dir, tid, '260705-gcc', rM);
+  const at = lib.readItem(lib.findItemFile(dir, tid));
+  eq('attach: task attached to goal+milestone', [at.fm.goal, at.fm.milestone], ['260705-gcc', 'm1']);
+  lib.detachTask(dir, tid);
+  eq('attach: detachTask sets goal none, clears milestone', [lib.readItem(lib.findItemFile(dir, tid)).fm.goal, lib.readItem(lib.findItemFile(dir, tid)).fm.milestone], ['none', '']);
+  lib.detachTask(dir, tid, { clear: true });
+  eq('attach: detachTask --clear empties goal', lib.readItem(lib.findItemFile(dir, tid)).fm.goal, '');
+
+  // attach to non-existent goal / milestone errors and writes NOTHING
+  const beforeErr = fs.readFileSync(lib.findItemFile(dir, tid));
+  let e1 = false; try { lib.attachTaskToGoal(dir, tid, '260705-nope', ''); } catch (_) { e1 = true; }
+  let e2 = false; try { lib.attachTaskToGoal(dir, tid, '260705-gcc', 'm99'); } catch (_) { e2 = true; }
+  ok('attach: missing goal errors', e1);
+  ok('attach: missing milestone errors', e2);
+  ok('attach: errored attach wrote nothing', beforeErr.equals(fs.readFileSync(lib.findItemFile(dir, tid))), 'task file mutated on error');
+
+  // project attach/detach round-trip + at-most-one-goal enforcement
+  lib.attachProjectToGoal(dir, 'design', '260705-gcc');
+  eq('attach: project appended to goal', lib.loadGoal(dir, '260705-gcc').fm.attached_projects, ['design']);
+  let e3 = false; try { lib.attachProjectToGoal(dir, 'design', '260705-gbb'); } catch (_) { e3 = true; }
+  ok('attach: project already on another goal errors', e3);
+  lib.detachProject(dir, 'design');
+  eq('attach: detachProject removes slug', lib.loadGoal(dir, '260705-gcc').fm.attached_projects, []);
+}
+
 async function main() {
   testFormat();
   testFrontmatter();
@@ -584,6 +669,7 @@ async function main() {
   testIndex();
   testMigration();
   testGoals();
+  testAttachment();
   await testApi();
   await testPeople();
   await testRegistryMeta();

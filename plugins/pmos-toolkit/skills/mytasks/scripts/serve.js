@@ -400,9 +400,13 @@ function dueWindow(fm, win, today) {
 }
 function newItemFm(id, today, flds) {
   return {
-    schema_version: 2, id, title: flds.title || 'untitled',
+    // Born at schema_version 3 with bare attachment keys (story 260705-ebm) so the
+    // load-time normalizeTaskSchema pass is a no-op — never rewrites a fresh task
+    // out from under a client's optimistic-concurrency version token.
+    schema_version: 3, id, title: flds.title || 'untitled',
     type: flds.type || 'execution', importance: flds.importance || 'neutral',
-    status: flds.status || 'pending', project: flds.project || '', parent: flds.parent || '',
+    status: flds.status || 'pending', project: flds.project || '',
+    goal: flds.goal || '', milestone: flds.milestone || '', parent: flds.parent || '',
     order: flds.order || '', recur: flds.recur || '',
     people: toList(flds.people), labels: toList(flds.labels), links: toList(flds.links),
     due: flds.due || '', start: flds.start || '', checkin: flds.checkin || '', next_checkin: flds.next_checkin || '',
