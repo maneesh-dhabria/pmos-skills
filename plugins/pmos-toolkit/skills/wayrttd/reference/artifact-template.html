@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="wayrttd">
+  <meta name="pmos:wayrttd-verdict" content="{{verdict_kind}}">
+  <meta name="pmos:wayrttd-slug" content="{{slug}}">
+  <meta name="pmos:wayrttd-date" content="{{date}}">
+  <title>{{title}} — WAYRTTD</title>
+  <link rel="stylesheet" href="assets/style.css?v={{plugin_version}}">
+  <script defer src="assets/viewer.js?v={{plugin_version}}"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">{{title}}</h1>
+    <div class="pmos-artifact-actions">
+      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    </div>
+    <a class="pmos-attribution pmos-attribution--toolbar"
+       href="https://github.com/maneesh-dhabria/pmos-skills/blob/main/plugins/pmos-toolkit/README.md"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="solution-x">
+<h2 id="solution-x">Solution X — what I said I wanted</h2>
+<p>{{solution_x}}</p>
+</section>
+
+<section id="intent-ladder">
+<h2 id="intent-ladder">The climb — "and what would that get me?"</h2>
+<ol>
+{{ladder_rungs}}
+</ol>
+<p><em>Stopped at the actionable rung — {{stop_reason}}.</em></p>
+</section>
+
+<section id="problem-y">
+<h2 id="problem-y">Problem Y — what I'm really trying to do</h2>
+<p>{{problem_y}}</p>
+</section>
+
+<section id="alternatives">
+<h2 id="alternatives">Re-test — does X still serve Y?</h2>
+<p>{{retest_summary}}</p>
+<ul>
+{{alternatives_list}}
+</ul>
+</section>
+
+<section id="verdict">
+<h2 id="verdict">Verdict</h2>
+<p><strong>{{verdict_kind}}:</strong> {{verdict_rationale}}</p>
+<p><em>Go deeper:</em> {{handoff_line}}</p>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: {{source_path}}</span>
+    <span class="pmos-attribution-sep" aria-hidden="true">·</span>
+    <a class="pmos-attribution pmos-attribution--footer"
+       href="https://github.com/maneesh-dhabria/pmos-skills/blob/main/plugins/pmos-toolkit/README.md"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </footer>
+</body>
+</html>
