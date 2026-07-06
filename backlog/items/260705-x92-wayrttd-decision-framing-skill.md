@@ -4,15 +4,16 @@ id: 260705-x92
 title: "/wayrttd — a fast reflexive \"What Are You Really Trying To Do?\" decision-framing skill (solution→problem inversion ladder, first-person decision-maker POV) plus an optional upfront hook into /shape"
 type: feature
 kind: epic
-status: defined
+status: released
 route: skill
 priority: should
 labels: [pmos-toolkit, wayrttd, thinking-tool, shape, skill]
 created: 2026-07-05
-updated: 2026-07-05
+updated: 2026-07-06
 design_doc: docs/pmos/features/2026-07-05_wayrttd-skill/02_design.html
 feature_folder: docs/pmos/features/2026-07-05_wayrttd-skill/
 parent:
+released: v2.103.0
 dependencies: []
 ---
 

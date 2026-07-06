@@ -11,6 +11,7 @@ labels: [pmos-toolkit, wayrttd, shape, skill]
 created: 2026-07-05
 updated: 2026-07-06
 parent: 260705-x92
+released: v2.103.0
 dependencies: [260705-vr5]
 worktree: .claude/worktrees/feat-260705-y3f
 design_doc: docs/pmos/features/2026-07-05_wayrttd-skill/02_design.html
