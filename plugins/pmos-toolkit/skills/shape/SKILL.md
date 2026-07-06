@@ -20,6 +20,7 @@ argument-hint: "<fuzzy-thought> [--slug <slug>] [--resume <path>] [--non-interac
 - The user wants a written, shareable problem-brief they can hand to the pipeline.
 
 **When NOT to use:**
+- The user just wants a fast "am I even solving the right thing?" gut-check, not a full shaping session → `/wayrttd` (the 2-minute solution→problem inversion; it can also run as an optional pre-check *inside* `/shape` — see Phase 0.5).
 - The problem is already shaped enough to write acceptance criteria → `/requirements`.
 - The user wants solution options / idea variants → `/ideate`.
 - The user has a committed plan to adversarially review → `/grill`.
@@ -43,6 +44,7 @@ These instructions use Claude Code tool names. In other environments:
 
 ```
 /shape <fuzzy thought>
+  ─▶ [WAYRTTD PRE-CHECK]  optional 2-min gut-check → reshape the seed to the real goal (skippable; standalone /shape unchanged)
   ─▶ CONTEXT-GATE  classify side-project / feature-in-product / new-bet / internal-tool
   ─▶ FRAME         one-pass HMW + JTBD + "felt problem"
   ─▶ LADDER        abstraction laddering (why ↑ / how ↓); 5-Whys on a symptom
@@ -100,6 +102,22 @@ This skill is fundamentally interactive (one question per turn), so under `--non
 5. **Resume detection.** If `--resume <path>` was passed, read the artifact's `<meta name="pmos:shape-phase">` and jump to that phase; missing file → abort with `--resume specified but <path> does not exist`. Without `--resume`, if `{docs_path}/shape/{YYYY-MM-DD}_<slug>.html` already exists, ask before clobbering:
 <!-- defer-only: destructive -->
    issue one `AskUserQuestion` — Overwrite / Pick-new-slug-with-suffix / Cancel.
+
+## Phase 0.5: WAYRTTD pre-check (optional, additive) {#wayrttd-precheck}
+
+An **optional, skippable** tee-up that runs *before* the lens work: a ~2-minute `/wayrttd` gut-check that inverts an assumed solution back to the real goal, so `/shape` shapes the *right* problem instead of the one the user walked in assuming (D2, the epic sponsor's "plug it into /shape as an upfront step"). **Additive and non-breaking (INV-6):** everything from Phase 1 down — the phases, the resume contract, the artifact — is byte-unchanged when this pre-check is declined *or* when `/wayrttd` is absent. This phase runs **before any artifact exists**, so it writes **no** `pmos:shape-phase` cursor state and is never part of the resume surface — a resumed run (Phase 0 step 5) always lands on Phase 1 or later, so an artifact authored before this phase existed advances past it automatically (back-compat by absence, AC3).
+
+1. **Absence check (back-compat by absence, AC3).** If `/wayrttd` is not installed/available in this environment, skip this phase silently: log `[shape] wayrttd-precheck: /wayrttd unavailable; proceeding to Phase 1 (back-compat by absence)` and go to Phase 1. Standalone `/shape` behaviour is unchanged.
+
+2. **Non-interactive default = Skip (no deadlock, AC4).** If `mode == non-interactive`, do **not** issue the gate — default to Skip and log `[shape] wayrttd-precheck: --non-interactive → skipped (default, no deadlock); run standalone /wayrttd first if you want the pre-check`, then go to Phase 1. (This is a mode-conditional by-design non-presentation, not a silent skip of a presented gate — Anti-pattern #4 is satisfied by the explicit log line. Should a future explicit opt-in force the pre-check on under `--non-interactive`, invoke `/wayrttd`'s own **autonomous path** and thread its Problem Y forward per step 4.)
+
+3. **The gate (interactive).** Issue ONE `AskUserQuestion`:
+   - question: `"Before shaping, run a ~2-minute WAYRTTD gut-check to make sure we're shaping the real goal — not an assumed solution?"`
+   - options: **Run a 2-min WAYRTTD gut-check first (Recommended)** / **Skip — go straight to shaping**
+
+   This is a convergence-style opt-in (a Recommended answer is appropriate, D3). On **Skip**: log `[shape] wayrttd-precheck: skipped by user; proceeding to Phase 1` and go to Phase 1 — today's flow verbatim, no state written.
+
+4. **On Run — invoke `/wayrttd` and thread Problem Y forward (AC2).** Invoke `/pmos-toolkit:wayrttd` with `/shape`'s seed (prepend the `[mode: <current-mode>]` first line per the subagent-dispatch contract). Take the surfaced **Problem Y** — `/wayrttd`'s single first-person problem statement — and **use it as the shaping seed** for Phases 1–7, so the context gate, frame, and ladder all operate on the real goal rather than the assumed solution. Record a one-line provenance note for the artifact's felt-problem section: `seed reshaped by /wayrttd: <Problem Y>`. If `/wayrttd` returns a **proceed** verdict (the assumed solution genuinely serves Y), keep the original seed and note that instead. Then continue to Phase 1.
 
 ## Phase 1: Context gate {#context-gate}
 
