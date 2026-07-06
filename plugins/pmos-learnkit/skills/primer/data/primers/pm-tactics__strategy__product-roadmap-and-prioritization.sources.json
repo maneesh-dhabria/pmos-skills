@@ -103,5 +103,40 @@
     "topic": "connecting-okrs-to-roadmap",
     "tier": "T1",
     "paywalled": false
+  },
+  {
+    "url": "https://www.svpg.com/product-roadmaps",
+    "takeaway": "Marty Cagan argues product roadmaps should be simple, high-level paths from current state to product vision — not prioritized feature-request lists — and warns that feature-driven roadmaps skip the critical work of product discovery.",
+    "topic": "what-a-roadmap-is-for",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.svpg.com/product-roadmaps",
+    "takeaway": "Marty Cagan argues product roadmaps should be simple, high-level paths from current state to product vision — not prioritized feature-request lists — and warns that feature-driven roadmaps skip the critical work of product discovery.",
+    "topic": "roadmap-formats",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.svpg.com/product-roadmaps",
+    "takeaway": "Marty Cagan argues product roadmaps should be simple, high-level paths from current state to product vision — not prioritized feature-request lists — and warns that feature-driven roadmaps skip the critical work of product discovery.",
+    "topic": "outcome-based-roadmaps",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://blog.brianbalfour.com/p/the-four-fits-a-growth-framework?r=2jc0k&triedRedirect=true",
+    "takeaway": "Everything's changed. Here's how to reach $100m at venture speed.",
+    "topic": "lightweight-frameworks",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.amazon.com/dp/B07JK4ZZ89",
+    "takeaway": "Amazon audiobook listing for Measure What Matters by John Doerr, which covers the OKR goal-setting framework as adopted by Google and other leading organizations.",
+    "topic": "okrs-and-goal-setting",
+    "tier": "T4",
+    "paywalled": false
   }
 ]

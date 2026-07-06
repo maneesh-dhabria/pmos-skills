@@ -103,5 +103,40 @@
     "topic": "the-ethics-of-engagement",
     "tier": "primary-practitioner",
     "paywalled": false
+  },
+  {
+    "url": "https://www.amazon.com/dp/B0C9HNW79Z",
+    "takeaway": "Book: Actionable Gamification by Yu-kai Chou, covering gamification principles that go beyond points and leaderboards to drive engagement using the Octalysis framework.",
+    "topic": "the-hierarchy-of-engagement",
+    "tier": "T4",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.amazon.com/dp/B0C9HNW79Z",
+    "takeaway": "Book: Actionable Gamification by Yu-kai Chou, covering gamification principles that go beyond points and leaderboards to drive engagement using the Octalysis framework.",
+    "topic": "the-three-dimensions-of-engagement",
+    "tier": "T4",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.amazon.com/dp/B0C9HNW79Z",
+    "takeaway": "Book: Actionable Gamification by Yu-kai Chou, covering gamification principles that go beyond points and leaderboards to drive engagement using the Octalysis framework.",
+    "topic": "what-engagement-actually-is",
+    "tier": "T4",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.amazon.com/dp/B0C9HNW79Z",
+    "takeaway": "Book: Actionable Gamification by Yu-kai Chou, covering gamification principles that go beyond points and leaderboards to drive engagement using the Octalysis framework.",
+    "topic": "measuring-engagement-stickiness",
+    "tier": "T4",
+    "paywalled": false
+  },
+  {
+    "url": "https://newsletter.aroundthebonfire.com/p/309-growth-loops-?r=2jc0k&triedRedirect=true",
+    "takeaway": "Kevan Lee's Substack post explaining growth loops — self-reinforcing cycles that drive compounding user acquisition and retention, with frameworks for identifying and building them.",
+    "topic": "engagement-loops-vs-growth-loops",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

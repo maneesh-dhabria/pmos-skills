@@ -110,5 +110,40 @@
     "topic": "warehouse-vs-data-lake-vs-lakehouse",
     "tier": "T2",
     "paywalled": false
+  },
+  {
+    "url": "https://www.evanmiller.org/ab-testing/sample-size.html",
+    "takeaway": "Interactive calculator for determining A/B test sample sizes, parameterized by statistical power and significance level.",
+    "topic": "what-a-data-warehouse-is",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.evanmiller.org/ab-testing/sample-size.html",
+    "takeaway": "Interactive calculator for determining A/B test sample sizes, parameterized by statistical power and significance level.",
+    "topic": "why-warehouses-store-data-in-columns",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.evanmiller.org/ab-testing/sample-size.html",
+    "takeaway": "Interactive calculator for determining A/B test sample sizes, parameterized by statistical power and significance level.",
+    "topic": "how-the-data-is-modeled",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.evanmiller.org/ab-testing/sample-size.html",
+    "takeaway": "Interactive calculator for determining A/B test sample sizes, parameterized by statistical power and significance level.",
+    "topic": "the-modern-data-stack",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.departmentofproduct.com/blog/how-to-structure-your-product-org-to-optimise-for-growth",
+    "takeaway": "Guide to structuring product organizations for growth, comparing Triad and General Manager models, advocating cross-functional team embedding, and stressing role definition and onboarding investment during hypergrowth.",
+    "topic": "transformation-and-analytics-engineering",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

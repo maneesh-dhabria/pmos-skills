@@ -110,5 +110,40 @@
     "topic": "monetization-experiments",
     "tier": "secondary-curation",
     "paywalled": false
+  },
+  {
+    "url": "https://hbr.org/2020/11/how-apple-is-organized-for-innovation",
+    "takeaway": "Harvard Business Review analysis of Apple's organizational structure: a functional model where experts lead experts, enabling innovation at scale, as Apple grew from $7B to $260B in revenue under this leadership model.",
+    "topic": "design-around-the-price",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.amazon.com/dp/B085LBDHTX",
+    "takeaway": "Amazon listing for April Dunford's book 'Obviously Awesome,' covering product positioning strategy; no content available beyond the Amazon storefront.",
+    "topic": "the-value-metric",
+    "tier": "T4",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.departmentofproduct.com/blog/product-monetization-strategies",
+    "takeaway": "Overview of five practical product monetization strategies—commercializing internal technology, subscriptions, advertising, affiliate models, and marketplaces—with real-world examples for each.",
+    "topic": "what-monetization-is",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://longform.asmartbear.com/willingness-to-pay",
+    "takeaway": "Analysis of willingness-to-pay beyond traditional economics, distinguishing genuine customer willingness from coercion or inability to pay, and arguing that authentic value creation — not monopoly leverage — produces the best competitive advantage.",
+    "topic": "pricing-models",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://longform.asmartbear.com/willingness-to-pay",
+    "takeaway": "Analysis of willingness-to-pay beyond traditional economics, distinguishing genuine customer willingness from coercion or inability to pay, and arguing that authentic value creation — not monopoly leverage — produces the best competitive advantage.",
+    "topic": "usage-based-pricing",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

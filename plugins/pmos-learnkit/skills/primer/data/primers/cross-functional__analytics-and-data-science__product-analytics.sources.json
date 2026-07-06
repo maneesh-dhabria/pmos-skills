@@ -117,5 +117,40 @@
     "topic": "dashboards-and-self-serve",
     "tier": "T2",
     "paywalled": false
+  },
+  {
+    "url": "https://www.mageplaza.com/blog/fundamental-ecommerce-metrics.html",
+    "takeaway": "Guide covering seven essential e-commerce metrics including conversion rates and cart abandonment, with formulas and practical tactics to improve each metric for online stores.",
+    "topic": "what-product-analytics-is",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://web.dev/articles/howbrowserswork",
+    "takeaway": "Comprehensive 2011 primer on how browsers work internally — covering rendering engines, networking, JavaScript interpreters, the DOM, CSS parsing, and the full pipeline from URL to painted page.",
+    "topic": "product-vs-web-analytics",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.lennysnewsletter.com/p/what-is-a-good-activation-rate",
+    "takeaway": "Lenny Rachitsky and Yuriy Timen present benchmarks from 500+ responses defining good and great activation rates by product type, explain how to set activation milestones, and share the highest-leverage tactics for improving activation.",
+    "topic": "retention-and-cohorts",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.lennysnewsletter.com/p/how-to-accelerate-growth-by-focusing",
+    "takeaway": "Lenny's Newsletter piece arguing that most product growth comes from optimizing existing features rather than building new ones. Introduces Ken Rudin's ARIA framework with case studies from Google, Facebook, and others showing how engagement gains on core features drive revenue.",
+    "topic": "engagement-metrics",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://vwo.com/tools/ab-test-duration-calculator",
+    "takeaway": "VWO's free online calculator for estimating how long an A/B test needs to run based on traffic, baseline conversion rate, and desired minimum detectable effect.",
+    "topic": "what-product-analytics-is",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

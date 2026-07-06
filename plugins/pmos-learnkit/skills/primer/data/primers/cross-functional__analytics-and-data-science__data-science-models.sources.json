@@ -117,5 +117,40 @@
     "topic": "pitfalls-and-how-to-work-with-data-scientists",
     "tier": "T2",
     "paywalled": false
+  },
+  {
+    "url": "https://fullstackresearcher.substack.com/p/the-most-misunderstood-research-method",
+    "takeaway": "Clears up widespread confusion about conjoint analysis: it measures attribute importance only in direct product comparisons, not general preference research. Explains when to use it versus broader discrete-choice or stated-preference methods.",
+    "topic": "what-a-data-science-model-is",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://uxdesign.cc/from-consideration-to-purchase-breaking-down-googles-messy-middle-for-product-managers-8f6252ccca1a",
+    "takeaway": "Analysis of Google's \"messy middle\" consumer decision-making model for product managers, explaining how customers oscillate between exploration and evaluation before purchase and how products can influence that journey.",
+    "topic": "bias-fairness-and-the-black-box",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.evanmiller.org/ab-testing/sample-size.html",
+    "takeaway": "Interactive calculator for determining A/B test sample sizes, parameterized by statistical power and significance level.",
+    "topic": "pitfalls-and-how-to-work-with-data-scientists",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://conjointly.com/kb/statistical-power",
+    "takeaway": "Research Methods Knowledge Base entry explaining statistical power and its four interrelated components — sample size, effect size, alpha level, and power — and how they trade off in study design.",
+    "topic": "what-a-data-science-model-is",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.highagency.com/",
+    "takeaway": "Essay arguing high agency — the ability to take initiative and find solutions in difficult situations — is the defining trait of exceptional people, with practical heuristics for spotting high-agency individuals.",
+    "topic": "bias-fairness-and-the-black-box",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

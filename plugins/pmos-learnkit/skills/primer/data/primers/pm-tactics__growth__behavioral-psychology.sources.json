@@ -103,5 +103,40 @@
     "topic": "designing-ethically",
     "tier": "secondary-curation",
     "paywalled": false
+  },
+  {
+    "url": "https://uxdesign.cc/from-consideration-to-purchase-breaking-down-googles-messy-middle-for-product-managers-8f6252ccca1a",
+    "takeaway": "Analysis of Google's \"messy middle\" consumer decision-making model for product managers, explaining how customers oscillate between exploration and evaluation before purchase and how products can influence that journey.",
+    "topic": "the-cognitive-bias-catalog",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://uxdesign.cc/from-consideration-to-purchase-breaking-down-googles-messy-middle-for-product-managers-8f6252ccca1a",
+    "takeaway": "Analysis of Google's \"messy middle\" consumer decision-making model for product managers, explaining how customers oscillate between exploration and evaluation before purchase and how products can influence that journey.",
+    "topic": "motivation-and-self-determination",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://blog.bytebytego.com/p/factors-to-consider-in-database-selection",
+    "takeaway": "ByteByteGo deep dive on database selection criteria covering scalability, performance, consistency trade-offs across relational, NoSQL, NewSQL, and time-series databases to guide engineering decisions.",
+    "topic": "nudges-and-choice-architecture",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://sproutsocial.com/",
+    "takeaway": "Sprout Social homepage promoting their social media management platform, highlighting an AI agent called Trellis that converts social conversations into actionable insights.",
+    "topic": "cialdinis-principles-of-influence",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://blog.bytebytego.com/p/factors-to-consider-in-database-selection",
+    "takeaway": "ByteByteGo deep dive on database selection criteria covering scalability, performance, consistency trade-offs across relational, NoSQL, NewSQL, and time-series databases to guide engineering decisions.",
+    "topic": "dark-patterns-and-manipulation",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

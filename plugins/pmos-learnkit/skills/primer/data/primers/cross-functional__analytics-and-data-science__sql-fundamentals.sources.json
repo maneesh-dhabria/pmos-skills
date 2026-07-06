@@ -124,5 +124,40 @@
     "topic": "the-order-sql-actually-runs",
     "tier": "T2",
     "paywalled": false
+  },
+  {
+    "url": "https://hellopm.co/sql-for-product-managers-the-definitive-guide",
+    "takeaway": "Definitive SQL guide for product managers explaining relational databases, data retrieval, filtering, aggregates, joins, and how SQL enables PMs to run analyses independently and make faster data-driven decisions.",
+    "topic": "why-pms-should-learn-sql",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://hellopm.co/sql-for-product-managers-the-definitive-guide",
+    "takeaway": "Definitive SQL guide for product managers explaining relational databases, data retrieval, filtering, aggregates, joins, and how SQL enables PMs to run analyses independently and make faster data-driven decisions.",
+    "topic": "answering-product-questions-with-sql",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://hellopm.co/sql-for-product-managers-the-definitive-guide",
+    "takeaway": "Definitive SQL guide for product managers explaining relational databases, data retrieval, filtering, aggregates, joins, and how SQL enables PMs to run analyses independently and make faster data-driven decisions.",
+    "topic": "the-order-sql-actually-runs",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://towardsdatascience.com/",
+    "takeaway": "Your home for data science and AI. The world’s leading publication for data science, data analytics, data engineering, machine learning, and artificial intelligence professionals.",
+    "topic": "why-pms-should-learn-sql",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.departmentofproduct.com/blog/sql-skills-for-product-managers",
+    "takeaway": "Department of Product article making the case for product managers learning SQL to query databases directly, bypass data team bottlenecks, and bring sharper data arguments into stakeholder meetings.",
+    "topic": "answering-product-questions-with-sql",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

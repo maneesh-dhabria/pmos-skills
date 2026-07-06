@@ -110,5 +110,40 @@
     "topic": "tools-and-how-to-run-one",
     "tier": "T2",
     "paywalled": false
+  },
+  {
+    "url": "https://blog.brianbalfour.com/p/the-four-fits-a-growth-framework?r=2jc0k&triedRedirect=true",
+    "takeaway": "Everything's changed. Here's how to reach $100m at venture speed.",
+    "topic": "acquisition-vs-behavioral-cohorts",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.lennysnewsletter.com/p/what-is-a-good-activation-rate",
+    "takeaway": "Lenny Rachitsky and Yuriy Timen present benchmarks from 500+ responses defining good and great activation rates by product type, explain how to set activation milestones, and share the highest-leverage tactics for improving activation.",
+    "topic": "the-retention-table",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.lennysnewsletter.com/p/what-is-a-good-activation-rate",
+    "takeaway": "Lenny Rachitsky and Yuriy Timen present benchmarks from 500+ responses defining good and great activation rates by product type, explain how to set activation milestones, and share the highest-leverage tactics for improving activation.",
+    "topic": "the-retention-curve",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://blume.vc/commentaries/strategies-for-growing-user-retention",
+    "takeaway": "Blume VC guide on improving user retention covering platform usability monitoring, delivery experience, qualitative and quantitative customer feedback methods, and the relationship between acquisition strategy and retention outcomes.",
+    "topic": "retention-and-product-market-fit",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://testrigor.com/blog/different-software-testing-types",
+    "takeaway": "testRigor overview of software testing types, covering functional testing (unit, integration, system, acceptance, gorilla) and non-functional testing, with definitions, advantages, and worked examples for each category.",
+    "topic": "quality-trends-across-cohorts",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

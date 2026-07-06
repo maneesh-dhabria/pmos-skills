@@ -104,5 +104,40 @@
     "topic": "common-failure-modes",
     "tier": "practitioner-blog",
     "paywalled": false
+  },
+  {
+    "url": "https://sproutsocial.com/",
+    "takeaway": "Sprout Social homepage promoting their social media management platform, highlighting an AI agent called Trellis that converts social conversations into actionable insights.",
+    "topic": "what-influence-without-authority-is",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.news.aakashg.com/p/pm-guide-to-wireframes?isFreemail=false&post_id=143198429&publication_id=454003&r=2jc0k&triedRedirect=true",
+    "takeaway": "Aakash Gupta's PM guide on wireframes — how product managers should use and think about wireframes in the product development process.",
+    "topic": "why-it-defines-the-pm-role",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://uxdesign.cc/from-consideration-to-purchase-breaking-down-googles-messy-middle-for-product-managers-8f6252ccca1a",
+    "takeaway": "Analysis of Google's \"messy middle\" consumer decision-making model for product managers, explaining how customers oscillate between exploration and evaluation before purchase and how products can influence that journey.",
+    "topic": "trust-as-the-foundation",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.focusedchaos.co/p/nothing-wrong-with-mvps",
+    "takeaway": "Defends the MVP concept against critics who claim it is outdated, arguing that MVPs remain valid when properly defined as the smallest product that proves a user problem is solved, distinct from prototypes or riskiest assumption tests.",
+    "topic": "why-it-defines-the-pm-role",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.highagency.com/",
+    "takeaway": "Essay arguing high agency — the ability to take initiative and find solutions in difficult situations — is the defining trait of exceptional people, with practical heuristics for spotting high-agency individuals.",
+    "topic": "trust-as-the-foundation",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

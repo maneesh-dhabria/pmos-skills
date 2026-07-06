@@ -117,5 +117,40 @@
     "topic": "classic-pitfalls",
     "tier": "reference",
     "paywalled": false
+  },
+  {
+    "url": "https://testrigor.com/blog/different-software-testing-types",
+    "takeaway": "testRigor overview of software testing types, covering functional testing (unit, integration, system, acceptance, gorilla) and non-functional testing, with definitions, advantages, and worked examples for each category.",
+    "topic": "the-logic-of-significance-testing",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.amazon.com/dp/B085LBDHTX",
+    "takeaway": "Amazon listing for April Dunford's book 'Obviously Awesome,' covering product positioning strategy; no content available beyond the Amazon storefront.",
+    "topic": "what-a-p-value-is-not",
+    "tier": "T4",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.softwaretestinghelp.com/types-of-software-testing",
+    "takeaway": "Comprehensive reference covering software testing types used across the SDLC, including unit, integration, system, functional, non-functional, manual, and automated testing, with explanations and practical examples for each.",
+    "topic": "the-logic-of-significance-testing",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.amazon.com/dp/B06X429CJH",
+    "takeaway": "Amazon listing for the \"Value Proposition Design\" book by Strategyzer, a practical guide to designing products and services that customers want using the Value Proposition Canvas.",
+    "topic": "what-a-p-value-is-not",
+    "tier": "T4",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.atlassian.com/continuous-delivery/software-testing/types-of-software-testing",
+    "takeaway": "Atlassian guide covering the main software testing types — unit, integration, functional, end-to-end, acceptance, performance, and smoke tests — and distinguishing manual from automated testing with guidance on when to use each.",
+    "topic": "the-logic-of-significance-testing",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

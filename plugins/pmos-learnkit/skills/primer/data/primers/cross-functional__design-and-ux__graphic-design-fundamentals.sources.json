@@ -124,5 +124,40 @@
     "topic": "the-core-principles",
     "tier": "T2",
     "paywalled": false
+  },
+  {
+    "url": "https://productled.com/blog/best-user-onboarding-examples",
+    "takeaway": "Analysis of 150+ user onboarding experiences identifies eight best practices: leverage social proof, avoid email verification walls, minimize unnecessary steps, make product tours action-focused, segment users, emphasize user goals, use helpful empty states, and send behavior-based emails.",
+    "topic": "contrast-and-accessibility",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://hbr.org/2020/11/how-apple-is-organized-for-innovation",
+    "takeaway": "Harvard Business Review analysis of Apple's organizational structure: a functional model where experts lead experts, enabling innovation at scale, as Apple grew from $7B to $260B in revenue under this leadership model.",
+    "topic": "layout-and-grids",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://hbr.org/2020/11/how-apple-is-organized-for-innovation",
+    "takeaway": "Harvard Business Review analysis of Apple's organizational structure: a functional model where experts lead experts, enabling innovation at scale, as Apple grew from $7B to $260B in revenue under this leadership model.",
+    "topic": "typography",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://medium.com/@prefixyteam/how-we-built-prefixy-a-scalable-prefix-search-service-for-powering-autocomplete-c20f98e2eff1",
+    "takeaway": "Engineering deep-dive into how Prefixy built a scalable prefix search service to power autocomplete functionality, covering architecture and design decisions.",
+    "topic": "contrast-and-accessibility",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Hick%27s_law",
+    "takeaway": "Wikipedia article on Hick's Law, which describes how the time to make a decision increases with the number and complexity of choices. Page was inaccessible (user-agent blocked).",
+    "topic": "contrast-and-accessibility",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

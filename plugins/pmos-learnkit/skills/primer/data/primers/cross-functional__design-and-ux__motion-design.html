@@ -1067,6 +1067,12 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 <h2 id="purpose-of-motion">The purpose of motion: function over decoration</h2>
 <p>The single most useful idea in motion design is that good motion has a <em>job</em>. The <a href="https://www.nngroup.com/articles/animation-purpose-ux/">Nielsen Norman Group</a> identifies the main jobs: giving feedback (a button visibly responds to a tap), communicating a change of state (an item is added, removed, or updated), establishing spatial relationships (a panel slides in from the left, so it lives "to the left"), and directing attention to what changed. Each of these reduces confusion — the user sees <em>what</em> happened and <em>where</em> things went, instead of the screen blinking from one state to another. The corollary is the test a PM can apply to any proposed animation: name its job. If the only answer is "it looks cool," that is decoration, and decoration is the kind of motion that wears out fast. Motion that answers a real question the user would otherwise have to puzzle out is motion worth shipping.</p>
 
+
+<p class="primer-enriched">Further reading: <a href="https://www.highagency.com/">highagency.com</a> — Essay arguing high agency — the ability to take initiative and find solutions in difficult situations — is the defining trait of exceptional people, with practical heuristics for spotting high-agency individuals.</p>
+
+<p class="primer-enriched">Further reading: <a href="https://swiped.co/">swiped.co</a> — Swiped.co is a curated swipe file of high-converting marketing and copywriting examples for inspiration — page was blocked by Cloudflare during access.</p>
+
+<p class="primer-enriched">Further reading: <a href="https://discourse.suttacentral.net/t/nonviolence-communication-by-marshal-rosenberg/17054">discourse.suttacentral.net</a> — Overview of Nonviolent Communication (NVC) by Marshall Rosenberg, a compassionate communication framework built on identifying needs, expressing feelings clearly, and collaborating on strategies to meet shared human needs.</p>
 <h2 id="easing-and-timing">Easing and timing: the two levers</h2>
 <p>Two settings do most of the work in making motion feel right: <strong>duration</strong> (how long it takes, measured in milliseconds, abbreviated ms — there are 1,000 ms in a second) and <strong>easing</strong> (how the speed changes over that time). On duration, the <a href="https://www.nngroup.com/articles/animation-duration/">Nielsen Norman Group</a> is concrete: most interface animations should fall in the 100–400 ms range — roughly 100 ms for a simple toggle, 200–300 ms for a modal window — and warns that "at 500ms, animations start to feel like a real drag." Google's <a href="https://m1.material.io/motion/duration-easing.html">Material Design</a> agrees, putting most mobile transitions near 300 ms and calling anything over 400 ms potentially "too slow." On easing: an <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/easing-function">easing function</a> "describes the rate at which a value changes" — and the key insight is that linear motion (constant speed) feels mechanical and wrong, because nothing in the real world moves that way. Real objects accelerate and decelerate, so designers use curves like <strong>ease-out</strong> (fast then slowing, best for elements entering) and <strong>ease-in</strong> (slow then speeding up, best for elements leaving), as NN/g recommends.</p>
 <svg viewBox="0 0 720 230" role="img" width="100%" style="background:#fbfaf6;border-radius:8px" xmlns="http://www.w3.org/2000/svg">
@@ -1128,6 +1134,10 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 <h2 id="accessibility-and-reduced-motion">Accessibility: motion as a health concern</h2>
 <p>Motion is not just an aesthetic choice — for some users it is a medical one, and this is the part a PM should treat as a hard requirement rather than a nicety. Operating systems offer a "reduce motion" setting, and the <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion">prefers-reduced-motion</a> signal lets a product detect it; the documentation is blunt that strong animation "can trigger discomfort for those with vestibular motion disorders" — conditions of the inner ear that cause dizziness and nausea — with "scaling or panning large objects" being common triggers. The accessibility standard backs this with a rule: the <strong>Web Content Accessibility Guidelines (WCAG)</strong>, the international standard for accessible digital content, state in <a href="https://www.w3.org/WAI/WCAG21/Understanding/animation-from-interactions.html">Success Criterion 2.3.3</a> that "motion animation triggered by interaction can be disabled, unless the animation is essential." The good news, per <a href="https://css-tricks.com/almanac/rules/m/media/prefers-reduced-motion/">CSS-Tricks</a>, is that respecting the setting does not mean killing all motion — gentle fades and color changes are safe substitutes for large movements. For a PM, the takeaway is simple: "does it honor reduce-motion?" belongs on the definition-of-done for any animated feature.</p>
 
+
+<p class="primer-enriched">Further reading: <a href="https://productled.com/blog/best-user-onboarding-examples">productled.com</a> — Analysis of 150+ user onboarding experiences identifies eight best practices: leverage social proof, avoid email verification walls, minimize unnecessary steps, make product tours action-focused, segment users, emphasize user goals, use helpful empty states, and send behavior-based emails.</p>
+
+<p class="primer-enriched">Further reading: <a href="https://medium.com/@prefixyteam/how-we-built-prefixy-a-scalable-prefix-search-service-for-powering-autocomplete-c20f98e2eff1">medium.com</a> — Engineering deep-dive into how Prefixy built a scalable prefix search service to power autocomplete functionality, covering architecture and design decisions.</p>
 <h2 id="judging-quality">Judging quality: a PM's quick checklist</h2>
 <p>You can review motion without being able to build it, using a short checklist drawn from the fundamentals above. First, purpose: can the designer name the job this animation does, or is it decoration? Second, timing: does it feel snappy, or does it make you wait — recall NN/g's warning that around <a href="https://www.nngroup.com/articles/animation-duration/">500 ms motion "start[s] to feel like a real drag"</a>. Third, frequency: how often will a user see this, and does it still feel good the tenth time, or does it become the "now it's getting annoying" case NN/g <a href="https://www.nngroup.com/articles/animation-usability/">documented</a>? Fourth, accessibility: does it honor reduce-motion? An animation that has a clear job, runs quickly, survives repetition, and respects the accessibility setting is one worth shipping. One that fails any of these is worth a conversation before it does.</p>
 
@@ -1204,6 +1214,26 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 <li>
 <a href="https://css-tricks.com/almanac/rules/m/media/prefers-reduced-motion/">css-tricks.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
 <p class="ref-takeaway">CSS-Tricks recommends using @media (prefers-reduced-motion: reduce) to detect the OS setting and then reduce motion thoughtfully — leaning on fades and color changes rather than eliminating all movement, since "animation isn't unnecessary."</p>
+</li>
+<li>
+<a href="https://medium.com/@prefixyteam/how-we-built-prefixy-a-scalable-prefix-search-service-for-powering-autocomplete-c20f98e2eff1">medium.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Engineering deep-dive into how Prefixy built a scalable prefix search service to power autocomplete functionality, covering architecture and design decisions.</p>
+</li>
+<li>
+<a href="https://www.highagency.com/">highagency.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T3)</span>
+<p class="ref-takeaway">Essay arguing high agency — the ability to take initiative and find solutions in difficult situations — is the defining trait of exceptional people, with practical heuristics for spotting high-agency individuals.</p>
+</li>
+<li>
+<a href="https://productled.com/blog/best-user-onboarding-examples">productled.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T3)</span>
+<p class="ref-takeaway">Analysis of 150+ user onboarding experiences identifies eight best practices: leverage social proof, avoid email verification walls, minimize unnecessary steps, make product tours action-focused, segment users, emphasize user goals, use helpful empty states, and send behavior-based emails.</p>
+</li>
+<li>
+<a href="https://swiped.co/">swiped.co</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T3)</span>
+<p class="ref-takeaway">Swiped.co is a curated swipe file of high-converting marketing and copywriting examples for inspiration — page was blocked by Cloudflare during access.</p>
+</li>
+<li>
+<a href="https://discourse.suttacentral.net/t/nonviolence-communication-by-marshal-rosenberg/17054">discourse.suttacentral.net</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T3)</span>
+<p class="ref-takeaway">Overview of Nonviolent Communication (NVC) by Marshall Rosenberg, a compassionate communication framework built on identifying needs, expressing feelings clearly, and collaborating on strategies to meet shared human needs.</p>
 </li>
 </ol>
 </main>

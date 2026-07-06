@@ -103,5 +103,40 @@
     "topic": "what-pms-should-know",
     "tier": "T2",
     "paywalled": false
+  },
+  {
+    "url": "https://sproutsocial.com/",
+    "takeaway": "Sprout Social homepage promoting their social media management platform, highlighting an AI agent called Trellis that converts social conversations into actionable insights.",
+    "topic": "what-martech-is",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://blog.hubspot.com/sales/enterprise-sales",
+    "takeaway": "Explains enterprise sales and how it differs from SMB and mid-market sales across eight dimensions including deal length, number of decision makers, and purchase complexity, with guidance on building an enterprise sales strategy.",
+    "topic": "the-crm",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://blog.hubspot.com/sales/enterprise-sales",
+    "takeaway": "Explains enterprise sales and how it differs from SMB and mid-market sales across eight dimensions including deal length, number of decision makers, and purchase complexity, with guidance on building an enterprise sales strategy.",
+    "topic": "crm-vs-cdp-vs-dmp",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://customer.io/",
+    "takeaway": "Customer.io is a marketing automation platform by Peaberry Software offering tools for automation, data management, and content creation to engage customers.",
+    "topic": "marketing-automation",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.mageplaza.com/blog/fundamental-ecommerce-metrics.html",
+    "takeaway": "Guide covering seven essential e-commerce metrics including conversion rates and cart abandonment, with formulas and practical tactics to improve each metric for online stores.",
+    "topic": "analytics-and-attribution",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

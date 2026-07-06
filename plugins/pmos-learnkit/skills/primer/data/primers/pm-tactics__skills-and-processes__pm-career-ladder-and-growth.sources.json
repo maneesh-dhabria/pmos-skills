@@ -103,5 +103,40 @@
     "topic": "contested-and-evolving",
     "tier": "primary-practitioner",
     "paywalled": false
+  },
+  {
+    "url": "https://blog.brianbalfour.com/p/the-four-fits-a-growth-framework?r=2jc0k&triedRedirect=true",
+    "takeaway": "Everything's changed. Here's how to reach $100m at venture speed.",
+    "topic": "the-competency-frameworks",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.focusedchaos.co/p/how-to-use-the-right-metrics-to-motivate",
+    "takeaway": "Metrics matter. But if you track the wrong ones, everything goes to shit. (#4)",
+    "topic": "the-ic-vs-management-fork",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.news.aakashg.com/p/pm-guide-to-wireframes?isFreemail=false&post_id=143198429&publication_id=454003&r=2jc0k&triedRedirect=true",
+    "takeaway": "Aakash Gupta's PM guide on wireframes — how product managers should use and think about wireframes in the product development process.",
+    "topic": "becoming-a-senior-pm",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://hbr.org/2020/11/how-apple-is-organized-for-innovation",
+    "takeaway": "Harvard Business Review analysis of Apple's organizational structure: a functional model where experts lead experts, enabling innovation at scale, as Apple grew from $7B to $260B in revenue under this leadership model.",
+    "topic": "product-leadership-director-vp-cpo",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.toppers4u.com/2022/04/blue-ocean-strategy-meaning-principles.html?m=1",
+    "takeaway": "Explainer of Blue Ocean Strategy — a framework by Kim and Mauborgne that guides companies to create uncontested markets rather than compete in existing ones, covering six formulation and execution principles.",
+    "topic": "the-competency-frameworks",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

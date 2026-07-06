@@ -110,5 +110,40 @@
     "topic": "freemium-plg",
     "tier": "T1",
     "paywalled": false
+  },
+  {
+    "url": "https://www.firehose.vc/p/firehose-194-operating-leverage-",
+    "takeaway": "Firehose newsletter issue 194 covering operating leverage — how companies scale output faster than input costs through systems, software, and process.",
+    "topic": "what-a-business-model-is",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://mailchimp.com/",
+    "takeaway": "Mailchimp homepage promoting its email and SMS marketing platform, highlighting its Premium plan with multivariate testing, predictive segmentation, automation flows, and dedicated onboarding support.",
+    "topic": "saas-subscription",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.youtube.com/watch?v=H8yY4-jHDGc",
+    "takeaway": "27-minute Marketplace Conference talk by Sarah Tavel of Benchmark laying out her hierarchy of marketplace metrics — engagement above GMV, and retention above both.",
+    "topic": "marketplaces",
+    "tier": "T4",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.mageplaza.com/blog/fundamental-ecommerce-metrics.html",
+    "takeaway": "Guide covering seven essential e-commerce metrics including conversion rates and cart abandonment, with formulas and practical tactics to improve each metric for online stores.",
+    "topic": "transactional-ecommerce",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.fishmanafnewsletter.com/p/how-to-win-with-ai-video-ads-google-veo3-dan-birdwhistell?r=2jc0k&triedRedirect=true",
+    "takeaway": "Advice from one of today’s greatest paid advertising experts who has worked with Shopify, Coinbase, Character.ai, Pinterest, Lyft and more.",
+    "topic": "advertising-aggregation",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

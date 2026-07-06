@@ -110,5 +110,40 @@
     "topic": "the-case-against-resurrection",
     "tier": "secondary-curation",
     "paywalled": false
+  },
+  {
+    "url": "https://www.fishmanafnewsletter.com/p/how-ai-products-drive-adoption-in-onboarding-through-template-activation-loop?r=2jc0k",
+    "takeaway": "Analysis of how 150+ AI products drive user activation through template-driven onboarding, arguing that the blank canvas problem makes starter templates a requirement, with examples from ChatGPT, Claude, Gemini, and vertical AI tools.",
+    "topic": "what-activation-actually-means",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.fishmanafnewsletter.com/p/how-ai-products-drive-adoption-in-onboarding-through-template-activation-loop?r=2jc0k",
+    "takeaway": "Analysis of how 150+ AI products drive user activation through template-driven onboarding, arguing that the blank canvas problem makes starter templates a requirement, with examples from ChatGPT, Claude, Gemini, and vertical AI tools.",
+    "topic": "defining-and-measuring-the-activation-rate",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.amazon.com/dp/B085LBDHTX",
+    "takeaway": "Amazon listing for April Dunford's book 'Obviously Awesome,' covering product positioning strategy; no content available beyond the Amazon storefront.",
+    "topic": "the-setup-moment-and-time-to-value",
+    "tier": "T4",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.fishmanafnewsletter.com/p/how-ai-products-drive-adoption-in-onboarding-through-template-activation-loop?r=2jc0k",
+    "takeaway": "Analysis of how 150+ AI products drive user activation through template-driven onboarding, arguing that the blank canvas problem makes starter templates a requirement, with examples from ChatGPT, Claude, Gemini, and vertical AI tools.",
+    "topic": "onboarding-as-the-activation-surface",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.lennysnewsletter.com/p/what-is-a-good-activation-rate",
+    "takeaway": "Lenny Rachitsky and Yuriy Timen present benchmarks from 500+ responses defining good and great activation rates by product type, explain how to set activation milestones, and share the highest-leverage tactics for improving activation.",
+    "topic": "what-activation-actually-means",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

@@ -152,5 +152,40 @@
     "topic": "core-concepts",
     "tier": "T2",
     "paywalled": false
+  },
+  {
+    "url": "https://hellopm.co/sql-for-product-managers-the-definitive-guide",
+    "takeaway": "Definitive SQL guide for product managers explaining relational databases, data retrieval, filtering, aggregates, joins, and how SQL enables PMs to run analyses independently and make faster data-driven decisions.",
+    "topic": "sql",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://medium.com/@prefixyteam/how-we-built-prefixy-a-scalable-prefix-search-service-for-powering-autocomplete-c20f98e2eff1",
+    "takeaway": "Engineering deep-dive into how Prefixy built a scalable prefix search service to power autocomplete functionality, covering architecture and design decisions.",
+    "topic": "scaling",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://towardsdatascience.com/",
+    "takeaway": "Your home for data science and AI. The world’s leading publication for data science, data analytics, data engineering, machine learning, and artificial intelligence professionals.",
+    "topic": "sql",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.geeksforgeeks.org/system-design/design-bookmyshow-a-system-design-interview-question",
+    "takeaway": "System design walkthrough for a BookMyShow-style ticket booking platform covering functional and non-functional requirements, seat reservation locking, aggregator-theatre integration strategies, and high-concurrency handling.",
+    "topic": "scaling",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://technically.dev/posts/sql-for-the-rest-of-us",
+    "takeaway": "Beginner-friendly guide to SQL covering database schemas, query structure, and core keywords SELECT, FROM, WHERE, and ORDER BY, using a DTC e-commerce example to illustrate concepts.",
+    "topic": "sql",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

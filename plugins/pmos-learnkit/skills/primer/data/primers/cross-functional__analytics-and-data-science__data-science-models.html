@@ -1063,6 +1063,10 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 <p>The thing that makes a model different from ordinary software is <em>where the logic comes from</em>. In traditional programming, a person writes the rules ("if the email contains these words, mark it spam"). In machine learning, you do the opposite: you show the software thousands of emails already labeled spam or not-spam, and "the model discovers mathematical relationships within" the data, then "applies this learned pattern to make predictions on new information." (<a href="https://developers.google.com/machine-learning/intro-to-ml/what-is-ml">Google for Developers</a>) Nobody hand-writes the rule; the model infers it.</p>
 <p>Google groups these systems into four families: supervised, unsupervised, reinforcement, and generative. (<a href="https://developers.google.com/machine-learning/intro-to-ml/what-is-ml">Google for Developers</a>) Most of this primer lives inside the first two, because that is where the everyday product models sit. The headline takeaway for a PM: a model is a learned pattern, only as good as the examples it learned from — which is why so much of what follows is about data quality and honest measurement, not math.</p>
 
+
+<p class="primer-enriched">Further reading: <a href="https://fullstackresearcher.substack.com/p/the-most-misunderstood-research-method">fullstackresearcher.substack.com</a> — Clears up widespread confusion about conjoint analysis: it measures attribute importance only in direct product comparisons, not general preference research.</p>
+
+<p class="primer-enriched">Further reading: <a href="https://conjointly.com/kb/statistical-power">conjointly.com</a> — Research Methods Knowledge Base entry explaining statistical power and its four interrelated components — sample size, effect size, alpha level, and power — and how they trade off in study design.</p>
 <h2 id="supervised-vs-unsupervised-the-master-split">Supervised vs unsupervised — the master split</h2>
 <p>The first fork in the road decides everything downstream. Amazon Web Services draws it cleanly: in <strong>supervised learning</strong> "you train the model with a set of input data and a corresponding set of paired labeled output data" to "predict an output based on known inputs," while in <strong>unsupervised learning</strong> "you train the model to discover hidden patterns in unlabeled data." (<a href="https://aws.amazon.com/compare/the-difference-between-machine-learning-supervised-and-unsupervised/">AWS</a>) Put plainly: supervised learning needs an answer key; unsupervised learning does not.</p>
 <svg viewBox="0 0 660 250" role="img" xmlns="http://www.w3.org/2000/svg">
@@ -1165,6 +1169,10 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 <p>The second is bias, and the stakes are concrete. UNSW BusinessThink documents Amazon's hiring tool, which — "trained on predominantly male resumes" — discriminated against women, and after attempted fixes "couldn't be sure the AI wouldn't find other ways to discriminate." (<a href="https://www.businessthink.unsw.edu.au/articles/black-box-AI-models-bias-interpretability">UNSW BusinessThink</a>) A model learns whatever patterns are in its training data, including the unfair ones, and it cannot tell a legitimate pattern from a discriminatory one.</p>
 <p>The genuinely contested part — worth flagging because it's easy to over-trust — is that explanation tools are not a clean safety net. UNSW warns it is "possible to intentionally hide the discriminatory behaviour of a predictor and make the black-box model appear neutral through interpretation tools like partial dependence plots." (<a href="https://www.businessthink.unsw.edu.au/articles/black-box-AI-models-bias-interpretability">UNSW BusinessThink</a>) The honest posture: interpretability buys real trust, explanation-after-the-fact buys less than it appears to, and in high-stakes domains a PM should treat "the model says so" as the start of a question, not the end of one.</p>
 
+
+<p class="primer-enriched">Further reading: <a href="https://uxdesign.cc/from-consideration-to-purchase-breaking-down-googles-messy-middle-for-product-managers-8f6252ccca1a">uxdesign.cc</a> — Analysis of Google's "messy middle" consumer decision-making model for product managers, explaining how customers oscillate between exploration and evaluation before purchase and how products can influence that journey.</p>
+
+<p class="primer-enriched">Further reading: <a href="https://www.highagency.com/">highagency.com</a> — Essay arguing high agency — the ability to take initiative and find solutions in difficult situations — is the defining trait of exceptional people, with practical heuristics for spotting high-agency individuals.</p>
 <h2 id="what-this-means-for-pms">What this means for product managers</h2>
 <p>The first PM judgment is whether to use a model at all. Product School's checklist says reach for ML when a problem "handles very complex logic," "scales-up fast," needs real-time adaptation or personalization, and "has existing examples of actual answers" — and avoid it when simple rules suffice, when the problem "requires full interpretability," or "requires 100% accuracy." (<a href="https://productschool.com/blog/artificial-intelligence/great-machine-learning-product-management-google">Product School</a>) A model is the wrong tool for anything that must be perfect or fully auditable.</p>
 <p>The second judgment is defining success honestly, and this is where Google for Developers issues the sharpest warning in this whole primer. It insists on tracking two metric types — business metrics like "revenue, click-through rate, or number of users" and model metrics like precision or <strong>RMSE</strong> (root mean squared error, a regression error measure) — and then says plainly: "Don't confuse model success with business success," because "Great model metrics don't necessarily imply improved business metrics." (<a href="https://developers.google.com/machine-learning/managing-ml-projects/success">Google for Developers</a>) Its remedy is to "deploy the model to 1% of users and then monitor the business metric." A model that aces its lab score but moves no real-world number is a failure, however impressive the score.</p>
@@ -1175,6 +1183,8 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 <p>The second pitfall is underestimating the data bill. The same guide notes model choice depends on data availability (supervised needs labels), on latency (real-time "stream" versus scheduled "batch" processing), and on having enough clean data — it suggests a rough floor of "at least 10k examples" and a user-feedback loop, "because we ultimately live or die by business performance." (<a href="https://towardsdatascience.com/ml-for-product-managers-a214d823629d/">Towards Data Science</a>) Garbage in, garbage out is not a slogan here; it is the single biggest determinant of whether a model works.</p>
 <p>The third is treating the model as done at launch. Product School cautions that "ML creates tech debt" and that scientists "are not Software Engineers" — models drift as the world changes and need monitoring and retraining. (<a href="https://productschool.com/blog/artificial-intelligence/great-machine-learning-product-management-google">Product School</a>) Pair that with Google's advice to roll out to 1% and watch the business metric (<a href="https://developers.google.com/machine-learning/managing-ml-projects/success">Google for Developers</a>), and the collaboration pattern is clear: bring a sharp problem, agree the two metrics up front, decide which error you can live with, and plan for the model to be maintained, not just shipped.</p>
 
+
+<p class="primer-enriched">Further reading: <a href="https://www.evanmiller.org/ab-testing/sample-size.html">evanmiller.org</a> — Interactive calculator for determining A/B test sample sizes, parameterized by statistical power and significance level.</p>
 <h2 id="where-this-connects">Where this connects — adjacent topics</h2>
 <p>This primer is the map of model families; several neighbors go deeper on the pieces it only points at:</p>
 <ul>
@@ -1254,6 +1264,26 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 <li>
 <a href="https://towardsdatascience.com/ml-for-product-managers-a214d823629d/">towardsdatascience.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
 <p class="ref-takeaway">This PM guide stresses validating "Is ML actually needed?" since "in many cases a heuristics-based approach can work better" until rules stop scaling. Model choice turns on data availability (supervised needs labels), latency (stream vs batch), and complexity; data should have "at least 10k examples" and a user-feedback loop, because "we ultimately live or die by business performance."</p>
+</li>
+<li>
+<a href="https://fullstackresearcher.substack.com/p/the-most-misunderstood-research-method">fullstackresearcher.substack.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
+<p class="ref-takeaway">Clears up widespread confusion about conjoint analysis: it measures attribute importance only in direct product comparisons, not general preference research. Explains when to use it versus broader discrete-choice or stated-preference methods.</p>
+</li>
+<li>
+<a href="https://uxdesign.cc/from-consideration-to-purchase-breaking-down-googles-messy-middle-for-product-managers-8f6252ccca1a">uxdesign.cc</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T3)</span>
+<p class="ref-takeaway">Analysis of Google's "messy middle" consumer decision-making model for product managers, explaining how customers oscillate between exploration and evaluation before purchase and how products can influence that journey.</p>
+</li>
+<li>
+<a href="https://www.evanmiller.org/ab-testing/sample-size.html">evanmiller.org</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T3)</span>
+<p class="ref-takeaway">Interactive calculator for determining A/B test sample sizes, parameterized by statistical power and significance level.</p>
+</li>
+<li>
+<a href="https://conjointly.com/kb/statistical-power">conjointly.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T3)</span>
+<p class="ref-takeaway">Research Methods Knowledge Base entry explaining statistical power and its four interrelated components — sample size, effect size, alpha level, and power — and how they trade off in study design.</p>
+</li>
+<li>
+<a href="https://www.highagency.com/">highagency.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T3)</span>
+<p class="ref-takeaway">Essay arguing high agency — the ability to take initiative and find solutions in difficult situations — is the defining trait of exceptional people, with practical heuristics for spotting high-agency individuals.</p>
 </li>
 </ol>
 </main>

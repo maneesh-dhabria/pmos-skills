@@ -131,5 +131,40 @@
     "topic": "choosing-what-to-measure",
     "tier": "T2",
     "paywalled": false
+  },
+  {
+    "url": "https://productled.com/blog/best-user-onboarding-examples",
+    "takeaway": "Analysis of 150+ user onboarding experiences identifies eight best practices: leverage social proof, avoid email verification walls, minimize unnecessary steps, make product tours action-focused, segment users, emphasize user goals, use helpful empty states, and send behavior-based emails.",
+    "topic": "what-measuring-ux-means",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://productled.com/blog/best-user-onboarding-examples",
+    "takeaway": "Analysis of 150+ user onboarding experiences identifies eight best practices: leverage social proof, avoid email verification walls, minimize unnecessary steps, make product tours action-focused, segment users, emphasize user goals, use helpful empty states, and send behavior-based emails.",
+    "topic": "why-bother-measuring-ux",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.mageplaza.com/blog/fundamental-ecommerce-metrics.html",
+    "takeaway": "Guide covering seven essential e-commerce metrics including conversion rates and cart abandonment, with formulas and practical tactics to improve each metric for online stores.",
+    "topic": "the-two-axes-of-measurement",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://uxdesign.cc/from-consideration-to-purchase-breaking-down-googles-messy-middle-for-product-managers-8f6252ccca1a",
+    "takeaway": "Analysis of Google's \"messy middle\" consumer decision-making model for product managers, explaining how customers oscillate between exploration and evaluation before purchase and how products can influence that journey.",
+    "topic": "how-much-to-trust-the-numbers",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://productled.com/blog/best-user-onboarding-examples",
+    "takeaway": "Analysis of 150+ user onboarding experiences identifies eight best practices: leverage social proof, avoid email verification walls, minimize unnecessary steps, make product tours action-focused, segment users, emphasize user goals, use helpful empty states, and send behavior-based emails.",
+    "topic": "the-system-usability-scale",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

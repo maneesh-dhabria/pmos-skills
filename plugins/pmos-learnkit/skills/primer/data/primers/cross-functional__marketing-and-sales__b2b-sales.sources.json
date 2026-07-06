@@ -110,5 +110,40 @@
     "topic": "how-product-partners-with-sales",
     "tier": "T2",
     "paywalled": false
+  },
+  {
+    "url": "https://blog.hubspot.com/sales/enterprise-sales",
+    "takeaway": "Explains enterprise sales and how it differs from SMB and mid-market sales across eight dimensions including deal length, number of decision makers, and purchase complexity, with guidance on building an enterprise sales strategy.",
+    "topic": "what-b2b-sales-is",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://blog.hubspot.com/sales/enterprise-sales",
+    "takeaway": "Explains enterprise sales and how it differs from SMB and mid-market sales across eight dimensions including deal length, number of decision makers, and purchase complexity, with guidance on building an enterprise sales strategy.",
+    "topic": "the-sales-pipeline",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.youtube.com/watch?v=peK4xFdji8I",
+    "takeaway": "Jake Knapp and John Zeratsky present the five-day design sprint methodology at Google Talks, explaining how teams can solve critical business questions through rapid prototyping and user testing in a single week.",
+    "topic": "choosing-a-methodology",
+    "tier": "T4",
+    "paywalled": false
+  },
+  {
+    "url": "https://blog.hubspot.com/sales/enterprise-sales",
+    "takeaway": "Explains enterprise sales and how it differs from SMB and mid-market sales across eight dimensions including deal length, number of decision makers, and purchase complexity, with guidance on building an enterprise sales strategy.",
+    "topic": "how-product-partners-with-sales",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://swkhan.medium.com/how-to-deal-with-b2b-sales-driven-feature-requests-5199ec308a38",
+    "takeaway": "Guide on handling B2B sales-driven feature requests, covering strategies for product managers to evaluate, prioritize, and push back on requests from sales teams without derailing the product roadmap.",
+    "topic": "what-b2b-sales-is",
+    "tier": "T2",
+    "paywalled": false
   }
 ]

@@ -124,5 +124,40 @@
     "topic": "tradeoffs",
     "tier": "T2",
     "paywalled": false
+  },
+  {
+    "url": "https://medium.com/@prefixyteam/how-we-built-prefixy-a-scalable-prefix-search-service-for-powering-autocomplete-c20f98e2eff1",
+    "takeaway": "Engineering deep-dive into how Prefixy built a scalable prefix search service to power autocomplete functionality, covering architecture and design decisions.",
+    "topic": "scalability",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://blog.bytebytego.com/p/a-crash-course-in-redis",
+    "takeaway": "ByteByteGo crash course on Redis covering its architecture, data structures, persistence options (AOF and RDB), replication, and the design choices that make it fast for caching and real-time use cases.",
+    "topic": "caching",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://blog.bytebytego.com/p/factors-to-consider-in-database-selection",
+    "takeaway": "ByteByteGo deep dive on database selection criteria covering scalability, performance, consistency trade-offs across relational, NoSQL, NewSQL, and time-series databases to guide engineering decisions.",
+    "topic": "databases",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.geeksforgeeks.org/system-design/design-bookmyshow-a-system-design-interview-question",
+    "takeaway": "System design walkthrough for a BookMyShow-style ticket booking platform covering functional and non-functional requirements, seat reservation locking, aggregator-theatre integration strategies, and high-concurrency handling.",
+    "topic": "scalability",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://blog.bytebytego.com/p/a-crash-course-in-caching-final-part",
+    "takeaway": "Final part of a caching crash course covering reliability challenges including cache avalanche, stampede, and penetration, with mitigation strategies like staggered TTLs, consistent hashing, and circuit breakers.",
+    "topic": "caching",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

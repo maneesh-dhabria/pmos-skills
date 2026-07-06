@@ -145,5 +145,40 @@
     "topic": "tech-debt",
     "tier": "T1",
     "paywalled": false
+  },
+  {
+    "url": "https://www.amazon.com/dp/B01BXB1B7K",
+    "takeaway": "Amazon listing for Sprint, the book by Jake Knapp and Google Ventures team on the five-day design sprint process for solving big problems and testing ideas quickly.",
+    "topic": "agile-practice",
+    "tier": "T4",
+    "paywalled": false
+  },
+  {
+    "url": "https://testrigor.com/blog/different-software-testing-types",
+    "takeaway": "testRigor overview of software testing types, covering functional testing (unit, integration, system, acceptance, gorilla) and non-functional testing, with definitions, advantages, and worked examples for each category.",
+    "topic": "testing",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.amazon.com/dp/B08TZGKKF2",
+    "takeaway": "Amazon listing for User Story Mapping by Jeff Patton, a book teaching teams to build shared understanding of user needs and structure backlogs around user journeys rather than feature lists.",
+    "topic": "agile-practice",
+    "tier": "T4",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.softwaretestinghelp.com/types-of-software-testing",
+    "takeaway": "Comprehensive reference covering software testing types used across the SDLC, including unit, integration, system, functional, non-functional, manual, and automated testing, with explanations and practical examples for each.",
+    "topic": "testing",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.hyperact.co.uk/blog/product-development-blueprint",
+    "takeaway": "Hyperact's blueprint for modern product development covering principles like continuous discovery, product engineering, and evidence-driven decisions, with an end-to-end process from capturing opportunities to delivery.",
+    "topic": "agile-practice",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

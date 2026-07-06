@@ -103,5 +103,40 @@
     "topic": "north-star-and-outcomes",
     "tier": "T2",
     "paywalled": false
+  },
+  {
+    "url": "https://hbr.org/2020/11/how-apple-is-organized-for-innovation",
+    "takeaway": "Harvard Business Review analysis of Apple's organizational structure: a functional model where experts lead experts, enabling innovation at scale, as Apple grew from $7B to $260B in revenue under this leadership model.",
+    "topic": "what-is-strategy",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://hbr.org/2020/11/how-apple-is-organized-for-innovation",
+    "takeaway": "Harvard Business Review analysis of Apple's organizational structure: a functional model where experts lead experts, enabling innovation at scale, as Apple grew from $7B to $260B in revenue under this leadership model.",
+    "topic": "good-product-strategy",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.svpg.com/product-roadmaps",
+    "takeaway": "Marty Cagan argues product roadmaps should be simple, high-level paths from current state to product vision — not prioritized feature-request lists — and warns that feature-driven roadmaps skip the critical work of product discovery.",
+    "topic": "vision-strategy-roadmap",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://blog.brianbalfour.com/p/the-four-fits-a-growth-framework?r=2jc0k&triedRedirect=true",
+    "takeaway": "Everything's changed. Here's how to reach $100m at venture speed.",
+    "topic": "what-is-strategy",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://blog.brianbalfour.com/p/the-four-fits-a-growth-framework?r=2jc0k&triedRedirect=true",
+    "takeaway": "Everything's changed. Here's how to reach $100m at venture speed.",
+    "topic": "good-product-strategy",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

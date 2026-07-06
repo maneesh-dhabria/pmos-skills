@@ -119,5 +119,40 @@
     "topic": "aligning-structure-to-strategy",
     "tier": "practitioner-canon",
     "paywalled": false
+  },
+  {
+    "url": "https://sijobling.com/blog/pop-petals",
+    "takeaway": "Si Jobling's PETALS framework for monitoring engineering team health using five weekly metrics — Productivity, Enjoyment, Teamwork, Learning, and Stress — rated out of five, visualised with a traffic-light system and tracked via Slack or Teams bots.",
+    "topic": "what-organizing-product-teams-means",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://sijobling.com/blog/pop-petals",
+    "takeaway": "Si Jobling's PETALS framework for monitoring engineering team health using five weekly metrics — Productivity, Enjoyment, Teamwork, Learning, and Stress — rated out of five, visualised with a traffic-light system and tracked via Slack or Teams bots.",
+    "topic": "the-empowered-team-as-the-unit",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://sijobling.com/blog/pop-petals",
+    "takeaway": "Si Jobling's PETALS framework for monitoring engineering team health using five weekly metrics — Productivity, Enjoyment, Teamwork, Learning, and Stress — rated out of five, visualised with a traffic-light system and tracked via Slack or Teams bots.",
+    "topic": "why-team-structure-is-a-product-decision",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://sijobling.com/blog/pop-petals",
+    "takeaway": "Si Jobling's PETALS framework for monitoring engineering team health using five weekly metrics — Productivity, Enjoyment, Teamwork, Learning, and Stress — rated out of five, visualised with a traffic-light system and tracked via Slack or Teams bots.",
+    "topic": "team-topologies-the-four-types",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://hbr.org/2020/11/how-apple-is-organized-for-innovation",
+    "takeaway": "Harvard Business Review analysis of Apple's organizational structure: a functional model where experts lead experts, enabling innovation at scale, as Apple grew from $7B to $260B in revenue under this leadership model.",
+    "topic": "cognitive-load-as-a-design-heuristic",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

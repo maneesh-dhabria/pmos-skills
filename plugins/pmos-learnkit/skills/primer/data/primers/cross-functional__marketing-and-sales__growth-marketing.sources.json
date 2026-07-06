@@ -110,5 +110,40 @@
     "topic": "activation-and-retention-the-engine",
     "tier": "T1",
     "paywalled": false
+  },
+  {
+    "url": "https://hbr.org/2020/11/how-apple-is-organized-for-innovation",
+    "takeaway": "Harvard Business Review analysis of Apple's organizational structure: a functional model where experts lead experts, enabling innovation at scale, as Apple grew from $7B to $260B in revenue under this leadership model.",
+    "topic": "product-market-fit-comes-first",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.focusedchaos.co/p/how-to-use-the-right-metrics-to-motivate",
+    "takeaway": "Metrics matter. But if you track the wrong ones, everything goes to shit. (#4)",
+    "topic": "the-aarrr-pirate-funnel",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://conversion.com/framework/the-lift-model",
+    "takeaway": "Conversion.com's LIFT Model framework for optimizing conversion rates using six factors: value proposition (central), relevance, clarity, urgency, anxiety, and distraction.",
+    "topic": "from-funnels-to-growth-loops",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.fullstory.com/",
+    "takeaway": "FullStory is an AI-powered digital experience platform offering behavioural analytics and session intelligence across industries.",
+    "topic": "ab-testing-the-validation-tool",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Nudge_(book)",
+    "takeaway": "Wikipedia article on 'Nudge' by Thaler and Sunstein, the behavioral economics book introducing libertarian paternalism and the use of choice architecture to steer better decisions.",
+    "topic": "unit-economics-cac-and-ltv",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

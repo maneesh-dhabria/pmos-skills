@@ -110,5 +110,40 @@
     "topic": "synthesis-from-notes-to-themes",
     "tier": "T1",
     "paywalled": false
+  },
+  {
+    "url": "https://www.amazon.com/dp/B08CMF2CQF",
+    "takeaway": "Amazon listing for System Design Interview — An Insider's Guide, Second Edition, a widely used book on technical system design preparation.",
+    "topic": "why-interviews-are-hard",
+    "tier": "T4",
+    "paywalled": false
+  },
+  {
+    "url": "https://a16z.com/the-hiring-process",
+    "takeaway": "a16z guide to hiring senior executives, covering the MOC (missions, outcomes, competencies) document, building interview panels, sourcing, evaluation, and why a rigorous process shortens a typical 130-day search.",
+    "topic": "recruiting-the-right-people",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.amazon.com/dp/B08CMF2CQF",
+    "takeaway": "Amazon listing for System Design Interview — An Insider's Guide, Second Edition, a widely used book on technical system design preparation.",
+    "topic": "the-interview-guide",
+    "tier": "T4",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.linkedin.com/posts/talsraviv_last-week-i-ran-8-customer-interviews-but-activity-7353853926065995778-Gg1V?rcm=ACoAAAL6RoYBUt6e51qaMwyoJuoju1wNIUia-Ic",
+    "takeaway": "LinkedIn post by Tal Raviv sharing a detailed AI prompt for synthesizing customer interview transcripts into structured, hallucination-resistant documents organized by research plan and participant, with built-in quote verification steps.",
+    "topic": "why-interviews-are-hard",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://substack.gauravvohra.com/p/stop-hiring-people?r=2jc0k&triedRedirect=true",
+    "takeaway": "Focus on the problem. Then the role. Then the person.",
+    "topic": "recruiting-the-right-people",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

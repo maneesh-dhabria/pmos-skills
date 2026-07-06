@@ -1063,6 +1063,10 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 <p>The reason it matters for a product manager is independence. Dept Agency's primer for PMs puts the promise bluntly: <a href="https://engineering.deptagency.com/sql-101-for-product-managers">if you can ask a question about your data, you can ask it in SQL</a> — which means you are not waiting on an engineer for every "how many?" HelloPM lists the same payoff as the ability to <a href="https://hellopm.co/sql-for-product-managers-the-definitive-guide/">Make decisions faster by reducing dependency on your data teams for basic analysis and using them for better challenges</a>, plus the chance to <a href="https://hellopm.co/sql-for-product-managers-the-definitive-guide/">uncover insights that are not available with standard tools such as GA, mixpanel etc</a>. (<strong>GA</strong> is Google Analytics, a common off-the-shelf web-analytics product; Mixpanel is a product-analytics tool — both give you pre-built reports but not arbitrary questions.)</p>
 <p>How much do you actually need? Less than you might fear. The AI2SQL guide claims <a href="https://builder.ai2sql.io/blog/sql-for-product-managers">Most product managers can learn enough SQL to run the 10 queries in this guide within one to two weeks of casual practice</a>. The same guide names the short list of ideas that carry the load — read, filter, aggregate, join — which is the spine of this primer.</p>
 
+
+<p class="primer-enriched">Further reading: <a href="https://hellopm.co/sql-for-product-managers-the-definitive-guide">hellopm.co</a> — Definitive SQL guide for product managers explaining relational databases, data retrieval, filtering, aggregates, joins, and how SQL enables PMs to run analyses independently and make faster data-driven decisions.</p>
+
+<p class="primer-enriched">Further reading: <a href="https://towardsdatascience.com/">towardsdatascience.com</a> — Your home for data science and AI.</p>
 <h2 id="how-a-database-is-organized">How a database is organized</h2>
 <p>Before the verbs, the nouns. A relational database stores data in <strong>tables</strong>. A table is very much like a spreadsheet tab: rows are records (one user, one order, one event) and columns are fields (a name, a date, an amount). ThoughtSpot's tutorial draws exactly that comparison — tables resemble spreadsheets with rows and columns but follow stricter rules, for instance that <a href="https://www.thoughtspot.com/sql-tutorial/introduction-to-sql">each column must have a unique name</a>.</p>
 <p>Two special columns make the "relational" part work. A <strong>primary key</strong> is the column that gives each row a unique identity. W3Schools defines it as the constraint that <a href="https://www.w3schools.com/sql/sql_primarykey.asp">uniquely identifies each record in a database table</a> — it <a href="https://www.w3schools.com/sql/sql_primarykey.asp">ensures unique values, and cannot contain NULL values</a>, and a table can have only one. Think of a <code>user_id</code> column in a <code>users</code> table: every user gets exactly one, and no two share it.</p>
@@ -1153,11 +1157,17 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
   <text x="360" y="228" font-family="Georgia, serif" font-size="12" fill="#5a5346" text-anchor="middle">Why an alias from SELECT works in ORDER BY but not in WHERE: SELECT runs after WHERE, before ORDER BY.</text>
 </svg>
 
+
+<p class="primer-enriched">Further reading: <a href="https://hellopm.co/sql-for-product-managers-the-definitive-guide">hellopm.co</a> — Definitive SQL guide for product managers explaining relational databases, data retrieval, filtering, aggregates, joins, and how SQL enables PMs to run analyses independently and make faster data-driven decisions.</p>
 <h2 id="answering-product-questions-with-sql">Answering product questions with SQL</h2>
 <p>Put the pieces together and the everyday PM questions fall out as recognizable shapes. AI2SQL's guide names the recurring ones — among them <a href="https://builder.ai2sql.io/blog/sql-for-product-managers">DAU/MAU (Daily and Monthly Active Users)</a>, feature-adoption rate, retention by cohort, conversion-funnel analysis, and revenue per user. (<strong>DAU</strong>, <strong>WAU</strong>, and <strong>MAU</strong> are daily, weekly, and monthly active users; <strong>ARPU</strong> is average revenue per user.)</p>
 <p>Most of these are the same four moves in different combinations. A monthly-active-user count is a filter on a date window plus <code>COUNT(DISTINCT user_id)</code>. Signups per month is a GROUP BY on the signup month with a COUNT — exactly HelloPM's practice prompt, <a href="https://hellopm.co/sql-for-product-managers-the-definitive-guide/">Number of user registrations every month</a>. "Top features by usage" is a GROUP BY feature, COUNT, ORDER BY that count DESC, LIMIT. Even a quirky question like HelloPM's <a href="https://hellopm.co/sql-for-product-managers-the-definitive-guide/">On which day of the week do you get the most number of users</a> is GROUP BY day-of-week, COUNT, ORDER BY DESC.</p>
 <p>The reason this is worth your time, in AI2SQL's framing, is speed: it argues SQL <a href="https://builder.ai2sql.io/blog/sql-for-product-managers">removes that bottleneck</a> so you get answers in minutes instead of days. The deeper queries — multi-step funnels, cohort retention tables — build on these same primitives with joins and a few more functions, and they are where you genuinely benefit from pairing with a data analyst rather than going it alone.</p>
 
+
+<p class="primer-enriched">Further reading: <a href="https://hellopm.co/sql-for-product-managers-the-definitive-guide">hellopm.co</a> — Definitive SQL guide for product managers explaining relational databases, data retrieval, filtering, aggregates, joins, and how SQL enables PMs to run analyses independently and make faster data-driven decisions.</p>
+
+<p class="primer-enriched">Further reading: <a href="https://www.departmentofproduct.com/blog/sql-skills-for-product-managers">departmentofproduct.com</a> — Department of Product article making the case for product managers learning SQL to query databases directly, bypass data team bottlenecks, and bring sharper data arguments into stakeholder meetings.</p>
 <h2 id="common-pitfalls-and-what-pms-should-know">Common pitfalls and what PMs should know</h2>
 <p>SQL will cheerfully give you a precise, wrong answer, so a few habits matter more than any syntax. The first trap is counting the wrong thing. Because <a href="https://www.w3schools.com/sql/sql_count.asp">COUNT(DISTINCT column_name) counts only the unique, non-null values in the column</a>, <code>COUNT(*)</code> on an orders table counts <em>orders</em>, not <em>customers</em> — if you want active users, you almost always mean <code>COUNT(DISTINCT user_id)</code>. Reporting orders as if they were people is a classic inflated metric.</p>
 <p>The second trap is NULL. Recall that a primary key <a href="https://www.w3schools.com/sql/sql_primarykey.asp">cannot contain NULL values</a>, but plenty of ordinary columns can, and NULL is contagious: it is not zero, it is not equal to anything (not even another NULL), and most aggregates skip it. An average that silently ignores NULL rows, or a filter that unexpectedly drops them, is a frequent source of "the number looks off."</p>
@@ -1245,6 +1255,26 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 <li>
 <a href="https://www.datacamp.com/tutorial/sql-order-of-execution">datacamp.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T2)</span>
 <p class="ref-takeaway">DataCamp explains the practical consequence of execution order: "columns defined with aliases in the SELECT clause cannot be referenced directly in the WHERE clause since it is processed before the SELECT." By contrast, "the ORDER BY clause can use column aliases defined in the SELECT statement," because ORDER BY runs after SELECT.</p>
+</li>
+<li>
+<a href="https://hellopm.co/sql-for-product-managers-the-definitive-guide">hellopm.co</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T3)</span>
+<p class="ref-takeaway">Definitive SQL guide for product managers explaining relational databases, data retrieval, filtering, aggregates, joins, and how SQL enables PMs to run analyses independently and make faster data-driven decisions.</p>
+</li>
+<li>
+<a href="https://hellopm.co/sql-for-product-managers-the-definitive-guide">hellopm.co</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T3)</span>
+<p class="ref-takeaway">Definitive SQL guide for product managers explaining relational databases, data retrieval, filtering, aggregates, joins, and how SQL enables PMs to run analyses independently and make faster data-driven decisions.</p>
+</li>
+<li>
+<a href="https://hellopm.co/sql-for-product-managers-the-definitive-guide">hellopm.co</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T3)</span>
+<p class="ref-takeaway">Definitive SQL guide for product managers explaining relational databases, data retrieval, filtering, aggregates, joins, and how SQL enables PMs to run analyses independently and make faster data-driven decisions.</p>
+</li>
+<li>
+<a href="https://towardsdatascience.com/">towardsdatascience.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T3)</span>
+<p class="ref-takeaway">Your home for data science and AI. The world’s leading publication for data science, data analytics, data engineering, machine learning, and artificial intelligence professionals.</p>
+</li>
+<li>
+<a href="https://www.departmentofproduct.com/blog/sql-skills-for-product-managers">departmentofproduct.com</a> <span class="ref-cited">·cited·</span> <span class="ref-tier">(T3)</span>
+<p class="ref-takeaway">Department of Product article making the case for product managers learning SQL to query databases directly, bypass data team bottlenecks, and bring sharper data arguments into stakeholder meetings.</p>
 </li>
 </ol>
 </main>

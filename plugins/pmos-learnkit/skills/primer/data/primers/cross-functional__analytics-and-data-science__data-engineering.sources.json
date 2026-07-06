@@ -117,5 +117,40 @@
     "topic": "costs-reliability-and-pitfalls",
     "tier": "T2",
     "paywalled": false
+  },
+  {
+    "url": "https://maven.com/kohavi/abtesting",
+    "takeaway": "Maven course by Ron Kohavi on running trustworthy A/B tests, drawing on examples from Microsoft, Amazon, and Airbnb to cover OEC design, common pitfalls, cultural challenges, and AI/ML experiment considerations.",
+    "topic": "the-data-engineering-lifecycle",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://maven.com/kohavi/abtesting",
+    "takeaway": "Maven course by Ron Kohavi on running trustworthy A/B tests, drawing on examples from Microsoft, Amazon, and Airbnb to cover OEC design, common pitfalls, cultural challenges, and AI/ML experiment considerations.",
+    "topic": "what-data-engineering-is",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.evanmiller.org/ab-testing/sample-size.html",
+    "takeaway": "Interactive calculator for determining A/B test sample sizes, parameterized by statistical power and significance level.",
+    "topic": "what-a-data-pipeline-is",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.evanmiller.org/ab-testing/sample-size.html",
+    "takeaway": "Interactive calculator for determining A/B test sample sizes, parameterized by statistical power and significance level.",
+    "topic": "ingestion-getting-the-data-in",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://blog.bytebytego.com/p/why-is-kafka-so-fast-how-does-it",
+    "takeaway": "ByteByteGo deep-dive into Apache Kafka's architecture — producers, brokers, consumers, partitions, the KRaft control plane, and the sequential I/O and replication optimizations that give Kafka high throughput and low latency.",
+    "topic": "batch-vs-streaming",
+    "tier": "T3",
+    "paywalled": false
   }
 ]

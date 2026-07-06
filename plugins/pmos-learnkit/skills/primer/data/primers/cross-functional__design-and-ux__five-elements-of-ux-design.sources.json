@@ -110,5 +110,40 @@
     "topic": "using-it",
     "tier": "T1",
     "paywalled": false
+  },
+  {
+    "url": "https://hbr.org/2020/11/how-apple-is-organized-for-innovation",
+    "takeaway": "Harvard Business Review analysis of Apple's organizational structure: a functional model where experts lead experts, enabling innovation at scale, as Apple grew from $7B to $260B in revenue under this leadership model.",
+    "topic": "strategy",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://blog.brianbalfour.com/p/the-four-fits-a-growth-framework?r=2jc0k&triedRedirect=true",
+    "takeaway": "Everything's changed. Here's how to reach $100m at venture speed.",
+    "topic": "strategy",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://longform.asmartbear.com/roi-rubric",
+    "takeaway": "Jason Cohen's deep dive into why traditional ROI rubrics are mostly noise, and a Fermi-estimation-based alternative that uses order-of-magnitude reasoning to make prioritisation decisions more honest and defensible.",
+    "topic": "strategy",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.firehose.vc/p/firehose-194-operating-leverage-",
+    "takeaway": "Firehose newsletter issue 194 covering operating leverage — how companies scale output faster than input costs through systems, software, and process.",
+    "topic": "strategy",
+    "tier": "T3",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.youtube.com/watch?v=H8yY4-jHDGc",
+    "takeaway": "27-minute Marketplace Conference talk by Sarah Tavel of Benchmark laying out her hierarchy of marketplace metrics — engagement above GMV, and retention above both.",
+    "topic": "strategy",
+    "tier": "T4",
+    "paywalled": false
   }
 ]
