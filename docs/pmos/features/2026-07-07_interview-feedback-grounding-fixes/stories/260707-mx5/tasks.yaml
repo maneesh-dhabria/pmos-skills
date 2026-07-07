@@ -1,0 +1,92 @@
+schema_version: 1
+story: 260707-mx5
+epic: 260707-rbc
+route: skill
+plugin: pmos-managerkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-managerkit/skills/interview-feedback
+# Single story of epic 260707-rbc. Binds 02_design.html §f1–§f4, INV-1..5, D1..D5.
+# Corrective revision to an existing skill: edit Phases Score + Ground in SKILL.md and the
+# submission-assessment block in scripts/fill-scorecard.mjs. NO check-citations.mjs behavior change (D2 — the
+# gate already normalizes; F4 is authoring-side). Preserve every existing behavior (INV-5): preserve-guard,
+# foreign-scorecard inference, tier-3 questionnaire refusal, the byte-identical non-interactive block.
+# Release prereqs (version bump / changelog / README-row / tag) are /complete-dev's at epic release — NOT tasks.
+tasks:
+  - id: T1
+    title: "Phase Ground — no-stitch-across-labels rule + normalized ≥40-char extraction (F3/F4, INV-4)"
+    ac: [AC4, AC5]
+    deps: []
+    parallel: false
+    detail: >
+      In SKILL.md Phase Ground: (1) add an explicit rule that a transcript-tier citation is a contiguous span of
+      a SINGLE speaker's utterance — never stitched across `Name:` labels, never with appended words absent from
+      the source (INV-4). (2) Add an authoring step: normalize whitespace (\s+→single space, then trim — the same
+      transform scripts/check-citations.mjs::normalize() applies to both sides) and select the ≥40-char window
+      from that single-line view, so the authored quote matches what the gate compares (F4). Authoring-side only;
+      do NOT change check-citations.mjs (D2). Keep the three-tier structure and cite-tier attributes intact.
+  - id: T2
+    title: "Phase Score — blocking citation gate as hard STOP-before-done (F3, INV-1)"
+    ac: [AC3]
+    deps: []
+    parallel: false
+    detail: >
+      In SKILL.md Phase Score (Grounding hard gate) and Phase Coach: make check-citations.mjs a mandatory
+      exit-0 gate — the artifact is NOT presented as complete until the gate exits 0 over it. On non-zero exit,
+      the run reports the failing citations and repairs, then re-runs; it never declares done on a failing gate.
+      The `<!-- citations verified: … -->` audit comment is written ONLY on a passing gate. Make the STOP explicit
+      (this hardens an existing "fails the run" into a blocking-before-done contract).
+  - id: T3
+    title: "Phase Score — brief-baseline fourth submission bucket (F1, INV-2)"
+    ac: [AC1]
+    deps: []
+    parallel: false
+    detail: >
+      In SKILL.md Phase Score (Written submission → post-live frame): the bucketing MUST read the candidate-facing
+      brief and treat structure/areas published there as the expected baseline. Add an explicit FOURTH, neutral
+      bucket "structure published in the brief" alongside discussed / interviewer-directed / independent — brief
+      structure is never attributed to the interviewer nor penalized as unoriginal. Keep pre-live and the
+      submission checklist gate unchanged.
+  - id: T4
+    title: "Phase Resolve — resolve candidate brief as a Score input (F1, D4)"
+    ac: [AC1]
+    deps: [T3]
+    parallel: false
+    detail: >
+      In SKILL.md Phase Resolve reference-resolution: resolve the candidate-facing brief alongside the round's
+      interviewer-reference/scorecard (reuse the existing precedence — no new input-plumbing convention, D4) and
+      make it available to Phase Score. If no brief is present, the fourth bucket degrades to "not published"
+      (never fabricated). Document the resolution in the Score submission frame.
+  - id: T5
+    title: "fill-scorecard.mjs — render the fourth submission bucket (F1)"
+    ac: [AC1]
+    deps: [T3]
+    parallel: false
+    detail: >
+      In scripts/fill-scorecard.mjs: the post-live submission-assessment block (data-card="submission-assessment")
+      gains the fourth "published in the brief" bucket. The brief becomes a consumed input to the block. Keep the
+      pre-live frame and the scenario stamping unchanged. Update/extend the script's tests to cover the fourth
+      bucket if a test harness exists.
+  - id: T6
+    title: "Phase Score — confirmed round-duration before time-sensitive scoring (F2, INV-3, D3)"
+    ac: [AC2]
+    deps: []
+    parallel: false
+    detail: >
+      In SKILL.md Phase Score: before scoring coverage / talk-time / pace, CONFIRM the intended round duration
+      with the interviewer rather than trusting the scorecard header. Interactive: an AskUserQuestion whose
+      Recommended option is the header/inferred value (so it is resolvable), with an option to enter the correct
+      by-design duration. Non-interactive: DEFER (log an open question) and flag the mismatch — never silently
+      AUTO-PICK the stale header (D3, defer-only tag). Flag any transcript-length vs. design-length mismatch. The
+      confirmed value is the denominator for the affected dimensions.
+  - id: T7
+    title: "Eval + hygiene green, no regressions (INV-5, AC6)"
+    ac: [AC6]
+    deps: [T1, T2, T3, T4, T5, T6]
+    parallel: false
+    detail: >
+      Run feature-sdlc/tools/skill-eval-check.sh --target claude-code on the skill dir; run the four hygiene lints
+      (non-interactive-inline, audit-recommended on the SKILL.md file, flags-vs-hints, phase-refs). Assert the
+      non-interactive block stays byte-identical. Re-run check-citations.mjs --selftest, fill-scorecard.mjs's
+      tests, and transcribe.sh --selftest. Any new AskUserQuestion (T6) carries a Recommended option or a
+      defer-only tag. Fix any residual to green (or document accepted residuals proven pre-existing on pre-story
+      main). name matches dir.
