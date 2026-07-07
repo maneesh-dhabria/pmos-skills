@@ -1,0 +1,56 @@
+[
+  {
+    "id": "tldr",
+    "level": 2,
+    "title": "The shaped problem",
+    "parent_id": null
+  },
+  {
+    "id": "felt-problem",
+    "level": 2,
+    "title": "Felt problem (HMW + JTBD)",
+    "parent_id": null
+  },
+  {
+    "id": "context-classification",
+    "level": 2,
+    "title": "Context classification",
+    "parent_id": null
+  },
+  {
+    "id": "ladder",
+    "level": 2,
+    "title": "Abstraction ladder",
+    "parent_id": null
+  },
+  {
+    "id": "decomposition",
+    "level": 2,
+    "title": "Decomposition",
+    "parent_id": null
+  },
+  {
+    "id": "framings",
+    "level": 2,
+    "title": "Competing framings",
+    "parent_id": null
+  },
+  {
+    "id": "lens-ledger",
+    "level": 2,
+    "title": "Lens ledger",
+    "parent_id": null
+  },
+  {
+    "id": "open-questions",
+    "level": 2,
+    "title": "Open questions",
+    "parent_id": null
+  },
+  {
+    "id": "handoff",
+    "level": 2,
+    "title": "Handoff",
+    "parent_id": null
+  }
+]

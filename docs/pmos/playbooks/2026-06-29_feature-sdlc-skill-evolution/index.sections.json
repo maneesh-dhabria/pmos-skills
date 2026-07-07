@@ -1,0 +1,74 @@
+[
+  {
+    "id": "what-this-is",
+    "level": 2,
+    "title": "What this is",
+    "parent_id": null
+  },
+  {
+    "id": "milestone-pipeline-ships-features",
+    "level": 2,
+    "title": "A pipeline that ships features2026-05-09",
+    "parent_id": null
+  },
+  {
+    "id": "milestone-surviving-context-reset",
+    "level": 2,
+    "title": "Surviving a context reset2026-05-10",
+    "parent_id": null
+  },
+  {
+    "id": "milestone-pipeline-builds-skills",
+    "level": 2,
+    "title": "Teaching the pipeline to build skills2026-05-11",
+    "parent_id": null
+  },
+  {
+    "id": "milestone-shaping-idea-first",
+    "level": 2,
+    "title": "Shaping the idea before building it2026-05-23",
+    "parent_id": null
+  },
+  {
+    "id": "milestone-architecture-audit",
+    "level": 2,
+    "title": "A design audit inside the pipeline2026-05-28",
+    "parent_id": null
+  },
+  {
+    "id": "milestone-pipeline-builds-itself",
+    "level": 2,
+    "title": "The pipeline starts building itself2026-06-05 → 06-10",
+    "parent_id": null
+  },
+  {
+    "id": "milestone-rules-of-good-skills",
+    "level": 2,
+    "title": "Writing down what a good skill is2026-06-11",
+    "parent_id": null
+  },
+  {
+    "id": "milestone-backlog-train",
+    "level": 2,
+    "title": "From one skill to a backlog train2026-06-12 onward",
+    "parent_id": null
+  },
+  {
+    "id": "milestone-problem-shaping-front",
+    "level": 2,
+    "title": "Putting problem-shaping at the front2026-06-17",
+    "parent_id": null
+  },
+  {
+    "id": "how-the-pipeline-shaped-the-arc",
+    "level": 2,
+    "title": "How the pipeline shaped the whole arc",
+    "parent_id": null
+  },
+  {
+    "id": "where-it-stands",
+    "level": 2,
+    "title": "Where it stands",
+    "parent_id": null
+  }
+]

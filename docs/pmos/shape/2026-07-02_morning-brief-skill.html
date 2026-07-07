@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="shape">
+  <meta name="pmos:shape-phase" content="complete">
+  <meta name="pmos:shape-slug" content="morning-brief-skill">
+  <meta name="pmos:shape-date" content="2026-07-02">
+  <meta name="pmos:shape-context" content="internal-tool">
+  <title>Morning brief — trustworthy daily triage — Problem Brief</title>
+  <link rel="stylesheet" href="assets/style.css?v=2.100.0">
+  <script defer src="assets/viewer.js?v=2.100.0"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Morning brief — trustworthy daily triage</h1>
+    <div class="pmos-artifact-actions">
+      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    </div>
+    <a class="pmos-attribution pmos-attribution--toolbar"
+       href="https://github.com/maneesh-dhabria/pmos-skills/blob/main/plugins/pmos-toolkit/README.md"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="tldr">
+<h2 id="tldr">The shaped problem</h2>
+<p>Each morning — and after any away stretch — an experienced PM has no single picture of what arrived across his work sources (email, team chat, calendar, doc comments — <em>whichever sources he declares</em>) that he can <em>trust</em>. Three co-equal pains follow <span class="pmos-muted">(confirmed 2026-07-02 follow-up: "roughly equal mix")</span>: he re-sweeps every tool himself (a cold-start tax before real work begins); he risks a request slipping through and surfacing late as a broken commitment; and even items he catches don't reliably turn into tracked commitments — work discussed is not work captured. An item may only leave the picture by being <em>resolved</em> (dismissed or tracked), never merely by having been seen — "nothing is missed" spans runs, not just arrivals. The deepest sub-problem is not the sweep itself but <strong>staying trustworthy over time</strong>: judgment rules rot silently, sources break silently, and the moment the picture looks complete but isn't, it is worse than no picture at all — because by then he has stopped checking the sources.</p>
+<p><strong>Who / when / why-now:</strong> A solo experienced PM running his own AI-skill toolkit; every workday morning and after travel/meeting-heavy stretches. Why now: connectors (Gmail, Calendar, Drive, Notion) newly make a machine-side sweep of his real work sources possible, and <code>/mytasks import</code> already provides a confirm-gated path from assessed items to tracked tasks — the missing piece is a coverage picture he can keep believing.</p>
+<p><em>This is a <strong>problem</strong> brief. It deliberately proposes no solution — see Handoff below.</em></p>
+</section>
+
+<section id="felt-problem">
+<h2 id="felt-problem">Felt problem (HMW + JTBD)</h2>
+<p><strong>How might we:</strong> How might an experienced PM start each workday trusting — without re-sweeping every tool himself — that everything that arrived across his work sources has been seen, judged consistently against his own rules, and, where it demands action, turned into a tracked commitment?</p>
+<p><strong>Who:</strong> A solo, senior product manager (the toolkit's own author) juggling email, team chat, calendar, and collaborative-doc comments.</p>
+<p><strong>When / where:</strong> Sitting down at the start of each workday; most acutely after any period away (travel, back-to-back meeting days, weekends).</p>
+<p><strong>Job-to-be-done:</strong> "When I sit down in the morning, I want to see everything that arrived and what each item needs from me, so I can commit to a plan for the day without the background fear that something slipped."</p>
+<p><strong>Falsifiable hypothesis:</strong> If we solve <em>trustworthy cross-source coverage with durable personal judgment rules</em>, then <em>the manual all-tool morning sweep observably stops</em> — the brief is opened every workday and the old tool-by-tool reconstruction isn't. Counter-evidence that falsifies it: the brief is read <em>and</em> the tools are still swept — trust failed and the artifact is pure overhead. <span class="pmos-muted">(Grill 2026-07-02: measurement simplified from a self-logged miss diary — which wouldn't realistically be kept — to the adoption + sweep-stops signal, consistent with the no-numeric-bar stance.)</span></p>
+</section>
+
+<section id="context-classification">
+<h2 id="context-classification">Context classification</h2>
+<p><strong>Bucket:</strong> internal-tool <span class="pmos-muted">(persisted — sibling-skill signal; same bucket as the two prior shape runs on this repo's skills)</span></p>
+<p>A personal daily-ops skill for the toolkit's own author. Lens floor per the internal-tool row: Customer &amp; pain F, Framing F, Constraints &amp; dependencies F (this one is unusually dependency-heavy — connector reach is the shaping constraint); Success downshifted to adoption-only, Strategy to "worth the time?", Risks light. Used silently — persisted, unambiguous, no conflicting signal.</p>
+<p class="pmos-muted">Classification persists (not the answers); workstream &gt; settings; re-confirmed only on absent/doc-seeded/conflicting signals.</p>
+</section>
+
+<section id="ladder">
+<h2 id="ladder">Abstraction ladder</h2>
+<p>Climbing <em>why</em> / descending <em>how</em> to find the right altitude — a 5-Whys was run because the seed arrived solution-shaped (it named the artifact, the connectors, and the target skill).</p>
+<ul>
+<li><strong>Rung 0 (the seed, solution altitude):</strong> "I need a /morning-brief skill that reads my connectors and drafts my day." — an artifact, not a problem.</li>
+<li><strong>Why?</strong> → I don't know what needs me today without opening four-plus tools one by one.</li>
+<li><strong>Why does that hurt?</strong> → Incoming requests, follow-ups, and comments live scattered across email / team chat / calendar / doc threads with no single trustworthy picture; each morning starts with reconstruction.</li>
+<li><strong>Why does the scatter matter?</strong> → Items get missed or handled late; the same item is re-read and re-judged every time it resurfaces; things I said "I'll follow up" on never become tracked tasks.</li>
+<li><strong>Why does missing things matter?</strong> → Broken commitments erode trust with colleagues and stakeholders (external cost) and keep mornings reactive and anxious (internal cost).</li>
+<li><strong>Rung above (too abstract):</strong> "How should a PM allocate scarce attention?" — a philosophy, not a shapeable unit; rejected as the working altitude.</li>
+</ul>
+<p><strong>Chosen altitude:</strong> the trustworthy-picture rung — <em>converting scattered incoming communication into a reliable, low-effort picture of what needs me and when, that does not depend on my memory or on my manually sweeping every tool.</em></p>
+</section>
+
+<section id="decomposition">
+<h2 id="decomposition">Decomposition</h2>
+<p>Sub-problems at the chosen altitude, with the real one marked ★.</p>
+<ol>
+<li><strong>Coverage (the sweep):</strong> collecting everything that arrived across sources since the last look — windowing, and the hard fact that some named sources (team chat, Google-Docs comments) currently have no connector at all in this environment.</li>
+<li><strong>Consistent judgment (the heuristics):</strong> deciding what each item <em>is</em> — action-needed / follow-up / waiting-on / FYI — the same way every time, from durable personal rules rather than morning-by-morning gut calls. Research caveat: hand-written rule systems rot silently and their maintenance burden compounds faster than their benefit.</li>
+<li><strong>★ Trust &amp; verifiability (staying believed):</strong> the user must be able to keep believing the picture is complete — in week 4, not just day 1. A false negative (a missed item) destroys trust far faster than noise does; silent breakage of a rule or a source is the canonical killer. If trust fails, the user re-sweeps all tools anyway and every other sub-problem's solution becomes pure overhead. This is the make-or-break sub-problem precisely because everything else has an existing partial answer (see 4–5) while this one has none.</li>
+<li><strong>Translation (comms → commitments):</strong> assessed items becoming tracked tasks. Largely pre-solved substrate: <code>/mytasks import</code> already implements a parse → preview → confirm-before-write → report flow; the gap is only the hand-off of an assessment into it.</li>
+<li><strong>Planning (the day itself):</strong> composing today's calendar + open tasks into a plan. Partially served today by <code>/mytasks today</code>; downstream of a trusted picture, not the core.</li>
+</ol>
+</section>
+
+<section id="framings">
+<h2 id="framings">Competing framings</h2>
+<p>2–3 ways to frame the problem (lenses on the problem, <em>not</em> solution commitments), with the ripple-on-the-framing — "if framed as X vs Y, what does each set in motion downstream?"</p>
+<table>
+<tr><th>Framing</th><th>What it sets in motion</th><th>Kept / rejected &amp; why</th></tr>
+<tr><td><strong>(a) Coverage / trustworthy triage</strong> — "nothing falls through the cracks, and I can verify that."</td><td>Optimizes recall over ranking; demands per-source honesty about what was and wasn't swept; makes the personal heuristics and their upkeep central; makes silent-breakage detection a first-class requirement.</td><td><strong>Kept (primary).</strong> The seed opens and closes on "ensure nothing is missed"; every other capability in the seed reads as serving this fear. <em>Recorded assumption — user away; confirm pain ranking (Open question 1).</em></td></tr>
+<tr><td><strong>(b) Daily planning</strong> — "what should today look like?"</td><td>Puts calendar + prioritization at the core; the picture of arrivals becomes an input, not the product; overlaps what <code>/mytasks today</code> already does.</td><td><strong>Rejected as primary.</strong> Planning is downstream of a trusted picture and partially served; framing here would rebuild an existing surface while leaving the trust gap unsolved.</td></tr>
+<tr><td><strong>(c) Attention allocation</strong> — "what deserves my scarce attention first, accepting some things won't get done."</td><td>Optimizes ranking over recall; explicitly tolerates misses.</td><td><strong>Rejected.</strong> Directly contradicts the seed's one non-negotiable ("ensure nothing is missed"). Tolerated misses are the failure mode, not the design goal.</td></tr>
+<tr><td><strong>(d) Capture / translation</strong> — "communications don't reliably become tracked commitments."</td><td>Centers the comms→tasks conversion; morning cadence becomes incidental; leans almost entirely on the existing <code>/mytasks import</code> flow.</td><td><strong>Kept (secondary, folded in).</strong> Real and explicitly asked for — but on its own it presupposes the items were caught; it is the second clause of (a), not a rival.</td></tr>
+</table>
+<p><strong>Chosen framing (confirmed with the user, 2026-07-02 follow-up):</strong> (a) trustworthy coverage is the <em>organizing</em> frame, but the three confirmed co-equal pains make triage speed and capture-into-commitments <strong>first-class outcomes</strong>, not folded-in clauses — an item is only "handled" once it is either consciously dismissed or tracked, and the morning picture must be cheap to clear, not just complete. Additionally confirmed: the complete morning picture includes a <strong>read-only "already committed" lane</strong> derived from <code>/mytasks</code> (due today, overdue, check-ins due, waiting-on), with a dedupe rule — an incoming item already tracked as a task appears once, in the tasks lane. <code>/mytasks</code> remains the sole system of record; the full ordered-day-plan framing (b) stays rejected.</p>
+<p><strong>Grill hardening (2026-07-02, deep, 8 questions — report: <code>.pmos/grills/2026-07-02_morning-brief-skill.html</code>):</strong> the chosen framing survived interrogation with four refinements now binding on downstream work:</p>
+<ul>
+<li><strong>Show everything, rank it.</strong> Recall is structural — every in-window item appears at least as a one-line FYI row; heuristics decide <em>prominence</em>, never <em>inclusion</em>. A judgment miss becomes "ranked too low", which is detectable; the manifest alone could only prove source-level coverage. Volume is absorbed by prominence tiers with FYI collapsed to expandable counts — completeness lives in the layers, the daily read is the top.</li>
+<li><strong>Derive, don't store.</strong> The brief is a pure view over source state + <code>/mytasks</code> — no per-item triage ledger. "Dismissing" an item is a confirm-gated <em>source-native</em> action (archive the email, resolve the comment): the source is the state store, and clearing the brief literally clears the inboxes. Only a last-run cursor timestamp persists. Sources with no dismissal affordance stay visible at low prominence.</li>
+<li><strong>Batch review, one confirm.</strong> Each run proposes one editable action set (create these tasks / archive these / leave these) confirmed once — not per-item approvals, which manufacture the rubber-stamping reflex Lens 5 names. Matches <code>/mytasks import</code>'s preview→confirm shape.</li>
+<li><strong>User-indicated priority, never assumed.</strong> Extends the source abstraction from presence to importance: declared sources <em>and their relative weight</em> are user configuration; the skill assumes nothing about any user's channel mix.</li>
+</ul>
+</section>
+
+<section id="lens-ledger">
+<h2 id="lens-ledger">Lens ledger</h2>
+<p>Every applicable lens with its disposition — <strong>including N/A and Parked-with-reason</strong> — so any uncovered dimension is visible, not silently absent. Dispositions: Answered · Parked (out-of-scope, with reason) · Open question · N/A-for-context. See <code>_shared/lens-ledger.md</code>. This run used the autonomous non-interactive path (user AFK after the seed): lens-drafter subagents + research drafted dispositions; convergence judgment recorded as assumptions where the user's confirmation is still owed.</p>
+<table>
+<tr><th>Lens</th><th>Disposition</th><th>Note (evidence / reason / why dropped)</th></tr>
+<tr><td>1 · Customer &amp; pain</td><td><strong>Answered</strong> (confirmed)</td><td>Solo senior PM, every morning + post-away stretches. Seven distinct pains identified in the seed. <strong>User confirmed (2026-07-02 follow-up): the three top pains are a roughly equal mix</strong> — fear-of-missing, morning triage time-cost, and the discussed-but-never-tracked gap. Coverage remains the organizing frame, but all three are first-class; a solution that nails recall while staying slow-to-clear or capture-leaky fails the user.</td></tr>
+<tr><td>2 · Framing &amp; hypothesis</td><td><strong>Answered</strong></td><td>"I need a morning brief" is a symptom; 5-Whys lands on: no reliable, low-effort way to turn scattered incoming communication into a trustworthy picture of what needs me and when. Falsifiable hypothesis recorded in Felt problem. Reviewer resolved coverage-vs-attention to coverage per the seed's own emphasis (recorded assumption).</td></tr>
+<tr><td>3 · Success &amp; guardrails</td><td><strong>Answered</strong> (downshifted, adoption-only)</td><td>"Good enough" = the brief is opened every workday for 3+ consecutive weeks AND the manual all-tool sweep stops. Counter-signal (the guardrail): brief read but tools still swept — trust failed, artifact is overhead; or worse, sources unchecked on faith while coverage silently degraded (see Lens 5).</td></tr>
+<tr><td>4 · Strategy &amp; fit</td><td><strong>Answered</strong> (downshifted, confirmed)</td><td>Worth the time: yes — a daily-recurring tax beside the personal-ops cluster. Charter fit is honestly stretched, but the <strong>user chose pmos-toolkit by adjacency</strong> (2026-07-02 follow-up): it consumes <code>/mytasks</code> and <code>/people</code> substrate daily, the same stretch those skills already make. No new plugin.</td></tr>
+<tr><td>5 · Risks / urgency / reversibility</td><td><strong>Answered</strong> (downshifted, light)</td><td>Two-way door personally; the one risk worth naming: <em>false sense of coverage</em> — a picture that looks complete but isn't causes MORE misses than the status quo, because the user has stopped checking the sources. Drivers: heuristic rot, silent connector breakage, confirmation-fatigue rubber-stamping. Cost of not solving now: the recurring daily tax plus occasional reputational drops — chronic, not acute.</td></tr>
+<tr><td>6 · Constraints &amp; dependencies</td><td><strong>Answered</strong> (confirmed, reframed)</td><td>Full floor — the dependency-heavy internal-tool case. <strong>User reframed the source question (2026-07-02 follow-up): sources are a generic, user-declared abstraction, not a hardcoded list</strong> — each user declares their channels and the skill assumes the corresponding connectors are present; per-run reality (a declared source whose connector is missing, broken, or unauthenticated) is surfaced by the coverage manifest, never papered over. Facts from <em>this</em> environment that motivated the reframe: Gmail/Calendar/Drive/Notion connectors exist; no Slack connector; Drive lacks comment-thread access; Notion exposes comments. First-of-kind posture stands: no existing skill reads connectors as a data source; run model confirmed <strong>on-demand</strong> (live session, connectors authed), which retires the headless-auth dependency. Substrate to lean on: <code>/mytasks import</code> (confirm-gated capture), <code>/mytasks</code> state (read-only committed lane), <code>~/.pmos/learnings.md</code> (personal-rules store precedent), <code>/magazine</code> (cursor/windowing precedent), <code>/people</code> (identity).</td></tr>
+<tr><td>Adaptive · Privacy &amp; data residency</td><td><strong>Answered</strong> (confirmed)</td><td>Spun up on a hard signal: the brief contains private work communications, and <code>docs_path</code> is a pushed git repository. <strong>User confirmed: home-directory residency, <code>~/.pmos/</code></strong> (the <code>/mytasks</code>/<code>/people</code> pattern) — never inside any repo. Work-comms content is never committed anywhere. <em>Grill addition (2026-07-02): LLM processing of work content on every run is an explicitly accepted premise</em> — connector-based AI processing is the operating reality of the tool; stated here so it is a visible decision, not an omission. Also noted: source-native dismissal gives the skill confirm-gated <em>write</em> access to work systems — a larger action surface than the seed's "create tasks", still always user-confirmed.</td></tr>
+</table>
+<p><strong>Ceiling-breaker:</strong> Off-deck probe — the deck interrogates the problem at a point in time, but triage systems live or die on a <em>temporal</em> dimension no lens forces: weeks 2–6. Research shows abandonment is driven by silent decay (rules rot, sources break, approvals get rubber-stamped) rather than day-1 quality — and the cruel twist is that the system's success removes its own safety net, because the user has stopped checking the sources that would reveal the breakage. The probe: <em>by what mechanism does this system keep earning trust after the honeymoon — who or what notices when a heuristic or a source silently goes dark?</em> Any downstream requirements work that lacks an answer to this is shaping the day-1 demo, not the problem. <strong>User's answer (2026-07-02 follow-up): a per-run coverage manifest</strong> — every brief shows its receipts (which declared sources were swept, item counts, which declared sources could NOT be reached this run, and items that matched no heuristic — surfaced, never silently dropped). This is now a problem-level requirement for downstream work.</p>
+</section>
+
+<section id="open-questions">
+<h2 id="open-questions">Open questions</h2>
+<p><strong>All eight original open questions were resolved with the user in an interactive follow-up on 2026-07-02</strong> (plus one new question the user raised, and one the user asked back). Resolutions:</p>
+<ul>
+<li><strong>1. Pain ranking → Roughly equal mix.</strong> Fear-of-missing, triage time-cost, and the discussed-but-never-tracked gap are co-equal, all first-class; coverage stays the organizing frame.</li>
+<li><strong>2 &amp; 3. Source reach → reframed as a generic abstraction.</strong> Sources are user-declared, not hardcoded; the skill assumes a declared source's connector is present, and the coverage manifest surfaces per-run gaps (a declared source that couldn't be reached). Slack/GDocs-comments become per-user capability facts, not skill-level exclusions.</li>
+<li><strong>4. Run model → on-demand</strong>, in a live session (connectors authed, brief fresh). Retires the headless-auth dependency.</li>
+<li><strong>4b. Windowing (user's question back) → new + still-open, derived.</strong> Two lanes: everything new since the last run (cursor), plus carryover — items still unresolved <em>in their source</em> (unarchived, unreplied, unresolved comment) and not yet tracked. An item leaves the brief only by being resolved, never by being seen. <em>Refined at grill: carryover is derived from source state each run, not from a stored per-item assessment ledger; dismissal is a source-native action (see Grill hardening in Competing framings).</em></li>
+<li><strong>5. Data residency → <code>~/.pmos/</code></strong> home-directory residence; work content never lives in any repo.</li>
+<li><strong>6. Week-4 trust → coverage manifest per run</strong> (receipts: sources swept, counts, sources NOT reached, no-heuristic-matched items surfaced).</li>
+<li><strong>7. Plugin home → pmos-toolkit by adjacency</strong> to <code>/mytasks</code>/<code>/people</code>.</li>
+<li><strong>8. /magazine boundary → confirmed by default</strong> (not explicitly asked; user did not object): private actionable work comms here, public learning content stays <code>/magazine</code>.</li>
+<li><strong>9. Existing-tasks lane (user's new question) → yes, read-only.</strong> The brief includes an "already committed" lane derived from <code>/mytasks</code> (due today, overdue, check-ins, waiting-on) with a dedupe rule (a tracked incoming item appears once, in the tasks lane); <code>/mytasks</code> remains the sole system of record. The full ordered-day-plan framing stays rejected.</li>
+<li><strong>Heuristics lifecycle (asked alongside) → observe + correct, cold start.</strong> Start from a small generic taxonomy (≈GTD 4D); every correction at the confirm step becomes a candidate rule; rules are earned from real traffic so decay stays visible. <em>Grill re-tested the cold start against the 3-week adoption window and it stands, with recorded rationale: mis-seeded priors (e.g., from /people) are harder to notice and unlearn than no priors.</em></li>
+<li><strong>Speed bar (grill) → no numeric target.</strong> "Cheap to clear" stays a felt quality with adoption as its proxy; a numeric clear-time bar was considered and deliberately declined.</li>
+<li><strong>Auto-picks from the earlier AFK stretch (now superseded by the follow-up):</strong> slug on Recommended after prompt timeout; context bucket applied silently from persisted signal; autonomous shaping path used; framing convergence recorded as assumption — since confirmed/refined above.</li>
+</ul>
+</section>
+
+<section id="handoff">
+<h2 id="handoff">Handoff</h2>
+<p>This brief shapes the <em>problem</em>. Pick zero or more next steps — solution work begins downstream:</p>
+<ul>
+<li><code>/skill-sdlc define morning-brief</code> — the open questions are now settled; the shaped problem is ready for the skill pipeline (requirements → spec → stories). Highest-leverage next step.</li>
+<li><code>/backlog add --kind epic "Morning brief: trustworthy daily triage across work sources"</code> — capture as work now, define later.</li>
+<li><code>/ripple-effects docs/pmos/shape/2026-07-02_morning-brief-skill.html</code> — optional: the "false sense of coverage" risk (Lens 5) is exactly the kind of second-order consequence a futures-wheel would map.</li>
+<li>Grill report (deep, 8 questions, all resolved): <code>.pmos/grills/2026-07-02_morning-brief-skill.html</code> — the adversarial record behind the "Grill hardening" refinements above.</li>
+</ul>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: docs/pmos/shape/2026-07-02_morning-brief-skill.html</span>
+    <span class="pmos-attribution-sep" aria-hidden="true">·</span>
+    <a class="pmos-attribution pmos-attribution--footer"
+       href="https://github.com/maneesh-dhabria/pmos-skills/blob/main/plugins/pmos-toolkit/README.md"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </footer>
+</body>
+</html>

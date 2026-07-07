@@ -1,0 +1,702 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pmos-skills — the product manager's toolkit for Claude Code & Codex</title>
+<meta name="description" content="A marketplace of Claude Code & Codex plugins for product managers and builders. 60 skills across 5 plugins — ship features end-to-end, learn any topic from verified sources, do the manager work, keep your machine healthy, and take a break. Every workflow produces a real artifact and is pressure-tested by a built-in skeptic.">
+<meta name="pmos:skill" content="landing-page">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%234338ca'/%3E%3Ctext x='16' y='23' font-family='system-ui,sans-serif' font-size='20' font-weight='700' text-anchor='middle' fill='white'%3Ep%3C/text%3E%3C/svg%3E">
+<style>
+  /* ===== clean-minimal-saas token set (bound from reference/style-tokens.json) ===== */
+  :root{
+    --bg:#ffffff; --fg:#0a0a0a; --accent:#4338ca; --accent-fg:#ffffff;
+    --muted:#5b5b66; --surface:#f7f7fa; --surface-2:#edecf3; --border:#e4e4ea;
+    --font-display:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    --font-body:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    --font-mono:ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace;
+    --weight-display:700; --weight-body:400;
+    --radius:10px; --section-pad:5.5rem; --space:1rem;
+    --shadow:0 1px 2px rgba(10,10,20,.04),0 10px 30px rgba(10,10,30,.08);
+    --maxw:1100px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-body);
+    font-size:16px;line-height:1.6;font-weight:var(--weight-body);-webkit-font-smoothing:antialiased}
+  h1,h2,h3,h4{font-family:var(--font-display);font-weight:var(--weight-display);line-height:1.12;letter-spacing:-.02em;margin:0}
+  h2{font-size:clamp(1.7rem,3.4vw,2.35rem)}
+  h3{font-size:1.3rem;letter-spacing:-.01em}
+  h4{font-size:1.02rem}
+  p{margin:0}
+  a{color:var(--accent);text-decoration:none}
+  code,kbd{font-family:var(--font-mono)}
+  .mono{font-family:var(--font-mono)}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 1.5rem}
+  .narrow{max-width:760px}
+  .eyebrow{font-size:.78rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+  .muted{color:var(--muted)}
+  section{padding:var(--section-pad) 0}
+  .lead{font-size:1.1rem;color:var(--muted);max-width:62ch}
+  .kbd{background:var(--surface-2);padding:.1rem .42rem;border-radius:5px;font-size:.86em;color:var(--fg)}
+
+  /* ---- nav ---- */
+  header.nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.86);
+    backdrop-filter:saturate(1.5) blur(8px);border-bottom:1px solid var(--border)}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .brand{display:flex;align-items:center;gap:.55rem;font-weight:700;font-size:1.05rem;letter-spacing:-.01em;color:var(--fg)}
+  .brand .mark{width:28px;height:28px;border-radius:7px;background:var(--accent);color:#fff;
+    display:grid;place-items:center;font-weight:700;font-family:var(--font-mono);font-size:1rem}
+  .nav-links{display:flex;align-items:center;gap:1.5rem}
+  .nav-links a.txt{color:var(--muted);font-size:.92rem;font-weight:500}
+  .nav-links a.txt:hover{color:var(--fg)}
+  .btn{display:inline-flex;align-items:center;gap:.5rem;font-weight:700;border-radius:var(--radius);
+    padding:.7rem 1.2rem;font-size:.95rem;cursor:pointer;border:1px solid transparent;transition:transform .08s,box-shadow .15s}
+  .btn-primary{background:var(--accent);color:var(--accent-fg)}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(67,56,202,.30)}
+  .btn-ghost{background:transparent;color:var(--fg);border-color:var(--border)}
+  .btn-ghost:hover{background:var(--surface)}
+  .btn-sm{padding:.5rem .9rem;font-size:.88rem}
+
+  /* ---- hero ---- */
+  .hero{padding-top:4.2rem;padding-bottom:2.6rem}
+  .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:3.2rem;align-items:center}
+  .hero h1{font-size:clamp(2.2rem,4.7vw,3.25rem)}
+  .hero .sub{margin-top:1.3rem;font-size:1.16rem;color:var(--muted);max-width:46ch}
+  .hero-cta{display:flex;gap:.8rem;margin-top:1.9rem;flex-wrap:wrap}
+  .hero-meta{margin-top:1.5rem;font-size:.85rem;color:var(--muted);display:flex;gap:1.3rem;flex-wrap:wrap}
+  .hero-meta b{color:var(--fg)}
+
+  /* ---- terminal frame ---- */
+  .term{background:#0d1117;border-radius:12px;box-shadow:var(--shadow);overflow:hidden;border:1px solid #1d2430}
+  .term-bar{display:flex;align-items:center;gap:.45rem;padding:.7rem .9rem;background:#161b22;border-bottom:1px solid #1d2430}
+  .term-bar .dot{width:11px;height:11px;border-radius:50%}
+  .term-bar .t{margin-left:.6rem;color:#7d8694;font-family:var(--font-mono);font-size:.78rem}
+  .term-body{padding:1.05rem 1.2rem 1.25rem;font-family:var(--font-mono);font-size:.82rem;line-height:1.85;color:#c9d1d9}
+  .term-body .cmd{color:#e6edf3}
+  .term-body .pr{color:#3fb950}
+  .term-body .step{color:#7d8694}
+  .term-body .ok{color:#3fb950}
+  .term-body .hl{color:#a5b4fc}
+  .term-body .cur{display:inline-block;width:8px;height:1.05em;background:#3fb950;vertical-align:-2px;animation:blink 1.1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+
+  /* ---- trust strip (early honesty proof) ---- */
+  .trustbar{padding:1.6rem 0}
+  .trustrow{display:grid;grid-template-columns:repeat(3,1fr);gap:1.1rem;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);padding:1.2rem 1.4rem}
+  .trustrow .ti{font-size:.9rem;color:var(--muted);line-height:1.5}
+  .trustrow .ti b{color:var(--fg)}
+  .trustnote{margin-top:.9rem;font-size:.86rem;color:var(--muted);max-width:78ch}
+
+  /* ---- the 5-plugin strip ---- */
+  .strip{padding-top:0}
+  .strip h2{margin-bottom:.5rem}
+  .pluginrow{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-top:1.8rem}
+  .pcard{display:block;border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.3rem;background:var(--bg);
+    color:var(--fg);transition:transform .1s,box-shadow .15s,border-color .15s}
+  .pcard:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:#cfcfe0}
+  .pcard .ic{font-size:1.5rem;line-height:1}
+  .pcard .q{font-size:.76rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);margin-top:.6rem}
+  .pcard .nm{font-family:var(--font-mono);font-weight:700;font-size:1rem;margin-top:.2rem}
+  .pcard .ds{font-size:.86rem;color:var(--muted);margin-top:.4rem}
+  .pcard .ct{font-size:.74rem;color:var(--muted);margin-top:.7rem;font-family:var(--font-mono)}
+  .util-note{margin-top:1rem;font-size:.88rem;color:var(--muted);display:flex;align-items:center;gap:.6rem}
+  .util-note .ic{font-size:1.1rem}
+  .util-note a{font-family:var(--font-mono);font-weight:600}
+
+  /* ---- who for ---- */
+  .forgrid{display:grid;grid-template-columns:1fr 1fr;gap:1.4rem;margin-top:2rem}
+  .forcard{border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem 1.6rem;background:var(--surface)}
+  .forcard h4{display:flex;align-items:center;gap:.5rem;margin-bottom:.8rem}
+  .forcard ul{margin:0;padding-left:1.1rem;color:var(--muted)}
+  .forcard li{margin:.4rem 0}
+  .tick{color:var(--accent)} .cross{color:#9aa0ab}
+
+  /* ---- plugin deep sections ---- */
+  .deep{border-top:1px solid var(--border)}
+  .deep .kj{font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+  .deep h2{margin-top:.5rem}
+  .deep .who{margin-top:.9rem;font-size:.95rem;color:var(--muted);max-width:64ch}
+  .deep .who b{color:var(--fg)}
+  .chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:1rem}
+  .chip{font-family:var(--font-mono);font-size:.78rem;background:var(--surface);border:1px solid var(--border);
+    border-radius:99px;padding:.28rem .7rem;color:var(--fg)}
+  .chip b{color:var(--accent)}
+
+  /* artifact gallery */
+  .shotgrid{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem;margin-top:1.8rem}
+  .shot{border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);background:var(--surface)}
+  .shot .imgwrap{height:230px;overflow:hidden;background:#fff;border-bottom:1px solid var(--border)}
+  .shot .imgwrap.tall{height:230px}
+  .shot img{display:block;width:100%;height:auto;object-fit:cover;object-position:top}
+  .shot .cap{font-size:.82rem;color:var(--muted);padding:.7rem .9rem}
+  .shot .cap b{color:var(--fg)}
+  .shot.full .imgwrap{height:auto} .shot.full img{object-fit:contain}
+  .shot .imgwrap{display:block;position:relative;cursor:zoom-in}
+  .shot .zoom{position:absolute;right:.6rem;bottom:.6rem;background:rgba(13,17,23,.82);color:#e6edf3;font-size:.72rem;
+    font-family:var(--font-mono);padding:.25rem .55rem;border-radius:6px;opacity:0;transition:opacity .15s}
+  .shot .imgwrap:hover .zoom{opacity:1}
+  .shot.featured .imgwrap{height:440px}
+  .shot.featured img{object-position:top}
+
+  /* ---- interactive embeds (reveal-on-click; defers iframe load) ---- */
+  .reveal{margin-top:1.5rem;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--bg)}
+  .reveal>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:.7rem;padding:1rem 1.3rem;
+    font-weight:700;font-size:.98rem;background:var(--surface);user-select:none}
+  .reveal>summary::-webkit-details-marker{display:none}
+  .reveal>summary .play{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;
+    background:var(--accent);color:#fff;font-size:.8rem}
+  .reveal>summary .meta{margin-left:auto;font-size:.82rem;font-weight:500;color:var(--muted);font-family:var(--font-mono)}
+  .reveal[open]>summary{border-bottom:1px solid var(--border)}
+  .reveal[open]>summary .play{background:#1d2438}
+  .embedframe{background:#fff}
+  .embedframe iframe{display:block;width:100%;border:0;background:#fff}
+  .embedframe .efbar{display:flex;align-items:center;gap:.5rem;padding:.5rem .9rem;background:#161b22;color:#7d8694;
+    font-family:var(--font-mono);font-size:.76rem}
+  .embedframe .efbar a{color:#a5b4fc}
+  .embed-game iframe{height:600px}
+  .embed-game{display:grid;place-items:center;background:#faf8ef;padding:1rem 0}
+  .embed-game iframe{max-width:520px}
+  .embed-primer iframe{height:640px}
+
+  /* ---- primer topic-coverage grid ---- */
+  .cov{display:grid;grid-template-columns:repeat(5,1fr);gap:.7rem;margin-top:1.3rem}
+  .covtile{border:1px solid var(--border);border-radius:10px;padding:.85rem .95rem;background:var(--bg)}
+  .covtile .ct-h{font-weight:700;font-size:.86rem;display:flex;justify-content:space-between;align-items:baseline;gap:.4rem}
+  .covtile .ct-h b{color:var(--accent);font-family:var(--font-mono);font-size:.78rem}
+  .covtile .ct-l{font-size:.74rem;color:var(--muted);margin-top:.35rem;line-height:1.45}
+  .covcap{font-size:.82rem;color:var(--muted);margin-top:.8rem}
+
+  /* feature list (two-col) */
+  .feats{display:grid;grid-template-columns:1fr 1fr;gap:.5rem 2rem;margin-top:1.6rem}
+  .feat{padding:.7rem 0;border-bottom:1px solid var(--border)}
+  .feat .fn{font-family:var(--font-mono);font-weight:700;font-size:.9rem;color:var(--fg)}
+  .feat .fd{font-size:.88rem;color:var(--muted);margin-top:.15rem}
+
+  /* grill demo */
+  .demo{margin-top:1.6rem;display:grid;grid-template-columns:1fr 1fr;gap:1.1rem}
+  .demo .term-body{font-size:.8rem;line-height:1.7}
+  .demo .q{color:#e6edf3} .demo .rec{color:#a5b4fc} .demo .opt{color:#7d8694}
+  .explain{border:1px solid var(--border);border-radius:var(--radius);padding:1.3rem 1.5rem;background:var(--surface)}
+  .explain .row{padding:.55rem 0;border-bottom:1px solid var(--border)}
+  .explain .row:last-child{border-bottom:0}
+  .explain .cmd{font-family:var(--font-mono);font-weight:700;color:var(--accent);font-size:.86rem}
+  .explain .txt{font-size:.88rem;color:var(--muted);margin-top:.1rem}
+
+  /* pipeline */
+  .pipe{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.7rem;align-items:stretch}
+  .pstep{flex:1 1 130px;min-width:118px;border:1px solid var(--border);border-radius:var(--radius);padding:.85rem 1rem;background:var(--bg)}
+  .pstep .n{font-family:var(--font-mono);font-size:.7rem;color:var(--accent);font-weight:700}
+  .pstep .c{font-family:var(--font-mono);font-weight:700;font-size:.92rem;margin-top:.25rem}
+  .pstep .d{font-size:.76rem;color:var(--muted);margin-top:.2rem}
+  .pipe .arrow{align-self:center;color:#c3c3cc;font-weight:700}
+  .selfbuilt{margin-top:1.5rem;border-left:3px solid var(--accent);padding:.3rem 0 .3rem 1.1rem;font-size:.95rem;color:var(--muted)}
+  .selfbuilt b{color:var(--fg)}
+
+  /* learnkit framework split */
+  .fwk{display:grid;grid-template-columns:1.1fr .9fr;gap:2rem;align-items:center;margin-top:1.8rem}
+  .fwk .svgcard{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#fff;box-shadow:var(--shadow)}
+  .fwk .svgcard .cap{font-size:.8rem;color:var(--muted);padding:.65rem .9rem;border-top:1px solid var(--border)}
+  .stat{display:flex;gap:1.6rem;flex-wrap:wrap;margin-top:.3rem}
+  .stat .s b{font-family:var(--font-mono);font-size:1.8rem;color:var(--accent);font-weight:700;letter-spacing:-.02em}
+  .stat .s span{display:block;font-size:.82rem;color:var(--muted)}
+
+  /* twoshot */
+  .twoshot{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;margin-top:1.6rem}
+  .twoshot .shot .imgwrap{height:200px}
+
+  /* honest band */
+  .honest{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+  .hongrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.3rem;margin-top:2rem}
+  .honcard{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem 1.6rem}
+  .honcard h4{margin-bottom:.5rem}
+  .honcard p{font-size:.9rem;color:var(--muted)}
+  .honcard .k{font-family:var(--font-mono);color:var(--accent);font-size:.8rem;font-weight:700}
+
+  /* gallery proof strip */
+  .proof{text-align:center}
+  .proofnote{margin-top:1rem;font-size:.92rem;color:var(--muted)}
+
+  /* final cta */
+  .final{text-align:center}
+  .final h2{max-width:20ch;margin:0 auto}
+  .install{max-width:660px;margin:1.9rem auto 0;text-align:left;background:#0d1117;border-radius:12px;box-shadow:var(--shadow);overflow:hidden;border:1px solid #1d2430}
+  .install .term-body{font-size:.83rem;white-space:pre-wrap;word-break:break-word}
+  .install .cm{color:#7d8694}
+  .copyrow{display:flex;justify-content:space-between;align-items:center;padding:.5rem .9rem;background:#161b22;border-bottom:1px solid #1d2430}
+  .copyrow span{color:#7d8694;font-family:var(--font-mono);font-size:.76rem}
+  .copybtn{background:#21262d;color:#c9d1d9;border:1px solid #30363d;border-radius:7px;padding:.32rem .7rem;font-size:.76rem;cursor:pointer;font-family:var(--font-mono)}
+  .copybtn:hover{background:#30363d}
+  .smoke{margin-top:1rem;font-size:.85rem;color:var(--muted)}
+  .final-cta{margin-top:1.8rem}
+
+  /* footer */
+  footer{border-top:1px solid var(--border);padding:2.5rem 0;color:var(--muted);font-size:.9rem}
+  .foot-inner{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap}
+  .foot-links{display:flex;gap:1.4rem;flex-wrap:wrap}
+  .built{font-size:.82rem}
+
+  @media(max-width:860px){
+    :root{--section-pad:3.4rem}
+    .hero-grid,.forgrid,.hongrid,.fwk,.demo,.shotgrid,.twoshot,.feats,.trustrow{grid-template-columns:1fr;gap:1.6rem}
+    .pluginrow{grid-template-columns:1fr 1fr}
+    .cov{grid-template-columns:1fr 1fr}
+    .embed-primer iframe{height:520px}
+    .reveal>summary .meta{display:none}
+    .hero .sub{max-width:none}
+    .nav-links a.txt{display:none}
+    .hero h1{font-size:clamp(1.9rem,7.5vw,2.5rem)}
+  }
+  @media(max-width:480px){ .pluginrow{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+
+<!-- ===== NAV ===== -->
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#top"><span class="mark">p</span>pmos-skills</a>
+    <nav class="nav-links">
+      <a class="txt" href="#plugins">Plugins</a>
+      <a class="txt" href="#ship">Ship</a>
+      <a class="txt" href="#learn">Learn</a>
+      <a class="txt" href="#manage">Manage</a>
+      <a class="btn btn-primary btn-sm" href="#install">Add the marketplace</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ===== HERO ===== -->
+<a id="top"></a>
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow">The product manager's toolkit for Claude Code &amp; Codex</span>
+      <h1>Ship, learn, and manage — with a skeptic built into every step.</h1>
+      <p class="sub"><b>pmos-skills</b> is a marketplace of <b>60 skills across 5 plugins</b>. Each one produces a real, openable artifact — and the delivery pipeline argues back before anything ships.</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="#install">Add the marketplace</a>
+        <a class="btn btn-ghost" href="#plugins">See the 5 plugins</a>
+      </div>
+      <div class="hero-meta">
+        <span><b>5</b> plugins, versioned independently</span>
+        <span><b>60</b> skills</span>
+        <span><b>0</b> network calls — runs offline</span>
+      </div>
+    </div>
+    <div class="term" role="img" aria-label="Terminal showing /feature-sdlc running the idea-to-shipped pipeline with adversarial gates">
+      <div class="term-bar">
+        <span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span>
+        <span class="t">claude — pmos-toolkit</span>
+      </div>
+      <div class="term-body">
+        <div><span class="pr">›</span> <span class="cmd">/feature-sdlc "add CSV export to the reports page"</span></div>
+        <div class="step">  → /requirements <span class="ok">✓</span> tiered: feature · 3 user journeys</div>
+        <div class="step">  → /grill        <span class="ok">✓</span> 4 shaky assumptions surfaced</div>
+        <div class="step">  → /spec         <span class="ok">✓</span> API contract + schema</div>
+        <div class="step">  → /plan         <span class="ok">✓</span> 7 TDD tasks</div>
+        <div class="step">  → /execute      <span class="ok">✓</span> tests green, deploy verified</div>
+        <div class="step">  → /verify       <span class="ok">✓</span> review + regression hardening</div>
+        <div class="step">  → /complete-dev <span class="ok">✓</span> merged · tagged · changelog</div>
+        <div style="margin-top:.35rem"><span class="hl">shipped.</span> <span class="cur"></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== TRUST STRIP (honest-by-design, surfaced early) ===== -->
+<section class="trustbar" style="padding-top:0;padding-bottom:0">
+  <div class="wrap">
+    <div class="trustrow">
+      <div class="ti"><b>It argues back.</b> <span class="mono">/grill</span> interviews your plan one hard question at a time.</div>
+      <div class="ti"><b>It never invents a citation.</b> A deterministic gate refuses any claim without a verbatim source quote.</div>
+      <div class="ti"><b>It runs offline.</b> Self-contained HTML, zero network calls, no account.</div>
+    </div>
+    <p class="trustnote">No testimonials on this page — none have been collected yet. We'd rather show you the rigor than borrow credibility we don't have.</p>
+  </div>
+</section>
+
+<!-- ===== 5-PLUGIN STRIP ===== -->
+<section id="plugins" class="strip">
+  <div class="wrap">
+    <span class="eyebrow">Five plugins, one for each part of the job</span>
+    <h2>Four cover the work. One keeps it all healthy.</h2>
+    <div class="pluginrow">
+      <a class="pcard" href="#ship">
+        <div class="ic">🚀</div>
+        <div class="q">Ship a feature</div>
+        <div class="nm">pmos-toolkit</div>
+        <div class="ds">Idea → shipped code, and every artifact in between — specs, wireframes, prototypes, diagrams, landing pages.</div>
+        <div class="ct">41 skills →</div>
+      </a>
+      <a class="pcard" href="#learn">
+        <div class="ic">📚</div>
+        <div class="q">Learn a topic</div>
+        <div class="nm">pmos-learnkit</div>
+        <div class="ds">Primers, reading lists, a 346-framework library, and a feed digest — every link fetched this run, nothing pulled from memory.</div>
+        <div class="ct">7 skills →</div>
+      </a>
+      <a class="pcard" href="#manage">
+        <div class="ic">🧑‍💼</div>
+        <div class="q">Do manager work</div>
+        <div class="nm">pmos-managerkit</div>
+        <div class="ds">Turn raw interview inputs into a grounded, cited scorecard plus per-interviewer coaching notes.</div>
+        <div class="ct">growing suite →</div>
+      </a>
+      <a class="pcard" href="#break">
+        <div class="ic">🎮</div>
+        <div class="q">Take a break</div>
+        <div class="nm">pmos-gamekit</div>
+        <div class="ds">Seven offline, self-contained browser games launched from a skill. No setup, no network, no account.</div>
+        <div class="ct">7 games →</div>
+      </a>
+    </div>
+    <div class="util-note">
+      <span class="ic">🛠️</span>
+      <span>Plus <a href="#util">pmos-utilities</a> — the supporting layer that keeps it all healthy: diagnose a slow Mac, send feedback to skill authors, convert file formats, push a doc to Notion.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== WHO FOR ===== -->
+<section style="padding-top:0">
+  <div class="wrap">
+    <span class="eyebrow">Honest fit</span>
+    <h2>For product people who work in the terminal.</h2>
+    <div class="forgrid">
+      <div class="forcard">
+        <h4><span class="tick">✓</span> This is for you if…</h4>
+        <ul>
+          <li>you're a <b>PM, founder, or builder</b> who already works in Claude Code or Codex;</li>
+          <li>you want to <b>ship</b> end-to-end <em>and</em> <b>learn</b> the craft as you go;</li>
+          <li>you want AI output you can <b>trust</b> — cited sources, a skeptic on every plan;</li>
+          <li>you'd rather compose small, sharp skills than learn one monolith.</li>
+        </ul>
+      </div>
+      <div class="forcard">
+        <h4><span class="cross">✕</span> Not for you if…</h4>
+        <ul>
+          <li>you want a hosted SaaS dashboard — this lives in your terminal;</li>
+          <li>you need a no-code, point-and-click tool;</li>
+          <li>you expect an autonomous agent that ships unsupervised — <b>you</b> are the gate at every step;</li>
+          <li>you don't use Claude Code or Codex.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SHIP — pmos-toolkit ===== -->
+<section id="ship" class="deep" style="background:var(--surface)">
+  <div class="wrap">
+    <div class="kj">🚀 pmos-toolkit · ship a feature</div>
+    <h2>Take an idea to shipped — and make every artifact along the way.</h2>
+    <p class="who"><b>Who it's for:</b> the founding PM going from napkin sketch to MVP, the product lead who needs spec clarity before five engineers start, the solo full-stack dev who's great at code but bad at the messy middle. <b>41 skills</b> spanning discovery, design, validation, authoring, and release.</p>
+
+    <!-- the pipeline -->
+    <h3 style="margin-top:2.2rem">One command runs the whole pipeline</h3>
+    <div class="pipe">
+      <div class="pstep"><div class="n">01</div><div class="c">/requirements</div><div class="d">shape the problem</div></div>
+      <span class="arrow">→</span>
+      <div class="pstep"><div class="n">02</div><div class="c">/spec</div><div class="d">technical design</div></div>
+      <span class="arrow">→</span>
+      <div class="pstep"><div class="n">03</div><div class="c">/plan</div><div class="d">TDD task breakdown</div></div>
+      <span class="arrow">→</span>
+      <div class="pstep"><div class="n">04</div><div class="c">/execute</div><div class="d">build, test, verify</div></div>
+      <span class="arrow">→</span>
+      <div class="pstep"><div class="n">05</div><div class="c">/verify</div><div class="d">review + QA gate</div></div>
+      <span class="arrow">→</span>
+      <div class="pstep"><div class="n">06</div><div class="c">/complete-dev</div><div class="d">merge · tag · ship</div></div>
+    </div>
+    <p class="muted" style="margin-top:1rem;font-size:.95rem">Each stage is standalone — invoke any one at any point. Or let <span class="kbd mono">/feature-sdlc</span> run the chain for you, auto-tiering by scope and persisting resumable state in a git worktree.</p>
+    <div class="selfbuilt"><b>This marketplace builds itself.</b> Every skill here was authored and revised through <span class="mono">/skill-sdlc</span> — the same pipeline, the same gates. The skills that ship features are the skills that shipped these skills.</div>
+
+    <!-- adversarial: SHOW grill, then explain the rest plainly -->
+    <h3 style="margin-top:2.6rem">A skeptic is built into every step</h3>
+    <p class="muted" style="margin-top:.6rem;font-size:.95rem;max-width:64ch">Most AI tooling agrees with you. These passes argue back — surfacing the problems before they reach code. Here's what <span class="mono">/grill</span> actually does:</p>
+    <div class="demo">
+      <div class="term">
+        <div class="term-bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span class="t">/grill — one question at a time</span></div>
+        <div class="term-body">
+          <div class="step"># interviewing your plan…</div>
+          <div class="q">› You retry the failed upload <span class="hl">client-side</span>.</div>
+          <div class="q">&nbsp;&nbsp;Why not in the gateway, where a transient</div>
+          <div class="q">&nbsp;&nbsp;503 never even reaches the user?</div>
+          <div style="margin-top:.5rem" class="rec">▸ recommended: move retry to the gateway</div>
+          <div class="opt">&nbsp;&nbsp;[ accept ]&nbsp;&nbsp;[ defend ]&nbsp;&nbsp;[ skip ] <span class="cur"></span></div>
+        </div>
+      </div>
+      <div class="explain">
+        <div class="row"><div class="cmd">/grill</div><div class="txt">Interviews you about a plan or spec one hard question at a time — each with a recommended answer — until the shaky assumptions are gone.</div></div>
+        <div class="row"><div class="cmd">/msf-req · /msf-wf</div><div class="txt">Re-reads your requirements and wireframes as each persona: will they actually be <em>motivated</em>, <em>satisfied</em>, where's the <em>friction</em>?</div></div>
+        <div class="row"><div class="cmd">/simulate-spec</div><div class="txt">Traces realistic <em>and</em> adversarial scenarios through your spec — slow API, 1000-user spike, DB down — and flags the gaps before code.</div></div>
+        <div class="row"><div class="cmd">/ripple-effects</div><div class="txt">Maps the 1st / 2nd / 3rd-order consequences of a change across users, business, team, and ethics, so nothing second-order blindsides you.</div></div>
+      </div>
+    </div>
+
+    <!-- SHOW real artifacts -->
+    <h3 style="margin-top:2.6rem">Every stage emits a real, openable artifact</h3>
+    <p class="muted" style="margin-top:.6rem;font-size:.95rem;max-width:64ch">Not a wall of chat — a polished, self-contained HTML document you can review, comment on, and ship. These were all generated by toolkit skills <em>during this repo's own development</em>:</p>
+    <div class="shot featured">
+      <a class="imgwrap" href="assets/doc-critique.png" target="_blank" rel="noopener" title="Click to open the full-resolution document">
+        <img src="assets/doc-critique.png" alt="A real design/spec document generated by a pmos-toolkit skill, with structured sections and tables">
+        <span class="zoom">⤢ click to enlarge</span>
+      </a>
+      <div class="cap"><b>A real spec / design doc</b> — from <span class="mono">/spec</span>, <span class="mono">/artifact</span>, and <span class="mono">/artifact-critique</span>: cited, sectioned, commentable. Not a wall of chat — a self-contained HTML document you review and ship.</div>
+    </div>
+    <div class="shot" style="margin-top:1rem">
+      <a class="imgwrap" href="assets/wireframes-canvas.png" target="_blank" rel="noopener" title="Click to open the full-resolution canvas">
+        <img src="assets/wireframes-canvas.png" alt="A Figma-like wireframe canvas viewer showing multiple screens, generated by /wireframes">
+        <span class="zoom">⤢ click to enlarge</span>
+      </a>
+      <div class="cap"><b>Wireframes on a Figma-like canvas</b> — from <span class="mono">/wireframes</span>. Every screen, state, and device, before you write a line.</div>
+    </div>
+    <div class="chips" style="margin-top:1.4rem">
+      <span class="chip">/shape</span><span class="chip">/ideate</span><span class="chip">/requirements</span><span class="chip">/spec</span>
+      <span class="chip">/plan</span><span class="chip">/wireframes</span><span class="chip">/prototype</span><span class="chip">/diagram</span>
+      <span class="chip">/logo</span><span class="chip">/artifact</span><span class="chip">/landing-page</span><span class="chip">/readme</span>
+      <span class="chip">/architecture</span><span class="chip">/survey-design</span><span class="chip">/research</span><span class="chip">+ 25 more</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== LEARN — pmos-learnkit ===== -->
+<section id="learn" class="deep">
+  <div class="wrap">
+    <div class="kj">📚 pmos-learnkit · learn a topic</div>
+    <h2>Get fluent on any topic — from sources it actually fetched.</h2>
+    <p class="who"><b>Who it's for:</b> the senior PM ramping on usage-based pricing before tomorrow's exec pitch; the new EM building PM literacy in three weeks; the founder entering a domain they've never shipped in. Where the toolkit is for <b>building</b>, learnkit is for <b>learning first</b> — input, not output.</p>
+
+    <div class="feats">
+      <div class="feat"><div class="fn">/primer</div><div class="fd">An HTML primer on any topic in ~10 minutes, every claim linked to a source it fetched this run. 61 ship pre-built.</div></div>
+      <div class="feat"><div class="fn">/learn-list</div><div class="fd">A ranked, annotated reading list — every link opened and checked before it ships, dead and low-quality ones dropped.</div></div>
+      <div class="feat"><div class="fn">/frameworks</div><div class="fd">Describe a decision, get the 2–5 frameworks that fit (RICE, JTBD, Kano…) with an owned diagram each.</div></div>
+      <div class="feat"><div class="fn">/magazine</div><div class="fd">Your newsletters + podcasts as one skimmable digest — summarized, tagged, top-picks ranked.</div></div>
+      <div class="feat"><div class="fn">/book-summary</div><div class="fd">The durable ideas from a named book, PM-framed and traced to the source — in 10 minutes.</div></div>
+      <div class="feat"><div class="fn">/critical-thinking</div><div class="fd">Time-boxed PM reasoning drills graded on the moves, with a scorecard that tracks you over weeks.</div></div>
+    </div>
+
+    <!-- SHOW breadth: the actual topic coverage of the 61 shipped primers -->
+    <h3 style="margin-top:2.4rem">61 primers already written — here's the coverage</h3>
+    <p class="muted" style="margin-top:.5rem;font-size:.95rem;max-width:64ch">Two tracks: <b>PM tactics</b> (the craft) and <b>cross-functional</b> (the things you partner with). Ten areas, and you can generate any topic that isn't here yet.</p>
+    <div class="cov">
+      <div class="covtile"><div class="ct-h">Strategy <b>6</b></div><div class="ct-l">PMF · discovery &amp; research · product strategy · roadmap &amp; prioritization · driver trees · business models</div></div>
+      <div class="covtile"><div class="ct-h">Growth <b>8</b></div><div class="ct-l">PLG · activation · retention · engagement · monetization · experimentation &amp; stats · acquisition · behavioral psych</div></div>
+      <div class="covtile"><div class="ct-h">Skills &amp; process <b>6</b></div><div class="ct-l">product sense · influence without authority · dev processes · docs &amp; artifacts · product ops · career ladder</div></div>
+      <div class="covtile"><div class="ct-h">Leadership <b>3</b></div><div class="ct-l">levelling up as a manager · mentoring &amp; coaching PMs · organizing product teams</div></div>
+      <div class="covtile"><div class="ct-h">AI <b>5</b></div><div class="ct-l">AI fundamentals · how LLMs work · ML fundamentals · context engineering · harness engineering</div></div>
+      <div class="covtile"><div class="ct-h">Marketing &amp; sales <b>9</b></div><div class="ct-l">GTM · product marketing · growth marketing · brand · B2B sales · attribution · martech · landing-page copy</div></div>
+      <div class="covtile"><div class="ct-h">Analytics &amp; data <b>7</b></div><div class="ct-l">product analytics · cohort analytics · growth accounting · data science models · data eng · warehouses · SQL</div></div>
+      <div class="covtile"><div class="ct-h">Design &amp; UX <b>6</b></div><div class="ct-l">five elements of UX · UX frameworks &amp; laws · interviewing users · measuring UX · motion · graphic design</div></div>
+      <div class="covtile"><div class="ct-h">Finance <b>5</b></div><div class="ct-l">unit economics · accounting for PMs · corporate finance &amp; valuation · business finance · fundraising &amp; VCs</div></div>
+      <div class="covtile"><div class="ct-h">Tech &amp; engineering <b>6</b></div><div class="ct-l">system design · how databases work · what are APIs · SDLC · DevOps · how computers &amp; the internet work</div></div>
+    </div>
+    <p class="covcap">Generated from the 61 primer files that ship in the repo — not a wishlist.</p>
+
+    <!-- SHOW depth: open a real primer, live, right here -->
+    <details class="reveal embed-primer">
+      <summary><span class="play">▶</span> Open a real primer — <span class="mono" style="font-weight:700">Product-Market Fit</span>, the actual shipped file<span class="meta">scroll it · every claim cited</span></summary>
+      <div class="embedframe">
+        <div class="efbar">📄 embedded: <span class="mono">primers/product-market-fit.html</span> · loads offline · <a href="assets/embed-primer-pmf.html" target="_blank" rel="noopener">open full-screen ↗</a></div>
+        <iframe data-src="assets/embed-primer-pmf.html" title="A real Product-Market Fit primer generated by /primer"></iframe>
+      </div>
+    </details>
+
+    <!-- frameworks sample: one legible owned diagram of 495 -->
+    <div class="shot" style="margin-top:2rem;max-width:560px">
+      <div class="imgwrap" style="height:300px;display:grid;place-items:center;padding:1rem;cursor:default">
+          <!-- a real owned framework diagram — one of 495 in the corpus -->
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="The Hooked Model — one of 346 frameworks in the /frameworks library" style="width:100%;height:auto;max-height:230px">
+            <rect width="640" height="400" fill="#ffffff"/>
+            <text x="320" y="30" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Hooked Model</text>
+            <text x="320" y="50" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">A 4-phase loop for habit-forming products</text>
+            <g fill="none" stroke="#5b6680" stroke-width="2">
+              <path d="M 320 120 A 120 90 0 0 1 440 210" marker-end="url(#ah2)"/>
+              <path d="M 440 230 A 120 90 0 0 1 320 320" marker-end="url(#ah2)"/>
+              <path d="M 300 320 A 120 90 0 0 1 200 230" marker-end="url(#ah2)"/>
+              <path d="M 200 210 A 120 90 0 0 1 300 120" marker-end="url(#ah2)"/>
+            </g>
+            <defs><marker id="ah2" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#5b6680"/></marker></defs>
+            <circle cx="320" cy="220" r="36" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+            <text x="320" y="217" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#2563eb">repeat</text>
+            <text x="320" y="231" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">= habit</text>
+            <g><rect x="240" y="78" width="160" height="46" rx="10" fill="#2563eb"/><text x="320" y="100" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff">1. Trigger</text><text x="320" y="116" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#dbe6ff">external cue &#8594; internal cue</text></g>
+            <g><rect x="452" y="197" width="150" height="46" rx="10" fill="#0ea5a4"/><text x="527" y="219" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff">2. Action</text><text x="527" y="235" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#d6f5f4">simplest behavior for reward</text></g>
+            <g><rect x="232" y="318" width="176" height="50" rx="10" fill="#f59e0b"/><text x="320" y="338" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">3. Variable Reward</text><text x="320" y="354" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#3a2e10">Tribe &#183; Hunt &#183; Self</text></g>
+            <g><rect x="38" y="197" width="150" height="46" rx="10" fill="#1d2438"/><text x="113" y="219" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff">4. Investment</text><text x="113" y="235" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#b9c0d4">stored value loads next trigger</text></g>
+          </svg>
+        </div>
+        <div class="cap"><b>The <span class="mono">/frameworks</span> library</b> — describe a problem, get the frameworks that fit. This is one owned diagram of 495.</div>
+    </div>
+    <div class="stat">
+      <div class="s"><b>346</b><span>PM frameworks, offline</span></div>
+      <div class="s"><b>61</b><span>pre-built primers</span></div>
+      <div class="s"><b>495</b><span>owned diagrams</span></div>
+      <div class="s"><b>0</b><span>claims from memory</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== MANAGE — pmos-managerkit ===== -->
+<section id="manage" class="deep" style="background:var(--surface)">
+  <div class="wrap">
+    <div class="kj">🧑‍💼 pmos-managerkit · do manager work</div>
+    <h2>Do the manager work — grounded in evidence, not memory.</h2>
+    <p class="who"><b>Who it's for:</b> the hiring manager or lead interviewer who needs a defensible record after an interview round. The first skill is <span class="mono">/interview-feedback</span>; team reviews, 1:1 prep, and calibration land here over time.</p>
+    <div class="fwk">
+      <div>
+        <h3>Two grounded artifacts from one round of inputs</h3>
+        <p class="muted" style="margin-top:.7rem;font-size:.95rem">Drop in a recording (transcribed locally), interviewer notes, and the role's scorecard. You get back:</p>
+        <div class="feats" style="grid-template-columns:1fr;margin-top:1rem">
+          <div class="feat"><div class="fn">a filled scorecard</div><div class="fd">Every dimension scored on its own scale, flags ticked, an overall hire / no-hire — with <b>every subjective claim grounded in a ≥40-character verbatim quote</b> from the transcript. A deterministic gate refuses any output where a citation isn't actually in the transcript.</div></div>
+          <div class="feat"><div class="fn">interviewer coaching notes</div><div class="fd">Per interviewer, scored against a researched effectiveness rubric — questioning structure, probing depth, leading-question avoidance, bias mitigation.</div></div>
+        </div>
+        <div class="chips"><span class="chip">/interview-feedback</span><span class="chip">setup</span><span class="chip">score</span></div>
+      </div>
+      <div class="svgcard">
+        <img src="assets/scorecard.png" alt="A grounded interview scorecard with weighted dimensions, 1-4 scales, and green/red flags" style="display:block;width:100%;height:auto">
+        <div class="cap">The scorecard <span class="mono">/interview-feedback</span> fills — weighted dimensions, anchored scales, green/red flags. Nothing scored without a quote to back it.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== BREAK — pmos-gamekit ===== -->
+<section id="break" class="deep">
+  <div class="wrap">
+    <div class="kj">🎮 pmos-gamekit · take a break</div>
+    <h2>Stuck on a bug? Take a five-minute break.</h2>
+    <p class="who"><b>Who it's for:</b> the builder mid-deep-work who needs a hard context-switch that won't distract — no login, no notifications, no save state. Seven self-contained games, each launched from a skill and served offline from a tiny local server.</p>
+    <div class="twoshot">
+      <div class="shot">
+        <div class="imgwrap"><img src="assets/poker.png" alt="The /poker game running — a No-Limit Hold'em table with hole cards, pot, and heuristic bots"></div>
+        <div class="cap"><b><span class="mono">/poker</span></b> — No-Limit Hold'em vs. heuristic bots, with a pot-odds reference built in.</div>
+      </div>
+      <div class="shot">
+        <div class="imgwrap"><img src="assets/2048.png" alt="The /2048 game mid-play with tiles on the board"></div>
+        <div class="cap"><b><span class="mono">/2048</span></b> — slide tiles, fully offline. No account, no tab to close on you.</div>
+      </div>
+    </div>
+
+    <!-- DO: actually play one, embedded live -->
+    <details class="reveal embed-game">
+      <summary><span class="play">▶</span> Don't take our word for it — play 2048 right here<span class="meta">click, then use arrow keys</span></summary>
+      <div class="embedframe">
+        <div class="efbar">🎮 embedded: <span class="mono">2048.html</span> · the real game file · <a href="assets/embed-2048.html" target="_blank" rel="noopener">open full-screen ↗</a></div>
+        <div class="embed-game"><iframe data-src="assets/embed-2048.html" title="Playable 2048 game" tabindex="0"></iframe></div>
+      </div>
+    </details>
+
+    <div class="chips" style="margin-top:1.3rem">
+      <span class="chip">/poker</span><span class="chip">/2048</span><span class="chip">/tetris</span><span class="chip">/sudoku</span>
+      <span class="chip">/snake</span><span class="chip">/solitaire</span><span class="chip">/flappy-bird</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== UTILITIES (supporting) ===== -->
+<section id="util" class="deep" style="background:var(--surface)">
+  <div class="wrap">
+    <div class="kj">🛠️ pmos-utilities · keep it all healthy</div>
+    <h2>The supporting layer.</h2>
+    <p class="who"><b>Who it's for:</b> anyone running the kit. These aren't part of a feature pipeline or a learning artifact — they're the meta-tools you reach for to keep your machine, and the skills themselves, in good shape.</p>
+    <div class="feats">
+      <div class="feat"><div class="fn">/mac-health</div><div class="fd">Diagnose a hot, slow, or battery-hungry Mac — orphaned processes, extension leaks, sleep blockers — read-only first, then recommends. You decide.</div></div>
+      <div class="feat"><div class="fn">/reflect</div><div class="fd">A paste-back retro of every pmos skill you used this session, severity-tagged, ready to hand to the skill author.</div></div>
+      <div class="feat"><div class="fn">/converter</div><div class="fd">A zero-dependency local converter — JSON↔YAML, CSV↔JSON — running entirely in your browser against a local server.</div></div>
+      <div class="feat"><div class="fn">/to-notion-doc</div><div class="fd">Parse a local .md/.html/.txt into a Notion page — never drops a table column, verifies block-for-block after write.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== HONEST BY DESIGN ===== -->
+<section class="honest">
+  <div class="wrap">
+    <span class="eyebrow">Why it's different</span>
+    <h2>Honest by design.</h2>
+    <p class="lead" style="margin-top:1rem">Most AI tooling over-promises and quietly hallucinates. pmos-skills builds the skeptic <em>into</em> the workflow — so the output survives contact with reality. There are no testimonials on this page, because none have been collected yet; we'd rather show you the rigor than borrow credibility we don't have.</p>
+    <div class="hongrid">
+      <div class="honcard">
+        <div class="k">adversarial passes</div>
+        <h4>It argues back.</h4>
+        <p><span class="mono">/grill</span> interviews you on shaky assumptions; <span class="mono">/msf-req</span> and <span class="mono">/msf-wf</span> simulate user friction; <span class="mono">/simulate-spec</span> pressure-tests the design before a line of code.</p>
+      </div>
+      <div class="honcard">
+        <div class="k">verified-source</div>
+        <h4>It never invents a citation.</h4>
+        <p>Learnkit fetches every link and claim this run — if it wasn't fetched, it doesn't ship. The interview scorecard refuses any rating without a verbatim quote behind it.</p>
+      </div>
+      <div class="honcard">
+        <div class="k">offline · self-contained</div>
+        <h4>It runs without the network.</h4>
+        <p>Games, primers, frameworks, specs — and this very page — are self-contained HTML that open from <span class="mono">file://</span>. No CDN, no account, no telemetry.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FINAL CTA + INSTALL ===== -->
+<section id="install" class="final">
+  <div class="wrap">
+    <span class="eyebrow">Get started</span>
+    <h2>Add the marketplace and install what you need.</h2>
+    <div class="install">
+      <div class="copyrow"><span>Claude Code</span><button class="copybtn" onclick="copyInstall(this)">Copy</button></div>
+      <div class="term-body" id="install-cmds"><span class="cm"># add the marketplace, then install the plugins you want</span>
+/plugin marketplace add maneesh-dhabria/pmos-skills
+/plugin install pmos-toolkit@pmos-skills
+/plugin install pmos-learnkit@pmos-skills
+/plugin install pmos-managerkit@pmos-skills
+/plugin install pmos-utilities@pmos-skills
+/plugin install pmos-gamekit@pmos-skills</div>
+    </div>
+    <p class="smoke">Each plugin versions and installs independently — take only what you need. Smoke test on a fresh install: run <span class="kbd mono">/pmos-toolkit:mytasks</span> or <span class="kbd mono">/pmos-toolkit:backlog</span> — both work with zero prior setup.</p>
+    <div class="final-cta">
+      <a class="btn btn-primary" href="https://github.com/maneesh-dhabria/pmos-skills">View on GitHub</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="wrap foot-inner">
+    <div>
+      <div class="brand" style="font-size:1rem"><span class="mark" style="width:24px;height:24px;font-size:.9rem">p</span>pmos-skills</div>
+      <div class="built muted" style="margin-top:.6rem">Built with <a href="https://github.com/maneesh-dhabria/pmos-skills">pmos-toolkit</a> · runs in Claude Code &amp; Codex</div>
+    </div>
+    <nav class="foot-links">
+      <a href="#ship">Ship</a>
+      <a href="#learn">Learn</a>
+      <a href="#manage">Manage</a>
+      <a href="#break">Play</a>
+      <a href="#install">Install</a>
+      <a href="https://github.com/maneesh-dhabria/pmos-skills">GitHub</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+  // Defer-load embedded iframes until their <details> is first opened — keeps the
+  // initial page light, but loads reliably on open (unlike loading="lazy" inside a collapsed details).
+  document.querySelectorAll('details.reveal').forEach(function(d){
+    d.addEventListener('toggle', function(){
+      if(!d.open) return;
+      var f = d.querySelector('iframe[data-src]');
+      if(f){ f.src = f.getAttribute('data-src'); f.removeAttribute('data-src'); }
+    });
+  });
+
+  function copyInstall(btn){
+    var txt = document.getElementById('install-cmds').innerText.trim();
+    if(navigator.clipboard){ navigator.clipboard.writeText(txt).then(function(){
+      var o = btn.textContent; btn.textContent = 'Copied ✓';
+      setTimeout(function(){ btn.textContent = o; }, 1600);
+    }); }
+  }
+</script>
+
+<!-- pmos-comments:start -->
+<script id="pmos-comments" type="application/json">[]</script>
+<!-- pmos-comments:end -->
+</body>
+</html>
