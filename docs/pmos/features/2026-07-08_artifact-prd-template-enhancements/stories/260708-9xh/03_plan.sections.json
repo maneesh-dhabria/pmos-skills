@@ -1,0 +1,50 @@
+[
+  {
+    "id": "overview",
+    "level": 2,
+    "title": "1 · Story & scope",
+    "parent_id": null
+  },
+  {
+    "id": "code-study",
+    "level": 2,
+    "title": "2 · Code study",
+    "parent_id": null
+  },
+  {
+    "id": "tasks",
+    "level": 2,
+    "title": "3 · Task waves",
+    "parent_id": null
+  },
+  {
+    "id": "wave-1",
+    "level": 3,
+    "title": "Wave 1 — Phase 3.6 authoring (INV-4, D3, D7)",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "wave-2",
+    "level": 3,
+    "title": "Wave 2 — contract compliance",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "wave-3",
+    "level": 3,
+    "title": "Wave 3 — verification",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "decisions-plan",
+    "level": 2,
+    "title": "4 · Plan-level notes",
+    "parent_id": null
+  },
+  {
+    "id": "verification-plan",
+    "level": 2,
+    "title": "5 · Final verification checklist",
+    "parent_id": null
+  }
+]

@@ -1,0 +1,68 @@
+[
+  {
+    "id": "overview",
+    "level": 2,
+    "title": "1 · Story & scope",
+    "parent_id": null
+  },
+  {
+    "id": "code-study",
+    "level": 2,
+    "title": "2 · Code study (read before editing)",
+    "parent_id": null
+  },
+  {
+    "id": "tasks",
+    "level": 2,
+    "title": "3 · Task waves (TDD-ish; template = data, so \"test\" = validation + dogfood)",
+    "parent_id": null
+  },
+  {
+    "id": "wave-0",
+    "level": 3,
+    "title": "Wave 0 — renumber safety net (D5, INV-2)",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "wave-1",
+    "level": 3,
+    "title": "Wave 1 — §5 Success Metrics, Doshi rework (ask 3, D6, INV-3)",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "wave-2",
+    "level": 3,
+    "title": "Wave 2 — §6 Solution: alternatives + falsifiable hypothesis (ask 2a, D2)",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "wave-3",
+    "level": 3,
+    "title": "Wave 3 — NEW §8 Motivation, Friction & Satisfaction (ask 1, D1)",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "wave-4",
+    "level": 3,
+    "title": "Wave 4 — §9 Stories: mandated validation + §11 Risks borrows (ask 5, 2b/2c; D8, D2)",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "wave-5",
+    "level": 3,
+    "title": "Wave 5 — frontmatter flag + validation + dogfood",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "decisions-plan",
+    "level": 2,
+    "title": "4 · Plan-level notes",
+    "parent_id": null
+  },
+  {
+    "id": "verification-plan",
+    "level": 2,
+    "title": "5 · Final verification checklist",
+    "parent_id": null
+  }
+]
