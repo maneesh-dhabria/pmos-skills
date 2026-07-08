@@ -1,0 +1,146 @@
+[
+  {
+    "id": "overview",
+    "level": 2,
+    "title": "1 · Overview & scope",
+    "parent_id": null
+  },
+  {
+    "id": "goals",
+    "level": 2,
+    "title": "2 · Goals & non-goals",
+    "parent_id": null
+  },
+  {
+    "id": "decisions",
+    "level": 2,
+    "title": "3 · Decisions",
+    "parent_id": null
+  },
+  {
+    "id": "invariants",
+    "level": 2,
+    "title": "4 · Invariants",
+    "parent_id": null
+  },
+  {
+    "id": "design-msf",
+    "level": 2,
+    "title": "5 · Design — §8 Motivation, Friction & Satisfaction (ask 1)",
+    "parent_id": null
+  },
+  {
+    "id": "msf-shape",
+    "level": 3,
+    "title": "Shape",
+    "parent_id": "design-msf"
+  },
+  {
+    "id": "msf-guidance",
+    "level": 3,
+    "title": "Guidance-comment contract",
+    "parent_id": "design-msf"
+  },
+  {
+    "id": "msf-eval",
+    "level": 3,
+    "title": "Eval items (new §8 block)",
+    "parent_id": "design-msf"
+  },
+  {
+    "id": "design-solution",
+    "level": 2,
+    "title": "6 · Design — §6 Solution: alternatives + falsifiable hypothesis (ask 2a)",
+    "parent_id": null
+  },
+  {
+    "id": "design-risks",
+    "level": 2,
+    "title": "7 · Design — Risks: pre-mortem + conditional AI-risk (ask 2b/2c)",
+    "parent_id": null
+  },
+  {
+    "id": "design-metrics",
+    "level": 2,
+    "title": "8 · Design — §5 Success Metrics, Doshi-categorized (ask 3)",
+    "parent_id": null
+  },
+  {
+    "id": "metrics-categories",
+    "level": 3,
+    "title": "The six categories (verbatim — no inventions, D6/INV-3)",
+    "parent_id": "design-metrics"
+  },
+  {
+    "id": "metrics-flow",
+    "level": 3,
+    "title": "Question-first authoring flow (per applicable category)",
+    "parent_id": "design-metrics"
+  },
+  {
+    "id": "metrics-refinement",
+    "level": 3,
+    "title": "KM / LM refinement (Doshi)",
+    "parent_id": "design-metrics"
+  },
+  {
+    "id": "metrics-eval",
+    "level": 3,
+    "title": "Eval changes (§5)",
+    "parent_id": "design-metrics"
+  },
+  {
+    "id": "design-story-validation",
+    "level": 2,
+    "title": "9 · Design — §9 User Stories: mandated per-story validation (ask 5)",
+    "parent_id": null
+  },
+  {
+    "id": "story-eval",
+    "level": 3,
+    "title": "Eval changes (§9)",
+    "parent_id": "design-story-validation"
+  },
+  {
+    "id": "design-wireframe-hook",
+    "level": 2,
+    "title": "10 · Design — conceptual-wireframes post-draft hook (ask 4)",
+    "parent_id": null
+  },
+  {
+    "id": "hook-placement",
+    "level": 3,
+    "title": "Placement & gate",
+    "parent_id": "design-wireframe-hook"
+  },
+  {
+    "id": "hook-behaviour",
+    "level": 3,
+    "title": "Behaviour & degradations (INV-4)",
+    "parent_id": "design-wireframe-hook"
+  },
+  {
+    "id": "hook-frontmatter",
+    "level": 3,
+    "title": "Frontmatter (Story 1 dependency)",
+    "parent_id": "design-wireframe-hook"
+  },
+  {
+    "id": "numbering-map",
+    "level": 2,
+    "title": "11 · Section-numbering map (D5)",
+    "parent_id": null
+  },
+  {
+    "id": "story-map",
+    "level": 2,
+    "title": "12 · Story map",
+    "parent_id": null
+  },
+  {
+    "id": "risks-open",
+    "level": 2,
+    "title": "13 · Risks & open questions",
+    "parent_id": null
+  }
+]
