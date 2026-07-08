@@ -4,7 +4,7 @@ id: 260707-mx5
 title: "Apply F1–F4 to /interview-feedback: fourth brief-baseline submission bucket, confirmed-duration time scoring, blocking citation gate + no-stitch-across-labels Ground rule, normalized ≥40-char extraction"
 type: bug
 kind: story
-status: in-progress
+status: done
 route: skill
 priority: must
 labels: [pmos-managerkit, interview-feedback, grounding, skill]
@@ -12,8 +12,8 @@ created: 2026-07-07
 updated: 2026-07-08
 parent: 260707-rbc
 released:
-claimed_by: build:832dec02-f66e-433b-bf4d-eeeb7db48e25
-driver_holder: build:832dec02-f66e-433b-bf4d-eeeb7db48e25
+claimed_by:
+driver_holder:
 dependencies: []
 design_doc: docs/pmos/features/2026-07-07_interview-feedback-grounding-fixes/02_design.html
 plan_doc: docs/pmos/features/2026-07-07_interview-feedback-grounding-fixes/stories/260707-mx5/03_plan.html
