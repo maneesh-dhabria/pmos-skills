@@ -1,0 +1,54 @@
+schema_version: 1
+story: 260708-s5g
+epic: 260708-23a
+route: skill
+plugin: pmos-managerkit
+spec: ../../02_design.html
+# Depends on story 260708-we4 (extended scorecard-skeleton shape + archetype corpus), merged into this
+# worktree at claim time (D9). Sequenced: registration + scorer pass are independent leaves → tests depend
+# on the pass → citations/skill-eval/dogfood close out.
+# Implementation reference: skill-patterns.md §A–§L + host CLAUDE.md.
+tasks:
+  - id: T1
+    title: "Register work-history in /interview-feedback's archetype enum (role.json)"
+    ac: [AC1]
+    deps: []
+    detail: >
+      In plugins/pmos-managerkit/skills/interview-feedback/SKILL.md § role.json, add work-history to the bundled
+      archetype set (currently recruiter-screen, product-sense, analytical, technical, behavioral, case-study,
+      case-presentation | custom) with guidelines_path: guidelines/work-history/. Ensure `setup` can scaffold a
+      work-history round (round/archetype AUTO-PICK still valid under --non-interactive).
+
+  - id: T2
+    title: "Extend fill-scorecard.mjs with a presence-guarded per-role + trajectory fill pass (D2)"
+    ac: [AC2, AC3]
+    deps: []
+    detail: >
+      In scripts/fill-scorecard.mjs, add a pass that runs ONLY when the scorecard contains data-card="role-evidence"
+      / data-card="trajectory-synthesis" sections. It fills each role block (role:scope|contribution|result, the
+      result-measured marker, per-role flags) and the trajectory block (scope-arc, patterns, level-fit, level-verdict)
+      in addition to the unchanged competency data-dim pass and the reco insertion. Reuse the existing section-locating
+      helpers; process last-to-first to keep offsets stable. Every subjective filled note carries a <cite>; transcript
+      citations remain verbatim ≥40-char substrings (check-citations.mjs governs). Do NOT touch the dim pass, the reco
+      insertion, or the submission-assessment path.
+
+  - id: T3
+    title: "Golden-file backward-compat test + work-history fill test"
+    ac: [AC4, AC5]
+    deps: [T2]
+    detail: >
+      Add a tests/ golden-file case that fills an EXISTING archetype scorecard (e.g. behavioral) and asserts the output
+      is byte-unchanged from pre-change (the new pass is inert when the sections are absent). Add a work-history fixture
+      (scorecard + short transcript) asserting the per-role grid, trajectory synthesis, and competency dims all fill and
+      the cited notes validate. Wire both into run-tests.sh.
+
+  - id: T4
+    title: "Citations coverage + run-tests + skill-eval + dogfood"
+    ac: [AC3, AC6, AC7]
+    deps: [T2, T3]
+    detail: >
+      Confirm check-citations.mjs covers the new per-role + trajectory notes (verbatim ≥40-char transcript substrings).
+      run-tests.sh green. Run the /interview-feedback skill-eval (skill-eval-check.sh --target claude-code + [J] half),
+      clear or accept residuals per contract. Dogfood: score a short mock work-history transcript end-to-end and confirm
+      all three block families fill with cited notes. Run the hygiene lints (lint-flags-vs-hints.sh, lint-phase-refs.sh,
+      audit-recommended.sh, lint-non-interactive-inline.sh).
