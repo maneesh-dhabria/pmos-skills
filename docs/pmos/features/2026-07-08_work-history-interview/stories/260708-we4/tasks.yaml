@@ -1,0 +1,101 @@
+schema_version: 1
+story: 260708-we4
+epic: 260708-23a
+route: skill
+plugin: pmos-managerkit
+spec: ../../02_design.html
+# Sequenced: substrate skeleton + level ladder are independent leaves → work-history corpus depends on
+# both → validator + registration wire it in → backward-compat + dogfood close it out.
+# Implementation reference: skill-patterns.md §A–§L + host CLAUDE.md (canonical path, manifest sync).
+tasks:
+  - id: T1
+    title: "Extend scorecard-skeleton.html with additive role-evidence + trajectory-synthesis section families"
+    ac: [AC2]
+    deps: []
+    detail: >
+      In plugins/pmos-managerkit/skills/_shared/interview-guidelines/scorecard-skeleton.html, ADD (do not
+      modify the existing data-dim / reco contract): a documented <section class="role"
+      data-card="role-evidence" data-role="<n>"> template with data-input="role:company|title|tenure|
+      scope|contribution|result", data-field="result-measured" (yes|unclear|no), and green/red flag lists;
+      and one <section class="trajectory" data-card="trajectory-synthesis"> with data-input="trajectory:
+      scope-arc|patterns|level-fit" and data-field="level-verdict" (below|at|above). Extend the skeleton's
+      leading doc-comment machine-anchor list to describe both new families and state they carry NO
+      data-dim/data-weight (so weight-sum + the dim-based scorer are unaffected). Keep it self-contained
+      (no external assets). This is the SINGLE DOM home; the corpus + scorer cite it.
+
+  - id: T2
+    title: "Author the level-ladder reference with the static per-level weight table (D7)"
+    ac: [AC4]
+    deps: []
+    detail: >
+      Add plugins/pmos-managerkit/skills/_shared/interview-guidelines/guidelines/work-history/level-ladder.md
+      (the single home for the ladder). A hardcoded per-level table (APM, PM, Sr PM, GPM, Director/VP) mapping
+      the Reforge/Mehta 12 competencies (4 buckets: Product Execution, Customer Insight, Product Strategy,
+      Influencing People) to integer weights per level, EACH ROW pre-summing to 100 (execution-heavy early →
+      strategy+influence+people-heavy late). Include the scope anchors (feature→area→portfolio→org; "I did it"→
+      "I led a squad"→"I led through PMs"→"I built the team") and the per-level "great/average/poor" marker deltas.
+      Document the operator-override extension point (consumed by T6). The model never computes weights — it reads
+      a row.
+
+  - id: T3
+    title: "Author work-history/interviewer-reference.html (method skeleton + bias register + provenance)"
+    ac: [AC1]
+    deps: []
+    detail: >
+      guidelines/work-history/interviewer-reference.html, instantiating reference-skeleton.html. Encode the areas:
+      open (frame chronological walk, be specific about YOU) → career-arc scan (map scope growth/tenures/transitions,
+      pick 1–2 targets) → deep-dive per-role battery (hired to do → proudest project end-to-end → what did YOU
+      specifically do / would it have been as impactful without you → low point/mistake+lesson → people +
+      boss-rating 1–10 → why you left) → level-targeted competency probes → wrap + matter-of-fact reference
+      verification (D4). Encode the funnel/peel-the-onion drill-down, resume-inflation catches (metric + how-measured
+      + attribution; separate "we" from "I"), and the bias register (halo, confirmation, leading, recency, vagueness,
+      individual-contribution, partial-arc). Provenance block cites Topgrading/"Who", Lenny Rachitsky, Reforge/Mehta,
+      Ben Kuhn, Schmidt & Hunter / Google re:Work. Keep size in line with peers (~10–13KB).
+
+  - id: T4
+    title: "Author work-history/scorecard.html — fixed-N role blocks + trajectory + per-level competency dims (D3,D6,D9)"
+    ac: [AC1, AC3]
+    deps: [T1, T2]
+    detail: >
+      guidelines/work-history/scorecard.html from the extended skeleton, data-archetype="work-history". Ship a fixed
+      N=4 placeholder role-evidence blocks (Role 1–4) + exactly one trajectory-synthesis block (with level-verdict).
+      Competency data-dim sections use the T2 default weight row (author for a representative mid level, e.g. Senior PM,
+      as the shipped default) — weights sum to 100. level-verdict is surfaced as its own input feeding the reco (D9),
+      not computed from it. Green/red flags per competency + per role.
+
+  - id: T5
+    title: "Extend validate-scorecard-anchors.mjs — work-history presence assertion + override sum-gate (D5,D8)"
+    ac: [AC5, AC8]
+    deps: [T1]
+    detail: >
+      In plugins/pmos-managerkit/skills/interview-guide/scripts/validate-scorecard-anchors.mjs, add a presence-guarded
+      assertion that fires ONLY when data-archetype="work-history" (or a role-evidence section is present): require ≥1
+      data-card="role-evidence" block (each with its required sub-anchors) and exactly one data-card="trajectory-synthesis".
+      For every other archetype the new assertion is skipped and the existing dim/weight-sum checks are byte-unchanged.
+      Add the deterministic override sum-gate helper used by --level-rubric (T6): given an interpreted per-level weight
+      set, assert each level's weights are integers summing to 100; return a structured pass/fail the skill uses to
+      refuse+re-prompt.
+
+  - id: T6
+    title: "Register work-history in /interview-guide SKILL.md + wire --level-rubric override"
+    ac: [AC5, AC7]
+    deps: [T2, T5]
+    detail: >
+      SKILL.md § Archetypes: add work-history to the bundled enum, marked NON-case (no output (c)). Document --seniority
+      to span the full APM→VP ladder (cite level-ladder.md, do not restate the table — §K). Add the --level-rubric <path>
+      input (argument-hint + body): the operator's free-form markdown is INTERPRETED into a per-level weight set, then the
+      T5 sum-gate deterministically validates sum-to-100 and the skill REFUSES+re-prompts on failure, falling back to the
+      default ladder with a clear error (the §H reconciliation, D8). Best-practices tailoring maps a work-history round to
+      the archetype. Mark the --level-rubric flag per the flag contract (typed value → argument-hint) and every new
+      AskUserQuestion with (Recommended) or a defer-only tag.
+
+  - id: T7
+    title: "Backward-compat + skill-eval + dogfood"
+    ac: [AC9, AC10]
+    deps: [T4, T6]
+    detail: >
+      Prove the other seven archetypes' scorecards still pass validate-scorecard-anchors.mjs unchanged (run it over each).
+      Run the /interview-guide skill-eval (skill-eval-check.sh --target claude-code + the [J] half) and clear or accept
+      residuals per contract. Dogfood: live-generate a work-history guide for a real Staff-PM resume (external input;
+      NEVER commit or copy it into the repo) and eyeball the level-scaling + boss-rating probe + role blocks. Run the two
+      hygiene lints (lint-flags-vs-hints.sh, lint-phase-refs.sh) + audit-recommended.sh + lint-non-interactive-inline.sh.
