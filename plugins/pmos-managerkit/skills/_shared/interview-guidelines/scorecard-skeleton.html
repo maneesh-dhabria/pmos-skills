@@ -17,6 +17,24 @@
     - data-input="reco"                       the single overall hire/no-hire control.
         - each option carries data-reco="strong-yes|yes|no|strong-no".
 
+  Optional section families (additive — a scorecard MAY carry these in ADDITION to the data-dim
+  competency sections; the work-history archetype uses them. They carry NO data-dim/data-weight, so
+  the weight-sum gate and the dim-based scorer are unaffected — an archetype that omits them behaves
+  exactly as before):
+    - data-card="role-evidence"               one per past role probed; carries data-role="<n>" (1-based).
+        - data-input="role:company|title|tenure|scope|contribution|result"   the six per-role slots
+                                              (one <div data-input="role:<slot>"> each — the evidence
+                                              captured for that role).
+        - data-field="result-measured"        did the candidate quantify the result? options carry
+                                              data-measured="yes|unclear|no".
+        - data-flags="green" / data-flags="red"   per-role flag containers (0+ <li> each).
+    - data-card="trajectory-synthesis"        exactly one; the cross-role scope-arc read.
+        - data-input="trajectory:scope-arc|patterns|level-fit"   the three synthesis slots
+                                              (one <div data-input="trajectory:<slot>"> each).
+        - data-field="level-verdict"          below/at/above the target level — its own input that
+                                              FEEDS the reco but is not computed from it (design D9);
+                                              options carry data-verdict="below|at|above".
+
   Filling discipline (design §9, §12, §16.4): every filled note that makes a subjective claim
   carries a <cite data-cite-tier="transcript|notes|recalled" data-source="…">…</cite>; transcript
   citations are verbatim ≥40-char substrings of transcript.refined.txt (enforced by
@@ -57,6 +75,19 @@
   ul[data-flags="red"] li{color:var(--red)}
   cite{font-style:normal;display:block;font-size:.82rem;color:var(--muted);font-family:var(--sans);margin-top:.25rem;padding-left:.7rem;border-left:2px solid var(--rule)}
   cite[data-cite-tier="transcript"]{border-left-color:var(--accent)}
+  .role{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin:0 0 1rem}
+  .role-head{display:flex;justify-content:space-between;align-items:baseline;gap:1rem}
+  .role-head .role-name{font-family:var(--sans);font-weight:600;font-size:1.02rem}
+  .role-grid{display:grid;grid-template-columns:auto 1fr;gap:.25rem .8rem;font-size:.92rem;margin:.5rem 0}
+  .role-grid .k{font-family:var(--sans);font-size:.8rem;color:var(--muted)}
+  .role [data-input^="role:"]:empty::before,.trajectory [data-input^="trajectory:"]:empty::before{content:"— not captured —";color:var(--muted);font-style:italic}
+  .field{display:flex;gap:.5rem;align-items:baseline;margin:.5rem 0;font-family:var(--sans);font-size:.85rem}
+  .field .field-label{color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-size:.72rem}
+  .field [data-measured],.field [data-verdict]{border:1px solid var(--border);border-radius:6px;padding:.25rem .6rem}
+  .field [data-measured][data-selected],.field [data-verdict][data-selected]{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
+  .trajectory{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin:1.2rem 0 0;border-top:3px solid var(--accent)}
+  .trajectory .traj-name{font-family:var(--sans);font-weight:600;font-size:1.02rem;margin:0 0 .4rem}
+  .trajectory [data-input^="trajectory:"]{font-size:.95rem;margin:.4rem 0}
   .reco{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin-top:1.6rem}
   .reco-opts{display:flex;flex-wrap:wrap;gap:.5rem;margin:.5rem 0}
   .reco-opts [data-reco]{font-family:var(--sans);font-size:.85rem;border:1px solid var(--border);border-radius:6px;padding:.35rem .7rem}
@@ -103,6 +134,42 @@
     <div class="flags">
       <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
       <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
+    </div>
+  </section>
+
+  <!-- OPTIONAL: per-role evidence blocks (work-history archetype). Additive — carry NO data-dim/
+       data-weight, so they never touch the weight-sum gate. One <section.role> per past role probed;
+       data-role is 1-based. Omit the whole family for archetypes that don't need it. -->
+  <section class="role" data-card="role-evidence" data-role="1">
+    <div class="role-head"><span class="role-name">Role 1</span></div>
+    <div class="role-grid">
+      <span class="k">Company</span><div data-input="role:company"></div>
+      <span class="k">Title</span><div data-input="role:title"></div>
+      <span class="k">Tenure</span><div data-input="role:tenure"></div>
+      <span class="k">Scope</span><div data-input="role:scope"></div>
+      <span class="k">Their contribution (I, not we)</span><div data-input="role:contribution"></div>
+      <span class="k">Result</span><div data-input="role:result"></div>
+    </div>
+    <div class="field" data-field="result-measured">
+      <span class="field-label">Result measured?</span>
+      <span data-measured="yes">yes</span><span data-measured="unclear">unclear</span><span data-measured="no">no</span>
+    </div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
+    </div>
+  </section>
+
+  <!-- OPTIONAL: exactly one trajectory-synthesis block — the cross-role scope-arc read. level-verdict
+       is its OWN input; it FEEDS the reco below but is not computed from it (design D9). -->
+  <section class="trajectory" data-card="trajectory-synthesis">
+    <p class="traj-name">Trajectory synthesis</p>
+    <div data-input="trajectory:scope-arc"></div>
+    <div data-input="trajectory:patterns"></div>
+    <div data-input="trajectory:level-fit"></div>
+    <div class="field" data-field="level-verdict">
+      <span class="field-label">Level vs. target</span>
+      <span data-verdict="below">below</span><span data-verdict="at">at</span><span data-verdict="above">above</span>
     </div>
   </section>
 
