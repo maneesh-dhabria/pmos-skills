@@ -4,7 +4,7 @@ id: 260708-we4
 kind: story
 title: /interview-guide work-history archetype + scorecard-skeleton per-role/trajectory extension + level ladder
 type: enhancement
-status: planned
+status: in-progress
 priority: should
 route: skill
 parent: 260708-23a
@@ -12,7 +12,9 @@ dependencies: []
 feature_folder: docs/pmos/features/2026-07-08_work-history-interview/
 design_doc: docs/pmos/features/2026-07-08_work-history-interview/02_design.html
 plan_doc: docs/pmos/features/2026-07-08_work-history-interview/stories/260708-we4/03_plan.html
-worktree:
+worktree: /Users/maneeshdhabria/Desktop/Projects/agent-skills-260708-we4
+claimed_by: build:832dec02-f66e-433b-bf4d-eeeb7db48e25
+driver_holder: build:832dec02-f66e-433b-bf4d-eeeb7db48e25
 labels: [pmos-managerkit, interview-guide, work-history, substrate]
 created: 2026-07-08
 updated: 2026-07-08
