@@ -4,7 +4,7 @@ id: 260708-s5g
 kind: story
 title: /interview-feedback — register work-history archetype + extend fill-scorecard.mjs for per-role evidence & trajectory synthesis
 type: enhancement
-status: in-progress
+status: done
 priority: should
 route: skill
 parent: 260708-23a
@@ -13,11 +13,11 @@ feature_folder: docs/pmos/features/2026-07-08_work-history-interview/
 design_doc: docs/pmos/features/2026-07-08_work-history-interview/02_design.html
 plan_doc: docs/pmos/features/2026-07-08_work-history-interview/stories/260708-s5g/03_plan.html
 worktree: /Users/maneeshdhabria/Desktop/Projects/agent-skills/.claude/worktrees/feat-260708-s5g
-claimed_by: build:832dec02-f66e-433b-bf4d-eeeb7db48e25
-driver_holder: build:832dec02-f66e-433b-bf4d-eeeb7db48e25
+claimed_by: null
+driver_holder: null
 labels: [pmos-managerkit, interview-feedback, work-history, scorer]
 created: 2026-07-08
-updated: 2026-07-08
+updated: 2026-07-09
 ---
 
 ## Context
