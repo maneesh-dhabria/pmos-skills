@@ -13,6 +13,8 @@ tasks:
     title: "Register work-history in /interview-feedback's archetype enum (role.json)"
     ac: [AC1]
     deps: []
+    status: done
+    evidence: "SKILL.md archetype enum now lists work-history (8 bundled) + guidelines_path: guidelines/work-history/; role.json example + non-case paragraph added (SKILL.md:220-222)."
     detail: >
       In plugins/pmos-managerkit/skills/interview-feedback/SKILL.md § role.json, add work-history to the bundled
       archetype set (currently recruiter-screen, product-sense, analytical, technical, behavioral, case-study,
@@ -23,6 +25,8 @@ tasks:
     title: "Extend fill-scorecard.mjs with a presence-guarded per-role + trajectory fill pass (D2)"
     ac: [AC2, AC3]
     deps: []
+    status: done
+    evidence: "fillWorkHistory() step 7 in fill(); presence-guarded on <section data-card=\"role-evidence\">; fills role slots + measured + per-role flags + trajectory slots + verdict; reuses injectInputSlot/appendFlags/markSelected. Selftest wh cases pass."
     detail: >
       In scripts/fill-scorecard.mjs, add a pass that runs ONLY when the scorecard contains data-card="role-evidence"
       / data-card="trajectory-synthesis" sections. It fills each role block (role:scope|contribution|result, the
@@ -36,6 +40,8 @@ tasks:
     title: "Golden-file backward-compat test + work-history fill test"
     ac: [AC4, AC5]
     deps: [T2]
+    status: done
+    evidence: "fill-scorecard selftest 41/41 (adds wh-fill case + bc byte-identity case: role/trajectory values inert on a non-wh sheet). Full run-tests.sh 9/9 PASS."
     detail: >
       Add a tests/ golden-file case that fills an EXISTING archetype scorecard (e.g. behavioral) and asserts the output
       is byte-unchanged from pre-change (the new pass is inert when the sections are absent). Add a work-history fixture
@@ -46,6 +52,8 @@ tasks:
     title: "Citations coverage + run-tests + skill-eval + dogfood"
     ac: [AC3, AC6, AC7]
     deps: [T2, T3]
+    status: done
+    evidence: "check-citations selftest 8/8 (adds PASS-work-history-containers: cites inside role-evidence + trajectory-synthesis scored). skill-eval-check.sh --target claude-code exit 0 (all [D] pass). Dogfood: mock wh transcript filled against bundled 3-role scorecard → 3 role grids, 3 measured, 1 verdict, 4 competency dims, reco, 11/11 transcript cites verbatim-verified (scratchpad only, uncommitted). 4 hygiene lints PASS."
     detail: >
       Confirm check-citations.mjs covers the new per-role + trajectory notes (verbatim ≥40-char transcript substrings).
       run-tests.sh green. Run the /interview-feedback skill-eval (skill-eval-check.sh --target claude-code + [J] half),
