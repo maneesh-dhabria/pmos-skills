@@ -17,6 +17,8 @@ tasks:
     ac: [AC4, AC5]
     deps: []
     parallel: false
+    status: done
+    evidence: "SKILL.md Phase Ground citation authoring rules (no-stitch + normalized extraction)"
     detail: >
       In SKILL.md Phase Ground: (1) add an explicit rule that a transcript-tier citation is a contiguous span of
       a SINGLE speaker's utterance — never stitched across `Name:` labels, never with appended words absent from
@@ -29,6 +31,8 @@ tasks:
     ac: [AC3]
     deps: []
     parallel: false
+    status: done
+    evidence: "SKILL.md Phase Score+Coach blocking STOP-before-done gate"
     detail: >
       In SKILL.md Phase Score (Grounding hard gate) and Phase Coach: make check-citations.mjs a mandatory
       exit-0 gate — the artifact is NOT presented as complete until the gate exits 0 over it. On non-zero exit,
@@ -40,6 +44,8 @@ tasks:
     ac: [AC1]
     deps: []
     parallel: false
+    status: done
+    evidence: "SKILL.md Phase Score fourth published-in-brief bucket"
     detail: >
       In SKILL.md Phase Score (Written submission → post-live frame): the bucketing MUST read the candidate-facing
       brief and treat structure/areas published there as the expected baseline. Add an explicit FOURTH, neutral
@@ -51,6 +57,8 @@ tasks:
     ac: [AC1]
     deps: [T3]
     parallel: false
+    status: done
+    evidence: "SKILL.md Phase Resolve step 4 candidate-brief resolution"
     detail: >
       In SKILL.md Phase Resolve reference-resolution: resolve the candidate-facing brief alongside the round's
       interviewer-reference/scorecard (reuse the existing precedence — no new input-plumbing convention, D4) and
@@ -61,6 +69,8 @@ tasks:
     ac: [AC1]
     deps: [T3]
     parallel: false
+    status: done
+    evidence: "fill-scorecard.mjs renderSubmissionBlock + selftest 30/30"
     detail: >
       In scripts/fill-scorecard.mjs: the post-live submission-assessment block (data-card="submission-assessment")
       gains the fourth "published in the brief" bucket. The brief becomes a consumed input to the block. Keep the
@@ -71,6 +81,8 @@ tasks:
     ac: [AC2]
     deps: []
     parallel: false
+    status: done
+    evidence: "SKILL.md Phase Score duration-confirm AskUserQuestion (defer-only free-form)"
     detail: >
       In SKILL.md Phase Score: before scoring coverage / talk-time / pace, CONFIRM the intended round duration
       with the interviewer rather than trusting the scorecard header. Interactive: an AskUserQuestion whose
@@ -83,6 +95,8 @@ tasks:
     ac: [AC6]
     deps: [T1, T2, T3, T4, T5, T6]
     parallel: false
+    status: done
+    evidence: "all selftests + skill-eval-check + 4 lints green; NI block byte-identical"
     detail: >
       Run feature-sdlc/tools/skill-eval-check.sh --target claude-code on the skill dir; run the four hygiene lints
       (non-interactive-inline, audit-recommended on the SKILL.md file, flags-vs-hints, phase-refs). Assert the

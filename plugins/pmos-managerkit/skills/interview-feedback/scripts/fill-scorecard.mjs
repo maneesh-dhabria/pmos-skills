@@ -281,6 +281,13 @@ function renderSubmissionBlock(sub) {
     );
   } else {
     const b = sub.buckets || {};
+    // Fourth, neutral baseline bucket (F1 / INV-2): structure the candidate brief
+    // itself published is the expected starting point — never interviewer-seeded,
+    // never penalized as unoriginal. Absent brief degrades to "not published".
+    inner += submissionPart(
+      'Structure published in the candidate brief (neutral baseline — not interviewer-seeded, not penalized as unoriginal)',
+      b.publishedInBrief
+    );
     inner += submissionPart('Discussed in the interview', b.discussed);
     inner += submissionPart('Directed by the interviewer’s closing brief', b.interviewerDirected);
     inner += submissionPart('Independently reached', b.independent);
@@ -445,6 +452,7 @@ function selftest() {
     submission: {
       scenario: 'post-live',
       buckets: {
+        publishedInBrief: 'The three-phase rollout scaffold was published in the brief itself. SUB_BRIEF_TOKEN',
         discussed: 'They walked through the rollout we covered live. SUB_DISCUSSED_TOKEN',
         interviewerDirected: 'Filled in the metric guardrail I asked them to add. SUB_DIRECTED_TOKEN',
         independent: 'Added a kill-switch nobody prompted. SUB_INDEPENDENT_TOKEN',
@@ -458,10 +466,35 @@ function selftest() {
     'fill(submission): post-live assessment block rendered'
   );
   assert(
-    filledSub.includes('SUB_DISCUSSED_TOKEN') &&
+    filledSub.includes('SUB_BRIEF_TOKEN') &&
+      filledSub.includes('SUB_DISCUSSED_TOKEN') &&
       filledSub.includes('SUB_DIRECTED_TOKEN') &&
       filledSub.includes('SUB_INDEPENDENT_TOKEN'),
-    'fill(submission): three post-live buckets rendered'
+    'fill(submission): four post-live buckets rendered (incl. published-in-brief baseline)'
+  );
+  // The neutral brief-baseline bucket renders ahead of the discussed/directed/independent split.
+  assert(
+    filledSub.indexOf('SUB_BRIEF_TOKEN') < filledSub.indexOf('SUB_DISCUSSED_TOKEN'),
+    'fill(submission): published-in-brief bucket precedes the contribution buckets'
+  );
+  // Absent brief bucket degrades cleanly — no empty scaffold, byte-clean.
+  const filledNoBrief = fill(skeleton, {
+    ...values,
+    submission: {
+      scenario: 'post-live',
+      buckets: {
+        discussed: 'Rollout we covered live. NB_DISCUSSED_TOKEN',
+        interviewerDirected: 'Guardrail I asked for. NB_DIRECTED_TOKEN',
+        independent: 'Kill-switch nobody prompted. NB_INDEPENDENT_TOKEN',
+      },
+      liveContext: 'Structured the missing parts. NB_CONTEXT_TOKEN',
+      shaped: 'Lifted one band. NB_SHAPED_TOKEN',
+    },
+  });
+  assert(
+    filledNoBrief.includes('NB_DISCUSSED_TOKEN') &&
+      !filledNoBrief.includes('Structure published in the candidate brief'),
+    'fill(submission): absent brief bucket renders nothing (degrades cleanly)'
   );
   assert(filledSub.includes('SUB_SHAPED_TOKEN'), 'fill(submission): shaped-the-scores close rendered');
   assert(
