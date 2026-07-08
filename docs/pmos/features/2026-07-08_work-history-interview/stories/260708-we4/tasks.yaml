@@ -12,6 +12,8 @@ tasks:
     title: "Extend scorecard-skeleton.html with additive role-evidence + trajectory-synthesis section families"
     ac: [AC2]
     deps: []
+    status: done
+    evidence: "scorecard-skeleton.html: doc-comment machine-anchor list extended with role-evidence + trajectory-synthesis families (stated NO data-dim/data-weight); template sections + CSS added before reco. Base validator on skeleton unchanged (2 pre-existing comment-placeholder failures, proven identical on HEAD). All 7 existing archetypes validate byte-unchanged."
     detail: >
       In plugins/pmos-managerkit/skills/_shared/interview-guidelines/scorecard-skeleton.html, ADD (do not
       modify the existing data-dim / reco contract): a documented <section class="role"
@@ -27,6 +29,8 @@ tasks:
     title: "Author the level-ladder reference with the static per-level weight table (D7)"
     ac: [AC4]
     deps: []
+    status: done
+    evidence: "level-ladder.md created (single home): 12 Reforge/Mehta competencies × 6 levels (apm/pm/senior-pm/group-pm/director/vp), every column pre-summed to 100 (verified by independent add + --check-override on the senior-pm column). Scope anchors, per-level marker deltas, and the operator-override extension point documented. Model reads a row, never computes."
     detail: >
       Add plugins/pmos-managerkit/skills/_shared/interview-guidelines/guidelines/work-history/level-ladder.md
       (the single home for the ladder). A hardcoded per-level table (APM, PM, Sr PM, GPM, Director/VP) mapping
@@ -41,6 +45,8 @@ tasks:
     title: "Author work-history/interviewer-reference.html (method skeleton + bias register + provenance)"
     ac: [AC1]
     deps: []
+    status: done
+    evidence: "interviewer-reference.html (~14KB) instantiates reference-skeleton.html, data-archetype=work-history: 6 method-phase areas (career-arc scan → per-role funnel → we-vs-I attribution → results/inflation catch → level & trajectory → management read + boss-rating 1–10 + reference verification), a 7-row bias register, and a provenance block citing Topgrading/Who, Lenny Rachitsky, Reforge/Mehta, Ben Kuhn, Schmidt & Hunter/Google re:Work."
     detail: >
       guidelines/work-history/interviewer-reference.html, instantiating reference-skeleton.html. Encode the areas:
       open (frame chronological walk, be specific about YOU) → career-arc scan (map scope growth/tenures/transitions,
@@ -56,6 +62,8 @@ tasks:
     title: "Author work-history/scorecard.html — fixed-N role blocks + trajectory + per-level competency dims (D3,D6,D9)"
     ac: [AC1, AC3]
     deps: [T1, T2]
+    status: done
+    evidence: "scorecard.html data-archetype=work-history from the extended skeleton: 4 candidate-blind role-evidence blocks (24 empty role: slots) + exactly 1 trajectory-synthesis (level-verdict its own input, D9); 12 competency data-dim sections on the senior-pm default weight row. Validator: ✓ valid (12 dimensions, weights sum to 100, reco present) + WH assertion passes."
     detail: >
       guidelines/work-history/scorecard.html from the extended skeleton, data-archetype="work-history". Ship a fixed
       N=4 placeholder role-evidence blocks (Role 1–4) + exactly one trajectory-synthesis block (with level-verdict).
@@ -67,6 +75,8 @@ tasks:
     title: "Extend validate-scorecard-anchors.mjs — work-history presence assertion + override sum-gate (D5,D8)"
     ac: [AC5, AC8]
     deps: [T1]
+    status: done
+    evidence: "validate-scorecard-anchors.mjs: added validateWorkHistory() guarded on data-archetype=work-history (≥1 role-evidence w/ 6 role: sub-anchors + result-measured + flags; exactly 1 trajectory-synthesis w/ 3 trajectory: sub-anchors + level-verdict) and checkOverride() sum-gate + --check-override CLI. Selftest PASS: WH good ✓, WH broken caught 6, override 6 cases. Non-WH archetypes skip the assertion (byte-unchanged)."
     detail: >
       In plugins/pmos-managerkit/skills/interview-guide/scripts/validate-scorecard-anchors.mjs, add a presence-guarded
       assertion that fires ONLY when data-archetype="work-history" (or a role-evidence section is present): require ≥1
@@ -80,6 +90,8 @@ tasks:
     title: "Register work-history in /interview-guide SKILL.md + wire --level-rubric override"
     ac: [AC5, AC7]
     deps: [T2, T5]
+    status: done
+    evidence: "SKILL.md: work-history added to § Archetypes enum (marked non-case, extended-scorecard + ladder-weighting notes); --seniority expanded to cite the full apm→vp ladder (§K — cites level-ladder.md, does not restate the table); --level-rubric <path> added to argument-hint + Flags + new Phase Scoring Sheet §work-history-weights (interpret → --check-override sum-gate → refuse+re-prompt / fallback, §H+D8). No new AskUserQuestion calls. audit-recommended: 3 calls, 2 Recommended + 1 defer-only, 0 unmarked."
     detail: >
       SKILL.md § Archetypes: add work-history to the bundled enum, marked NON-case (no output (c)). Document --seniority
       to span the full APM→VP ladder (cite level-ladder.md, do not restate the table — §K). Add the --level-rubric <path>
@@ -93,6 +105,8 @@ tasks:
     title: "Backward-compat + skill-eval + dogfood"
     ac: [AC9, AC10]
     deps: [T4, T6]
+    status: done
+    evidence: "Backward-compat: all 7 other archetypes validate ✓ unchanged. skill-eval [D] --target claude-code: 21/21 pass, 0 fail, exit 0. [J] adversarial review dispatched. 4 hygiene lints green (flags-vs-hints, phase-refs, audit-recommended, non-interactive-inline — NI block byte-identical). Dogfood: generated a Staff/group-pm work-history scoring-sheet to scratchpad (NEVER committed) — validator ✓ (weights sum 100), level-scaling confirmed (execution ↓ 9→6/10→7, leadership/strategy ↑ 7→12/11→13), 4 blank role blocks + 1 trajectory intact."
     detail: >
       Prove the other seven archetypes' scorecards still pass validate-scorecard-anchors.mjs unchanged (run it over each).
       Run the /interview-guide skill-eval (skill-eval-check.sh --target claude-code + the [J] half) and clear or accept

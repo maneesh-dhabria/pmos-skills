@@ -2,7 +2,7 @@
 name: interview-guide
 description: Author the interviewer-facing kit for one interview round before it runs — an interviewer reference (what the round tests, strong/weak markers, a probing ladder, common mistakes), a scoring sheet whose dimensions map to the role's competencies and carry machine anchors, and (for case rounds) a candidate-facing case document with a matching reference-solution. Grounded in a bundled corpus of PM round archetypes; no candidate data. Use when setting up a role's interview loop, writing an interviewer guide or brief, building a scoring sheet or scorecard for a round, or drafting a take-home / case-study prompt. Triggers: "write the interviewer guide for <round>", "build a scoring sheet for <role>", "set up the <role> interview loop", "draft a case study for the product-sense round", "make an interviewer brief".
 user-invocable: true
-argument-hint: "<role / round description…>   [--archetype <id>] [--seniority <level>] [--case | --no-case] [--business-context <path>] [--out <path>] [--role-dir <path>] [--non-interactive]"
+argument-hint: "<role / round description…>   [--archetype <id>] [--seniority <level>] [--level-rubric <path>] [--case | --no-case] [--business-context <path>] [--out <path>] [--role-dir <path>] [--non-interactive]"
 ---
 
 # Interview guide
@@ -30,12 +30,13 @@ Resolve the mode from the inputs — an explicit `--archetype` (or "use the stan
 
 ## Flags & natural language
 
-Every option also has a natural-language form — infer it from the request; an explicit flag overrides. Canonical phrasings: "use the <name> round / archetype" ≡ `--archetype <id>`, "this is a senior / staff / new-grad role" ≡ `--seniority <level>`, "include a case / take-home" ≡ `--case`, "no case, just the reference and sheet" ≡ `--no-case`, "here's the business context / case brief" ≡ `--business-context <path>`, "write it under <path>" ≡ `--out <path>`, "put it in the interview-feedback role at <path>" ≡ `--role-dir <path>`.
+Every option also has a natural-language form — infer it from the request; an explicit flag overrides. Canonical phrasings: "use the <name> round / archetype" ≡ `--archetype <id>`, "this is a senior / staff / new-grad role" ≡ `--seniority <level>`, "use our leveling guide / this rubric for the weights" ≡ `--level-rubric <path>`, "include a case / take-home" ≡ `--case`, "no case, just the reference and sheet" ≡ `--no-case`, "here's the business context / case brief" ≡ `--business-context <path>`, "write it under <path>" ≡ `--out <path>`, "put it in the interview-feedback role at <path>" ≡ `--role-dir <path>`.
 
 Contract flags (machine-coupled, typed, or headless-determinism — §I), shown in `argument-hint`:
 
 - `--archetype <id>` — pin the round archetype (typed value; one of the bundled ids in § Archetypes, or `custom`). Selects best-practices grounding.
-- `--seniority <level>` — pin the seniority the guide is tailored to (typed value, e.g. `new-grad`/`senior`/`staff`); shifts the bar in the markers and the scale calibration.
+- `--seniority <level>` — pin the seniority the guide is tailored to (typed value, e.g. `new-grad`/`senior`/`staff`); shifts the bar in the markers and the scale calibration. For the **work-history** archetype it also selects the competency **weight row** from the level ladder (`../_shared/interview-guidelines/guidelines/work-history/level-ladder.md`), whose full rung set is `apm` · `pm` · `senior-pm` (default) · `group-pm` · `director` · `vp` (with the common aliases mapped in that file's ladder table). The model reads the selected row's weights verbatim — it never computes them (§H).
+- `--level-rubric <path>` — **work-history only**; typed path to an operator's own leveling guide (free-form markdown) that overrides the bundled level-ladder weights (design D8). See Phase [Scoring Sheet](#scoring-sheet) for the interpret → sum-gate → refuse/fallback contract; a non-summing override is never emitted.
 - `--case` / `--no-case` — force or suppress the case document (headless determinism; overrides the archetype-derived default of Phase [Collect](#collect)). `--case` on a non-case archetype requires a business context (see below); `--no-case` on a case archetype emits only (a)+(b).
 - `--business-context <path>` — typed path to the business context the case is authored from (design D7). Without it, a case DEFERs under `--non-interactive` (D11 — never fabricated).
 - `--out <path>` — output root override (typed path; default `./interview-guides/`, see Phase [Write](#write)).
@@ -165,6 +166,22 @@ node scripts/validate-scorecard-anchors.mjs <scoring-sheet.html>
 
 It asserts every required anchor is present and that the weights are integers summing to 100 (§H: the script owns the arithmetic — never total the weights by hand). A non-zero exit **blocks the run** — fix the sheet and re-run until it passes; surface the script's `✓ scorecard anchors:` line to the operator on pass. (`--selftest` exercises the validator over a good + broken fixture.)
 
+### Work-history weighting (archetype `work-history`) {#work-history-weights}
+
+For the work-history archetype the scoring sheet is the extended one — the 12 Reforge/Mehta competency `data-dim`s plus the `role-evidence` and `trajectory-synthesis` families — and its weights are **selected, not assigned** (design D7/D8):
+
+1. **Default: the level ladder.** Resolve the level from `--seniority` (else infer from the role title; else `senior-pm`) and copy the **matching column** of the weight table in `../_shared/interview-guidelines/guidelines/work-history/level-ladder.md` verbatim into the `data-weight` anchors. Every column is pre-summed to 100 — you read a row, you do not compute one (§H). The checked-in `scorecard.html` ships the `senior-pm` row as its default.
+2. **Override: `--level-rubric <path>` (§H hard gate, D8).** When the operator supplies a leveling guide, interpret its free-form markdown into a per-competency integer weight set for the selected level, then gate it deterministically:
+
+   ```
+   node scripts/validate-scorecard-anchors.mjs --check-override '{"<competency>": <int>, …}'
+   ```
+
+   - **Exit 0** → the set is all non-negative integers summing to 100; use it for the `data-weight` anchors.
+   - **Non-zero exit** → the override is **refused** (never emitted). Interactive: re-prompt the operator to fix the rubric (the Recommended option is "fall back to the bundled `<level>` ladder row"). Non-interactive: emit the stderr error and **fall back to the bundled ladder row**, logging an open question. A malformed override never produces a malformed sheet — the ladder is always the safe floor.
+
+   The model never totals the override by hand; `--check-override` owns that arithmetic, exactly as the sheet gate above owns the sum-to-100 check.
+
 ## Phase: Case Document {#case}
 
 **Case rounds only** (Phase [Collect](#collect) step 5 resolved case = in-scope with a business context). Author output (c): a candidate-facing case document (1–2 pages) built from the supplied business context, following `reference/case-authoring.md`. Author, in the same pass and grounded in the same context:
@@ -195,7 +212,12 @@ After a run, if you discovered something reusable — an archetype-mapping judgm
 
 The bundled PM round archetypes (each with a filled `interviewer-reference.html` + `scorecard.html` under `../_shared/interview-guidelines/guidelines/<id>/`):
 
-`recruiter-screen`, `product-sense`, `analytical`, `technical`, `behavioral`, `case-study`, `case-presentation` — `| custom` when none fits (areas built from the supplied competencies). `case-study` and `case-presentation` are the case archetypes that pull in output (c) by default.
+`recruiter-screen`, `product-sense`, `analytical`, `technical`, `behavioral`, `work-history`, `case-study`, `case-presentation` — `| custom` when none fits (areas built from the supplied competencies). `case-study` and `case-presentation` are the case archetypes that pull in output (c) by default.
+
+**`work-history`** is a **non-case** archetype (emits only (a)+(b) — a `--case` on it still requires a business context, but the round itself is a structured chronological deep-dive, not a case). It is distinctive in two ways, both driven by design D6/D7/D9:
+
+- Its `scorecard.html` carries the additive `role-evidence` (fixed 4 candidate-blind role blocks) and `trajectory-synthesis` (level-verdict) families on top of the 12 Reforge/Mehta competency `data-dim`s — see `../_shared/interview-guidelines/scorecard-skeleton.html`'s documented families.
+- Its competency **weights come from the level ladder**, not free assignment: `--seniority` selects the pre-summed weight row (`level-ladder.md`); `--level-rubric <path>` overrides it. Because the ladder rows and the `--check-override` gate own the arithmetic, you never total work-history weights by hand.
 
 ## Confidentiality {#confidentiality}
 

@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<!--
+  Work-history round scorecard — /interview-guide (pmos-managerkit), design §16.1 + §16.7.
+  Instantiates the canonical scorecard DOM contract (../../scorecard-skeleton.html), using its additive
+  role-evidence + trajectory-synthesis families. data-archetype="work-history".
+
+  Shape (design D6/D7/D9):
+    - 4 CANDIDATE-BLIND role-evidence blocks (Role 1–4) — placeholders the interviewer fills per role.
+    - exactly 1 trajectory-synthesis block, carrying the level-verdict (below|at|above) — its OWN input
+      that FEEDS the reco but is not computed from it (D9).
+    - 12 competency data-dim sections (Reforge/Mehta framework), weighted for the SHIPPED DEFAULT level
+      (Senior PM) per level-ladder.md; data-weight values sum to 100. --seniority re-selects the row;
+      --level-rubric overrides it (gated by validate-scorecard-anchors.mjs).
+
+  SYNC DEPENDENCY: the data-weight values below materialize the `senior-pm` COLUMN of level-ladder.md.
+  If that ladder row is re-tuned, update these weights to match (they must stay equal, and still sum to
+  100). This is the one hardcoded copy of a ladder row; the ladder is the source of truth.
+  Self-contained HTML — no external assets, editable in a browser. Pairs with interviewer-reference.html.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="interview-feedback">
+<title>Scorecard — Work history — {{candidate}}</title>
+<style>
+  :root{
+    --bg:#f8f5ef; --surface:#fff; --border:#e2dac9; --rule:#d9cfbd;
+    --text:#201e1a; --muted:#655e54; --accent:#b8431a;
+    --green:#16a34a; --red:#b91c1c;
+    --serif:Georgia,"Iowan Old Style",serif; --sans:-apple-system,Segoe UI,Roboto,sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--serif);line-height:1.55;font-size:16px}
+  main{max-width:880px;margin:0 auto;padding:2.2rem 1.4rem 4rem}
+  h1{font-family:var(--sans);font-size:1.55rem;margin:0 0 .2rem}
+  .sub{color:var(--muted);font-size:.9rem;margin:0 0 1.6rem;font-family:var(--sans)}
+  .meta{display:flex;flex-wrap:wrap;gap:1.2rem;font-family:var(--sans);font-size:.85rem;color:var(--muted);border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:.7rem 0;margin-bottom:1.4rem}
+  .band{font-family:var(--sans);font-size:.82rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:1.8rem 0 .6rem}
+  .note{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.8rem 1.1rem;margin:0 0 1.2rem;font-size:.9rem;font-family:var(--sans);color:var(--muted)}
+  .note strong{color:var(--text)}
+  .role{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin:0 0 1rem}
+  .role-head{display:flex;justify-content:space-between;align-items:baseline;gap:1rem}
+  .role-head .role-name{font-family:var(--sans);font-weight:600;font-size:1.02rem}
+  .role-grid{display:grid;grid-template-columns:auto 1fr;gap:.25rem .8rem;font-size:.92rem;margin:.5rem 0}
+  .role-grid .k{font-family:var(--sans);font-size:.8rem;color:var(--muted)}
+  .role [data-input^="role:"]:empty::before,.trajectory [data-input^="trajectory:"]:empty::before{content:"— not captured —";color:var(--muted);font-style:italic}
+  .field{display:flex;gap:.5rem;align-items:baseline;margin:.5rem 0;font-family:var(--sans);font-size:.85rem}
+  .field .field-label{color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-size:.72rem}
+  .field [data-measured],.field [data-verdict]{border:1px solid var(--border);border-radius:6px;padding:.25rem .6rem}
+  .field [data-measured][data-selected],.field [data-verdict][data-selected]{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
+  .trajectory{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin:0 0 1rem;border-top:3px solid var(--accent)}
+  .trajectory .traj-name{font-family:var(--sans);font-weight:600;font-size:1.02rem;margin:0 0 .4rem}
+  .trajectory .k{font-family:var(--sans);font-size:.8rem;color:var(--muted);display:block;margin-top:.4rem}
+  .trajectory [data-input^="trajectory:"]{font-size:.95rem;margin:.1rem 0 .4rem}
+  .dim{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin:0 0 1rem}
+  .dim-head{display:flex;justify-content:space-between;align-items:baseline;gap:1rem}
+  .dim-name{font-family:var(--sans);font-weight:600;font-size:1.02rem}
+  .bucket{font-family:var(--sans);font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .weight{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+  .anchors{display:flex;justify-content:space-between;gap:1rem;font-family:var(--sans);font-size:.78rem;color:var(--muted);margin:.3rem 0}
+  .anchors .lo{max-width:46%}
+  .anchors .hi{max-width:46%;text-align:right}
+  .scale{display:flex;gap:.4rem;margin:.6rem 0}
+  .scale [data-v]{display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;border:1px solid var(--border);border-radius:6px;font-family:var(--mono);cursor:default}
+  .scale [data-v][data-selected]{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700}
+  .notes{font-size:.95rem;margin:.5rem 0 0}
+  .notes[data-input^="notes"]:empty::before{content:"— not yet scored —";color:var(--muted);font-style:italic}
+  .flags{display:flex;gap:2rem;margin:.6rem 0 0;font-family:var(--sans);font-size:.88rem}
+  ul[data-flags]{margin:.2rem 0;padding-left:1.1rem}
+  ul[data-flags="green"] li{color:var(--green)}
+  ul[data-flags="red"] li{color:var(--red)}
+  .reco{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin-top:1.6rem}
+  .reco-opts{display:flex;flex-wrap:wrap;gap:.5rem;margin:.5rem 0}
+  .reco-opts [data-reco]{font-family:var(--sans);font-size:.85rem;border:1px solid var(--border);border-radius:6px;padding:.35rem .7rem}
+  .reco-opts [data-reco][data-selected]{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
+</style>
+</head>
+<body>
+<main data-card="scorecard" data-archetype="work-history">
+  <h1>Work history — Scorecard</h1>
+  <p class="sub">work-history round · Senior PM weighting (default; re-select with --seniority) · weights sum to 100</p>
+  <div class="meta">
+    <span>Candidate: {{candidate}}</span>
+    <span>Round: Work history</span>
+    <span>Target level: {{level}}</span>
+    <span>Interviewer: {{lead_interviewer}}</span>
+    <span>Date: {{date}}</span>
+  </div>
+
+  <div class="note">
+    <strong>Fill the role blocks from evidence, then synthesise.</strong> One block per role you went
+    deep on (blank ones are fine). Capture the candidate's <em>own</em> contribution — "I", not "we" —
+    and whether the result was measured. Then read the arc in the trajectory block, set the
+    <strong>level verdict</strong>, and only then score the competencies and the overall reco.
+  </div>
+
+  <!-- ── Role evidence: 4 candidate-blind placeholders (design D6). Fill per role probed. ── -->
+  <p class="band">Role evidence</p>
+
+  <section class="role" data-card="role-evidence" data-role="1">
+    <div class="role-head"><span class="role-name">Role 1 (earliest probed)</span></div>
+    <div class="role-grid">
+      <span class="k">Company / stage</span><div data-input="role:company"></div>
+      <span class="k">Title</span><div data-input="role:title"></div>
+      <span class="k">Tenure</span><div data-input="role:tenure"></div>
+      <span class="k">Scope (feature→area→product→portfolio→org)</span><div data-input="role:scope"></div>
+      <span class="k">Their contribution (I, not we)</span><div data-input="role:contribution"></div>
+      <span class="k">Result</span><div data-input="role:result"></div>
+    </div>
+    <div class="field" data-field="result-measured">
+      <span class="field-label">Result measured?</span>
+      <span data-measured="yes">yes</span><span data-measured="unclear">unclear</span><span data-measured="no">no</span>
+    </div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
+    </div>
+  </section>
+
+  <section class="role" data-card="role-evidence" data-role="2">
+    <div class="role-head"><span class="role-name">Role 2</span></div>
+    <div class="role-grid">
+      <span class="k">Company / stage</span><div data-input="role:company"></div>
+      <span class="k">Title</span><div data-input="role:title"></div>
+      <span class="k">Tenure</span><div data-input="role:tenure"></div>
+      <span class="k">Scope (feature→area→product→portfolio→org)</span><div data-input="role:scope"></div>
+      <span class="k">Their contribution (I, not we)</span><div data-input="role:contribution"></div>
+      <span class="k">Result</span><div data-input="role:result"></div>
+    </div>
+    <div class="field" data-field="result-measured">
+      <span class="field-label">Result measured?</span>
+      <span data-measured="yes">yes</span><span data-measured="unclear">unclear</span><span data-measured="no">no</span>
+    </div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
+    </div>
+  </section>
+
+  <section class="role" data-card="role-evidence" data-role="3">
+    <div class="role-head"><span class="role-name">Role 3</span></div>
+    <div class="role-grid">
+      <span class="k">Company / stage</span><div data-input="role:company"></div>
+      <span class="k">Title</span><div data-input="role:title"></div>
+      <span class="k">Tenure</span><div data-input="role:tenure"></div>
+      <span class="k">Scope (feature→area→product→portfolio→org)</span><div data-input="role:scope"></div>
+      <span class="k">Their contribution (I, not we)</span><div data-input="role:contribution"></div>
+      <span class="k">Result</span><div data-input="role:result"></div>
+    </div>
+    <div class="field" data-field="result-measured">
+      <span class="field-label">Result measured?</span>
+      <span data-measured="yes">yes</span><span data-measured="unclear">unclear</span><span data-measured="no">no</span>
+    </div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
+    </div>
+  </section>
+
+  <section class="role" data-card="role-evidence" data-role="4">
+    <div class="role-head"><span class="role-name">Role 4 (most recent)</span></div>
+    <div class="role-grid">
+      <span class="k">Company / stage</span><div data-input="role:company"></div>
+      <span class="k">Title</span><div data-input="role:title"></div>
+      <span class="k">Tenure</span><div data-input="role:tenure"></div>
+      <span class="k">Scope (feature→area→product→portfolio→org)</span><div data-input="role:scope"></div>
+      <span class="k">Their contribution (I, not we)</span><div data-input="role:contribution"></div>
+      <span class="k">Result</span><div data-input="role:result"></div>
+    </div>
+    <div class="field" data-field="result-measured">
+      <span class="field-label">Result measured?</span>
+      <span data-measured="yes">yes</span><span data-measured="unclear">unclear</span><span data-measured="no">no</span>
+    </div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
+    </div>
+  </section>
+
+  <!-- ── Trajectory synthesis: exactly one. level-verdict is its own input (D9). ── -->
+  <p class="band">Trajectory</p>
+  <section class="trajectory" data-card="trajectory-synthesis">
+    <p class="traj-name">Trajectory synthesis</p>
+    <span class="k">Scope arc across roles</span>
+    <div data-input="trajectory:scope-arc"></div>
+    <span class="k">Patterns (recurring strengths / tells)</span>
+    <div data-input="trajectory:patterns"></div>
+    <span class="k">Fit to target level</span>
+    <div data-input="trajectory:level-fit"></div>
+    <div class="field" data-field="level-verdict">
+      <span class="field-label">Level vs. target</span>
+      <span data-verdict="below">below</span><span data-verdict="at">at</span><span data-verdict="above">above</span>
+    </div>
+  </section>
+
+  <!-- ── Competency dimensions: Reforge/Mehta 12, Senior PM default weights (sum 100). ── -->
+  <p class="band">Product Execution</p>
+
+  <section class="dim" data-dim="feature-specification" data-weight="9">
+    <div class="dim-head">
+      <span class="dim-name">Feature specification <span class="bucket">· Product Execution</span></span>
+      <span class="weight">weight 9</span>
+    </div>
+    <div class="anchors">
+      <span class="lo">1 — vague specs, requirements discovered in build</span>
+      <span class="hi">4 — crisp, testable specs; edge cases and trade-offs pre-resolved</span>
+    </div>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="notes" data-input="notes:feature-specification"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
+    </div>
+  </section>
+
+  <section class="dim" data-dim="product-delivery" data-weight="10">
+    <div class="dim-head">
+      <span class="dim-name">Product delivery <span class="bucket">· Product Execution</span></span>
+      <span class="weight">weight 10</span>
+    </div>
+    <div class="anchors">
+      <span class="lo">1 — slips, thrash, ships late without a clear why</span>
+      <span class="hi">4 — reliably ships the right thing; unblocks the team through ambiguity</span>
+    </div>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="notes" data-input="notes:product-delivery"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
+    </div>
+  </section>
+
+  <section class="dim" data-dim="quality-assurance" data-weight="7">
+    <div class="dim-head">
+      <span class="dim-name">Quality assurance <span class="bucket">· Product Execution</span></span>
+      <span class="weight">weight 7</span>
+    </div>
+    <div class="anchors">
+      <span class="lo">1 — ships bugs, no quality bar, learns of issues from users</span>
+      <span class="hi">4 — holds a deliberate quality bar; catches issues before they ship</span>
+    </div>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="notes" data-input="notes:quality-assurance"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
+    </div>
+  </section>
+
+  <p class="band">Customer Insight</p>
+
+  <section class="dim" data-dim="fluency-with-data" data-weight="9">
+    <div class="dim-head">
+      <span class="dim-name">Fluency with data <span class="bucket">· Customer Insight</span></span>
+      <span class="weight">weight 9</span>
+    </div>
+    <div class="anchors">
+      <span class="lo">1 — decisions by opinion; can't read or question a metric</span>
+      <span class="hi">4 — instruments, reads, and stress-tests data; knows its limits</span>
+    </div>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="notes" data-input="notes:fluency-with-data"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
+    </div>
+  </section>
+
+  <section class="dim" data-dim="voice-of-customer" data-weight="9">
+    <div class="dim-head">
+      <span class="dim-name">Voice of the customer <span class="bucket">· Customer Insight</span></span>
+      <span class="weight">weight 9</span>
+    </div>
+    <div class="anchors">
+      <span class="lo">1 — no first-hand user contact; builds by assumption</span>
+      <span class="hi">4 — deep, ongoing user contact that visibly shaped the product</span>
+    </div>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="notes" data-input="notes:voice-of-customer"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
+    </div>
+  </section>
+
+  <section class="dim" data-dim="user-experience-design" data-weight="6">
+    <div class="dim-head">
+      <span class="dim-name">User-experience design <span class="bucket">· Customer Insight</span></span>
+      <span class="weight">weight 6</span>
+    </div>
+    <div class="anchors">
+      <span class="lo">1 — no craft sense; hands off UX entirely</span>
+      <span class="hi">4 — strong product-design judgment; partners deeply with design</span>
+    </div>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="notes" data-input="notes:user-experience-design"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
+    </div>
+  </section>
+
+  <p class="band">Product Strategy</p>
+
+  <section class="dim" data-dim="business-outcome-ownership" data-weight="11">
+    <div class="dim-head">
+      <span class="dim-name">Business-outcome ownership <span class="bucket">· Product Strategy</span></span>
+      <span class="weight">weight 11</span>
+    </div>
+    <div class="anchors">
+      <span class="lo">1 — owns outputs, not outcomes; no line to the business</span>
+      <span class="hi">4 — owns a business metric end-to-end; trades features for outcomes</span>
+    </div>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="notes" data-input="notes:business-outcome-ownership"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
+    </div>
+  </section>
+
+  <section class="dim" data-dim="product-vision" data-weight="10">
+    <div class="dim-head">
+      <span class="dim-name">Product vision <span class="bucket">· Product Strategy</span></span>
+      <span class="weight">weight 10</span>
+    </div>
+    <div class="anchors">
+      <span class="lo">1 — executes others' vision; no point of view of their own</span>
+      <span class="hi">4 — sets a compelling, evidence-grounded vision others rally to</span>
+    </div>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="notes" data-input="notes:product-vision"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
+    </div>
+  </section>
+
+  <section class="dim" data-dim="strategic-impact" data-weight="7">
+    <div class="dim-head">
+      <span class="dim-name">Strategic impact <span class="bucket">· Product Strategy</span></span>
+      <span class="weight">weight 7</span>
+    </div>
+    <div class="anchors">
+      <span class="lo">1 — work stayed local; no leverage beyond the immediate team</span>
+      <span class="hi">4 — shaped the roadmap / company bet; impact well beyond own surface</span>
+    </div>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="notes" data-input="notes:strategic-impact"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
+    </div>
+  </section>
+
+  <p class="band">Influencing People</p>
+
+  <section class="dim" data-dim="stakeholder-management" data-weight="9">
+    <div class="dim-head">
+      <span class="dim-name">Stakeholder management <span class="bucket">· Influencing People</span></span>
+      <span class="weight">weight 9</span>
+    </div>
+    <div class="anchors">
+      <span class="lo">1 — surprises stakeholders; alignment happens to them, not by them</span>
+      <span class="hi">4 — builds durable cross-functional alignment ahead of need</span>
+    </div>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="notes" data-input="notes:stakeholder-management"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
+    </div>
+  </section>
+
+  <section class="dim" data-dim="team-leadership" data-weight="7">
+    <div class="dim-head">
+      <span class="dim-name">Team leadership <span class="bucket">· Influencing People</span></span>
+      <span class="weight">weight 7</span>
+    </div>
+    <div class="anchors">
+      <span class="lo">1 — individual contributor only; no leverage through others</span>
+      <span class="hi">4 — grows people and leads through them; multiplies a team</span>
+    </div>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="notes" data-input="notes:team-leadership"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
+    </div>
+  </section>
+
+  <section class="dim" data-dim="managing-up" data-weight="6">
+    <div class="dim-head">
+      <span class="dim-name">Managing up <span class="bucket">· Influencing People</span></span>
+      <span class="weight">weight 6</span>
+    </div>
+    <div class="anchors">
+      <span class="lo">1 — waits for direction; no visibility management with leadership</span>
+      <span class="hi">4 — manages leadership expectations and disagreements skillfully</span>
+    </div>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="notes" data-input="notes:managing-up"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
+    </div>
+  </section>
+
+  <section class="reco">
+    <div class="dim-name">Overall recommendation</div>
+    <p class="note" style="margin:.5rem 0 .3rem;border:none;padding:0;background:none">
+      The <strong>level verdict</strong> above is its own input — it <em>informs</em> this hire/no-hire
+      call but is not the same axis (D9). A strong candidate below the target level is a hire at a
+      different level, not a no-hire.
+    </p>
+    <div class="reco-opts" data-input="reco">
+      <span data-reco="strong-no">Strong no-hire</span>
+      <span data-reco="no">No-hire</span>
+      <span data-reco="yes">Hire</span>
+      <span data-reco="strong-yes">Strong hire</span>
+    </div>
+    <div class="notes" data-input="notes:reco"></div>
+  </section>
+</main>
+</body>
+</html>
