@@ -13,7 +13,7 @@ updated: 2026-07-09
 design_doc: docs/pmos/features/2026-07-08_artifact-prd-template-enhancements/02_design.html
 feature_folder: docs/pmos/features/2026-07-08_artifact-prd-template-enhancements/
 parent: 260708-esq
-released:
+released: v2.104.0
 dependencies: [260708-j79]
 plan: docs/pmos/features/2026-07-08_artifact-prd-template-enhancements/stories/260709-v3z/03_plan.html
 ---

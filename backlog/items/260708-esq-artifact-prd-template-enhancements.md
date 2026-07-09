@@ -4,7 +4,7 @@ id: 260708-esq
 title: "Enhance the /artifact PRD template — MSF narrative section, /artifact-critique borrows (alternatives+hypothesis, pre-mortem, conditional AI-risk), Doshi-categorized question-first metrics, mandated per-story validation, and a user-facing conceptual-wireframes hook"
 type: feature
 kind: epic
-status: defined
+status: released
 route: skill
 priority: should
 labels: [pmos-toolkit, artifact, prd-template, skill]
@@ -13,7 +13,7 @@ updated: 2026-07-09
 design_doc: docs/pmos/features/2026-07-08_artifact-prd-template-enhancements/02_design.html
 feature_folder: docs/pmos/features/2026-07-08_artifact-prd-template-enhancements/
 parent:
-released:
+released: v2.104.0
 dependencies: []
 ---
 

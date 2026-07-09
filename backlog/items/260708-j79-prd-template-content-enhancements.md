@@ -10,13 +10,13 @@ priority: should
 labels: [pmos-toolkit, artifact, prd-template, skill]
 claimed_by: null
 driver_holder: null
-worktree: /Users/maneeshdhabria/Desktop/Projects/agent-skills/.claude/worktrees/feat-260708-j79
+worktree:
 created: 2026-07-08
 updated: 2026-07-09
 design_doc: docs/pmos/features/2026-07-08_artifact-prd-template-enhancements/02_design.html
 feature_folder: docs/pmos/features/2026-07-08_artifact-prd-template-enhancements/
 parent: 260708-esq
-released:
+released: v2.104.0
 dependencies: []
 plan: docs/pmos/features/2026-07-08_artifact-prd-template-enhancements/stories/260708-j79/03_plan.html
 ---
