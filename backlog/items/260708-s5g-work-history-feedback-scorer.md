@@ -12,10 +12,11 @@ dependencies: [260708-we4]
 feature_folder: docs/pmos/features/2026-07-08_work-history-interview/
 design_doc: docs/pmos/features/2026-07-08_work-history-interview/02_design.html
 plan_doc: docs/pmos/features/2026-07-08_work-history-interview/stories/260708-s5g/03_plan.html
-worktree: /Users/maneeshdhabria/Desktop/Projects/agent-skills/.claude/worktrees/feat-260708-s5g
+worktree:
 claimed_by: null
 driver_holder: null
 labels: [pmos-managerkit, interview-feedback, work-history, scorer]
+released: v0.6.0
 created: 2026-07-08
 updated: 2026-07-09
 ---

@@ -12,8 +12,8 @@ dependencies: []
 feature_folder: docs/pmos/features/2026-07-08_work-history-interview/
 design_doc: docs/pmos/features/2026-07-08_work-history-interview/02_design.html
 plan_doc: docs/pmos/features/2026-07-08_work-history-interview/stories/260708-we4/03_plan.html
-worktree: /Users/maneeshdhabria/Desktop/Projects/agent-skills/.claude/worktrees/feat-260708-we4
-released:
+worktree:
+released: v0.6.0
 claimed_by:
 driver_holder:
 labels: [pmos-managerkit, interview-guide, work-history, substrate]

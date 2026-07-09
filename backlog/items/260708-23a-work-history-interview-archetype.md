@@ -5,13 +5,14 @@ kind: epic
 title: Work-history deep-dive interview archetype for /interview-guide + shared substrate + /interview-feedback scorer
 type: enhancement
 priority: should
-status: defined
+status: released
 route: skill
 feature_folder: docs/pmos/features/2026-07-08_work-history-interview/
 requirements_doc: docs/pmos/features/2026-07-08_work-history-interview/01_requirements.html
 spec_doc:
 design_doc: docs/pmos/features/2026-07-08_work-history-interview/02_design.html
 labels: [pmos-managerkit, interview-guide, interview-feedback, work-history, topgrading, three-loop]
+released: v0.6.0
 created: 2026-07-08
 updated: 2026-07-08
 ---
