@@ -11,14 +11,14 @@ labels: [pmos-managerkit, interview-feedback, grounding, skill]
 created: 2026-07-07
 updated: 2026-07-08
 parent: 260707-rbc
-released:
+released: v0.5.0
 claimed_by:
 driver_holder:
 dependencies: []
 design_doc: docs/pmos/features/2026-07-07_interview-feedback-grounding-fixes/02_design.html
 plan_doc: docs/pmos/features/2026-07-07_interview-feedback-grounding-fixes/stories/260707-mx5/03_plan.html
 feature_folder: docs/pmos/features/2026-07-07_interview-feedback-grounding-fixes/
-worktree: /Users/maneeshdhabria/Desktop/Projects/agent-skills-260707-mx5
+worktree:
 ---
 
 ## Context

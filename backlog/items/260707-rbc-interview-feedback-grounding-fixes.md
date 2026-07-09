@@ -4,7 +4,7 @@ id: 260707-rbc
 title: "/interview-feedback — analytical & grounding correctness fixes: brief-baseline submission bucketing, confirmed-duration scoring, blocking citation gate + no-stitch-across-labels, normalized verbatim extraction"
 type: bug
 kind: epic
-status: defined
+status: released
 route: skill
 priority: must
 labels: [pmos-managerkit, interview-feedback, grounding, skill, from-feedback]
@@ -13,7 +13,7 @@ updated: 2026-07-07
 design_doc: docs/pmos/features/2026-07-07_interview-feedback-grounding-fixes/02_design.html
 feature_folder: docs/pmos/features/2026-07-07_interview-feedback-grounding-fixes/
 parent:
-released:
+released: v0.5.0
 dependencies: []
 ---
 
