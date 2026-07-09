@@ -4,12 +4,15 @@ id: 260708-j79
 title: "PRD template + eval content enhancements — MSF §8 narrative, §6 alternatives+falsifiable-hypothesis, §5 Doshi-categorized question-first metrics, §9 mandated per-story validation, §11 pre-mortem + conditional AI-risk, section renumber, user_facing flag"
 type: feature
 kind: story
-status: planned
+status: in-progress
 route: skill
 priority: should
 labels: [pmos-toolkit, artifact, prd-template, skill]
+claimed_by: build:832dec02-f66e-433b-bf4d-eeeb7db48e25
+driver_holder: build:832dec02-f66e-433b-bf4d-eeeb7db48e25
+worktree: /Users/maneeshdhabria/Desktop/Projects/agent-skills/.claude/worktrees/feat-260708-j79
 created: 2026-07-08
-updated: 2026-07-08
+updated: 2026-07-09
 design_doc: docs/pmos/features/2026-07-08_artifact-prd-template-enhancements/02_design.html
 feature_folder: docs/pmos/features/2026-07-08_artifact-prd-template-enhancements/
 parent: 260708-esq
