@@ -33,9 +33,9 @@ files_to_read:
 -->
 Write a TL;DR that names the customer/segment, the change, and the expected outcome in ≤4 sentences.
 
-## §2 Problem & Customer
+## §2 Problem, Customer & Framing
 <!-- tier: both -->
-<!-- purpose: make the problem concrete with evidence and a specific customer segment -->
+<!-- purpose: make the problem concrete with evidence and a specific customer segment, then FRAME it before any solution work — reframe the problem as opportunity (How Might We) and pressure-test that it is the right problem (What are you really trying to do?) -->
 <!-- guidance:
   - Specific segment named with JTBD (job-to-be-done)
   - ≥1 evidence cited (quote, ticket reference, data point, or research session ref)
@@ -44,6 +44,34 @@ Write a TL;DR that names the customer/segment, the change, and the expected outc
   - No solution language ("we will build X") smuggled into the problem
 -->
 Describe the specific customer segment, their job-to-be-done, the evidence for the problem, and what they do today as a workaround.
+
+**How Might We**
+<!-- tier: both -->
+<!-- guidance:
+  - Reframe the problem above as 1–3 "How might we…" questions that open a solution space WITHOUT naming a
+    solution — an HMW turns a stated problem into an opportunity for options. (This is /shape's FRAME discipline
+    carried into the PRD; if you already ran /shape, paste its HMW here rather than re-deriving it.)
+  - Rule: a well-formed HMW names the outcome/change for the §2 segment, never a feature or mechanism.
+    Good: "How might we get a tier-1 agent to an accurate first response faster?" Bad (smuggles a solution):
+    "How might we add an AI draft button?" — that is an answer, not a reframe.
+  - Lite/brief mode: a single "How might we…" line is acceptable; the sub-head must still be present.
+-->
+Write 1–3 "How might we…" reframes of the problem above that open the solution space without naming a solution.
+
+**What are you really trying to do?**
+<!-- tier: both -->
+<!-- guidance:
+  - A one-paragraph assumed-solution gut-check (the WAYRTTD inversion carried into the PRD; /wayrttd runs this
+    ladder live upstream — reference it, do not restate the full ladder here). Three compact steps, then a verdict:
+    (1) name the solution you are implicitly assuming; (2) climb one level — what real goal is that solution in
+    service of; (3) re-test — does the assumed solution still look like the best route to that goal, or does the
+    climb surface a cheaper/broader option?
+  - Rule: the note must actually climb. A gut-check that just restates the assumed solution as the goal
+    ("we are trying to ship the draft feature") misses the point and fails.
+  - End with a one-word verdict: proceed / reconsider / pivot.
+  - Lite/brief mode: two sentences — the assumed solution + the climbed goal + the verdict — is acceptable.
+-->
+Name the solution you are assuming, climb to the real goal it serves, re-test whether it is still the best route, and record a proceed / reconsider / pivot verdict.
 
 ## §3 Why Now
 <!-- tier: full -->

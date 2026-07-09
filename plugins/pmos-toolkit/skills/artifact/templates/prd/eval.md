@@ -34,7 +34,7 @@ Per-section evaluation items for the PRD template. Two consumers:
 
 ---
 
-## §2 Problem & Customer
+## §2 Problem, Customer & Framing
 
 - id: evidence-cited
   kind: precondition
@@ -66,6 +66,18 @@ Per-section evaluation items for the PRD template. Two consumers:
   kind: judgment
   tier: [lite, full]
   check: no "we will build X" solution language smuggled into the problem statement
+  severity: medium
+
+- id: hmw-present
+  kind: judgment
+  tier: [lite, full]
+  check: §2 carries a "How Might We" sub-head with ≥1 well-formed "How might we…" reframe that names an outcome/change for the segment, not a feature or mechanism (a solution-shaped HMW fails)
+  severity: medium
+
+- id: wayrttd-gutcheck
+  kind: judgment
+  tier: [lite, full]
+  check: §2 carries a "What are you really trying to do?" gut-check that names the assumed solution, climbs to the real goal it serves, and records a proceed/reconsider/pivot verdict (a note that merely restates the assumed solution as the goal fails)
   severity: medium
 
 ---
