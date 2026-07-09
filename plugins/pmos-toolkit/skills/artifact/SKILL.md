@@ -23,12 +23,12 @@ Generate, refine, and update structured PM/eng artifacts (PRD, Experiment Design
 These instructions use Claude Code tool names. In other environments:
 - **No interactive prompt tool:** State your assumption inline, document it in the artifact's frontmatter as `assumed: <field>`, proceed. User reviews after.
 - **No subagents:** Run the refinement reviewer inline as the same agent. Same eval.md; same output format. The persona panel (3.5) and research fan-out (7.5) collapse to single-agent passes.
-- **`/artifact` is itself running as a subagent (skip-with-note):** skills cannot be invoked by a subagent, so the post-draft pipeline stages that call child skills — **3.7 diagram (`/diagram`), 3.8 polish (`/polish`), 3.9 grill (`/grill`)** — cannot run. When this skill detects it is a subagent (cannot call the `Skill` tool, or the dispatch prompt's `[mode: …]` marker indicates a parent), **skip those stages and emit a `<!-- pmos:deferred-pass: <stage> -->` note in the artifact plus a chat line recommending a manual `/artifact refine` / `/polish` / `/grill` run after the parent completes.** Never hard-fail. (The persona panel 3.5 and research 7.5 also collapse per the "No subagents" bullet.) This keeps `/artifact` usable as a `/feature-sdlc` child without blocking.
+- **`/artifact` is itself running as a subagent (skip-with-note):** skills cannot be invoked by a subagent, so the post-draft pipeline stages that call child skills — **3.6 conceptual wireframes (`/wireframes` or `/prototype`), 3.7 diagram (`/diagram`), 3.8 polish (`/polish`), 3.9 grill (`/grill`)** — cannot run. When this skill detects it is a subagent (cannot call the `Skill` tool, or the dispatch prompt's `[mode: …]` marker indicates a parent), **skip those stages and emit a `<!-- pmos:deferred-pass: <stage> -->` note in the artifact plus a chat line recommending a manual `/wireframes` / `/artifact refine` / `/polish` / `/grill` run after the parent completes.** Never hard-fail. (The persona panel 3.5 and research 7.5 also collapse per the "No subagents" bullet.) This keeps `/artifact` usable as a `/feature-sdlc` child without blocking.
 - **Task tracking:** Use whatever task tool exists (TaskCreate / update_plan / verbal phase announcements).
 
 ## Track Progress
 
-Multi-phase flows (Create: Phases 0–6, with depth-gated post-draft stages 3.5/3.7/3.8/3.9; Refine; Update each have their own). Create one task per phase with your agent's task-tracking tool; mark each completed as soon as it finishes.
+Multi-phase flows (Create: Phases 0–6, with depth-gated post-draft stages 3.5/3.6/3.7/3.8/3.9; Refine; Update each have their own). Create one task per phase with your agent's task-tracking tool; mark each completed as soon as it finishes.
 
 ## Phase 0: Load Context {#load-context}
 
@@ -37,7 +37,7 @@ Multi-phase flows (Create: Phases 0–6, with depth-gated post-draft stages 3.5/
 3. Ensure `~/.pmos/artifacts/` exists. If not, create the empty tree `~/.pmos/artifacts/{templates,presets}/`.
 4. Determine the subcommand and route to the appropriate phase. Default subcommand is `create`.
 5. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md` — a legacy `both` value is treated as `html`; the mixed-format MD sidecar is retired, see lineage). A `--format <html|md>` argument-string flag overrides settings (last flag wins on conflict). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. Controls the **feature-folder write phase only**; the template store at `~/.pmos/artifacts/templates/<slug>/template.md` retains MD shape regardless of output_format (template-store carve-out).
-6. **Resolve `{depth}`** (the master dial — gates pipeline stages AND section count). Precedence: `--depth brief|standard|deep` flag > `--tier` back-compat alias (`lite`→`brief`, `full`→`standard`) > `.pmos/settings.yaml :: artifact.default_depth` > builtin default **`standard`**. Print to stderr exactly: `depth: <value> (source: <cli|alias|settings|default>)` once at Phase 0 entry. `{depth}` drives: Step 3 section mapping (`brief`→template `lite` set; `standard`/`deep`→`full` set), the Step 7.5 research gate (`deep`), the Phase 3.5 persona gate (`standard`+`deep`), the Phase 3.7 diagram gate (`deep`, or the saved `artifact.diagram_pass` preference), and the Phase 3.9 `/grill --depth` passthrough. The post-draft `/polish` (3.8) and `/grill` (3.9) run at **every** depth.
+6. **Resolve `{depth}`** (the master dial — gates pipeline stages AND section count). Precedence: `--depth brief|standard|deep` flag > `--tier` back-compat alias (`lite`→`brief`, `full`→`standard`) > `.pmos/settings.yaml :: artifact.default_depth` > builtin default **`standard`**. Print to stderr exactly: `depth: <value> (source: <cli|alias|settings|default>)` once at Phase 0 entry. `{depth}` drives: Step 3 section mapping (`brief`→template `lite` set; `standard`/`deep`→`full` set), the Step 7.5 research gate (`deep`), the Phase 3.5 persona gate (`standard`+`deep`), the Phase 3.6 conceptual-wireframes gate (`standard`+`deep`, user-facing PRD only), the Phase 3.7 diagram gate (`deep`, or the saved `artifact.diagram_pass` preference), and the Phase 3.9 `/grill --depth` passthrough. The post-draft `/polish` (3.8) and `/grill` (3.9) run at **every** depth.
 
 <!-- non-interactive-block:start -->
 1. **Mode resolution.** Compute `(mode, source)` with precedence: `cli_flag > parent_marker > settings.default_mode > builtin-default ("interactive")` (FR-01).
@@ -235,11 +235,30 @@ After loop 2 (or loop 1 if no high remain):
 <!-- defer-only: ambiguous -->
 Present any `high` still remaining + all `medium` from loop 2 + any `low` deemed worth raising per `_shared/findings-dispositions.md` (severity tags, ≤4 findings per `AskUserQuestion` batch, the four dispositions, platform fallback — all canonical there). `/artifact` delta: **Defer** appends the finding to a `## Deferred Improvements` section at the end of the artifact. Apply user-confirmed fixes via `Edit`.
 
-> **Post-draft pipeline stages (Phases 3.5–3.9)** run only on the **create** flow, only in the **main agent** (skills cannot be invoked by a subagent — when `/artifact` itself is dispatched as a subagent, these stages degrade to skip-with-note per `## Platform Adaptation`), and are gated by `{depth}`. Order: persona panel → diagram pass → /polish → /grill.
+> **Post-draft pipeline stages (Phases 3.5–3.9)** run only on the **create** flow, only in the **main agent** (skills cannot be invoked by a subagent — when `/artifact` itself is dispatched as a subagent, these stages degrade to skip-with-note per `## Platform Adaptation`), and are gated by `{depth}`. Order: persona panel → conceptual wireframes → diagram pass → /polish → /grill.
 
 ## Phase 3.5: Persona Panel {#persona-panel}
 
 **Gate:** `{depth} ∈ {standard, deep}` (skipped at `brief`). Multi-stakeholder critique distinct from the Phase 3 eval reviewer — 3–4 personas read the draft in parallel `sonnet` subagents, findings are validated (quote-grounded) and reconciled with the user before the draft updates. The full contract — persona resolution (template `personas:` or recommended), the per-persona subagent brief, parent-side validation, the findings-dispositions reconcile, and the NFR-1 value-signal log line — lives in `reference/persona-panel.md`. Non-interactive: AUTO-PICKs the persona set + Fix-as-proposed for blockers, buffers nits.
+
+## Phase 3.6: Conceptual wireframes {#wireframe-pass}
+
+**Gate — runs only when ALL four hold:** the template frontmatter carries `user_facing: true`; `{depth} ∈ {standard, deep}`; the deterministic frontend detector is **positive**; and **no wireframe/prototype is already linked in §6**. The detector is `../feature-sdlc/reference/frontend-detection.md` (§K — cited, not restated), applied here to the **drafted §2/§6/§7 text** in place of the requirements doc it normally reads. Any condition false → **skip silently with a one-line chat log** naming the failed condition (`not user-facing` / `depth=brief` / `frontend-detector negative` / `§6 already links a wireframe`). Never hard-fail.
+
+**Offer, don't force (D3).** When the gate passes, present one self-contained `AskUserQuestion`:
+```
+question: "This PRD is user-facing and has no wireframe linked yet. Generate conceptual wireframes to sharpen §6?"
+options:
+  - Run /wireframes (Recommended)   # conceptual wireframes drafted from this PRD
+  - Run /prototype                  # a clickable prototype instead
+  - Skip                            # leave §6 as-is
+```
+On **Run**: the main agent invokes `/pmos-toolkit:wireframes` (default) or `/pmos-toolkit:prototype` with the drafted PRD as context, then **back-links** the emitted artifact path into §6 via `Edit` — replacing the §6 "wireframe … or TBD" placeholder with the real path — and **re-emits `{slug}.sections.json`** (the Phase 3 step 5 companion re-emit). On **Skip**: leave §6 unchanged. 3.6 sits before 3.7 so the diagram/polish passes can reference the freshly-linked wireframe.
+
+**Degradations (INV-4 — never hard-fail):**
+- **`/artifact` running as a subagent** → skip-with-note: emit `<!-- pmos:deferred-pass: wireframes -->` in the artifact plus a chat line recommending a manual `/wireframes` run after the parent completes — the same subagent-skip contract as 3.7–3.9 (`## Platform Adaptation`, §K; not restated here).
+- **`--non-interactive`** → the phase issues the prompt with `(Recommended)` on **Skip** instead of Run (headless wireframe generation is a heavy, low-value default), so the canonical block AUTO-PICKs **Skip** and buffers an OQ.
+- **not-user-facing / already-linked / detector-negative / `brief` depth** → the silent gate-skip above.
 
 ## Phase 3.7: Diagram Pass {#diagram-pass}
 
