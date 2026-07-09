@@ -130,6 +130,28 @@ Per-section evaluation items for the PRD template. Two consumers:
 
 ## §5 Success Metrics
 
+- id: metrics-doshi-categorized
+  kind: judgment
+  tier: [lite, full]
+  check: |
+    metrics are organized under Shreyas Doshi's six categories (Health, Usage, Adoption, Satisfaction, Ecosystem,
+    Outcome) — no invented categories; each skipped category carries an explicit "N/A — <why>" rationale.
+  severity: high
+
+- id: metrics-question-first
+  kind: judgment
+  tier: [lite, full]
+  check: |
+    each populated category leads with 2–3 behaviour/outcome success questions (what would show the feature is
+    succeeding) before naming its proxy metrics — not "did we ship it" output questions.
+  severity: high
+
+- id: km-lm-designated
+  kind: judgment
+  tier: [lite, full]
+  check: 3–5 Key Metrics (KMs) and 3–5 Leading Metrics (LMs) are explicitly designated
+  severity: medium
+
 - id: primary-metric-baseline
   kind: precondition
   tier: [lite, full]
@@ -150,12 +172,6 @@ Per-section evaluation items for the PRD template. Two consumers:
   check: any ratio metric explicitly states numerator and denominator
   severity: medium
 
-- id: input-metric-present
-  kind: judgment
-  tier: [lite, full]
-  check: ≥1 input (leading) metric listed
-  severity: medium
-
 - id: guardrail-metric-present
   kind: judgment
   tier: [lite, full]
@@ -171,6 +187,21 @@ Per-section evaluation items for the PRD template. Two consumers:
 ---
 
 ## §6 Solution Overview
+
+- id: falsifiable-hypothesis-present
+  kind: judgment
+  tier: [lite, full]
+  check: |
+    an explicit if/then/because hypothesis is present ("if we build X, metric Y moves, because mechanism Z"), tied
+    to the §5 primary metric — a description of what will be built is not a hypothesis.
+  severity: high
+
+- id: alternatives-considered
+  kind: judgment
+  tier: [lite, full]
+  check: |
+    ≥2 alternatives considered, including a do-nothing / buy / manual option, each with the reason it was rejected.
+  severity: high
 
 - id: customer-narrative-present
   kind: judgment
@@ -238,7 +269,53 @@ Per-section evaluation items for the PRD template. Two consumers:
 
 ---
 
-## §8 User Stories & Acceptance Criteria
+## §8 Motivation, Friction & Satisfaction
+
+- id: motivation-addressed
+  kind: judgment
+  tier: [lite, full]
+  check: |
+    the job the user is doing, its importance/urgency, and the quality of the alternatives are each addressed in
+    prose (Motivation sub-head).
+  severity: high
+
+- id: friction-addressed
+  kind: judgment
+  tier: [lite, full]
+  check: |
+    comprehension, effort to initiate/complete, and at least one of loss-aversion / habit-mismatch are addressed
+    (Friction sub-head).
+  severity: high
+
+- id: satisfaction-addressed
+  kind: judgment
+  tier: [lite, full]
+  check: the emotional/functional payoff of a successful use is named — not just "task complete" (Satisfaction sub-head)
+  severity: medium
+
+- id: msf-narrative-not-table
+  kind: judgment
+  tier: [lite, full]
+  check: §8 is rendered as prose under the three sub-heads (Motivation / Friction / Satisfaction), not a 24-row Q&A dump
+  severity: low
+
+- id: msf-grounded-in-segment
+  kind: judgment
+  tier: [lite, full]
+  check: the MSF read is about the specific §2 named segment, not a generic user
+  severity: medium
+
+---
+
+## §9 User Stories & Acceptance Criteria
+
+- id: every-story-has-testable-ac
+  kind: judgment
+  tier: [full]
+  check: |
+    every story carries ≥1 concrete, executable validation criterion (Given/When/Then or a checklist item with an
+    observable pass/fail) — a story with only a capability restatement fails.
+  severity: high
 
 - id: stories-grouped-by-journey-activity
   kind: judgment
@@ -304,7 +381,7 @@ Per-section evaluation items for the PRD template. Two consumers:
 
 ---
 
-## §9 Scope: MVP vs Later
+## §10 Scope: MVP vs Later
 
 - id: mvp-minimal
   kind: judgment
@@ -332,12 +409,29 @@ Per-section evaluation items for the PRD template. Two consumers:
 
 ---
 
-## §10 Risks & Open Questions
+## §11 Risks & Open Questions
 
 - id: cagan-4-dimensions-addressed
   kind: judgment
   tier: [lite, full]
   check: all 4 Cagan risk dimensions addressed or explicitly deferred: Value, Usability, Feasibility, Viability
+  severity: high
+
+- id: premortem-present
+  kind: judgment
+  tier: [lite, full]
+  check: |
+    a pre-mortem names ≥3 failure modes (across adoption / technical / market / org), each with a leading indicator
+    of that failure.
+  severity: high
+
+- id: ai-risk-surface-when-applicable
+  kind: judgment
+  tier: [lite, full]
+  check: |
+    CONDITIONAL — if the PRD proposes an AI/LLM feature, a behaviour contract (GOOD/BAD/REJECT exemplars) + a
+    fallback/kill-switch + an eval bar with a ship threshold are present. For a non-AI PRD this item is N/A — mark
+    it N/A, never ABSENT, and do not raise a gap.
   severity: high
 
 - id: risk-has-likelihood-impact-mitigation
@@ -360,7 +454,7 @@ Per-section evaluation items for the PRD template. Two consumers:
 
 ---
 
-## §11 Rollout & Experiment Plan
+## §12 Rollout & Experiment Plan
 
 - id: phased-ramp
   kind: judgment
@@ -396,7 +490,7 @@ Per-section evaluation items for the PRD template. Two consumers:
 
 ---
 
-## §12 Dependencies & Stakeholders
+## §13 Dependencies & Stakeholders
 
 - id: dep-owners-and-dates
   kind: precondition
@@ -416,7 +510,7 @@ Per-section evaluation items for the PRD template. Two consumers:
 
 ---
 
-## §13 FAQ
+## §14 FAQ
 
 - id: min-three-questions
   kind: judgment
@@ -432,7 +526,7 @@ Per-section evaluation items for the PRD template. Two consumers:
 
 ---
 
-## §14 Appendix
+## §15 Appendix
 
 - id: no-new-prose
   kind: judgment
