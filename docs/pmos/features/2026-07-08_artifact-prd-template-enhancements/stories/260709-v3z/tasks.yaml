@@ -1,0 +1,101 @@
+schema_version: 1
+story: 260709-v3z
+epic: 260708-esq
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+execution_mode: inline
+skill_dir: plugins/pmos-toolkit/skills/artifact
+# Story 3 of epic 260708-esq (ask 6). Content-only enhancement to the PRD template — folds a How-Might-We reframe +
+#   a WAYRTTD assumed-solution gut-check into §2, with mirrored eval.md checks. NO renumber, NO SKILL.md change.
+# Surface: plugins/pmos-toolkit/skills/artifact/templates/prd/template.md (§2) + templates/prd/eval.md (§2) ONLY.
+# Reference: ../../02_design.html §14 (#design-framing: #framing-placement, #framing-guidance, #framing-eval,
+#   #framing-deps) + the §8-MSF / §6-alternatives guidance-comment voice already in template.md (match it, §K) +
+#   host CLAUDE.md (canonical skill path; four hygiene lints; skill-eval target claude-code).
+# DEP 260708-j79 (HARD): build on the post-j79 renumbered §1–§15 base. At claim time j79's branch merges into this
+#   worktree first (D9) so §2 is the renumbered "Problem & Customer" with segment-and-jtbd. DO NOT edit any §N≥3
+#   heading — this is fold-into-§2, no renumber (D10, INV-2). 9xh is disjoint (SKILL.md + §6), not merged here.
+# INV: segment-and-jtbd retained (INV — JTBD stays); template.md ↔ eval.md §N 1:1 (INV-2); lite variants bounded
+#   (INV-6); /shape + /wayrttd + any referenced skill BYTE-UNCHANGED (D9 — scope is /artifact only).
+# NO release-prereq tasks (version bump, changelog, README, manifest sync) — /complete-dev owns those at release.
+tasks:
+  - id: T1
+    title: "Study: post-j79 §2 in template.md + eval.md, the §8-MSF/§6-alternatives guidance-comment voice, eval item schema"
+    ac: [AC1, AC2, AC3, AC4, AC5, AC6]
+    deps: []
+    parallel: false
+    detail: >
+      Confirm the dep-merged (post-j79) base is present: templates/prd/template.md §2 is "Problem & Customer" with
+      the JTBD/segment material and §8 is "Motivation, Friction & Satisfaction" (proves the renumber merged). Pin the
+      exact §2 insertion point (after the existing problem/segment/JTBD lines, before §3 "Why Now"). Read the §8-MSF
+      and §6-alternatives guidance stubs to copy their voice (short, imperative, one worked micro-example) and tier
+      annotations (tier: both + lite variant). Read eval.md §2 — the segment-and-jtbd item — to copy the eval item
+      schema (id / kind / severity / check) and its §2 anchoring. Read 02_design.html §14 (#framing-placement,
+      #framing-eval). Produce NO edits.
+    verify: >
+      §2 insertion point pinned; the guidance-comment voice + tier/lite-variant convention captured; the eval item
+      schema + §2 anchoring captured; the post-j79 renumber is confirmed present (§8 = MSF). No §N≥3 heading will be
+      touched.
+  - id: T2
+    title: "template.md — add §2 'How Might We' block (full + lite variant) with guidance comment"
+    ac: [AC1, AC6]
+    deps: [T1]
+    parallel: false
+    detail: >
+      In §2 (retitle the heading to "§2 Problem, Customer & Framing"), add a "How Might We" sub-head with a guidance
+      comment in the house voice: prompt 1–3 "How might we…" reframes of the problem that open a solution space
+      without naming a solution; one worked micro-example; the "don't smuggle a solution / mechanism" rule. Mark
+      tier: both with a compact lite variant (a single HMW line). Keep the existing JTBD/segment lines intact
+      (AC3). Do NOT insert a new section and do NOT change any §N≥3 heading (D10).
+    verify: >
+      §2 renders a "How might we" sub-head + guidance; the "no solution in the HMW" rule is stated; a lite variant
+      exists; segment/JTBD lines unchanged; no §N≥3 heading altered; §2 heading retitled.
+  - id: T3
+    title: "template.md — add §2 'What are you really trying to do?' WAYRTTD gut-check block (full + lite variant)"
+    ac: [AC2, AC6]
+    deps: [T2]
+    parallel: false
+    detail: >
+      In §2, after the HMW block, add a "What are you really trying to do?" sub-head with a guidance comment giving
+      the three-step climb inline: (1) name the assumed solution in one line; (2) climb "…and what would that get
+      you?" to the real goal; (3) re-test whether the assumed solution still serves it → a proceed/reconsider/pivot
+      verdict. One compact paragraph, not a multi-turn exercise. tier: both + a two-sentence lite variant. The
+      guidance references (does not restate, §K) that /shape and /wayrttd do this live upstream — an author who
+      already shaped can paste the frame.
+    verify: >
+      §2 renders the WAYRTTD gut-check sub-head + guidance with the three steps and a proceed/reconsider/pivot
+      verdict; lite variant present; guidance references upstream /shape + /wayrttd without restating them.
+  - id: T4
+    title: "eval.md — add hmw-present + wayrttd-gutcheck checks under §2 (mirror), keep segment-and-jtbd"
+    ac: [AC3, AC4, AC5]
+    deps: [T3]
+    parallel: false
+    detail: >
+      In eval.md §2, add two items in the existing schema — hmw-present (kind: judgment, severity: medium, check =
+      "§2 carries ≥1 well-formed 'How might we…' that reframes the problem and does NOT name a solution/mechanism")
+      and wayrttd-gutcheck (kind: judgment, severity: medium, check = "§2 carries the assumed-solution → real-goal →
+      re-test note with a proceed/reconsider/pivot verdict; a missing or solution-restating gut-check fails"). Keep
+      segment-and-jtbd unchanged. Do NOT add/renumber any §N≥3 eval heading — the template ↔ eval §N 1:1 map must
+      hold (INV-2), which here means §2 augmented in lockstep.
+    verify: >
+      eval.md §2 contains hmw-present + wayrttd-gutcheck (correct kind/severity/check) beside an unchanged
+      segment-and-jtbd; the eval file parses; every eval §N still has a matching template §N (INV-2 backstop);
+      no §N≥3 eval heading changed.
+  - id: T5
+    title: "Dogfood + gates: /artifact prd smoke, two new eval checks fire, skill-eval [D], four lints, scoped diff"
+    ac: [AC1, AC2, AC4, AC7]
+    deps: [T4]
+    parallel: false
+    detail: >
+      Dogfood a user-facing /artifact prd draft → confirm §2 renders HMW + WAYRTTD + JTBD; confirm a solution-shaped
+      HMW and a missing gut-check each trip the new eval checks (author a bad sample to prove they fire). Run
+      skill-eval-check.sh --target claude-code plugins/pmos-toolkit/skills/artifact (expect trivial-pass [D] since
+      SKILL.md is unchanged; any residual must be identical on pristine main). Run the four repo hygiene lints
+      (tools/lint-flags-vs-hints.sh, tools/lint-phase-refs.sh, tools/lint-non-interactive-inline.sh — the SKILL.md
+      frozen block must byte-match — and tools/audit-recommended.sh). Assert the diff is scoped to
+      templates/prd/{template.md, eval.md} ONLY: git diff shows ZERO changes to /shape, /wayrttd, artifact/SKILL.md,
+      any _shared/, and any §N≥3 heading (D9, D10, INV-2). A README row only if warranted.
+    verify: >
+      Dogfood §2 carries HMW + WAYRTTD + JTBD and the two eval checks demonstrably fire on bad samples; skill-eval
+      [D] clean (or residual proven pre-existing); four lints green; git diff scoped to the two template files with
+      /shape, /wayrttd, SKILL.md, _shared/ and all §N≥3 headings byte-unchanged.
