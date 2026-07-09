@@ -1,0 +1,62 @@
+[
+  {
+    "id": "overview",
+    "level": 2,
+    "title": "1 · Story & scope",
+    "parent_id": null
+  },
+  {
+    "id": "code-study",
+    "level": 2,
+    "title": "2 · Code study (read before editing)",
+    "parent_id": null
+  },
+  {
+    "id": "tasks",
+    "level": 2,
+    "title": "3 · Task waves (template = data, so \"test\" = the two new eval checks + dogfood)",
+    "parent_id": null
+  },
+  {
+    "id": "wave-t1",
+    "level": 3,
+    "title": "T1 — study the post-j79 §2 base + guidance/eval conventions",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "wave-t2",
+    "level": 3,
+    "title": "T2 — §2 How-Might-We block (full + lite)",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "wave-t3",
+    "level": 3,
+    "title": "T3 — §2 WAYRTTD gut-check block (full + lite)",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "wave-t4",
+    "level": 3,
+    "title": "T4 — eval.md mirror (hmw-present + wayrttd-gutcheck)",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "wave-t5",
+    "level": 3,
+    "title": "T5 — dogfood + gates + scoped-diff assertion",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "decisions-plan",
+    "level": 2,
+    "title": "4 · Plan-level notes",
+    "parent_id": null
+  },
+  {
+    "id": "verification",
+    "level": 2,
+    "title": "5 · Final verification checklist",
+    "parent_id": null
+  }
+]

@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Artifact PRD-template enhancements — Epic 260708-esq design</title>
-  <meta name="pmos:skill" content="spec">
+  <title>260709-v3z — §2 Problem-framing blocks in the PRD template — Plan</title>
+  <meta name="pmos:skill" content="plan">
   <style>
 /* pmos-toolkit html-authoring substrate — vanilla CSS, ≤30 KB.
    FR-04, FR-90, NFR-02, NFR-03. No Tailwind. No @import. */
@@ -1046,7 +1046,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
   <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
     <div class="pmos-artifact-toolbar-inner">
       <a class="pmos-wordmark" href="https://github.com/maneesh-dhabria/pmos-skills" target="_blank" rel="noopener noreferrer" data-pmos-role="wordmark" aria-label="pmos">pmos</a>
-      <span class="pmos-crumb" data-pmos-role="crumb">Artifact PRD-template enhancements — Epic 260708-esq design</span>
+      <span class="pmos-crumb" data-pmos-role="crumb">260709-v3z — §2 Problem-framing blocks in the PRD template — Plan</span>
       <div class="pmos-artifact-actions">
         <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
       </div>
@@ -1058,471 +1058,109 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
     </div>
   </header>
   <main class="pmos-artifact-body" data-pmos-role="body">
-    <h1 class="pmos-doc-title">Artifact PRD-template enhancements — Epic 260708-esq design</h1>
+    <h1 class="pmos-doc-title">260709-v3z — §2 Problem-framing blocks in the PRD template — Plan</h1>
 
 <section id="overview">
-  <h2 id="overview">1 · Overview &amp; scope</h2>
-  <p>This epic enhances the <strong>PRD template</strong> shipped inside the <code>/artifact</code> skill
-  (<code>plugins/pmos-toolkit/skills/artifact/templates/prd/{template.md, eval.md}</code>) plus one behavioural
-  hook in <code>/artifact</code>'s create flow. It is a <strong>skill-new-shaped, <code>route: skill</code></strong>
-  epic against a <em>single</em> skill in a <em>single</em> plugin (pmos-toolkit) — one release unit. The change is
-  <strong>content + one flow stage</strong>, not a new skill.</p>
-  <p>The PRD template is already mature: 14 sections (§1 TL;DR … §14 Appendix) each with authored guidance comments
-  and a matching per-section <code>eval.md</code> rubric (<code>precondition</code> items drive the gap interview;
-  <code>judgment</code> items drive the reviewer refinement loop). This epic does not rebuild it — it makes five
-  targeted additions/upgrades that the maintainer asked for.</p>
-  <p>The five asks, each traced to its home in the target template:</p>
-  <ol>
-    <li><strong>MSF section</strong> — a new "Motivation, Friction &amp; Satisfaction" section grounding the PRD in
-      end-user psychology, using the 24 considerations from <code>/msf-req</code> as the coverage checklist.</li>
-    <li><strong>Borrow from <code>/artifact-critique</code></strong> — fold the highest-value gaps from its 10-axis
-      rubric into existing sections (alternatives + falsifiable hypothesis; pre-mortem; conditional AI-risk surface).</li>
-    <li><strong>Doshi-categorized metrics</strong> — rework §5 Success Metrics around Shreyas Doshi's six product-metric
-      categories, question-first (behaviour/outcome questions → proxy metrics).</li>
-    <li><strong>Conceptual-wireframes hook</strong> — for a user-facing PRD, offer to run <code>/wireframes</code>
-      (or <code>/prototype</code>) at the end and back-link the output into §6.</li>
-    <li><strong>Detailed, mandated per-story validation</strong> — make spelled-out acceptance criteria / validation
-      tests a hard requirement for every user story, not just guidance.</li>
-  </ol>
-  <p><strong>Not in scope.</strong> No new skill; no changes to the other three built-in templates
-  (experiment-design, eng-design, discovery); no full Strategy / GTM / Pricing axes (those belong in a strategy doc,
-  not a PRD — the maintainer confirmed dropping the optional lifecycle-Stage cue too); no rename of the PRD slug.</p>
-</section>
-
-<section id="goals">
-  <h2 id="goals">2 · Goals &amp; non-goals</h2>
-  <p><strong>Goals.</strong></p>
+  <h2 id="overview">1 · Story & scope</h2>
+  <p><strong>Story 260709-v3z</strong> — story 3 of epic <strong>260708-esq</strong> (ask 6, added 2026-07-09).
+  <code>route: skill</code>, pmos-toolkit. A <strong>content-only</strong> edit to the PRD template: fold a
+  <strong>How Might We</strong> reframe and a <strong>WAYRTTD assumed-solution gut-check</strong> into
+  <strong>§2</strong>, plus two mirrored <code>eval.md</code> checks. <strong>No renumber, no SKILL.md change, no
+  change to any other skill.</strong></p>
   <ul>
-    <li>A PRD produced by <code>/artifact prd</code> reasons explicitly about user <em>motivation, friction and
-      satisfaction</em> with the proposed solution — not just the happy-path journey.</li>
-    <li>A PRD forces the author to consider <em>alternatives</em> (incl. do-nothing / buy) and state a
-      <em>falsifiable</em> solution hypothesis, and to run a <em>pre-mortem</em> — the gaps a seasoned product-leader
-      critique would otherwise flag.</li>
-    <li>Success metrics are <em>question-first and Doshi-categorized</em>: the author writes behaviour/outcome
-      questions per category, then finds proxy metrics — cutting "increase adoption"-style output vanity.</li>
-    <li>Every user story ships with a concrete, testable validation criterion — no story without a spelled-out test.</li>
-    <li>A user-facing PRD ends with a conceptual wireframe/prototype linked into the solution section.</li>
-  </ul>
-  <p><strong>Non-goals.</strong></p>
-  <ul>
-    <li>Turning the PRD into a strategy doc (no moat/GTM/pricing sections). <em>Rationale:</em> the critique borrows
-      are scoped to what a PRD legitimately owns; the rest is the strategy template's job.</li>
-    <li>Auto-running <code>/wireframes</code> unconditionally. <em>Rationale:</em> only user-facing PRDs warrant it,
-      and it must degrade cleanly headless / as a subagent.</li>
-    <li>Changing the reviewer-loop machinery, the preset engine, or the HTML emit contract. This epic adds
-      <em>content</em> (template.md/eval.md) and <em>one</em> gated create-flow stage.</li>
+    <li><strong>Surface (only):</strong> <code>plugins/pmos-toolkit/skills/artifact/templates/prd/template.md</code>
+      (§2) + <code>templates/prd/eval.md</code> (§2).</li>
+    <li><strong>Design:</strong> <code>../../02_design.html</code> §14 (<code>#design-framing</code> →
+      <code>#framing-placement</code>, <code>#framing-guidance</code>, <code>#framing-eval</code>,
+      <code>#framing-deps</code>).</li>
+    <li><strong>Dep (HARD): 260708-j79</strong> — build on the post-j79 renumbered §1–§15 base; j79's branch merges
+      into this worktree first (D9). <strong>Disjoint from 260708-9xh</strong> (§2 vs §6/SKILL.md) — clean parallel
+      merge off j79.</li>
+    <li><strong>Out of scope (D9):</strong> <code>/shape</code>, <code>/wayrttd</code>, <code>artifact/SKILL.md</code>,
+      any <code>_shared/</code>, any §N≥3 heading — all byte-unchanged.</li>
   </ul>
 </section>
 
-<section id="decisions">
-  <h2 id="decisions">3 · Decisions</h2>
-  <p>Four of these (D1–D4) were confirmed interactively with the maintainer at define time; the rest are design
-  calls made against the repo's conventions.</p>
-  <table>
-    <thead><tr><th>ID</th><th>Decision</th><th>Rationale</th></tr></thead>
-    <tbody>
-      <tr><td><strong>D1</strong></td><td>MSF renders as <strong>narrative under three sub-heads</strong>
-        (Motivation / Friction / Satisfaction). The 24 <code>/msf-req</code> considerations become <em>hidden
-        guidance comments + eval checks</em>, never visible Q&amp;A or a table.</td>
-        <td>A 24-row table is a low-signal wall; prose reads like a PM's argument. Confirmed by maintainer.</td></tr>
-      <tr><td><strong>D2</strong></td><td>Critique borrows = <strong>Alternatives + falsifiable hypothesis</strong>
-        (into §6), <strong>pre-mortem</strong> (into Risks), and a <strong>conditional AI-risk surface</strong>
-        (into Risks). The lightweight lifecycle-Stage cue is <em>dropped</em>.</td>
-        <td>These three are the PRD-legitimate gaps; Strategy/GTM/Pricing are out of a PRD's remit. Confirmed.</td></tr>
-      <tr><td><strong>D3</strong></td><td>The wireframe hook <strong>offers <code>/wireframes</code> by default</strong>,
-        with <code>/prototype</code> as the heavier opt-in; fires only for a user-facing PRD.</td>
-        <td>Conceptual wireframes are lighter/faster than a clickable prototype for a PRD. Confirmed.</td></tr>
-      <tr><td><strong>D4</strong></td><td><strong>Two stories</strong>: content (template.md/eval.md) then behaviour
-        (SKILL.md hook). Story 2 depends on Story 1.</td>
-        <td>Data change vs. flow change are separable and each a tractable single <code>/execute</code> run; both
-        ship in one release. Confirmed.</td></tr>
-      <tr><td><strong>D5</strong></td><td>The MSF section is inserted as <strong>§8</strong> (right after §7 User
-        Journey); §8–§14 renumber to §9–§15. Both template.md and eval.md renumber together.</td>
-        <td>Information architecture (MSF deepens the journey's psychological read) beats diff-minimisation for a
-        template. §N labels are anchors, not contracts — a clean renumber is correct.</td></tr>
-      <tr><td><strong>D6</strong></td><td>The Doshi metrics section uses <strong>exactly the six categories</strong>
-        (Health, Usage, Adoption, Satisfaction, Ecosystem, Outcome) — <em>no invented categories</em> — over
-        <em>applicable</em> categories, each skipped one carrying an explicit N/A rationale. It <em>preserves</em>
-        the existing per-metric rigor (baseline / target / timebox / mechanism / guardrail / owner / instrumentation)
-        and Doshi's KM/LM refinement (3–5 Key Metrics + 3–5 Leading Metrics).</td>
-        <td>The maintainer's explicit constraint; N/A-with-rationale mirrors <code>/artifact-critique</code>'s
-        ABSENT-vs-N/A discipline so a skipped category is a decision, not an omission.</td></tr>
-      <tr><td><strong>D7</strong></td><td>The wireframe hook is <strong>PRD-template-scoped via a frontmatter
-        flag</strong> (<code>user_facing: true</code> / <code>wireframe_pass: offer</code>), gated by a deterministic
-        frontend-detector, and reuses the existing create-flow child-skill pattern (Phases 3.5–3.9) incl. the
-        subagent-skip-with-note and non-interactive contracts.</td>
-        <td>Only user-facing artifacts warrant it; a frontmatter flag keeps eng-design/experiment templates opted out.
-        Reusing the established stage pattern avoids new machinery.</td></tr>
-      <tr><td><strong>D8</strong></td><td>Per-story validation is enforced by a <strong>high-severity eval item of
-        effectively precondition strength</strong> plus a new "Validation / how we'll test it" column in §9's tabular
-        schema. The refinement reviewer flags any story missing a concrete testable criterion.</td>
-        <td>"Mandate" must be enforceable by the eval loop, not just prose in a guidance comment.</td></tr>
-    </tbody>
-  </table>
-</section>
-
-<section id="invariants">
-  <h2 id="invariants">4 · Invariants</h2>
+<section id="code-study">
+  <h2 id="code-study">2 · Code study (read before editing)</h2>
   <ul>
-    <li><strong>INV-1.</strong> The PRD template stays a <em>structural guide</em>: <code>/artifact</code> authors the
-      HTML section-by-section from template.md's guidance comments + eval.md preconditions. No new rendering engine.</li>
-    <li><strong>INV-2.</strong> Every <code>## §N</code> in template.md has a matching <code>## §N</code> in eval.md
-      (validated at Step 2). The renumber (D5) must keep this 1:1 or template validation fails.</li>
-    <li><strong>INV-3.</strong> No invented metric categories — exactly Doshi's six (D6).</li>
-    <li><strong>INV-4.</strong> The wireframe hook never hard-fails: not-user-facing → skip; subagent →
-      skip-with-note; <code>--non-interactive</code> → AUTO-PICK per the canonical block; child skill missing →
-      soft skip-with-note.</li>
-    <li><strong>INV-5.</strong> Backward compatibility: an existing PRD generated before this change still validates;
-      the new sections are additive and the metrics rework is a section-body change, not a new required file.</li>
-    <li><strong>INV-6.</strong> Lite vs full: MSF, alternatives, and the Doshi rework must declare a
-      <code>&lt;!-- tier: both --&gt;</code> vs <code>full</code> stance so the brief/lite section set stays coherent.</li>
+    <li><code>templates/prd/template.md</code> §2 (post-j79) — the existing problem / segment / JTBD lines and the §2
+      heading; pin the insertion point (after JTBD, before §3 "Why Now"). Confirm §8 = "Motivation, Friction &
+      Satisfaction" (proves the j79 renumber merged).</li>
+    <li>The <strong>§8-MSF and §6-alternatives guidance stubs</strong> — copy their voice (short, imperative, one
+      worked micro-example) and their <code>tier: both</code> + lite-variant convention (§K: match, don't reinvent).</li>
+    <li><code>templates/prd/eval.md</code> §2 — the <code>segment-and-jtbd</code> item; copy the eval item schema
+      (id / kind / severity / check) and the "every eval §N has a matching template §N" backstop (INV-2).</li>
   </ul>
 </section>
 
-<section id="design-msf">
-  <h2 id="design-msf">5 · Design — §8 Motivation, Friction &amp; Satisfaction (ask 1)</h2>
-  <p>New section inserted at <strong>§8</strong>, immediately after §7 User Journey. Tier: <code>both</code> (a lite
-  PRD still benefits from at least a compact MSF read; the eval can relax count expectations at lite).</p>
-  <h3 id="msf-shape">Shape</h3>
-  <p>Prose under three bold sub-heads. The author writes an argument, not answers-to-questions:</p>
+<section id="tasks">
+  <h2 id="tasks">3 · Task waves (template = data, so "test" = the two new eval checks + dogfood)</h2>
+  <p>Serial chain T1→T5 (each edits the same two files; no parallelism). Full task detail + per-task verify in
+  <code>tasks.yaml</code>; summarised here.</p>
+
+  <h3 id="wave-t1">T1 — study the post-j79 §2 base + guidance/eval conventions</h3>
+  <p>Confirm the dep-merged renumbered base is present (§8 = MSF), pin the §2 insertion point, and capture the
+  guidance-comment voice + eval item schema. No edits. <em>AC1–AC6.</em></p>
+
+  <h3 id="wave-t2">T2 — §2 How-Might-We block (full + lite)</h3>
+  <p>Retitle §2 → "Problem, Customer &amp; Framing"; add a "How Might We" sub-head + guidance (1–3 "How might we…"
+  reframes that open a solution space, one micro-example, the "no solution in the HMW" rule). <code>tier: both</code>
+  + a single-line lite variant. Keep JTBD/segment intact; touch no §N≥3 heading. <em>AC1, AC6.</em></p>
+
+  <h3 id="wave-t3">T3 — §2 WAYRTTD gut-check block (full + lite)</h3>
+  <p>Add a "What are you really trying to do?" sub-head + guidance: assumed solution → climb to real goal → re-test →
+  proceed/reconsider/pivot verdict, one compact paragraph. <code>tier: both</code> + a two-sentence lite variant. The
+  guidance <em>references</em> (never restates, §K) that <code>/shape</code> + <code>/wayrttd</code> do this live
+  upstream. <em>AC2, AC6.</em></p>
+
+  <h3 id="wave-t4">T4 — eval.md mirror (hmw-present + wayrttd-gutcheck)</h3>
+  <p>Add <code>hmw-present</code> and <code>wayrttd-gutcheck</code> (both <code>kind: judgment</code>,
+  <code>severity: medium</code>) under §2, in the existing schema; keep <code>segment-and-jtbd</code>. §2 augmented in
+  lockstep — template ↔ eval §N 1:1 (INV-2), no §N≥3 eval heading changed. <em>AC3, AC4, AC5.</em></p>
+
+  <h3 id="wave-t5">T5 — dogfood + gates + scoped-diff assertion</h3>
+  <p>Dogfood a user-facing <code>/artifact prd</code> → §2 renders HMW + WAYRTTD + JTBD; author bad samples to prove
+  the two eval checks fire. Run <code>skill-eval-check.sh --target claude-code</code> on the artifact skill (trivial
+  [D] pass — SKILL.md unchanged; any residual identical on pristine main) + the four hygiene lints. Assert
+  <code>git diff</code> is scoped to the two template files with <code>/shape</code>, <code>/wayrttd</code>,
+  <code>SKILL.md</code>, <code>_shared/</code> and every §N≥3 heading byte-unchanged. <em>AC1, AC2, AC4, AC7.</em></p>
+</section>
+
+<section id="decisions-plan">
+  <h2 id="decisions-plan">4 · Plan-level notes</h2>
   <ul>
-    <li><strong>Motivation</strong> — the job the user is doing; its importance and urgency; what competes for their
-      attention; the benefit of acting and the consequence of not; how good the alternatives are.</li>
-    <li><strong>Friction</strong> — will they understand it; how hard to initiate and to complete; the cost of a
-      wrong decision; loss aversion; how much it clashes with existing habits/expectations; how much thought is
-      required before acting.</li>
-    <li><strong>Satisfaction</strong> — did it fulfil the promised job; did it meet expectations; did it feel
-      reassuring / raise prestige / make them feel smart (the emotional payoff).</li>
-  </ul>
-  <h3 id="msf-guidance">Guidance-comment contract</h3>
-  <p>The 24 considerations from <code>_shared/msf-heuristics.md</code> (7 Motivation, 11 Friction, 6 Satisfaction)
-  are embedded as an HTML guidance comment enumerating them as a coverage checklist — the author and the reviewer
-  ensure each is <em>substantively addressed within the prose</em>, but they are never rendered as visible rows.
-  This is the canonical home already (msf-heuristics.md); the template <em>cites</em> the three consideration
-  buckets rather than restating all 24 verbatim, to avoid a drift-prone fork (CLAUDE.md §K). The plan must decide
-  whether to inline the 24 for author convenience or reference them — recommend inline (a template guidance comment
-  is not code, and the author reads it offline).</p>
-  <h3 id="msf-eval">Eval items (new §8 block)</h3>
-  <ul>
-    <li><code>motivation-addressed</code> (judgment, high) — job, importance/urgency, and quality of alternatives
-      are each addressed in prose.</li>
-    <li><code>friction-addressed</code> (judgment, high) — comprehension, effort-to-initiate/complete, and at least
-      one of loss-aversion / habit-mismatch are addressed.</li>
-    <li><code>satisfaction-addressed</code> (judgment, medium) — the emotional/functional payoff of a successful use
-      is named (not just "task complete").</li>
-    <li><code>msf-narrative-not-table</code> (judgment, low) — rendered as prose under the three sub-heads, not a
-      24-row Q&amp;A dump (guards D1).</li>
-    <li><code>msf-grounded-in-segment</code> (judgment, medium) — the MSF read is about the §2 named segment, not
-      a generic user.</li>
+    <li><strong>Fold, don't insert (D10).</strong> The single most important constraint: adding a section would
+      renumber §3–§15 and break 9xh's §6 back-link. Everything is authored <em>inside</em> §2.</li>
+    <li><strong>Data-only story.</strong> No instruction surface changes, so <code>skill-eval</code> passes trivially;
+      the real gate is the two new <code>eval.md</code> checks + the dogfood run (same stance as sibling j79).</li>
+    <li><strong>Length (INV-6).</strong> Lite variants keep the compact PRD set reasonable — both blocks ship a
+      one-line / two-sentence lite form.</li>
+    <li><strong>No release tasks.</strong> Version bump, changelog, README, tag, manifest sync are
+      <code>/complete-dev</code>'s at the epic release, not build tasks.</li>
   </ul>
 </section>
 
-<section id="design-solution">
-  <h2 id="design-solution">6 · Design — §6 Solution: alternatives + falsifiable hypothesis (ask 2a)</h2>
-  <p>Augment the existing §6 Solution Overview (no new section) with two elements borrowed from
-  <code>/artifact-critique</code>'s <em>Solution</em> axis (heuristics <code>hypothesis-falsifiability</code>,
-  <code>alternatives-considered</code>):</p>
+<section id="verification">
+  <h2 id="verification">5 · Final verification checklist</h2>
   <ul>
-    <li><strong>Falsifiable hypothesis</strong> — an explicit "if we build X, metric Y moves, because mechanism Z"
-      statement, tied to the §5 primary metric. A description of what will be built is not a hypothesis.</li>
-    <li><strong>Alternatives considered</strong> — 2–3 alternatives, <em>including the cheapest do-nothing / buy /
-      manual option</em>, each with the disqualifying reason it was rejected.</li>
+    <li>Dogfood §2 carries a "How might we…" (solution-free), a WAYRTTD gut-check with a proceed/reconsider/pivot
+      verdict, and the retained segment + JTBD.</li>
+    <li>A solution-shaped HMW and a missing gut-check each demonstrably trip <code>hmw-present</code> /
+      <code>wayrttd-gutcheck</code>.</li>
+    <li><code>git diff</code> touches only <code>templates/prd/{template.md, eval.md}</code>; no §N≥3 heading changed;
+      <code>/shape</code>, <code>/wayrttd</code>, <code>artifact/SKILL.md</code>, <code>_shared/</code> byte-unchanged.</li>
+    <li>template ↔ eval §N 1:1 backstop passes (INV-2); <code>segment-and-jtbd</code> retained.</li>
+    <li><code>skill-eval-check.sh --target claude-code</code> [D] clean (or residual proven pre-existing on pristine
+      main); the four hygiene lints green; the frozen non-interactive block byte-identical.</li>
   </ul>
-  <p>New/updated eval items under §6:</p>
-  <ul>
-    <li><code>falsifiable-hypothesis-present</code> (judgment, high) — if/then/because with a named mechanism, tied to
-      the primary metric.</li>
-    <li><code>alternatives-considered</code> (judgment, high) — ≥2 alternatives incl. a do-nothing/buy option, each
-      with a rejection reason.</li>
-  </ul>
-  <p>Rendering: a compact "Alternatives considered" mini-table (Alternative | Why rejected) fits the tabular preset;
-  narrative preset renders it as prose. The hypothesis is one sentence in the section lead.</p>
-</section>
-
-<section id="design-risks">
-  <h2 id="design-risks">7 · Design — Risks: pre-mortem + conditional AI-risk (ask 2b/2c)</h2>
-  <p>Strengthen the existing §10 Risks &amp; Open Questions (which becomes <strong>§11</strong> after the D5
-  renumber). It already covers the four Cagan dimensions; add:</p>
-  <ul>
-    <li><strong>Pre-mortem</strong> — a framing prompt "it's six weeks after launch and this failed — what
-      happened?" yielding named failure modes across adoption / technical / market / org, each with a
-      <em>leading indicator</em> and a mitigation. Borrowed from the critique <em>Risks</em> axis
-      (<code>pre-mortem</code>, <code>no-burial</code>).</li>
-    <li><strong>Conditional AI-risk surface</strong> — a block that fires <em>only</em> when the feature has an
-      AI/LLM component: a behaviour contract (GOOD / BAD / REJECT exemplars), a fallback / kill-switch for
-      low-confidence or unavailable model states, and an offline+online eval bar with a ship threshold. Borrowed
-      from the critique <em>AI</em> axis (conditional, exactly as its applicability rule).</li>
-  </ul>
-  <p>New eval items under the renumbered Risks section:</p>
-  <ul>
-    <li><code>premortem-present</code> (judgment, high) — ≥3 named failure modes from a pre-mortem, each with a
-      leading indicator.</li>
-    <li><code>ai-risk-surface-when-applicable</code> (judgment, high, <em>conditional</em>) — if the PRD proposes an
-      AI/LLM feature, a behaviour contract + fallback + eval bar are present; else this item is N/A (mirrors the
-      critique applicability rule — the reviewer marks N/A, never ABSENT, for a non-AI PRD).</li>
-  </ul>
-  <p><em>Interaction with the gap interview:</em> the AI-risk item is judgment (reviewer-loop), not a precondition,
-  so it never forces a gap question on a non-AI PRD.</p>
-</section>
-
-<section id="design-metrics">
-  <h2 id="design-metrics">8 · Design — §5 Success Metrics, Doshi-categorized (ask 3)</h2>
-  <p>Rework §5 (stays §5; tier <code>both</code>) from the current primary/input/guardrail/counter <em>layering</em>
-  into a <strong>question-first, category-organized</strong> section using Shreyas Doshi's six product-metric
-  categories (Mixpanel, "Shreyas Doshi on product metrics"). The layering is not discarded — it is re-expressed as
-  Doshi's KM/LM refinement plus guardrails.</p>
-  <h3 id="metrics-categories">The six categories (verbatim — no inventions, D6/INV-3)</h3>
-  <table>
-    <thead><tr><th>Category</th><th>Doshi's framing question</th></tr></thead>
-    <tbody>
-      <tr><td><strong>Health</strong></td><td>Is the product available and performing as users would reasonably
-        expect? (latency, uptime, error/data-loss rate)</td></tr>
-      <tr><td><strong>Usage</strong></td><td>How are users using the product? (top actions, funnels, time-of-day)</td></tr>
-      <tr><td><strong>Adoption</strong></td><td>Is the product/feature being used as much as we'd hope, in the ways
-        we'd like? (active users, N-of-M-day, feature adoption, conversion)</td></tr>
-      <tr><td><strong>Satisfaction</strong></td><td>What is customers' overall sentiment? (CSAT, feature CSAT,
-        support CSAT)</td></tr>
-      <tr><td><strong>Ecosystem</strong></td><td>What is the macro state of the product in its domain? (share of
-        wallet, integrations, market/segment rank)</td></tr>
-      <tr><td><strong>Outcome</strong></td><td>What business results is the product driving? (revenue, margin,
-        segment coverage)</td></tr>
-    </tbody>
-  </table>
-  <h3 id="metrics-flow">Question-first authoring flow (per applicable category)</h3>
-  <ol>
-    <li>Write <strong>2–3 key questions</strong> about the user behaviours / outcomes that would indicate the feature
-      is succeeding <em>in this category</em> (behaviour/outcome, not "did we ship it").</li>
-    <li>For each question, name a <strong>proxy metric</strong> that answers it, carrying the existing full spec:
-      baseline · target · timebox · mechanism · numerator/denominator (if a ratio) · owner · instrumentation status.</li>
-    <li><strong>Skipped category</strong> → one line stating N/A + why (e.g. "Ecosystem: N/A — internal-only feature,
-      no market surface").</li>
-  </ol>
-  <h3 id="metrics-refinement">KM / LM refinement (Doshi)</h3>
-  <p>After the per-category metrics, designate <strong>3–5 Key Metrics (KMs)</strong> — the primary indicators, often
-  lagging — and <strong>3–5 Leading Metrics (LMs)</strong> that move first. Mark the guardrail/counter subset (≥1
-  guardrail with a regression threshold — carried over from the current template). In lite/brief mode the section
-  collapses to: KMs + LMs + ≥1 guardrail, categories optional.</p>
-  <h3 id="metrics-eval">Eval changes (§5)</h3>
-  <ul>
-    <li><code>metrics-doshi-categorized</code> (judgment, high) — metrics organized under Doshi's six categories;
-      no invented categories; skipped categories carry an explicit N/A rationale.</li>
-    <li><code>metrics-question-first</code> (judgment, high) — each populated category leads with 2–3 behaviour/outcome
-      success questions before its metrics.</li>
-    <li><code>km-lm-designated</code> (judgment, medium) — 3–5 KMs and 3–5 LMs explicitly designated.</li>
-    <li>Retain (renumbered/rephrased): <code>primary-metric-baseline</code> (precondition), <code>guardrail-metric-present</code>,
-      <code>ratio-has-numerator-denominator</code>, <code>metric-owner-and-instrumentation</code>, <code>primary-metric-mechanism</code>.</li>
-  </ul>
-  <p><em>Tabular schema update:</em> add a <code>Category</code> column and a <code>Answers question</code> column to
-  the §5 metric table; keep Layer as KM/LM/guardrail/counter.</p>
-</section>
-
-<section id="design-story-validation">
-  <h2 id="design-story-validation">9 · Design — §9 User Stories: mandated per-story validation (ask 5)</h2>
-  <p>§8 User Stories &amp; Acceptance Criteria becomes <strong>§9</strong> (D5 renumber). The current template already
-  asks for AC per story but treats detail as guidance; make a concrete, testable validation criterion
-  <em>mandatory per story</em> (D8):</p>
-  <ul>
-    <li>Every story MUST carry ≥1 acceptance criterion written as a <em>validation test</em> — something a person or
-      a test could actually execute and get a pass/fail from (Given/When/Then or a checklist item with an observable
-      pass condition), not a restatement of the capability.</li>
-    <li>Add a <strong>"Validation / how we'll test it"</strong> column to the §9 tabular schema.</li>
-    <li>Keep the existing structure (grouped by journey activity, ≤12 stories, walking-skeleton marked, role = named
-      §2 segment, <code>so that</code> traces to a §4 goal).</li>
-  </ul>
-  <h3 id="story-eval">Eval changes (§9)</h3>
-  <ul>
-    <li><code>every-story-has-testable-ac</code> (judgment, <strong>high</strong>) — <em>every</em> story has ≥1
-      concrete, executable validation criterion; a story with only a capability restatement fails. This is the
-      enforcement of the "mandate" — the reviewer loop flags any offending story.</li>
-    <li>Retain <code>ac-observable-outcome</code>, <code>ac-one-form-per-story</code>, <code>role-is-named-segment</code>,
-      <code>so-that-traces-to-goal</code>, <code>walking-skeleton-marked</code>, <code>stories-total-cap</code>,
-      <code>stories-grouped-by-journey-activity</code>.</li>
-  </ul>
-  <p><em>Why judgment, not precondition:</em> a precondition drives the pre-draft gap interview off missing upstream
-  <em>evidence</em>; story AC is generated content, so its enforcement belongs in the reviewer loop (high severity =
-  auto-applied fix). The eval.md <code>kind</code> semantics make precondition the wrong tool here.</p>
-</section>
-
-<section id="design-wireframe-hook">
-  <h2 id="design-wireframe-hook">10 · Design — conceptual-wireframes post-draft hook (ask 4)</h2>
-  <p>This is the only <em>behavioural</em> change and lives in <code>artifact/SKILL.md</code> (Story 2). It adds a new
-  depth-gated post-draft stage to the create flow, modelled on the existing Phases 3.5 (persona), 3.7 (diagram), 3.8
-  (/polish), 3.9 (/grill) — all of which already invoke child skills from the main agent.</p>
-  <h3 id="hook-placement">Placement &amp; gate</h3>
-  <ul>
-    <li>New stage <strong>Phase 3.6 — Conceptual wireframes</strong> (numbered between persona panel 3.5 and diagram
-      3.7 so the wireframe exists before the diagram/polish passes can reference it). Order in the create flow:
-      persona → <em>wireframes</em> → diagram → /polish → /grill.</li>
-    <li><strong>Fires only when all hold:</strong> (a) the template frontmatter opts in
-      (<code>user_facing: true</code>, D7 — PRD sets it; other templates don't); (b) the deterministic frontend
-      detector (reuse <code>feature-sdlc/reference/frontend-detection.md</code>) reads the drafted §2/§6/§7 as
-      user-facing; (c) no wireframe/prototype is already linked in §6.</li>
-    <li><strong>Gate prompt</strong> (interactive): "This PRD is user-facing and has no wireframe linked. Generate
-      conceptual wireframes?" → <em>Run /wireframes (Recommended)</em> / Run /prototype / Skip. Default
-      <code>/wireframes</code> (D3).</li>
-  </ul>
-  <h3 id="hook-behaviour">Behaviour &amp; degradations (INV-4)</h3>
-  <ul>
-    <li>On Run: main agent invokes <code>/pmos-toolkit:wireframes</code> (or <code>/prototype</code>) with the drafted
-      PRD as context; on completion, <strong>back-link the output into §6</strong> (replace the "wireframe … or TBD"
-      placeholder with the real path) and re-emit the sections.json companion.</li>
-    <li><strong>Subagent</strong> (<code>/artifact</code> itself dispatched as a child): skills can't invoke skills —
-      skip-with-note (<code>&lt;!-- pmos:deferred-pass: wireframes --&gt;</code> + a chat line recommending a manual
-      run), exactly as 3.7–3.9 already do.</li>
-    <li><strong><code>--non-interactive</code></strong>: the gate is classified by the canonical block. Recommend
-      making the gate's Recommended option <em>Skip</em> under non-interactive (generating wireframes headless is a
-      heavy, low-value default) — i.e. AUTO-PICK Skip, buffer an open question. The plan must set the Recommended
-      option accordingly and tag the call.</li>
-    <li><strong>Not user-facing / already-linked / detector-negative</strong>: skip silently with a one-line log.</li>
-    <li><strong>Depth gate:</strong> run at <code>standard</code>/<code>deep</code>; skip at <code>brief</code>
-      (a quick draft shouldn't spawn a wireframe pass). Log the skip reason like the other stages.</li>
-  </ul>
-  <h3 id="hook-frontmatter">Frontmatter (Story 1 dependency)</h3>
-  <p>Story 1 adds <code>user_facing: true</code> to the PRD template frontmatter; Story 2 reads it. This is the
-  story-level dependency (D4) — Story 1 merges into Story 2's worktree before Story 2 builds, so the flag is present.</p>
-</section>
-
-<section id="numbering-map">
-  <h2 id="numbering-map">11 · Section-numbering map (D5)</h2>
-  <table>
-    <thead><tr><th>Before</th><th>After</th><th>Change</th></tr></thead>
-    <tbody>
-      <tr><td>§1 TL;DR, §3 Why Now, §4 Goals</td><td>§1, §3, §4</td><td>unchanged</td></tr>
-      <tr><td>§2 Problem &amp; Customer</td><td>§2 Problem, Customer &amp; Framing</td><td><strong>augmented</strong> (HMW + WAYRTTD gut-check, ask 6 — folded in, no renumber)</td></tr>
-      <tr><td>§5 Success Metrics</td><td>§5 Success Metrics</td><td><strong>reworked</strong> (Doshi, ask 3)</td></tr>
-      <tr><td>§6 Solution Overview</td><td>§6 Solution Overview</td><td><strong>augmented</strong> (alternatives + hypothesis, ask 2a)</td></tr>
-      <tr><td>§7 User Journey</td><td>§7 User Journey</td><td>unchanged</td></tr>
-      <tr><td>—</td><td><strong>§8 Motivation, Friction &amp; Satisfaction</strong></td><td><strong>NEW</strong> (ask 1)</td></tr>
-      <tr><td>§8 User Stories &amp; AC</td><td>§9 User Stories &amp; AC</td><td><strong>renumbered + validation mandate</strong> (ask 5)</td></tr>
-      <tr><td>§9 Scope</td><td>§10 Scope</td><td>renumbered</td></tr>
-      <tr><td>§10 Risks &amp; Open Questions</td><td>§11 Risks &amp; Open Questions</td><td><strong>renumbered + pre-mortem + AI-risk</strong> (ask 2b/2c)</td></tr>
-      <tr><td>§11 Rollout</td><td>§12 Rollout</td><td>renumbered</td></tr>
-      <tr><td>§12 Dependencies &amp; Stakeholders</td><td>§13</td><td>renumbered</td></tr>
-      <tr><td>§13 FAQ</td><td>§14 FAQ</td><td>renumbered</td></tr>
-      <tr><td>§14 Appendix</td><td>§15 Appendix</td><td>renumbered</td></tr>
-    </tbody>
-  </table>
-  <p>INV-2: template.md and eval.md renumber in lockstep; the Step-2 validation ("every eval §N has a matching
-  template §N") is the backstop.</p>
-</section>
-
-<section id="story-map">
-  <h2 id="story-map">12 · Story map</h2>
-  <p>Three stories (a third was added 2026-07-09, see §14), all <code>route: skill</code>, all pmos-toolkit, one
-  release unit.</p>
-  <ul>
-    <li><strong>260708-j79 — PRD template &amp; eval content enhancements</strong> (asks 1, 2, 3, 5). Edits
-      <code>templates/prd/template.md</code> + <code>templates/prd/eval.md</code>: the renumber (D5), the new §8 MSF
-      section, §6 alternatives+hypothesis, §5 Doshi rework, §11 pre-mortem + conditional AI-risk, §9 per-story
-      validation mandate, and the <code>user_facing: true</code> frontmatter flag. No SKILL.md change; skill-eval is
-      a trivial pass (instruction surface unchanged). No deps.</li>
-    <li><strong>260708-9xh — conceptual-wireframes post-draft hook</strong> (ask 4). Adds Phase 3.6 to
-      <code>artifact/SKILL.md</code>, reuses the frontend detector, back-links into §6, honours subagent-skip +
-      non-interactive + depth gates. <strong>Depends on 260708-j79</strong> (needs the <code>user_facing</code> flag
-      and the enhanced §6). Skill-eval matters here (SKILL.md changed).</li>
-    <li><strong>260709-v3z — §2 problem-framing blocks</strong> (ask 6, added 2026-07-09). Folds HMW + a WAYRTTD
-      gut-check into <code>templates/prd/template.md</code> §2 + mirrored <code>eval.md</code> checks
-      (<code>hmw-present</code>, <code>wayrttd-gutcheck</code>); no renumber, no SKILL.md change (skill-eval trivial
-      pass, dogfood is the real gate). <strong>Depends on 260708-j79</strong> (same two files, post-renumber base);
-      disjoint from 9xh (§2 vs §6/SKILL.md). Design in §14.</li>
-  </ul>
-  <p>Both stories carry: conform to <code>skill-patterns.md §A–§L</code> + repo <code>CLAUDE.md</code> conventions;
-  pass <code>skill-eval.md</code> both halves; four hygiene lints green; a README row if warranted (version bump /
-  changelog / tag are <code>/complete-dev</code>'s at release, not build tasks).</p>
-</section>
-
-<section id="risks-open">
-  <h2 id="risks-open">13 · Risks &amp; open questions</h2>
-  <ul>
-    <li><strong>Renumber blast radius.</strong> Any repo doc/test that cites PRD "§8 stories" by number breaks.
-      <em>Mitigation:</em> Story 1 greps the repo for hardcoded PRD §-number references (tests, other templates'
-      guidance) and updates them; the template's own eval 1:1 check (INV-2) is the primary guard. <em>Open:</em>
-      confirm nothing outside the artifact skill hardcodes PRD section numbers.</li>
-    <li><strong>Template length creep.</strong> Five additions grow the PRD. <em>Mitigation:</em> MSF/metrics use
-      <code>tier: both</code> but the lite set can carry compact variants; alternatives/pre-mortem are
-      <code>full</code>-tier. <em>Open:</em> confirm the lite section set stays reasonable (INV-6).</li>
-    <li><strong>Non-interactive wireframe default.</strong> Auto-generating wireframes headless is heavy.
-      <em>Resolved by D3/design:</em> Recommended = Skip under <code>--non-interactive</code>; the stage only ever
-      offers, never force-runs (except that its own gate can AUTO-PICK Skip).</li>
-    <li><strong>Frontend detector reach.</strong> <code>frontend-detection.md</code> lives under feature-sdlc;
-      <code>/artifact</code> citing it is an intra-plugin reference (same plugin) — no cross-plugin dangling-cite
-      risk. <em>Open:</em> confirm the reference path resolves from the artifact skill dir.</li>
-    <li><strong>Does skill-eval meaningfully cover a data-only story?</strong> Story 1 changes no instruction surface,
-      so skill-eval passes trivially; the real quality gate for Story 1 is the template's own validation + a dogfood
-      run generating a sample PRD. The plan should include a dogfood <code>/artifact prd</code> smoke as the
-      substantive verification.</li>
-  </ul>
-</section>
-
-<section id="design-framing">
-  <h2 id="design-framing">14 · Design — §2 Problem framing: HMW + JTBD + WAYRTTD gut-check (ask 6, added 2026-07-09)</h2>
-  <p><strong>Addendum decided 2026-07-09</strong> (after the original two-story split). Story
-  <strong>260709-v3z</strong>. A content-only enhancement to the PRD template that makes explicit
-  <em>problem-framing</em> a first-class part of the doc. Scope is <strong>entirely inside
-  <code>/artifact</code></strong>: <code>templates/prd/{template.md, eval.md}</code> only — <strong>no change to
-  <code>/shape</code>, <code>/wayrttd</code>, or any referenced skill</strong> (D9). The disciplines borrowed here
-  already live upstream in <code>/shape</code> (HMW + JTBD in its FRAME phase) and <code>/wayrttd</code> (the
-  assumed-solution inversion); this ask carries the same <em>thinking</em> forward into the PRD artifact as authored
-  prose/prompts — it does <em>not</em> invoke those skills.</p>
-
-  <h3 id="framing-placement">Placement — fold into §2, no renumber (D10)</h3>
-  <ul>
-    <li>The two new blocks <strong>fold into the existing §2 "Problem &amp; Customer"</strong> (which already carries
-      the <code>segment-and-jtbd</code> requirement) rather than becoming a standalone section. §2 is retitled
-      <strong>§2 Problem, Customer &amp; Framing</strong>. <strong>No section is inserted</strong>, so §3–§15 keep
-      their post-j79 numbers and story <strong>260708-9xh's §6 back-link is untouched</strong>. This is the whole
-      reason for folding: a standalone §2.5 would renumber §3–§15 and break 9xh.</li>
-    <li>§2 gains two sub-heads under the existing problem/segment/JTBD material:
-      <ul>
-        <li><strong>How Might We</strong> — 1–3 HMW reframes that turn the problem statement into an opportunity
-          space (Warfield/IDEO "How might we…" form), each phrased so it opens solutions without naming one. Ties
-          directly to the §2 JTBD already present (the HMW is a reframing of that job).</li>
-        <li><strong>What are you really trying to do?</strong> — a compact WAYRTTD gut-check: (1) name the assumed
-          solution in one line, (2) climb "…and what would that get you?" to the real goal, (3) re-test whether the
-          assumed solution still serves that goal (proceed / reconsider / pivot). One short paragraph, not a
-          multi-turn exercise — a guard against a solution-first PRD, authored as a template prompt.</li>
-      </ul></li>
-    <li><strong>Tier:</strong> both blocks are <code>tier: both</code> guidance with compact lite variants (a single
-      HMW line + a two-sentence WAYRTTD note) so the lite PRD set stays reasonable (INV-6 length-creep guard).</li>
-  </ul>
-
-  <h3 id="framing-guidance">Guidance-comment contract</h3>
-  <ul>
-    <li>Each block ships as an HTML-comment guidance stub in <code>template.md</code> in the same voice as the §8 MSF
-      and §6 alternatives guidance (short, imperative, one worked micro-example). HMW guidance names the "How might
-      we…" opener and the "don't smuggle a solution" rule; WAYRTTD guidance gives the three-step climb inline.</li>
-    <li>The blocks reference — never restate — that the same disciplines are done live by <code>/shape</code> and
-      <code>/wayrttd</code> upstream, so an author who already shaped the problem can paste the frame rather than
-      redo it.</li>
-  </ul>
-
-  <h3 id="framing-eval">Eval changes (§2, mirrored in eval.md)</h3>
-  <ul>
-    <li><code>hmw-present</code> (judgment, <strong>medium</strong>) — §2 carries ≥1 well-formed "How might we…"
-      statement that reframes the problem and does <em>not</em> name a solution/mechanism; a HMW that smuggles a
-      feature fails.</li>
-    <li><code>wayrttd-gutcheck</code> (judgment, <strong>medium</strong>) — §2 carries the assumed-solution → real-goal
-      → re-test note with a proceed/reconsider/pivot verdict; a missing or solution-restating gut-check fails.</li>
-    <li>Retain the existing <code>segment-and-jtbd</code> check (JTBD stays required); the two new checks sit beside
-      it under §2. <strong>INV-2 holds:</strong> eval.md and template.md keep §N 1:1 (§2 augmented in lockstep, no
-      renumber).</li>
-  </ul>
-
-  <h3 id="framing-deps">Dependency &amp; coherence</h3>
-  <p><strong>Hard dependency → 260708-j79</strong>: this story edits the same two files (<code>template.md</code> +
-  <code>eval.md</code>) and must build on the post-j79 renumbered §1–§15 base, not stale main — otherwise it edits a
-  §2 that predates the renumber and collides on merge. <strong>260708-9xh is not a hard dep</strong>: 9xh touches
-  <code>artifact/SKILL.md</code> + a §6 back-link, this touches §2 — <em>disjoint regions of the same file</em>, so
-  they merge cleanly as parallel siblings off j79 (Loop-3 proves the disjoint-region merge per the release-train
-  precedent). Because folding adds no section, there is <strong>no numbering-map change</strong> — §2 is
-  <em>augmented</em>, every other §N unchanged.</p>
 </section>
 
   </main>
   <footer class="pmos-artifact-footer" data-pmos-role="footer">
     <div class="pmos-artifact-footer-inner">
       <a class="pmos-wordmark pmos-wordmark--footer" href="https://github.com/maneesh-dhabria/pmos-skills/blob/main/plugins/pmos-toolkit/README.md" target="_blank" rel="noopener noreferrer" data-pmos-role="wordmark" aria-label="pmos">pmos</a>
-      <span class="pmos-artifact-source">Source: 02_design.html</span>
+      <span class="pmos-artifact-source">Source: docs/pmos/features/2026-07-08_artifact-prd-template-enhancements/stories/260709-v3z/03_plan.html</span>
       <span class="pmos-attribution-sep" aria-hidden="true">·</span>
       <a class="pmos-attribution pmos-attribution--footer"
          href="https://github.com/maneesh-dhabria/pmos-skills/blob/main/plugins/pmos-toolkit/README.md"
@@ -2558,7 +2196,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 </script>
   <!-- pmos-comments:start -->
 <script id="pmos-comments" type="application/json">
-{"schema":1,"version":0,"generated_at":"2026-07-08T17:08:03.448Z","threads":[]}
+{"schema":1,"version":0,"generated_at":"2026-07-09T01:45:34.887Z","threads":[]}
 </script>
 <!-- pmos-comments:end -->
 </body>

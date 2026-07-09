@@ -142,5 +142,35 @@
     "level": 2,
     "title": "13 · Risks & open questions",
     "parent_id": null
+  },
+  {
+    "id": "design-framing",
+    "level": 2,
+    "title": "14 · Design — §2 Problem framing: HMW + JTBD + WAYRTTD gut-check (ask 6, added 2026-07-09)",
+    "parent_id": null
+  },
+  {
+    "id": "framing-placement",
+    "level": 3,
+    "title": "Placement — fold into §2, no renumber (D10)",
+    "parent_id": "design-framing"
+  },
+  {
+    "id": "framing-guidance",
+    "level": 3,
+    "title": "Guidance-comment contract",
+    "parent_id": "design-framing"
+  },
+  {
+    "id": "framing-eval",
+    "level": 3,
+    "title": "Eval changes (§2, mirrored in eval.md)",
+    "parent_id": "design-framing"
+  },
+  {
+    "id": "framing-deps",
+    "level": 3,
+    "title": "Dependency & coherence",
+    "parent_id": "design-framing"
   }
 ]
