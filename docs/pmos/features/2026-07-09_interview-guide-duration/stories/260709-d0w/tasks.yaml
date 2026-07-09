@@ -1,0 +1,69 @@
+schema_version: 1
+story: 260709-d0w
+epic: 260709-xhr
+route: skill
+plugin: pmos-managerkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-managerkit/skills/interview-feedback
+# Story B of epic 260709-xhr. Binds 02_design.html INV-3, INV-5, INV-7, D8, amendment A3.
+# Depends on 260709-qfn (D9 / A4): the claim-time transitive dep-merge puts qfn's MERGED SKILL.md and
+# scorecard-skeleton.html into this worktree, so the anchor is consumed as actually shipped, not as a fixture.
+# THE INVARIANT THAT GOVERNS THIS STORY (INV-3): the anchor makes the existing duration prompt BETTER INFORMED,
+# never SKIPPABLE. Its `<!-- defer-only: free-form -->` tag, its --non-interactive DEFER, and its mismatch flag
+# all survive verbatim. Epic 260707-rbc exists because a header duration was trusted and was wrong.
+# Do NOT touch rbc's F1 (submission bucketing), F3 (citation gate / no-stitch) or F4 (normalized extraction).
+# Release prereqs (version bump / changelog / README-row / tag) are /complete-dev's at epic release — NOT tasks.
+tasks:
+  - id: T1
+    title: "Phase Score — read root data-duration as the PROPOSED confirmed duration (INV-3, D8)"
+    ac: [AC1, AC2, AC3]
+    deps: []
+    parallel: false
+    status: pending
+    detail: >
+      In interview-feedback/SKILL.md Phase Score: when resolving the round's scorecard, read the root
+      data-duration anchor from the data-card="scorecard" element. When present, it becomes the PROPOSED value
+      surfaced in the existing duration AskUserQuestion (replacing the stale-header/inferred proposal) and, once
+      confirmed, the denominator for talk-time / pace and for the transcript-length vs. design-length mismatch
+      flag. The prompt keeps its literal `<!-- defer-only: free-form -->` tag, keeps carrying no safe default, and
+      still DEFERs under --non-interactive — the anchor is a better proposal, never an authority (INV-3). Update
+      the SKILL.md:152 prose so "not trusted from the scorecard header" now reads correctly against a machine
+      anchor: the anchor is proposed, the interviewer confirms.
+  - id: T2
+    title: "Phase Score — per-dim data-budget grounds coverage scoring (D8, A3)"
+    ac: [AC4]
+    deps: [T1]
+    parallel: false
+    status: pending
+    detail: >
+      In interview-feedback/SKILL.md Phase Score: where the resolved scorecard's data-dim sections carry
+      data-budget="<int>" anchors, score COVERAGE per dimension against the minutes the guide actually authored for
+      that dimension, rather than against the round total. Where data-budget is absent on some or all dims, fall
+      back to the current round-total behavior for those dims — partial anchoring is valid. State that the model
+      does not total budgets by hand (§H); the guide's validator already gated the sum at authoring time.
+  - id: T3
+    title: "Absent-anchor regression guard — a scorecard with no duration data behaves exactly as today (INV-5)"
+    ac: [AC5, AC6]
+    deps: [T1, T2]
+    parallel: false
+    status: pending
+    detail: >
+      Assert and document the degradation path: a scorecard carrying NO data-duration behaves byte-identically to
+      today — the duration prompt asks cold with its inferred proposal, no coverage-against-budget scoring, no
+      warning, no new failure mode (INV-5). Cover it with a fixture (a pre-epic bundled
+      guidelines/<archetype>/scorecard.html is the natural one — it must need no migration). Also cover the
+      disagreement case: when data-duration is present but the interviewer confirms a different value, the existing
+      mismatch flag fires and THE CONFIRMED ANSWER WINS.
+  - id: T4
+    title: "Eval + hygiene green, no rbc regressions (INV-7, AC7)"
+    ac: [AC7]
+    deps: [T1, T2, T3]
+    parallel: false
+    status: pending
+    detail: >
+      Run feature-sdlc/tools/skill-eval-check.sh --target claude-code on the interview-feedback skill DIR. Run the
+      four hygiene lints (non-interactive-inline byte-identical; audit-recommended.sh on the SKILL.md FILE — the
+      duration prompt must STILL be classified via its defer-only tag; lint-flags-vs-hints; lint-phase-refs).
+      Re-run check-citations.mjs --selftest, fill-scorecard.mjs's tests (43/43 as of v0.6.0), and transcribe.sh
+      --selftest — all green, no behavior change to rbc's F1/F3/F4 surfaces. Prove any residual pre-existing on
+      HEAD^1 before accepting it.
