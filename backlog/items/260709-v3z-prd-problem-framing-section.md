@@ -4,7 +4,7 @@ id: 260709-v3z
 title: "§2 Problem-framing blocks in the PRD template — fold a How-Might-We reframe + a WAYRTTD assumed-solution gut-check into §2 (template.md + mirrored eval.md), no renumber, no skill/SKILL.md change"
 type: feature
 kind: story
-status: planned
+status: done
 route: skill
 priority: should
 labels: [pmos-toolkit, artifact, prd-template, skill, problem-framing]
