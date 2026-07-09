@@ -201,6 +201,23 @@ function selftest() {
     </body></html>`,
   });
 
+  // PASS: cites living INSIDE the work-history role-evidence + trajectory-synthesis
+  // families are scored exactly like any other citation (the gate is container-agnostic
+  // — it must cover the additive work-history sections, not just competency dims).
+  cases.push({
+    name: 'PASS-work-history-containers',
+    expect: 0,
+    stdoutIncludes: '✓ citations: 2 transcript, 0 notes',
+    html: `<html><body>
+      <section data-card="role-evidence" data-role="1">
+        <div data-input="role:result"><cite data-cite-tier="transcript">${goodQuote}</cite></div>
+      </section>
+      <section data-card="trajectory-synthesis">
+        <div data-input="trajectory:scope-arc"><cite data-cite-tier="transcript">${goodQuote}</cite></div>
+      </section>
+    </body></html>`,
+  });
+
   // PASS with a verbatim submission-tier citation (3rd positional provided)
   cases.push({
     name: 'PASS-submission',

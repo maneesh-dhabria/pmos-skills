@@ -145,6 +145,8 @@ Every subjective claim in either output carries `<cite data-cite-tier="transcrip
 
 Fill the scorecard. Read the round's scorecard via its machine anchors (`../_shared/interview-guidelines/scorecard-skeleton.html` is the contract: `data-dim`, `data-weight`, `data-scale`, `data-v`, `data-input="notes:<dim>"`, `data-flags`, `data-input="reco"`). `scripts/fill-scorecard.mjs` parses the anchors → dimensions/scales/flags and produces `filled-scorecard.html`.
 
+**Work-history round (per-role evidence + trajectory).** When the round's scorecard carries the `data-card="role-evidence"` / `data-card="trajectory-synthesis"` families (the `work-history` archetype), `fill-scorecard.mjs` runs an additional **presence-guarded pass** on top of the competency `data-dim` pass: for each `role-evidence` block it fills the six `data-input="role:<slot>"` slots (company/title/tenure/scope/contribution/result), marks the `data-field="result-measured"` verdict (`yes`/`unclear`/`no`), and appends per-role green/red flags; for the single `trajectory-synthesis` block it fills the three `data-input="trajectory:<slot>"` slots (scope-arc/patterns/level-fit) and marks the `data-field="level-verdict"` (`below`/`at`/`above`). `level-verdict` **feeds** the overall `reco` but is scored as its own input, not derived from it (design D9). Pass these via the `values.json`'s `roles: [{role, company, …, measured, flags}]` and `trajectory: {scopeArc, patterns, levelFit, verdict}` keys. The pass is inert (byte-identical output) on any scorecard lacking those families, so the other seven archetypes are unaffected. Every subjective per-role/trajectory note carries the same `<cite data-cite-tier=…>` grounding the competency notes do.
+
 **Foreign scorecard (no anchors).** If the round's scorecard lacks the anchors, infer the dimensions/scales from its DOM, then: interactive → echo the inferred structure for confirmation before filling; non-interactive → fill but log every inference as an open question. Never silently guess.
 
 **Confirm the round duration before time-sensitive scoring (F2 / INV-3 / D3).** Coverage, talk-time, and pace are scored *relative to how long the round was meant to run* — so the intended duration is the denominator for those dimensions and MUST be confirmed with the interviewer, **not** trusted from the scorecard header (a stale header field is exactly what mis-scored an on-time 90-min round as a 2× overrun). Before scoring any time-sensitive dimension, **flag any transcript-length vs. scorecard-design-length mismatch** in the output, and confirm the by-design duration.
@@ -217,7 +219,7 @@ Emit **interviewer-effectiveness notes** (output b), one section per interviewer
 
 ## Phase: Setup {#setup}
 
-Scaffold a role's interview process. Compile the JD + process into `role/00_jd-and-process.html`; define the rounds (each an archetype from the 7 bundled PM round types or `custom`); for each round, attach the provided interviewer-reference + scorecard or generate them by instantiating `../_shared/interview-guidelines/reference-skeleton.html` + `../_shared/interview-guidelines/scorecard-skeleton.html`. Write `role.json` (§ role.json). `setup` runs unattended under `--non-interactive` (round/archetype choices AUTO-PICK their Recommended option; genuinely missing inputs DEFER).
+Scaffold a role's interview process. Compile the JD + process into `role/00_jd-and-process.html`; define the rounds (each an archetype from the 8 bundled PM round types or `custom`); for each round, attach the provided interviewer-reference + scorecard or generate them by instantiating `../_shared/interview-guidelines/reference-skeleton.html` + `../_shared/interview-guidelines/scorecard-skeleton.html`. Write `role.json` (§ role.json). `setup` runs unattended under `--non-interactive` (round/archetype choices AUTO-PICK their Recommended option; genuinely missing inputs DEFER).
 
 ## Phase: List {#list}
 
@@ -245,7 +247,9 @@ Walk the storage root; print one table — `Role | Round | Candidate | Scored?` 
 }
 ```
 
-`archetype ∈` {`recruiter-screen`, `product-sense`, `analytical`, `technical`, `behavioral`, `case-study`, `case-presentation`} (the 7 bundled PM round types) `| custom`. `interviewers[].role ∈` {`lead`, `shadow`, `panel`}.
+`archetype ∈` {`recruiter-screen`, `product-sense`, `analytical`, `technical`, `behavioral`, `case-study`, `case-presentation`, `work-history`} (the 8 bundled PM round types) `| custom`. `interviewers[].role ∈` {`lead`, `shadow`, `panel`}.
+
+`work-history` is the **non-case** archetype (a chronological Topgrading-style deep-dive, `guidelines_path: guidelines/work-history/`): its bundled scorecard adds the per-role `data-card="role-evidence"` blocks and the single `data-card="trajectory-synthesis"` block on top of the usual competency `data-dim` sections. `fill-scorecard.mjs` fills those extra families with a presence-guarded pass (Phase: Score `{#score}`), so the same scoring flow covers it end-to-end.
 
 ## Storage {#storage}
 
