@@ -1,0 +1,154 @@
+schema_version: 1
+story: 260709-qfn
+epic: 260709-xhr
+route: skill
+plugin: pmos-managerkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-managerkit/skills/interview-guide
+# Story A of epic 260709-xhr. Binds 02_design.html INV-1..7, D2..D8, amendments A1/A2/A3.
+# Additive revision to an existing skill + its managerkit-local shared substrate. Two hard rules carried from
+# the design: (1) NEVER assume a duration — no archetype defaults, no inference, absent is a first-class state
+# (INV-1/INV-2); (2) arithmetic blocks in the validator, judgment advises in the self-review (INV-6 / A2 / §H).
+# The scoring sheet is the SINGLE machine-readable home for duration data; the reference renders its numbers as
+# prose (A3). Anchors are optional + additive so the 8 bundled scorecards need no migration (INV-5).
+# Release prereqs (version bump / changelog / README-row / tag) are /complete-dev's at epic release — NOT tasks.
+tasks:
+  - id: T1
+    title: "scorecard-skeleton.html — document optional data-duration + per-dim data-budget anchors (D8, A3, INV-5)"
+    ac: [AC5, AC7]
+    deps: []
+    parallel: false
+    status: pending
+    detail: >
+      In plugins/pmos-managerkit/skills/_shared/interview-guidelines/scorecard-skeleton.html: extend the
+      doc-comment's machine-anchor list with (1) data-duration="<int-minutes>" on the root <main
+      data-card="scorecard">, and (2) data-budget="<int>" on each data-dim section. Document BOTH as optional and
+      additive, in the same prose style as the existing role-evidence / trajectory-synthesis families — an
+      archetype that omits them behaves exactly as before, and the weight-sum gate and dim-based scorer are
+      unaffected (INV-5). Do NOT edit the 8 bundled guidelines/<archetype>/scorecard.html files; they must stay
+      valid unchanged. Add the anchors to the skeleton's own markup only where the skeleton demonstrates a slot.
+  - id: T2
+    title: "validate-scorecard-anchors.mjs — hard-gate the duration arithmetic; add --check-duration (INV-6, A1, A2)"
+    ac: [AC3, AC4, AC9, AC10]
+    deps: [T1]
+    parallel: false
+    status: pending
+    detail: >
+      In plugins/pmos-managerkit/skills/interview-guide/scripts/validate-scorecard-anchors.mjs, extend the existing
+      sheet gate: when data-duration is present it MUST be a positive integer; when per-dim data-budget values are
+      present they MUST be positive integers summing to <= data-duration. Non-zero exit blocks the run, exactly as
+      the weight-sum gate does. Add a new mode `--check-duration '<raw>'` that parses a free-form operator answer
+      ("90", "90 mins", "1 hour", "90 + 15 buffer") to a positive integer, printing the integer on stdout and
+      exiting 0, or exiting non-zero when it cannot parse unambiguously — the model never parses minutes itself
+      (§H). --check-duration additionally WARNS on stderr (exit 0, never blocks) when the parsed value falls
+      outside a 15-240 minute sane band (A1). Absent anchors are always valid (INV-5).
+  - id: T3
+    title: "validate-scorecard-anchors.mjs — extend --selftest fixtures; assertion count must rise (AC10)"
+    ac: [AC10]
+    deps: [T2]
+    parallel: false
+    status: pending
+    detail: >
+      Extend the script's --selftest good/broken fixture pair to cover: a sheet with a valid data-duration and
+      summing data-budget set (good); a sheet whose per-dim budgets overrun data-duration (broken); a non-integer
+      / non-positive data-duration (broken); a sheet with NO duration anchors at all (good — INV-5 regression
+      guard); and --check-duration over parseable inputs, an unparseable input (non-zero), and an out-of-band but
+      parseable input (exit 0 + stderr warning). Record the pre-change assertion count and assert it RISES; the
+      suite stays green. Do not weaken any existing weight-sum or anchor assertion.
+  - id: T4
+    title: "SKILL.md Phase Collect — defer-only duration prompt + --duration contract flag (INV-1, D2, D3, D4, A1)"
+    ac: [AC1, AC2, AC3, AC4, AC5]
+    deps: [T2]
+    parallel: false
+    status: pending
+    detail: >
+      In interview-guide/SKILL.md Phase Collect, add a duration step. Interactive: an AskUserQuestion offering
+      "30 minutes" / "45 minutes" / "60 minutes" / "90 minutes" and a free-form "Other", preceded by the LITERAL
+      previous non-empty line `<!-- defer-only: free-form -->` and carrying NO option label ending in
+      "(Recommended)" — the tag is what makes "DO NOT assume" mechanically true, and it keeps audit-recommended.sh
+      green (D4/INV-1). An "Other" answer is normalized by `node scripts/validate-scorecard-anchors.mjs
+      --check-duration '<raw>'`; a non-zero exit re-prompts rather than guessing; the raw phrasing is retained for
+      the reference header (A1). Add `--duration <mins>` to the frontmatter argument-hint AND to the "Contract
+      flags" list in the Flags section, documenting that an explicit --duration pins the value and SUPPRESSES the
+      prompt in every mode, interactive included (D3/A1). Under --non-interactive with no --duration the prompt
+      DEFERs per the non-interactive block: log the open question, emit (a)+(b) with no time budget and no
+      duration anchor, and surface the deferral in the Phase Write run summary (D2/INV-2). Introduce NO archetype
+      default durations anywhere. Update Platform Adaptation for the no-AskUserQuestion and no-node degradations.
+  - id: T5
+    title: "SKILL.md Phase Scoring Sheet — emit data-duration + per-dim data-budget (D8, A3, INV-6)"
+    ac: [AC5, AC6, AC9]
+    deps: [T1, T4]
+    parallel: false
+    status: pending
+    detail: >
+      In interview-guide/SKILL.md Phase Scoring Sheet: when a duration is resolved, emit data-duration="<int>" on
+      the root data-card="scorecard" element and data-budget="<int>" on each data-dim section, allocating minutes
+      across dimensions by weight and round shape. State that the sheet is the SINGLE machine-readable home for
+      duration data (A3). Extend the existing §H hard-gate paragraph so the documented
+      `node scripts/validate-scorecard-anchors.mjs <sheet>` invocation now also covers the duration/budget
+      arithmetic — the model never totals minutes by hand (INV-6). When duration is absent, emit neither anchor
+      (INV-2). Keep the weight-sum contract and the work-history level-ladder path untouched.
+  - id: T6
+    title: "SKILL.md Phase Interviewer Reference — time-budget the round from the sheet's numbers (D5, A3)"
+    ac: [AC4, AC5]
+    deps: [T5]
+    parallel: false
+    status: pending
+    detail: >
+      In interview-guide/SKILL.md Phase Interviewer Reference: when a duration is resolved, each area section
+      carries its minute allocation, the round carries explicit open/close overhead, and the suggested-probe ladder
+      is trimmed to what fits the allocation. The reference RENDERS THE SHEET'S data-budget numbers as prose — it
+      never authors its own, so the two artifacts cannot drift (A3). Preserve the operator's raw duration phrasing
+      (e.g. "90 + 15 buffer") as prose in the reference header alongside the normalized integer (A1). Keep the
+      data-area <-> data-dim 1:1 id rule intact. When duration is absent, omit all minute prose (INV-2).
+  - id: T7
+    title: "reference/self-eval-rubric.md — reporting-only duration-fit axis (D6, A2)"
+    ac: [AC7]
+    deps: [T6]
+    parallel: true
+    status: pending
+    detail: >
+      Add a fourth axis, duration-fit, to interview-guide/reference/self-eval-rubric.md: "can this round genuinely
+      be run in the confirmed minutes — probes, transitions, open/close overhead included?" It REPORTS an axis
+      score and surfaces the gaps; it NEVER blocks (the manager is the gate, per the original skill's design D6).
+      State explicitly that the arithmetic half (budgets summing past the round) is a hard gate owned by
+      validate-scorecard-anchors.mjs, and this axis is the judgment half (A2/INV-6). The axis is SKIPPED when
+      duration is absent. Update Phase Self-Review's three-axis prose in SKILL.md to four axes.
+  - id: T8
+    title: "reference/output-shapes.md — anchor list + single-home statement (A3)"
+    ac: [AC5, AC11]
+    deps: [T1]
+    parallel: true
+    status: pending
+    detail: >
+      In interview-guide/reference/output-shapes.md: add data-duration (root) and data-budget (per data-dim) to the
+      scoring-sheet anchor list and the section checklist, marked optional/additive. State that the scoring sheet is
+      the single machine-readable home for duration data and that the interviewer reference mirrors it as prose
+      (A3). Note that a sheet with no duration anchors is valid (INV-5).
+  - id: T9
+    title: "reference/case-authoring.md + Phase Case Document — round duration != work window (INV-4, D7)"
+    ac: [AC8]
+    deps: []
+    parallel: true
+    status: pending
+    detail: >
+      In interview-guide/reference/case-authoring.md, add a short section stating that the confirmed LIVE-ROUND
+      duration and the candidate's take-home work window ("3 days, ~4 hours of work") are distinct,
+      separately-sourced inputs: neither derives from the other, neither is written into the other's slot (INV-4).
+      For the case-presentation archetype the confirmed round duration budgets presentation vs. Q&A. Add one
+      sentence to SKILL.md Phase Case Document citing INV-4 so the authoring pass cannot conflate them (D7).
+  - id: T10
+    title: "Eval + hygiene green, no regressions (INV-5, INV-7, AC12)"
+    ac: [AC12]
+    deps: [T1, T2, T3, T4, T5, T6, T7, T8, T9]
+    parallel: false
+    status: pending
+    detail: >
+      Run feature-sdlc/tools/skill-eval-check.sh --target claude-code on the interview-guide skill DIR. Run the four
+      hygiene lints: lint-non-interactive-inline.sh (block byte-identical), audit-recommended.sh on the SKILL.md
+      FILE (the new duration prompt must be classified via its defer-only tag), tools/lint-flags-vs-hints.sh
+      (--duration hinted AND handled in the body), tools/lint-phase-refs.sh. Re-run
+      `node scripts/validate-scorecard-anchors.mjs --selftest` (count risen, green). Assert all 8 bundled
+      guidelines/<archetype>/scorecard.html files still pass the sheet gate UNCHANGED (INV-5 regression guard).
+      Prove any residual pre-existing on HEAD^1 before accepting it; never rename the skill to satisfy
+      a-name-verb-or-gerund.
