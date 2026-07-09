@@ -114,6 +114,7 @@ Resolve the **storage root** and the **inputs**.
 1. **Root.** Precedence: `--root <path>` → `.pmos/settings.yaml :: managerkit.interview_root` → built-in default `./interviews/`. Call `scripts/storage.sh resolve-root` (it applies the same precedence and prints the absolute root). Inside a git repo, `storage.sh` installs/refreshes a **gitignore guard** so confidential candidate data is never committed; if the guard cannot be written, warn and continue (the operator is responsible — see § Confidentiality).
 2. **Locate the round.** From the inputs (or `--round`/`--candidate`), resolve the round folder under the role per the storage layout (§ Storage). New candidate → `scripts/storage.sh new-candidate <role> <round> <candidate>` creates the folder and copies each raw input into `inputs/` verbatim (never mutate originals).
 3. **Reference resolution.** Resolve the round's interviewer-reference + scorecard: `--reference <path>` wins; else the round-level guideline under `guidelines/<round>/`; else fall back to the role-level default. Under `--non-interactive`, if resolution is ambiguous, **DEFER** (log an open question) rather than guessing — see the non-interactive block. (Full precedence + the interviewer model lead/shadow/panel wiring live in `../_shared/interview-guidelines/reference-resolution.md`.)
+4. **Candidate brief (F1 / D4).** Resolve the candidate-facing brief for the round **through the same reference-resolution mechanism above** — a brief among the round inputs, else under `guidelines/<round>/`, else the role-level default — introducing **no new input-plumbing convention** (D4): it rides the existing precedence, not a dedicated flag. Make it available to Phase Score as the submission-bucketing baseline (the neutral "structure published in the brief" bucket). If no brief resolves, record it as absent — Phase Score's fourth bucket degrades to "not published" and is **never fabricated**.
 
 ## Phase: Transcribe {#transcribe}
 
@@ -135,18 +136,42 @@ Establish the evidence basis before scoring. Three tiers (best first):
 
 Every subjective claim in either output carries `<cite data-cite-tier="transcript|notes|recalled" data-source="…">`. When the only available basis is tier 3 and the run is non-interactive, emit the blank questionnaire (`scripts/questionnaire.mjs` derives it from the scorecard dimensions + reference) and stop the score path with the refusal above — do not fabricate.
 
+**Citation authoring rules (transcript tier).** A transcript-tier citation MUST be:
+
+- **A contiguous single-speaker span (INV-4).** Quote a contiguous run of ONE speaker's utterance — never stitch text across `Name:` speaker labels into a single quote, and never append words that are not in the source. If two speakers' words belong to the point, cite them as two separate quotes, each attributed to its speaker. A stitched or padded quote is a fabricated citation and fails the grounding gate.
+- **Extracted from the whitespace-normalized single-line view (F4).** The transcript has mid-utterance line breaks, but `scripts/check-citations.mjs::normalize()` collapses whitespace on *both* sides before comparing (`\s+`→single space, then trim). So before selecting the ≥40-char window, apply that same transform to the source span — collapse every run of whitespace (newlines included) to a single space and trim — then pick the quote from that single-line view. The authored quote then matches byte-for-byte what the gate sees. (Authoring discipline only — `check-citations.mjs` is unchanged; it already normalizes both sides.)
+
 ## Phase: Score {#score}
 
 Fill the scorecard. Read the round's scorecard via its machine anchors (`../_shared/interview-guidelines/scorecard-skeleton.html` is the contract: `data-dim`, `data-weight`, `data-scale`, `data-v`, `data-input="notes:<dim>"`, `data-flags`, `data-input="reco"`). `scripts/fill-scorecard.mjs` parses the anchors → dimensions/scales/flags and produces `filled-scorecard.html`.
 
 **Foreign scorecard (no anchors).** If the round's scorecard lacks the anchors, infer the dimensions/scales from its DOM, then: interactive → echo the inferred structure for confirmation before filling; non-interactive → fill but log every inference as an open question. Never silently guess.
 
+**Confirm the round duration before time-sensitive scoring (F2 / INV-3 / D3).** Coverage, talk-time, and pace are scored *relative to how long the round was meant to run* — so the intended duration is the denominator for those dimensions and MUST be confirmed with the interviewer, **not** trusted from the scorecard header (a stale header field is exactly what mis-scored an on-time 90-min round as a 2× overrun). Before scoring any time-sensitive dimension, **flag any transcript-length vs. scorecard-design-length mismatch** in the output, and confirm the by-design duration.
+
+<!-- defer-only: free-form -->
+Confirm the round's intended duration via `AskUserQuestion` — the header/inferred value is the Recommended option (a confident interviewer confirms in one keystroke), but the `defer-only: free-form` tag makes this a genuine interviewer-judgement input with **no safe default**, so under `--non-interactive` it **DEFERs** (never AUTO-PICKs the stale header):
+
+```
+question: "What was this round's intended duration? Coverage/talk-time/pace are scored against it; the scorecard header may be stale."
+header: "Duration"
+options:
+  - label: "<header/inferred> min (Recommended)"   # the scorecard-header or transcript-inferred value
+    description: "Use this as the by-design duration for time-based scoring."
+  - label: "Enter the correct by-design duration"
+    description: "Override the header with the interviewer-confirmed round length."
+```
+
+On DEFER (non-interactive): log an open question, surface the transcript-vs-header mismatch, and score the affected dimensions against the flagged (unconfirmed) value while marking them provisional. The confirmed value is the denominator for coverage/talk-time/pace.
+
 Score each dimension on its own scale with grounded notes + flags, then set the overall `reco`.
 
 **Written submission (take-home / design doc / writing sample).** A round may include a candidate-authored written artifact alongside the live conversation. Detect it: `--written-submission <path>` wins; else auto-detect a submission file in `inputs/` (filename predicate — `*submission*`, `*take-home*`/`*takehome*`, `*design-doc*`, `*writing-sample*`, or an obvious doc among the inputs that is neither the recording, transcript, nor interviewer notes). When one is present:
 
 1. **Classify the scenario once.** The two scenarios assess *different things* and must never be conflated:
-   - **post-live** — the candidate produced the artifact *during/around* a live round; the live conversation is the primary signal and the submission is assessed for what was **discussed**, what was **interviewer-directed**, and what was **independent** — a submission that only restates the live discussion is WEAK, not strong.
+   - **post-live** — the candidate produced the artifact *during/around* a live round; the live conversation is the primary signal and the submission is assessed across four buckets: **structure published in the brief**, what was **discussed**, what was **interviewer-directed**, and what was **independent** — a submission that only restates the live discussion is WEAK, not strong.
+
+     **Read the candidate brief first (F1 / INV-2).** Before bucketing, read the candidate-facing brief (resolved in Phase Resolve). Structure, phases, focus areas, success-metrics, or risk framing that the **brief itself published** is the **expected baseline** — attribute it to the neutral fourth bucket "structure published in the brief". Brief-published structure is NEVER read back as interviewer-seeded ("assigned homework") and NEVER penalized as unoriginal — filling in the brief's own scaffold is exactly what was asked. Only structure that is *not* in the brief is a candidate/interviewer contribution to be sorted into discussed / interviewer-directed / independent. If no brief was resolved, the fourth bucket degrades to "not published" (never fabricated).
    - **pre-live** — the candidate submitted the artifact *before* any live round (e.g. a screening take-home); assess its **intrinsic quality** and the candidate's **live defense** of it.
 
    `--submission-type <post-live|pre-live>` pins it. Otherwise infer from the timeline in the inputs and confirm (the inferred scenario is the Recommended option, so a non-interactive run AUTO-PICKs it rather than deferring — classification is always resolvable from the inputs' timeline):
@@ -164,7 +189,7 @@ Score each dimension on its own scale with grounded notes + flags, then set the 
 
    An explicit `--submission-type` skips this ask entirely.
 
-2. **Assess it in context, in its own block.** `fill-scorecard.mjs` injects a `data-card="submission-assessment"` block (scenario-stamped) ahead of the recommendation when a submission is passed — post-live → discussed / interviewer-directed / independent + live-context note; pre-live → intrinsic quality + live defense. Quotes from the submission carry `data-cite-tier="submission"`.
+2. **Assess it in context, in its own block.** `fill-scorecard.mjs` injects a `data-card="submission-assessment"` block (scenario-stamped) ahead of the recommendation when a submission is passed — post-live → published-in-brief (neutral baseline) / discussed / interviewer-directed / independent + live-context note; pre-live → intrinsic quality + live defense. Quotes from the submission carry `data-cite-tier="submission"`.
 3. **Reference it in the recommendation.** The `reco` must account for the submission assessment (a `data-submission-ref` note ties them) — a submission that is assessed but not reflected in the hire/no-hire call is an incomplete run.
 
 **Submission checklist gate** (run when a submission is present; every box must be ticked):
@@ -173,7 +198,12 @@ Score each dimension on its own scale with grounded notes + flags, then set the 
 - assessed in context? — the `submission-assessment` block exists and uses the scenario-appropriate frame.
 - referenced in reco? — the recommendation cites the submission assessment.
 
-**Grounding hard gate.** Run `scripts/check-citations.mjs filled-scorecard.html transcript.refined.txt` — appending the submission file as a **third positional** when one is present (`… transcript.refined.txt <submission-path>`) so `data-cite-tier="submission"` quotes are verified verbatim too. Any transcript- or submission-tier citation that is not a verbatim ≥40-char substring of its source fails the run. On pass, surface the script's `✓ citations:` line to the operator and append a one-line audit comment to `filled-scorecard.html`:
+**Grounding hard gate (blocking STOP-before-done, INV-1).** Run `scripts/check-citations.mjs filled-scorecard.html transcript.refined.txt` — appending the submission file as a **third positional** when one is present (`… transcript.refined.txt <submission-path>`) so `data-cite-tier="submission"` quotes are verified verbatim too. Any transcript- or submission-tier citation that is not a verbatim ≥40-char substring of its source fails the run.
+
+This gate is a **hard STOP, not an assertion**: `filled-scorecard.html` is NOT presented as complete — and the run does NOT declare done — until `check-citations.mjs` **exits 0** over it.
+
+- **Non-zero exit:** report the failing citations verbatim to the operator, repair each (re-extract the quote as a contiguous single-speaker span from the normalized single-line view per Phase Ground's citation authoring rules, or drop the claim to a lower tier), then **re-run the gate**. Never present the artifact or move to Coach while the gate is non-zero; a non-passing gate blocks completion regardless of run mode.
+- **Passing exit (exit 0):** only then surface the script's `✓ citations:` line to the operator and append the one-line audit comment to `filled-scorecard.html`. The audit comment is written **only on a passing gate** — it is the proof-of-pass, never an assertion written ahead of the check:
 
 ```
 <!-- citations verified: <N> transcript-tier, <M> notes-tier[, <K> submission-tier], <YYYY-MM-DD> -->
@@ -183,7 +213,7 @@ Score each dimension on its own scale with grounded notes + flags, then set the 
 
 ## Phase: Coach {#coach}
 
-Emit **interviewer-effectiveness notes** (output b), one section per interviewer, scored against `../_shared/interview-guidelines/interviewer-effectiveness.html` (the bundled researched rubric — structured/consistent questioning, probing depth, leading-question avoidance, talk-time balance, coverage, bias mitigation, note quality, calibration). Each interviewer's lead/shadow/panel role (from `role.json`) sets expectations. Subjective claims carry the same `data-cite-tier`; per-interviewer claims that could not be attributed are flagged with attribution-confidence. Re-run `check-citations.mjs` over this output too.
+Emit **interviewer-effectiveness notes** (output b), one section per interviewer, scored against `../_shared/interview-guidelines/interviewer-effectiveness.html` (the bundled researched rubric — structured/consistent questioning, probing depth, leading-question avoidance, talk-time balance, coverage, bias mitigation, note quality, calibration). Each interviewer's lead/shadow/panel role (from `role.json`) sets expectations. Subjective claims carry the same `data-cite-tier`; per-interviewer claims that could not be attributed are flagged with attribution-confidence. Re-run `check-citations.mjs` over this output too — the **same blocking STOP-before-done gate applies (INV-1)**: the effectiveness notes are not presented as complete until the gate exits 0 over them; on a non-zero exit, repair the failing citations and re-run before declaring done.
 
 ## Phase: Setup {#setup}
 
