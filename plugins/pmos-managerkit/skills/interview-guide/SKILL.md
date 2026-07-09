@@ -144,7 +144,7 @@ Resolve the round's parameters before authoring anything:
 
 Load the archetype's bundled corpus from `../_shared/interview-guidelines/` (the 260702-cqf home — never read into `/interview-feedback`'s own dir):
 
-- **`guidelines/<archetype>/interviewer-reference.html`** — the model for output (a): purpose, per-area green/red signals, probes, calibration. When the archetype is one of the 7 bundled ones, this is filled corpus to tailor; for `custom`, instantiate `reference-skeleton.html`.
+- **`guidelines/<archetype>/interviewer-reference.html`** — the model for output (a): purpose, per-area green/red signals, probes, calibration. When the archetype is one of the 8 bundled ones, this is filled corpus to tailor; for `custom`, instantiate `reference-skeleton.html`.
 - **`guidelines/<archetype>/scorecard.html`** (and `scorecard-skeleton.html`, the anchor contract) — the model for output (b).
 - **`reference-resolution.md`** — how a round's reference/scorecard resolve (for the `--role-dir` write path).
 
