@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<!--
+  Work-history round interviewer reference — /interview-guide (pmos-managerkit), design §16.1 + §16.7.
+  Instantiates the canonical reference skeleton (../../reference-skeleton.html). The work-history round
+  is a METHOD, not a competency checklist: a structured, chronological deep-dive through the
+  candidate's actual roles (Topgrading-style) that surfaces evidence for the Reforge/Mehta competencies,
+  which are scored on the paired scorecard.html against the level-ladder.md weights. Area ids here are
+  the METHOD phases; competency scoring lives in the scorecard + level ladder.
+  Self-contained HTML — no external assets, editable in a browser. Pairs with scorecard.html.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="interview-feedback">
+<title>Interviewer reference — Work history</title>
+<style>
+  :root{
+    --bg:#f8f5ef; --surface:#fff; --border:#e2dac9; --rule:#d9cfbd;
+    --text:#201e1a; --muted:#655e54; --accent:#b8431a; --green:#16a34a; --red:#b91c1c;
+    --serif:Georgia,"Iowan Old Style",serif; --sans:-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--serif);line-height:1.6;font-size:16px}
+  main{max-width:820px;margin:0 auto;padding:2.2rem 1.4rem 4rem}
+  h1{font-family:var(--sans);font-size:1.55rem;margin:0 0 .2rem}
+  .sub{color:var(--muted);font-size:.9rem;margin:0 0 1.6rem;font-family:var(--sans)}
+  .purpose{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin:0 0 1.6rem}
+  .method{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:8px;padding:1rem 1.1rem;margin:0 0 1.6rem;font-size:.95rem}
+  .method ol{margin:.4rem 0 0;padding-left:1.2rem}
+  .method li{margin:.3rem 0}
+  .area{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin:0 0 1rem}
+  .area-name{font-family:var(--sans);font-weight:600;font-size:1.05rem;margin:0 0 .4rem}
+  .signals{display:flex;gap:2rem;font-family:var(--sans);font-size:.88rem;margin:.4rem 0}
+  ul[data-signals="green"] li{color:var(--green)}
+  ul[data-signals="red"] li{color:var(--red)}
+  .probes-label{font-family:var(--sans);font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:.7rem 0 .2rem}
+  ul[data-probes]{margin:.2rem 0;padding-left:1.1rem}
+  ul[data-probes] li{margin:.15rem 0}
+  .calib{font-family:var(--sans);font-size:.84rem;color:var(--muted);border-top:1px dashed var(--rule);margin-top:.7rem;padding-top:.5rem}
+  .calib strong{color:var(--text)}
+  .bias{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin:1.6rem 0 0}
+  .bias table{width:100%;border-collapse:collapse;font-size:.86rem;font-family:var(--sans);margin-top:.5rem}
+  .bias td,.bias th{border-bottom:1px solid var(--rule);padding:.4rem .3rem;text-align:left;vertical-align:top}
+  .bias th{color:var(--muted);font-weight:600}
+  .prov{font-family:var(--sans);font-size:.82rem;color:var(--muted);margin-top:1.8rem;border-top:1px solid var(--rule);padding-top:.8rem}
+  .prov li{margin:.2rem 0}
+</style>
+</head>
+<body>
+<main data-ref="round" data-archetype="work-history">
+  <h1>Work history — interviewer reference</h1>
+  <p class="sub">work-history round · a structured chronological deep-dive · what to probe, what strong and weak answers look like</p>
+
+  <div class="purpose">
+    <strong>Purpose of this round.</strong> Reconstruct what the candidate has actually done — role by
+    role, in order — and separate <em>what they personally drove</em> from what their team, their
+    manager, or a good market did. The résumé is a claim; this round is the audit. It exists to
+    calibrate <strong>level</strong> (is the scope of their real work at, below, or above the bar for
+    this role?) and to catch the two failure modes a résumé can't: <em>inflation</em> (credit taken for
+    others' work) and a <em>partial arc</em> (a title that outran the scope). It is <strong>not</strong>
+    a behavioral round — the unit here is a role and its results, not a single STAR anecdote.
+  </div>
+
+  <div class="method">
+    <strong>The method — a chronological funnel.</strong> Walk the career forward, oldest to most
+    recent, and go deep on the roles that matter for this level. Within each role, <em>peel the onion</em>:
+    start broad ("what was your charter?"), then narrow relentlessly to the specific decision, the
+    specific action <em>they</em> took, and the measured result.
+    <ol>
+      <li><strong>Open (2 min)</strong> — frame the round: "I'd like to walk through your career in
+        order, spending most time on the last couple of roles. I'll interrupt to go deep — that's a
+        good sign, not a bad one."</li>
+      <li><strong>Career-arc scan (5 min)</strong> — a fast forward pass over every role: title, dates,
+        company stage, and the one-line charter. Builds the skeleton and flags the roles to mine.</li>
+      <li><strong>Per-role deep-dive (25–30 min)</strong> — the core. For each significant role, run the
+        funnel below until you can name the candidate's <em>own</em> contribution and its result.</li>
+      <li><strong>Level-targeted competency probes (throughout)</strong> — as evidence surfaces, score
+        it against the Reforge/Mehta competencies weighted for <em>this</em> level (see
+        <code>level-ladder.md</code> + <code>scorecard.html</code>). Probe the competencies that carry
+        the most weight for the target level hardest.</li>
+      <li><strong>Wrap (5 min)</strong> — the boss-rating and reference probes, then the candidate's
+        questions. Leave time; the manager questions often surface the truest signal.</li>
+    </ol>
+  </div>
+
+  <!-- Method-phase areas. Each is one <section.area>; data-area is the method phase. Competency
+       scoring maps to scorecard.html's data-dim sections, not 1:1 to these areas. -->
+
+  <section class="area" data-area="career-arc-scan">
+    <p class="area-name">1 · Career-arc scan</p>
+    <p>The fast forward pass. You are building the chronological skeleton and deciding where to spend
+      your deep-dive budget — usually the two most recent roles and any role the candidate leans on.</p>
+    <div class="signals">
+      <div><strong>✓ Strong looks like</strong>
+        <ul data-signals="green">
+          <li>Clean, honest timeline — dates, titles, and company stage line up with the résumé</li>
+          <li>Can state each role's charter in a sentence without inflating it</li>
+        </ul>
+      </div>
+      <div><strong>✕ Watch for</strong>
+        <ul data-signals="red">
+          <li>Vague or shifting dates; gaps or overlaps waved away ("around then")</li>
+          <li>Every role described as a promotion into ever-grander scope with nothing to anchor it</li>
+        </ul>
+      </div>
+    </div>
+    <p class="probes-label">Suggested probes</p>
+    <ul data-probes="career-arc-scan">
+      <li>Let's walk your career in order. Start with your first PM role — title, company, dates, and the one-line charter.</li>
+      <li>For each next role: what changed — the scope, the team, the mandate?</li>
+      <li>Which of these roles are you proudest of? We'll go deep there.</li>
+    </ul>
+    <p class="calib"><strong>4</strong> clean arc, honest framing, knows which roles to feature ·
+      <strong>2–3</strong> arc mostly clear but some scope inflation · <strong>1</strong> timeline
+      doesn't reconcile with the résumé. <em>Common mistake:</em> letting the scan run long — it's a
+      skeleton, not the interview.</p>
+  </section>
+
+  <section class="area" data-area="per-role-deep-dive">
+    <p class="area-name">2 · Per-role deep-dive (the funnel)</p>
+    <p>The heart of the round. For each significant role, peel the onion: charter → the specific
+      problem → the decision → <em>their</em> action → the result. Do not accept the first, broad
+      answer; every "we" and every abstraction is a place to narrow.</p>
+    <div class="signals">
+      <div><strong>✓ Strong looks like</strong>
+        <ul data-signals="green">
+          <li>Can go three or four levels deep without running out of specifics</li>
+          <li>Names the hard trade-off, the option not taken, and why</li>
+          <li>Detail is consistent under repeated narrowing — the story holds</li>
+        </ul>
+      </div>
+      <div><strong>✕ Watch for</strong>
+        <ul data-signals="red">
+          <li>Runs out of detail two questions in — the story was a headline, not a memory</li>
+          <li>Answers get vaguer, not sharper, as you narrow (the inflation tell)</li>
+          <li>Jargon and frameworks substituted for what actually happened</li>
+        </ul>
+      </div>
+    </div>
+    <p class="probes-label">Suggested probes (the peel)</p>
+    <ul data-probes="per-role-deep-dive">
+      <li>What was the single hardest decision you owned in that role? Walk me to the moment you decided.</li>
+      <li>What were the options? Why did you kill the one you killed?</li>
+      <li>Who disagreed, and what did you do about it?</li>
+      <li>If I called your eng lead from that project, what would they say you specifically did?</li>
+      <li>What did you get wrong, and when did you find out?</li>
+    </ul>
+    <p class="calib"><strong>4</strong> depth holds under four levels of narrowing, specifics stay
+      consistent · <strong>2–3</strong> good headline, thins out under pressure · <strong>1</strong>
+      cannot get past the abstraction. <em>Common mistake:</em> accepting a polished narrative and
+      moving on — the polish is exactly what you must drill through.</p>
+  </section>
+
+  <section class="area" data-area="contribution-attribution">
+    <p class="area-name">3 · Contribution attribution — "we" vs "I"</p>
+    <p>The most important discipline in the round. A résumé is written in "we"; your job is to find the
+      "I". Every time the candidate says "we", you want to know what <em>they</em> did inside that we —
+      not to diminish teamwork, but to size their personal contribution at level.</p>
+    <div class="signals">
+      <div><strong>✓ Strong looks like</strong>
+        <ul data-signals="green">
+          <li>Distinguishes their work from the team's unprompted — "the team shipped X; my part was Y"</li>
+          <li>Generous with credit <em>and</em> precise about their own lever</li>
+          <li>Owns the parts that were theirs, including the failures</li>
+        </ul>
+      </div>
+      <div><strong>✕ Watch for</strong>
+        <ul data-signals="red">
+          <li>"We" the whole way through; can't or won't isolate their own contribution</li>
+          <li>Claims the team's big win but distances from its failures ("that was eng")</li>
+          <li>Individual-contribution stories dressed up as leadership, or vice-versa</li>
+        </ul>
+      </div>
+    </div>
+    <p class="probes-label">Suggested probes</p>
+    <ul data-probes="contribution-attribution">
+      <li>You keep saying "we" — what was <em>your</em> specific part of that?</li>
+      <li>What would not have happened if you hadn't been there?</li>
+      <li>Where did your contribution end and someone else's begin?</li>
+    </ul>
+    <p class="calib"><strong>4</strong> crisp, honest self/team boundary at the right altitude for level
+      · <strong>2–3</strong> isolates contribution when pushed · <strong>1</strong> "we" all the way
+      down. <em>Common mistake:</em> reading confident "we" language as leadership — press for the "I".</p>
+  </section>
+
+  <section class="area" data-area="results-and-measurement">
+    <p class="area-name">4 · Results &amp; measurement — the inflation catch</p>
+    <p>Did it work, and how do they know? Strong PMs quantify and can also tell you what the number
+      <em>doesn't</em> capture. This is where résumé inflation surfaces: an outcome that shrinks under
+      questioning, a metric with no baseline, credit for a tailwind the market provided.</p>
+    <div class="signals">
+      <div><strong>✓ Strong looks like</strong>
+        <ul data-signals="green">
+          <li>Names the metric, the baseline, and the delta — and its limits</li>
+          <li>Separates their impact from the market/tailwind honestly</li>
+          <li>Comfortable saying "we didn't measure that well" when true</li>
+        </ul>
+      </div>
+      <div><strong>✕ Watch for</strong>
+        <ul data-signals="red">
+          <li>Big percentages with no baseline, no denominator, no timeframe</li>
+          <li>The result shrinks each time you ask for specifics (the classic inflation curve)</li>
+          <li>Company-level outcomes claimed as personal impact</li>
+        </ul>
+      </div>
+    </div>
+    <p class="probes-label">Suggested probes</p>
+    <ul data-probes="results-and-measurement">
+      <li>You said it grew 40% — 40% of what, from what baseline, over what window?</li>
+      <li>How much of that was you versus the market or the rest of the company?</li>
+      <li>What's the number you're least proud of from that role?</li>
+    </ul>
+    <p class="calib"><strong>4</strong> quantified, baselined, honest about attribution and limits ·
+      <strong>2–3</strong> real results but fuzzy on baseline/attribution · <strong>1</strong> numbers
+      evaporate under scrutiny. <em>Common mistake:</em> being satisfied by a big number — always ask
+      "of what, from what, over what window".</p>
+  </section>
+
+  <section class="area" data-area="level-and-trajectory">
+    <p class="area-name">5 · Level &amp; trajectory</p>
+    <p>Synthesise the arc. Is the <em>scope</em> of their real work at, below, or above the bar for this
+      role? Read scope (feature → area → product → portfolio → org) and ownership language against the
+      <code>level-ladder.md</code> scope anchors. The partial-arc catch lives here: a title one rung
+      above the evidence.</p>
+    <div class="signals">
+      <div><strong>✓ Strong looks like</strong>
+        <ul data-signals="green">
+          <li>Scope of real work matches (or exceeds) the target level's anchor</li>
+          <li>A clear growth story — each role a genuine step up in ambiguity or scope</li>
+          <li>Self-aware about where they are on the ladder and why</li>
+        </ul>
+      </div>
+      <div><strong>✕ Watch for</strong>
+        <ul data-signals="red">
+          <li>Title outran the work — a "Senior/Lead" whose every example is a single feature</li>
+          <li>Flat arc — same scope for years, relabeled</li>
+          <li>Lateral hops that read as escaping before results landed</li>
+        </ul>
+      </div>
+    </div>
+    <p class="probes-label">Suggested probes</p>
+    <ul data-probes="level-and-trajectory">
+      <li>What was the biggest jump in scope between two of your roles? What made it a jump?</li>
+      <li>At your last level, how many PMs / what portfolio did you actually own?</li>
+      <li>What's the largest ambiguous problem you've owned end-to-end?</li>
+    </ul>
+    <p class="calib"><strong>4</strong> scope at/above bar, clear upward arc · <strong>2–3</strong>
+      at-bar but arc is uneven · <strong>1</strong> title above evidence (partial arc). <em>Common
+      mistake:</em> scoring the title, not the scope — the ladder reads the work.</p>
+  </section>
+
+  <section class="area" data-area="management-and-references">
+    <p class="area-name">6 · Management read &amp; reference verification</p>
+    <p>The wrap. Two Topgrading staples: the boss-rating probe (a low-cost honesty test) and a
+      soft-pedalled look at how references would land. Both are read for <em>self-awareness</em>, not
+      as gotchas.</p>
+    <div class="signals">
+      <div><strong>✓ Strong looks like</strong>
+        <ul data-signals="green">
+          <li>Predicts a manager's rating honestly, incl. the critique they'd give</li>
+          <li>Comfortable naming past managers and what they'd say — no defensiveness</li>
+          <li>Owns a development area without either false modesty or spin</li>
+        </ul>
+      </div>
+      <div><strong>✕ Watch for</strong>
+        <ul data-signals="red">
+          <li>Every past boss rated a 9–10 with no critique — implausible, low self-awareness</li>
+          <li>Evasive or hostile about references (a flag worth its own follow-up)</li>
+          <li>"My only weakness is I work too hard"</li>
+        </ul>
+      </div>
+    </div>
+    <p class="probes-label">Suggested probes</p>
+    <ul data-probes="management-and-references">
+      <li>On a 1–10 scale, how would your last manager rate your performance? Why that number, not one higher?</li>
+      <li>What would they say you needed to work on?</li>
+      <li>When we take references, who should we talk to — and what will they tell us that we haven't covered?</li>
+    </ul>
+    <p class="calib"><strong>4</strong> honest self-rating with a real critique, open on references ·
+      <strong>2–3</strong> mostly candid, some polish · <strong>1</strong> uniformly high ratings, no
+      self-critique. <em>Common mistake:</em> skipping the "why not one higher?" follow-up — it's where
+      the boss-rating probe earns its keep.</p>
+  </section>
+
+  <div class="bias">
+    <strong>Bias register — check yourself before you score.</strong> The work-history round is
+    unusually exposed to interviewer bias because it runs on narrative. Before writing the scorecard,
+    re-read your notes against these:
+    <table>
+      <tr><th>Bias</th><th>How it shows up here</th><th>Counter</th></tr>
+      <tr><td>Halo</td><td>One impressive role or logo colours every dimension</td><td>Score each role's evidence on its own; a great Series-A story doesn't earn the strategy dim</td></tr>
+      <tr><td>Confirmation</td><td>You decided in the first five minutes and mined for support</td><td>Actively hunt for the disconfirming detail; run the peel even when you like them</td></tr>
+      <tr><td>Leading</td><td>You feed the candidate the answer inside the question</td><td>Ask open, then narrow with facts — never with the conclusion you want</td></tr>
+      <tr><td>Recency</td><td>The last role dominates; early roles under-probed</td><td>Budget deep-dive time deliberately; the arc needs at least two roles</td></tr>
+      <tr><td>Vagueness tolerance</td><td>You accept a smooth abstraction as an answer</td><td>Treat every unfilled specific as an open question, not a pass</td></tr>
+      <tr><td>Individual-contribution confusion</td><td>You score IC craft as leadership (or the reverse)</td><td>Attribute at the right altitude for the target level (see area 3)</td></tr>
+      <tr><td>Partial-arc blindness</td><td>You score the title, not the scope</td><td>Read scope against the ladder anchors; a big title with small work is a below-level signal</td></tr>
+    </table>
+  </div>
+
+  <ul class="prov">
+    <strong>Provenance.</strong> This round's method is grounded in:
+    <li><em>Topgrading</em> (Bradford Smart) and <em>Who: The A Method for Hiring</em> (Smart &amp; Street) — the chronological deep-dive, the boss-rating probe, and reference verification.</li>
+    <li>Lenny Rachitsky's PM-interview and hiring writing — the "we vs I" discipline and level-calibration lens.</li>
+    <li>The Reforge / Ravi Mehta PM competency framework — the four competency buckets scored on the paired scorecard (see <code>level-ladder.md</code>).</li>
+    <li>Ben Kuhn's interviewing notes — peeling the onion / narrowing until the story either holds or breaks.</li>
+    <li>Schmidt &amp; Hunter (1998) and Google's re:Work — why <em>structured</em>, evidence-based history beats unstructured impression.</li>
+  </ul>
+</main>
+</body>
+</html>
