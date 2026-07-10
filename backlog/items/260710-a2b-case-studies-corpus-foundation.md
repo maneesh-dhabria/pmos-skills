@@ -4,7 +4,7 @@ id: 260710-a2b
 title: "/case-studies corpus foundation — one-shot importer transforming the 665 source YAMLs into a bundled single-array data/case-studies.json (with derived year + quantified), the closed-vocab module (4 pillars / 98 topics / 9 regions / 5 artifact-types), a validate-corpus.mjs gate, and reference/corpus-schema.md"
 type: feature
 kind: story
-status: planned
+status: in-progress
 route: feature
 priority: should
 labels: [pmos-learnkit, case-studies, corpus]
