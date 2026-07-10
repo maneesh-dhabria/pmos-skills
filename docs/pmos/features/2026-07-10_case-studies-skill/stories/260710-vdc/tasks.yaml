@@ -1,0 +1,100 @@
+schema_version: 1
+story: 260710-vdc
+epic: 260710-4bh
+route: skill
+plugin: pmos-learnkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-learnkit/skills/case-studies
+# Story B of epic 260710-4bh. Binds 02_design.html INV-1..7, D1..D8, #viewer, #matching, #change-surface.
+# Depends on 260710-a2b (dep-merge brings data/case-studies.json + corpus-vocab.mjs + validate-corpus.mjs into
+# this worktree). The skill surface: SKILL.md, viewer builder, match/json, reference docs, tests.
+# Hard rules from the design: reuse the frozen substrate, no standalone template + no edits to lib.mjs (D1/INV-6);
+# rebuild the viewer, do NOT ship the source index.html (D3); columns reader, not iframe (D6); deterministic
+# retrieval never fabricates, LLM only re-ranks the pool (INV-5); offline + zero-dep + no ES modules in emitted JS
+# (INV-1); conform to skill-patterns.md §A–§L + CLAUDE.md, frozen non-interactive block byte-identical (INV-7).
+# skill-eval target = claude-code. Release prereqs (version bump / changelog / README row) are /complete-dev's at
+# epic release — NOT tasks (listed under release_prerequisites below).
+tasks:
+  - id: T1
+    title: "build-library.mjs — thin viewer adapter over _shared/library-viewer/lib.mjs (D1, D3, D6, #viewer)"
+    ac: [AC2, AC3]
+    deps: []
+    parallel: false
+    status: pending
+    detail: >
+      Create scripts/build-library.mjs (zero-dep Node ESM) modelled on frameworks/scripts/build-library.mjs and
+      primer/scripts/build-library.mjs. Import ONLY the public API from ../../_shared/library-viewer/lib.mjs
+      (esc, renderMarkdown, parseBlocks, renderBody, extractFacets, emitHtml). Load data/case-studies.json resolved
+      relative to SCRIPT_DIR (never CWD). Supply a toCard(record) with a strict ALLOWED whitelist (never spread a
+      record); compose the reader body as markdown from the four prose blocks under labelled headings + a
+      "Read the original ↗" link to url. Facet config: pillar (single-select, default groupBy), topics
+      (multi-dropdown + type-to-filter), region (multi-dropdown), artifact_type (multi-dropdown), year, and a
+      quantified toggle; searchFields over title/company/summary/topics; three views (list default);
+      reader.mode:'columns'; masthead subtitle count from DATA.length. Emit one self-contained library.html
+      atomically to the --out path (default {docs_path}/case-studies/library.html), then best-effort open + print
+      the file:// path. Add a --selftest asserting: single file, no <img>, no external http(s) asset, no
+      import/export/type=module in the emitted script, count == corpus length.
+  - id: T2
+    title: "match.mjs — deterministic prefilter + --json contract emitter (D4, #matching, INV-5)"
+    ac: [AC4, AC5]
+    deps: []
+    parallel: true
+    status: pending
+    detail: >
+      Create scripts/match.mjs (zero-dep Node ESM) modelled on frameworks/scripts/match.mjs. Export tokenize
+      (lowercase, split non-word, drop stopwords), scoreRecord (token ∈ topics ×3, ∈ title/company ×2, ∈
+      summary/what_they_built ×1; normalize to [0,1] against a capped denominator), match (top ~15 nonzero,
+      tie-broken by id; confidence floor default 0.15 → low_confidence + cap ≤2 with caveat; zero-score → empty
+      pool), and toJsonContract. CLI: --query "<topic>" [--json] [--floor N] [--top N] [--corpus path]. --json
+      prints exactly one object to stdout, no prose: {query,count,low_confidence,reranked:false,matches:[{id,title,
+      company,why,score,pillar,topics,url}]} with count ≤5, score ∈ [0,1], url always present. Script-only flags
+      (--floor/--top/--corpus) are not surfaced on the skill. Add a --selftest.
+  - id: T3
+    title: "SKILL.md — frontmatter, token-dispatch phases, frozen non-interactive block (INV-7, §A–§L)"
+    ac: [AC1, AC2, AC3]
+    deps: [T1, T2]
+    parallel: false
+    status: pending
+    detail: >
+      Create SKILL.md at plugins/pmos-learnkit/skills/case-studies/SKILL.md (name MUST match dir). Frontmatter:
+      name: case-studies; user-invocable: true; a description with triggers (browse case studies, case studies
+      about X, how did companies do Y, /case-studies) and the "665 curated, offline" framing; argument-hint:
+      "[\"<topic>\" | browse | list] [--json] [--non-interactive] [--interactive]". Body (lean, disclose to
+      reference/): Announce line; Phase 0 Setup+Load Learnings; Phase 1 Resolve command (first-token dispatch:
+      browse|list|bare → Browse; --json parsed off, valid only on retrieve; else → Retrieve); Phase 2 Retrieve
+      (run match.mjs; re-rank the ≤15 pool in-session; write ≤1-sentence "why it fits"; cap 5; then an
+      AskUserQuestion offering to open the viewer filtered to the dominant topic/pillar — carries a (Recommended)
+      option OR a defer-only tag); Phase 3 Browse (run build-library.mjs; print file:// path; terminal, no
+      mutation beyond the regenerable page); Phase 4 Capture Learnings. Include a Platform Adaptation section, the
+      When-NOT-to-use section, an Anti-Patterns section. Inline the non-interactive block BYTE-IDENTICAL to
+      skills/_shared/non-interactive.md (with the start/end sentinels). Every argument-hint flag must be handled in
+      the body or nl-sugar-marked; every body flag hinted. Cross-refs use {#kebab-slug} anchors.
+  - id: T4
+    title: "reference/matching.md + reference/corpus-expansion.md (#matching, §K disclosure)"
+    ac: [AC7]
+    deps: [T2]
+    parallel: true
+    status: pending
+    detail: >
+      reference/matching.md: the two-stage ranking (scorer weights, normalization, floor, pool semantics) and the
+      full --json contract (fields, types, count ≤5, reranked semantics) — matching 02_design.html#matching.
+      reference/corpus-expansion.md: how to refresh/grow the bundled snapshot (re-run scripts/import-corpus.mjs
+      --src <path>; then validate-corpus.mjs must pass), a direct-authoring recipe for one-off additions, the
+      validator gate, and a definition-of-done. Both cited from the lean SKILL.md body (one hop).
+  - id: T5
+    title: "tests — structure, build-library, json-contract (+ fixtures) (AC5, AC9)"
+    ac: [AC5, AC9]
+    deps: [T1, T2, T3]
+    parallel: false
+    status: pending
+    detail: >
+      tests/structure.test.sh (frontmatter name==dir, required sections present, non-interactive sentinels present);
+      tests/build-library.test.sh (runs build-library --selftest; asserts offline invariants); tests/
+      json-contract.test.mjs (runs match.mjs --json over a mini fixture corpus; asserts the exact contract shape,
+      count ≤5, score bounds, url present, empty-pool on a nonsense query). bash-3.2-safe shell tests. Run the four
+      repo hygiene lints (flags-vs-hints, phase-refs, non-interactive-inline, recommended-audit) and skill-eval-
+      check.sh --target claude-code over the skill dir; fix to green.
+release_prerequisites:
+  - "README row for /case-studies in plugins/pmos-learnkit/README.md (Loop 3 /complete-dev)."
+  - "pmos-learnkit manifest version bump — BOTH .claude-plugin/plugin.json and .codex-plugin/plugin.json (Loop 3)."
+  - "Changelog entry (Loop 3 /changelog). Marketplace entries already list pmos-learnkit; no per-skill entry."
