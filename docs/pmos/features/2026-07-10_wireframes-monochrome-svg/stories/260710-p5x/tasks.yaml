@@ -20,7 +20,8 @@ tasks:
     ac: [AC1, AC4]
     deps: []
     parallel: false
-    status: pending
+    status: done
+    evidence: "reference/grid-system.md — palette sentinel block, 8px grid, 12-col desktop math, 4 canvas presets, type scale, component table"
     detail: >
       Create plugins/pmos-toolkit/skills/wireframes/reference/grid-system.md (confirmed absent). It opens with the
       normative sentence: these are the ONLY values permitted in a /wireframes SVG. It is the single home (§K) for:
