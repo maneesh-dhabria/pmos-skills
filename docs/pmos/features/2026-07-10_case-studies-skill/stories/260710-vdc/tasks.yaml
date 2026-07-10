@@ -20,7 +20,7 @@ tasks:
     ac: [AC2, AC3]
     deps: []
     parallel: false
-    status: pending
+    status: done
     detail: >
       Create scripts/build-library.mjs (zero-dep Node ESM) modelled on frameworks/scripts/build-library.mjs and
       primer/scripts/build-library.mjs. Import ONLY the public API from ../../_shared/library-viewer/lib.mjs
@@ -39,7 +39,7 @@ tasks:
     ac: [AC4, AC5]
     deps: []
     parallel: true
-    status: pending
+    status: done
     detail: >
       Create scripts/match.mjs (zero-dep Node ESM) modelled on frameworks/scripts/match.mjs. Export tokenize
       (lowercase, split non-word, drop stopwords), scoreRecord (token ∈ topics ×3, ∈ title/company ×2, ∈
@@ -54,7 +54,7 @@ tasks:
     ac: [AC1, AC2, AC3]
     deps: [T1, T2]
     parallel: false
-    status: pending
+    status: done
     detail: >
       Create SKILL.md at plugins/pmos-learnkit/skills/case-studies/SKILL.md (name MUST match dir). Frontmatter:
       name: case-studies; user-invocable: true; a description with triggers (browse case studies, case studies
@@ -74,7 +74,7 @@ tasks:
     ac: [AC7]
     deps: [T2]
     parallel: true
-    status: pending
+    status: done
     detail: >
       reference/matching.md: the two-stage ranking (scorer weights, normalization, floor, pool semantics) and the
       full --json contract (fields, types, count ≤5, reranked semantics) — matching 02_design.html#matching.
@@ -86,7 +86,7 @@ tasks:
     ac: [AC5, AC9]
     deps: [T1, T2, T3]
     parallel: false
-    status: pending
+    status: done
     detail: >
       tests/structure.test.sh (frontmatter name==dir, required sections present, non-interactive sentinels present);
       tests/build-library.test.sh (runs build-library --selftest; asserts offline invariants); tests/
