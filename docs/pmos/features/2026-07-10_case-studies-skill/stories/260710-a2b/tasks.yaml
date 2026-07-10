@@ -18,7 +18,7 @@ tasks:
     ac: [AC3]
     deps: []
     parallel: false
-    status: pending
+    status: done
     detail: >
       Create plugins/pmos-learnkit/skills/case-studies/scripts/corpus-vocab.mjs (zero-dep Node ESM). Export
       PILLARS (4: core-pm-craft, design-ux, platform, business-model), REGIONS (9: north-america, europe, india,
@@ -32,7 +32,7 @@ tasks:
     ac: [AC1]
     deps: [T1]
     parallel: false
-    status: pending
+    status: done
     detail: >
       Create scripts/import-corpus.mjs (zero-dep Node ESM). Read every *.yaml under the --src dir (default
       ~/Desktop/Projects/personal/case-studies-scraping/case-studies), across the 4 pillar subdirs. Parse YAML
@@ -48,7 +48,7 @@ tasks:
     ac: [AC1, AC2]
     deps: [T2]
     parallel: false
-    status: pending
+    status: done
     detail: >
       Run: node scripts/import-corpus.mjs --src ~/Desktop/Projects/personal/case-studies-scraping/case-studies
       --out data/case-studies.json. Confirm exactly 665 records, 0 duplicate ids, 0 duplicate urls. Commit
@@ -59,7 +59,7 @@ tasks:
     ac: [AC4]
     deps: [T3]
     parallel: false
-    status: pending
+    status: done
     detail: >
       Create scripts/validate-corpus.mjs (zero-dep Node ESM, imports corpus-vocab.mjs). Hard-gate (exit 1 on any
       failure) over data/case-studies.json: required fields present on every record (id, title, url, company,
@@ -73,7 +73,7 @@ tasks:
     ac: [AC5]
     deps: [T4]
     parallel: false
-    status: pending
+    status: done
     detail: >
       Create reference/corpus-schema.md documenting the data/case-studies.json record: a field-by-field table
       (all 17 source fields + the 2 derived fields year/quantified), the required-field set the validator enforces,
@@ -84,7 +84,7 @@ tasks:
     ac: [AC8]
     deps: [T4]
     parallel: true
-    status: pending
+    status: done
     detail: >
       Create tests/validate-corpus.test.sh (+ a small mini-corpus fixture json). Assert the validator exits 0 on a
       green fixture and non-zero on a fixture with (a) a dangling topic, (b) a duplicate id, (c) a bad pillar.
