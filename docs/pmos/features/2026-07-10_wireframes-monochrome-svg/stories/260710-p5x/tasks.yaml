@@ -104,7 +104,8 @@ tasks:
     ac: [AC7]
     deps: [T4, T5]
     parallel: false
-    status: pending
+    status: done
+    evidence: "--selftest: 21 assertions green (each of the 7 SVG gates + palette-parse + overlay validateCss has a passing AND a failing fixture; count reported; exit 0). Self-contained SELFTEST_PALETTE, no grid-system.md dependency."
     detail: >
       Add a `--selftest` mode to lint-wireframe-svg.mjs mirroring validate-scorecard-anchors.mjs' selftest
       (good+broken fixtures inline or under a new tests/wireframe-svg-fixtures/ dir — do NOT collide with the

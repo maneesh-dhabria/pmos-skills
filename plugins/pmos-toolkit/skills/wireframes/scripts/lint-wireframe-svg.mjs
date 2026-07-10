@@ -44,11 +44,16 @@ function loadPalette(mdPath) {
   let md;
   try { md = readFileSync(mdPath, 'utf8'); }
   catch (e) { throw new Error(`cannot read palette home ${mdPath}: ${e.message}`); }
+  return parsePalette(md, mdPath);
+}
 
+// Parse the palette out of a grid-system.md string. Split from loadPalette so the selftest can exercise it
+// on inline good/malformed fixtures without touching disk.
+function parsePalette(md, src = '<string>') {
   const block = md.match(/<!--\s*palette:start\s*-->([\s\S]*?)<!--\s*palette:end\s*-->/);
-  if (!block) throw new Error(`palette sentinel block (<!-- palette:start --> … <!-- palette:end -->) not found in ${mdPath}`);
+  if (!block) throw new Error(`palette sentinel block (<!-- palette:start --> … <!-- palette:end -->) not found in ${src}`);
   const fenced = block[1].match(/```[^\n]*\n([\s\S]*?)```/);
-  if (!fenced) throw new Error(`palette block in ${mdPath} has no fenced code block`);
+  if (!fenced) throw new Error(`palette block in ${src} has no fenced code block`);
 
   const raw = [];
   const hexes = new Set();
@@ -63,8 +68,8 @@ function loadPalette(mdPath) {
     hexes.add(norm);
     if (m[2].toLowerCase() === 'annotation') annotation = norm;
   }
-  if (hexes.size === 0) throw new Error(`palette block in ${mdPath} declared no colours`);
-  if (!annotation) throw new Error(`palette block in ${mdPath} declares no "annotation" token (needed for the #d33 quarantine gate)`);
+  if (hexes.size === 0) throw new Error(`palette block in ${src} declared no colours`);
+  if (!annotation) throw new Error(`palette block in ${src} declares no "annotation" token (needed for the #d33 quarantine gate)`);
   return { hexes, annotation, raw };
 }
 
@@ -338,9 +343,102 @@ function validateCss(cssRaw) {
   return problems;
 }
 
+// ── T6: --selftest — one passing + one failing fixture per gate ───────────────────────────────────────────
+// Mirrors the sibling validate-scorecard-anchors.mjs' selftest: inline GOOD/BROKEN fixtures, assert
+// good→0 failures and broken→a failure matching the gate's expected regex. The count is deterministic and
+// reported. A self-contained palette (not grid-system.md) keeps the selftest independent of that file.
+const SELFTEST_PALETTE = `
+<!-- palette:start -->
+\`\`\`
+#000     ink
+#fff     paper
+#666     mute
+#e6e6e6  placeholder
+#f4f4f4  zebra
+#d33     annotation
+\`\`\`
+<!-- palette:end -->
+`;
+
+// A structurally-valid base SVG. Per-gate broken fixtures mutate exactly one thing so only the targeted
+// gate fires. width/height 240×80 with a matching viewBox; non-mobile unless a case overrides mobile.
+function baseSvg(inner, { w = 240, h = 80, vb = '0 0 240 80' } = {}) {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="${vb}">
+  <g data-region="field" transform="translate(0,0)">
+    <title>Field</title><desc>A labelled text input</desc>
+    ${inner}
+  </g>
+</svg>`;
+}
+const GOOD_INNER = `<rect x="0" y="0" width="240" height="40" fill="#fff" stroke="#000"/>
+    <text x="8" y="24" stroke="none" fill="#666">Label</text>`;
+
 function runSelftest() {
-  console.error('selftest not yet implemented (added in T6)');
-  process.exit(2);
+  const palette = parsePalette(SELFTEST_PALETTE, '<selftest>');
+  const swallow = () => {}; // silence per-check stderr warns during selftest
+  const cases = [
+    // gate 1 — 8px snap
+    { name: 'grid: on-grid coords', svg: baseSvg(GOOD_INNER), expect: 'pass' },
+    { name: 'grid: off-grid x', svg: baseSvg(`<rect x="3" y="0" width="240" height="40" fill="#fff" stroke="#000"/>`), expect: /off-grid/ },
+    // gate 2 — palette allowlist
+    { name: 'palette: allowed colours', svg: baseSvg(GOOD_INNER), expect: 'pass' },
+    { name: 'palette: out-of-allowlist hex', svg: baseSvg(`<rect x="0" y="0" width="240" height="40" fill="#123456"/>`), expect: /off-palette/ },
+    { name: 'palette: named colour forbidden', svg: baseSvg(`<rect x="0" y="0" width="240" height="40" fill="black"/>`), expect: /off-palette/ },
+    // gate 3 — #d33 quarantine
+    { name: 'annotation: #d33 inside annotations region', svg:
+      `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="80" viewBox="0 0 240 80">
+        <g data-region="annotations"><title>Notes</title><desc>Redlines</desc>
+          <rect x="0" y="0" width="80" height="24" stroke="#d33" fill="none"/></g></svg>`, expect: 'pass' },
+    { name: 'annotation: #d33 outside annotations', svg: baseSvg(`<rect x="0" y="0" width="80" height="24" stroke="#d33" fill="none"/>`), expect: /annotation-bleed/ },
+    // gate 4 — text stroke=none
+    { name: 'text: has stroke=none', svg: baseSvg(GOOD_INNER), expect: 'pass' },
+    { name: 'text: missing stroke=none', svg: baseSvg(`<rect x="0" y="0" width="240" height="40" fill="#fff" stroke="#000"/>
+    <text x="8" y="24" fill="#666">Label</text>`), expect: /text-halo/ },
+    // gate 5 — viewBox match
+    { name: 'viewBox: matches', svg: baseSvg(GOOD_INNER), expect: 'pass' },
+    { name: 'viewBox: mismatch', svg: baseSvg(GOOD_INNER, { vb: '0 0 240 90' }), expect: /viewBox mismatch/ },
+    { name: 'viewBox: missing', svg: `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="80"><g data-region="field"><title>t</title><desc>d</desc></g></svg>`, expect: /missing viewBox/ },
+    // gate 6 — mobile tap target (mobile override)
+    { name: 'tap: 48×48 interactive on mobile', mobile: true, svg:
+      `<svg xmlns="http://www.w3.org/2000/svg" width="375" height="812" viewBox="0 0 375 812">
+        <g data-region="cta"><title>CTA</title><desc>Primary button</desc>
+          <rect data-interactive="true" x="16" y="16" width="120" height="48" fill="#fff" stroke="#000"/></g></svg>`, expect: 'pass' },
+    { name: 'tap: 120×40 interactive on mobile', mobile: true, svg:
+      `<svg xmlns="http://www.w3.org/2000/svg" width="375" height="812" viewBox="0 0 375 812">
+        <g data-region="cta"><title>CTA</title><desc>Primary button</desc>
+          <rect data-interactive="true" x="16" y="16" width="120" height="40" fill="#fff" stroke="#000"/></g></svg>`, expect: /tap-target/ },
+    // gate 7 — data-region title + desc
+    { name: 'region: has title+desc', svg: baseSvg(GOOD_INNER), expect: 'pass' },
+    { name: 'region: missing title/desc', svg: `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="80" viewBox="0 0 240 80"><g data-region="field"><rect x="0" y="0" width="240" height="40" fill="#fff" stroke="#000"/></g></svg>`, expect: /missing a direct <(title|desc)>/ },
+  ];
+
+  let asserts = 0, failed = 0;
+  const fail = (name, msg) => { failed++; console.error(`  ✗ ${name}: ${msg}`); };
+  for (const c of cases) {
+    asserts++;
+    const failures = validateSvg(c.svg, { palette, filename: 'selftest.svg', mobile: c.mobile, warn: swallow });
+    if (c.expect === 'pass') {
+      if (failures.length !== 0) fail(c.name, `expected pass, got: ${failures.join('; ')}`);
+    } else {
+      if (!failures.some((f) => c.expect.test(f))) fail(c.name, `expected a failure matching ${c.expect}, got: ${failures.join('; ') || '(none)'}`);
+    }
+  }
+
+  // gate 8 — palette parse (good sentinel block parses; malformed throws).
+  asserts++; try { parsePalette(SELFTEST_PALETTE); } catch (e) { fail('palette-parse: good block', e.message); }
+  asserts++; try { parsePalette('no sentinels here'); fail('palette-parse: absent block', 'expected a throw, none raised'); } catch { /* expected */ }
+
+  // T5 overlay — validateCss good vs truncated.
+  asserts++; if (validateCss(':root { --wf-ink:#000; }').length !== 0) fail('overlay: balanced CSS', 'expected 0 problems');
+  asserts++; if (!validateCss(':root { --wf-ink:#000;').some((p) => /unbalanced/.test(p))) fail('overlay: truncated CSS', 'expected an unbalanced-braces problem');
+  asserts++; if (validateCss('   ').length === 0) fail('overlay: empty CSS', 'expected a problem for empty overlay');
+
+  if (failed === 0) {
+    console.log(`✓ selftest: ${asserts} assertions passed (7 SVG gates + palette-parse + overlay, each with a passing and a failing fixture)`);
+    process.exit(0);
+  }
+  console.error(`✗ selftest: ${failed}/${asserts} assertions failed`);
+  process.exit(1);
 }
 
 // Exported for the selftest + external callers (kept even though CLI is the primary entry).
