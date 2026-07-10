@@ -40,7 +40,8 @@ tasks:
     ac: [AC2]
     deps: [T1]
     parallel: true
-    status: pending
+    status: done
+    evidence: "reference/primitives.md — 24 primitives / 7 groups (Inputs·Layout·Navigation·Content·Media·Overlay·Annotation). Count-claim reconciled: 24 svg blocks == 24 numbered headings == stated '24 primitives across 7 groups'. All 24 snippets lint-clean when composed. Annotation trio wrapped data-region=annotations w/ title+desc. Composition-mistakes section covers all 6 required."
     detail: >
       Create plugins/pmos-toolkit/skills/wireframes/reference/primitives.md (confirmed absent). Ships ~24 copy-paste
       monochrome SVG primitives grouped Inputs / Layout / Navigation / Content / Media / Overlay / Annotation. Every
