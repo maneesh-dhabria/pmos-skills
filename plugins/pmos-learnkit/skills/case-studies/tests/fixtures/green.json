@@ -1,0 +1,42 @@
+[
+  {
+    "id": "acme-co-onboarding-redesign",
+    "title": "How Acme Redesigned Onboarding",
+    "url": "https://acme.example/blog/onboarding",
+    "company": "Acme",
+    "publisher": "Acme Blog",
+    "published": "2022-03-01",
+    "pillar": "core-pm-craft",
+    "region": "north-america",
+    "language": "en",
+    "topics": ["onboarding", "activation"],
+    "artifact_type": "blog_post",
+    "summary": "A short curated abstract.",
+    "what_they_built": "A redesigned onboarding flow.",
+    "evidence": "Activation rose 12%.",
+    "why_it_matters": "Shows a staged onboarding pattern.",
+    "verified_on": "2026-07-10",
+    "year": "2022",
+    "quantified": true
+  },
+  {
+    "id": "beta-co-incident-postmortem",
+    "title": "Beta's Outage Postmortem",
+    "url": "https://beta.example/blog/postmortem",
+    "company": "Beta",
+    "publisher": "Beta Engineering",
+    "published": "unknown",
+    "pillar": "platform",
+    "region": "europe",
+    "language": "en",
+    "topics": ["incident-management", "reliability"],
+    "artifact_type": "blog_post",
+    "summary": "A short curated abstract.",
+    "what_they_built": "New runbooks and alerting.",
+    "evidence": "Reduced MTTR substantially.",
+    "why_it_matters": "A model public postmortem.",
+    "verified_on": "2026-07-10",
+    "year": "unknown",
+    "quantified": false
+  }
+]
