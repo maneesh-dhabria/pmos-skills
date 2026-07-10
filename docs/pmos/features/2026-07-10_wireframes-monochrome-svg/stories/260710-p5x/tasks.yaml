@@ -1,0 +1,129 @@
+schema_version: 1
+story: 260710-p5x
+epic: 260710-grd
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-toolkit/skills/wireframes
+# Root story of epic 260710-grd (route:skill refactor of /wireframes to monochrome SVG).
+# Lands the normative house-style SUBSTRATE (grid/palette/type in one canonical home), ~24 copy-paste
+# monochrome SVG primitives, four blank canvas assets, and the deterministic lint FUSED to that home.
+# Hard rules carried from 02_design.html §10 amendments: (A3/§K) grid-system.md is the SINGLE home for the
+# 6-token palette — the lint PARSES its allowlist out of that file, never hardcodes the hexes; (A2/§H) every
+# deterministic/arithmetic check (8px snap, allowlist, #d33 quarantine, text stroke=none, viewBox match, 44px
+# tap-target geometry, <title>/<desc> presence) lives in the SCRIPT, never in the model; (A10) the lint also
+# asserts the design overlay is regenerable so the lost wireframe-time canary still fails fast.
+# Release prereqs (version bump / changelog / README-row / tag) are /complete-dev's at epic release — NOT tasks.
+tasks:
+  - id: T1
+    title: "reference/grid-system.md — the single canonical home for palette/grid/type/canvas/components (AC1, A3, §K)"
+    ac: [AC1, AC4]
+    deps: []
+    parallel: false
+    status: pending
+    detail: >
+      Create plugins/pmos-toolkit/skills/wireframes/reference/grid-system.md (confirmed absent). It opens with the
+      normative sentence: these are the ONLY values permitted in a /wireframes SVG. It is the single home (§K) for:
+      the closed 6-token palette (#000 ink, #fff paper, #666 mute, #e6e6e6 placeholder, #f4f4f4 zebra, #d33
+      annotation); the 8px base unit + snap rule; outer margins (24 desktop/tablet, 16 mobile — apply 24 to wide);
+      gutters; the desktop 12-column math; the four canvas presets (desktop 1280×800, wide 1440×900, tablet
+      768×1024, mobile 375×812); the type scale (12/14/20/28 at weights 400/400/600/700, single system font stack);
+      the standard component-size table; the coordinate conventions; the negative-space rule. CRITICAL machine-read
+      contract for T4: embed the palette as a sentinel-delimited fenced block —
+      `&lt;!-- palette:start --&gt;` then a fenced code block with one `#hex  &lt;token-name&gt;` per line, then
+      `&lt;!-- palette:end --&gt;`. This keeps the markdown the single human+machine home with NO generated JSON
+      sidecar to drift (§K); the lint reads the block with a trivial regex, no markdown parser. Document the block's
+      shape inline so an editor knows the lint depends on it.
+  - id: T2
+    title: "reference/primitives.md — ~24 monochrome SVG primitives, 7 groups, count-claim matches inventory (AC2)"
+    ac: [AC2]
+    deps: [T1]
+    parallel: true
+    status: pending
+    detail: >
+      Create plugins/pmos-toolkit/skills/wireframes/reference/primitives.md (confirmed absent). Ships ~24 copy-paste
+      monochrome SVG primitives grouped Inputs / Layout / Navigation / Content / Media / Overlay / Annotation. Every
+      primitive is wrapped in `&lt;g transform="translate(0,0)"&gt;` so internal coords start at origin and it is
+      copy-pastable across screens. Every colour/coord obeys grid-system.md (T1) — reference the home, do not restate
+      the hexes. Close with a "Common composition mistakes" section covering AT MINIMUM: the &lt;text&gt; stroke
+      halo, off-grid coordinates, stray fills, multiple typefaces, annotation-colour bleed, missing viewBox. GATE
+      AGAINST THE 260709-23a COUNT-DRIFT CLASS: whatever integer the prose states ("N monochrome primitives") MUST
+      equal the actual number of primitive blocks in the file — count them and reconcile before finishing.
+  - id: T3
+    title: "assets/canvas-{desktop,wide,tablet,mobile}.svg — four blank grid canvases (AC3)"
+    ac: [AC3]
+    deps: [T1]
+    parallel: true
+    status: pending
+    detail: >
+      Create the four blanks (all confirmed absent): assets/canvas-desktop.svg (1280×800), canvas-wide.svg
+      (1440×900), canvas-tablet.svg (768×1024), canvas-mobile.svg (375×812) — dimensions read from grid-system.md
+      (T1), each with a matching viewBox. Each carries 8px grid guides as
+      `&lt;g data-region="grid" stroke="#e6e6e6" stroke-width="0.5"&gt;` and dashed margin rulers at the outer
+      margins named in grid-system.md (24 desktop/tablet/wide, 16 mobile). Monochrome only, palette-conformant so
+      they pass the T4 lint themselves.
+  - id: T4
+    title: "scripts/lint-wireframe-svg.mjs — parse allowlist from grid-system.md + the 7 §H hard gates (AC4, AC5, AC8)"
+    ac: [AC4, AC5, AC8]
+    deps: [T1]
+    parallel: false
+    status: pending
+    detail: >
+      Create plugins/pmos-toolkit/skills/wireframes/scripts/lint-wireframe-svg.mjs (confirmed absent), zero-dep Node
+      (built-ins only), mirroring the sibling shape of
+      pmos-managerkit/skills/interview-guide/scripts/validate-scorecard-anchors.mjs (regex-over-raw-text, failures
+      array, exit 0/1). It READS the hex allowlist from reference/grid-system.md's `palette:start`/`palette:end`
+      sentinel block (AC4, A3/§K) — never a hardcoded array; if the block is absent/malformed it EXITS non-zero with
+      a clear message (a missing home is a hard error, not a silent hardcode fallback). Hard-gate, per element, over
+      a target SVG (AC5, A2/§H — the model does NONE of this arithmetic): (1) every x/y/width/height is a multiple
+      of 8; (2) every colour literal is in the allowlist; (3) #d33 appears ONLY inside a
+      [data-region="annotations"] subtree; (4) every &lt;text&gt; carries stroke="none"; (5) viewBox present and
+      matches declared width/height; (6) on a mobile canvas every interactive primitive's tap target is ≥44px in its
+      smaller dimension; (7) every data-region group carries a &lt;title&gt; and a &lt;desc&gt;. AC8: exit non-zero
+      on ANY violation, printing the offending file + element + value; NO silent caps — if a check declines
+      (e.g. a foreign embedded SVG it cannot snap-check), it LOGS why on stderr rather than passing quietly.
+  - id: T5
+    title: "lint-wireframe-svg.mjs — overlay-regeneration assertion so the lost canary still fails fast (AC6, A10)"
+    ac: [AC6]
+    deps: [T4]
+    parallel: false
+    status: pending
+    detail: >
+      Extend lint-wireframe-svg.mjs with the A10 assertion: when a DESIGN.md is present in the run, assert that the
+      design overlay (design-overlay.css) is REGENERABLE-without-error — i.e. exists, is non-empty, and parses as
+      valid CSS (balanced braces, no truncation). RATIONALE / SCOPE (record in the script header): a node lint
+      cannot invoke the model-driven generation described in reference/design-md-to-css.md, so it validates the
+      overlay ARTIFACT as the deterministic proxy for "generation succeeded" — this is the faithful reading of A10
+      ("generation regressions still fail fast now that wireframe screens no longer render the overlay"). When no
+      DESIGN.md is present the assertion is skipped (logged, not silent). See risks in plan-content.html.
+  - id: T6
+    title: "tests/ fixtures + --selftest: one passing + one failing fixture per gate, count reported (AC7)"
+    ac: [AC7]
+    deps: [T4, T5]
+    parallel: false
+    status: pending
+    detail: >
+      Add a `--selftest` mode to lint-wireframe-svg.mjs mirroring validate-scorecard-anchors.mjs' selftest
+      (good+broken fixtures inline or under a new tests/wireframe-svg-fixtures/ dir — do NOT collide with the
+      existing tests/fixtures/apply-edit-at-anchor/). Cover EACH of the seven T4 gates plus the T5 overlay assertion
+      with a passing fixture AND a failing fixture (off-grid coord; out-of-allowlist hex; #d33 outside annotations;
+      &lt;text&gt; without stroke=none; viewBox mismatch; sub-44px mobile tap target; a data-region missing
+      &lt;title&gt;/&lt;desc&gt;; a malformed/absent palette block; a truncated overlay). Print the assertion/case
+      count on success and record it in the plan; assert the suite is green (exit 0). Node's regex approach means the
+      count is deterministic and reportable, matching the sibling convention.
+  - id: T7
+    title: "Eval + hygiene green, no regressions (AC9)"
+    ac: [AC9]
+    deps: [T1, T2, T3, T4, T5, T6]
+    parallel: false
+    status: pending
+    detail: >
+      Run `bash plugins/pmos-toolkit/tools/skill-eval-check.sh plugins/pmos-toolkit/skills/wireframes` (DIR arg) and
+      the four hygiene lints: tools/lint-flags-vs-hints.sh + tools/lint-phase-refs.sh (both DIR args),
+      plugins/pmos-toolkit/tools/lint-non-interactive-inline.sh (block byte-identical) and
+      plugins/pmos-toolkit/tools/audit-recommended.sh on the SKILL.md FILE. Note: this story does NOT edit SKILL.md,
+      so no new flag/prompt is introduced — the two SKILL.md-scoped lints must stay green unchanged. Re-run
+      `node plugins/pmos-toolkit/skills/wireframes/scripts/lint-wireframe-svg.mjs --selftest` (green, count reported).
+      Prove any residual skill-eval finding is PRE-EXISTING on HEAD^1 before accepting it; never rename the skill to
+      satisfy a-name-matches-dir. Confirm the frozen non-interactive block is byte-identical to
+      skills/_shared/non-interactive.md.

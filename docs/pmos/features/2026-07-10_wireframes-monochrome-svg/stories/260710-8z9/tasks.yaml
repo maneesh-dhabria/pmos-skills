@@ -1,0 +1,149 @@
+schema_version: 1
+story: 260710-8z9
+epic: 260710-grd
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-toolkit/skills/wireframes
+# The bulk of epic 260710-grd. Recompose all 41 pattern `## Skeleton` blocks from the named SVG primitives
+# (dep 260710-p5x) and re-point every heuristic cite from the retired set A1-A5/D1-D4 onto the survivor set
+# N1-N10/F1-F2/G1-G4/S1-S4/C1-C3 (dep 260710-dsc) — one coherent cutover, no dual-dialect (D4). Hard rules
+# carried from the design: (1) the judgment layer (Best practices / Common mistakes prose, When/Anatomy/States)
+# is PRESERVED, never thinned (AC6); (2) skeletons are COMPOSITIONS of named primitives, never new geometry —
+# a missing primitive routes back into the library, not a one-off (AC1); (3) the dangling-cite gate is the ERE
+# `grep -Eo '\b(A1|A2|A3|A4|A5|D1|D2|D3|D4)\b'` asserting ZERO MATCHES explicitly, NOT a zero exit code — the
+# seed's BRE was unfailable (amendment A1). The per-file procedure lives ONCE in skeleton-migration-runbook.md;
+# every batch task cites it and states only its per-batch delta (which files, which retired ids present).
+# Release prereqs (version bump / changelog / README-row / tag) are /complete-dev's at epic release — NOT tasks.
+tasks:
+  - id: T1
+    title: "Author skeleton-migration-runbook.md — the single tested procedure every batch cites"
+    ac: [AC1, AC3, AC6, AC7]
+    deps: []
+    parallel: false
+    status: pending
+    detail: >
+      The runbook already drafted at
+      docs/pmos/features/2026-07-10_wireframes-monochrome-svg/stories/260710-8z9/skeleton-migration-runbook.md is
+      the canonical home for the 5-step per-file procedure, the retired-id -> disposition table (the load-bearing
+      call: A1/A2/A3/A5 dropped, A4/D1/D2/D3/D4 restated-or-re-pointed), and the whole-inventory dangling-cite gate.
+      In this task, CONFIRM the runbook against the freshly-landed reference/primitives.md and reference/grid-system.md
+      (dep p5x) and reference/eval-rubric.md survivor set (dep dsc) — fix any primitive name / survivor-id that
+      drifted from the drafted table. Verify the runbook's step 3 escalation path (primitive-gap note) points at the
+      real primitives.md count-claim. No pattern file is edited in T1; this task freezes the procedure the 7 batches
+      apply so the same call is not re-litigated 41 times.
+  - id: T2
+    title: "Batch — navigation (7 files): recompose skeletons + re-point cites"
+    ac: [AC1, AC2, AC3, AC6]
+    deps: [T1]
+    parallel: true
+    status: pending
+    detail: >
+      Apply the runbook to patterns/navigation/*.md (top-nav, side-nav, bottom-tab-bar, breadcrumbs, hamburger-menu,
+      pagination, tabs). Per-batch delta: retired ids present are A1 A2 A3 A4 A5 D1 D2 D3 (bottom-tab-bar carries
+      D2/D3 native-chrome notes -> restate structural bits as prose / F2, drop native-chrome specifics; side-nav is
+      A2-only). Rewrite each `## Skeleton` to a primitives-only inline <svg> on the pattern's canvas token, 8px grid,
+      closed palette, #d33 only under data-region="annotations", <text stroke="none">, viewBox matching. Preserve
+      every When/Anatomy/States/Device block and the Best-practices/Common-mistakes PROSE. Run
+      `node scripts/lint-wireframe-svg.mjs` on each skeleton (exit 0) and check every file against primitives.md
+      BEFORE closing the batch (AC7). Touches only these 7 files — disjoint from every other batch.
+  - id: T3
+    title: "Batch — forms (8 files): recompose skeletons + re-point cites"
+    ac: [AC1, AC2, AC3, AC6]
+    deps: [T1]
+    parallel: true
+    status: pending
+    detail: >
+      Apply the runbook to patterns/forms/*.md (text-input, textarea, select-dropdown, date-picker, file-upload,
+      multi-step-form, inline-validation, search). Per-batch delta: heavy A4 (visible-label) and A3/D1 usage —
+      A4 label prose is RESTATED without the id (or -> N6 for recall), A3 dropped, D1 44px -> lint / thumb-zone ->
+      prose. text-input.md's skeleton currently uses mock-label/mock-input classes -> replace with the input
+      primitive + label primitive. Same lint + primitives-check gate before closing (AC2, AC7). Touches only these
+      8 files.
+  - id: T4
+    title: "Batch — data-display (6 files): recompose skeletons + re-point cites"
+    ac: [AC1, AC2, AC3, AC6]
+    deps: [T1]
+    parallel: true
+    status: pending
+    detail: >
+      Apply the runbook to patterns/data-display/*.md (table, list, card-grid, detail-view, key-value-pair,
+      stats-dashboard). Per-batch delta: mostly A1 (semantic-table) and A4 -> A1 dropped (SVG has no <th>/<dt>;
+      re-point to G3 only where about visual hierarchy), A4 restated. table.md and stats-dashboard.md are the
+      densest compositions — compose table rows / stat cards from the layout + content primitives, never bespoke
+      rects. Lint + primitives-check before closing. Touches only these 6 files.
+  - id: T5
+    title: "Batch — feedback (8 files): recompose skeletons + re-point cites"
+    ac: [AC1, AC2, AC3, AC6]
+    deps: [T1]
+    parallel: true
+    status: pending
+    detail: >
+      Apply the runbook to patterns/feedback/*.md (toast, modal, confirmation-dialog, banner, inline-error,
+      loading-skeleton, empty-state, error-state). Per-batch delta: pervasive A1/A2/A3 -> A1/A2/A3 dropped; the
+      state-coverage cites (S1-S4) already survive and stay. modal.md and confirmation-dialog.md compose from the
+      Overlay primitive group. loading-skeleton.md's skeleton must itself be a valid primitives composition (meta:
+      it demonstrates the loading state S4). Lint + primitives-check before closing. Touches only these 8 files.
+  - id: T6
+    title: "Batch — actions (4 files): recompose skeletons + re-point cites"
+    ac: [AC1, AC2, AC3, AC6]
+    deps: [T1]
+    parallel: true
+    status: pending
+    detail: >
+      Apply the runbook to patterns/actions/*.md (primary-cta, button-group, dropdown-menu, fab). Per-batch delta:
+      fab.md carries A4 A5 D2 D3 -> A5 dropped (lint), A4 restated, D2/D3 FAB-placement restated as prose;
+      dropdown-menu.md carries A1 A3 A4 A5 D1. Compose buttons from the Input/Content primitives; F1 (Fitts,
+      destructive-not-adjacent) survives and stays. Lint + primitives-check before closing. Touches only these
+      4 files.
+  - id: T7
+    title: "Batch — layout (4 files): recompose skeletons + re-point cites"
+    ac: [AC1, AC2, AC3, AC6]
+    deps: [T1]
+    parallel: true
+    status: pending
+    detail: >
+      Apply the runbook to patterns/layout/*.md (page-header, two-column-layout, sidebar-detail, settings-page).
+      Per-batch delta: mostly A1 + D1 -> A1 dropped, D1 thumb-zone restated as prose. These are the largest-area
+      compositions (full-canvas layouts) — compose from the Layout primitive group (columns, rails, headers) on the
+      desktop 1280x800 canvas token. Lint + primitives-check before closing. Touches only these 4 files.
+  - id: T8
+    title: "Batch — content (4 files): recompose skeletons + re-point cites"
+    ac: [AC1, AC2, AC3, AC6]
+    deps: [T1]
+    parallel: true
+    status: pending
+    detail: >
+      Apply the runbook to patterns/content/*.md (avatar, badge, progress-indicator, tooltip). Per-batch delta:
+      avatar A4, badge A2, progress-indicator A1 A2 A4, tooltip A1 A3 A4 D1 -> A1/A2/A3 dropped, A4 restated, D1
+      thumb-zone prose. These are the smallest primitives-level compositions (a single Content/Media primitive
+      each). Lint + primitives-check before closing. Touches only these 4 files.
+  - id: T9
+    title: "README counts + cross-reference claim; whole-inventory dangling-cite gate + full lint sweep"
+    ac: [AC2, AC4, AC5]
+    deps: [T2, T3, T4, T5, T6, T7, T8]
+    parallel: false
+    status: pending
+    detail: >
+      In patterns/README.md: confirm the stated file count (41) and per-category counts (navigation 7, forms 8,
+      data-display 6, feedback 8, actions 4, layout 4, content 4) match the actual inventory — measured true at plan
+      time, so this is a guard, not a change unless a batch renamed a file. Update the sentence that Best-practices
+      are "cross-referenced to reference/eval-rubric.md heuristic IDs" so it is still true of the NEW survivor id set
+      (AC5). Also sweep README.md itself for any retired-id token in its prose. Then run the dangling-cite GATE:
+      `grep -rEo '\b(A1|A2|A3|A4|A5|D1|D2|D3|D4)\b' patterns/*/*.md patterns/README.md | wc -l` MUST print 0 —
+      assert the count is zero explicitly (amendment A1); a zero exit code is not sufficient. Re-run
+      `node scripts/lint-wireframe-svg.mjs` across every skeleton in all 41 files (AC2). Any red skeleton or nonzero
+      match count blocks the story.
+  - id: T10
+    title: "Skill-eval + hygiene lints green; frozen non-interactive block byte-identical; no regressions"
+    ac: [AC8]
+    deps: [T1, T2, T3, T4, T5, T6, T7, T8, T9]
+    parallel: false
+    status: pending
+    detail: >
+      Run feature-sdlc/tools/skill-eval-check.sh --target claude-code on the wireframes skill DIR. Run the four
+      hygiene lints: lint-non-interactive-inline.sh (block byte-identical — this story does not touch SKILL.md's
+      prompt block, so it must stay identical), audit-recommended.sh on the SKILL.md FILE, tools/lint-flags-vs-hints.sh,
+      tools/lint-phase-refs.sh. Confirm no `mock-*` class name survives anywhere in a `## Skeleton`
+      (`grep -rn 'mock-' patterns/*/*.md` -> zero in skeleton blocks). Prove any residual pre-existing skill-eval
+      finding on HEAD^1 before accepting it; never rename the skill to satisfy a-name-verb-or-gerund.

@@ -1,0 +1,144 @@
+schema_version: 1
+story: 260710-rgb
+epic: 260710-grd
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-toolkit/skills/wireframes
+# Story D of epic 260710-grd. The EMIT CONTRACT. Binds 02_design.html D1, §7 risks 1+2, amendment A6.
+# Hard rules carried from the design: (1) each per-screen .html keeps its shell (<meta name="pmos:skill"
+# content="wireframes">, comments substrate, wf-chrome state tabs, footer) but the body of each
+# <section class="wf-state"> becomes an inline MONOCHROME <svg> at the device's canvas token (D1);
+# (2) the fragile /prototype tag-grep for <th>/<label>/<dt>/data-field returns an EMPTY entity model, not
+# an error, against SVG (form fields become <text> nodes) — so a declared <script id="pmos-wireframe-meta">
+# manifest replaces it (this is the writer side; reader is sibling story 260710-n67 — do NOT defer n67);
+# (3) html-template.md must keep showing the format VERBATIM (its own standing rationale: "Subagents drift
+# on these unless the format is shown verbatim"); (4) #d33 may appear ONLY in the annotations <g>.
+# Depends on 260710-p5x (grid-system canvas/palette tokens + SVG lint) and 260710-xrh (monochrome CSS +
+# #d33 quarantine).
+# Release prereqs (version bump / changelog / README-row / tag) are /complete-dev's at epic release — NOT tasks.
+tasks:
+  - id: T1
+    title: "Rewrite reference/html-template.md skeleton for the inline-SVG payload (AC1, D1)"
+    ac: [AC1]
+    deps: []
+    parallel: false
+    status: pending
+    detail: >
+      Rewrite plugins/pmos-toolkit/skills/wireframes/reference/html-template.md so the skeleton's screen
+      body is an inline monochrome <svg>. KEEP the shell verbatim: the <head> (<meta name="pmos:skill"
+      content="wireframes">, Tailwind CDN — still loaded for the shell, comments.css/js links), the
+      .wf-chrome header with state tabs, and the .wf-footer. INSIDE each <section class="wf-state"
+      data-state="…"> replace the HTML/mock-* body with an inline <svg> shown VERBATIM (the file's standing
+      rationale at its "Strict format requirements" section — "Subagents drift on these unless the format is
+      shown verbatim" — must be preserved and must apply to the new SVG format): the <svg> root carries a
+      `viewBox="0 0 <W> <H>"` at the device's canvas token (per xrh's chrome->canvas map / grid-system.md),
+      a root `stroke` (ink) and `fill` (none/white) so the payload is monochrome by default, one
+      `<g data-region="…">` per region each carrying a `<title>` and `<desc>` child, and a final
+      `<g data-region="annotations">` that is the ONLY place `#d33` may appear (matches xrh's annotation
+      quarantine). Update the "Vocabulary cheat-sheet", "Annotations", and "Anti-patterns" sections to the
+      SVG idiom. CRITICAL: keep the state sections keyed on `data-state` (NOT `data-screen`) — extract-screens.js
+      keys section-level extraction on `data-screen`, so introducing it here would wrongly split each state
+      into a separate canvas screen (see T6). Escape `<`/`>` correctly in the markdown code fence.
+  - id: T2
+    title: "Define + emit the pmos-wireframe-meta JSON manifest shape (AC3, §7 risk 1)"
+    ac: [AC3]
+    deps: [T1]
+    parallel: false
+    status: pending
+    detail: >
+      In html-template.md (shown verbatim in the skeleton) and in SKILL.md #generate, specify a new inline
+      `<script type="application/json" id="pmos-wireframe-meta">` emitted per screen carrying
+      {fields, components, states, annotations}. Pin the concrete shape and key types (worked example in
+      03_plan.html #verification): `fields` = array of {name:string, type:string (text|number|date|email|
+      select|checkbox|textarea|toggle|…), state:string, region:string, anchor:string} — this is the DECLARED
+      replacement for /prototype's <th>/<label>/<dt>/data-field grep (prototype/SKILL.md:183,219;
+      reference/mock-data-prompt.md:8-10), which returns an empty model against SVG <text> nodes; `components`
+      = array of {kind:string, variant:string|null, label:string, state:string, region:string, anchor:string};
+      `states` = array of string state names; `annotations` = array of {n:integer, note:string, anchor:string,
+      state:string}, keyed to the `<!-- N: … -->` numbered comments emitted above each annotated primitive.
+      The manifest is the machine-readable single home for these facts; the footer annotation list (T5)
+      renders the same `annotations` data as prose. State that sibling story 260710-n67 is the READER
+      (do NOT defer n67); rgb only WRITES the manifest.
+  - id: T3
+    title: "Emit the manifest for EVERY state section; states enumerates them (AC4)"
+    ac: [AC4]
+    deps: [T2]
+    parallel: false
+    status: pending
+    detail: >
+      In html-template.md + SKILL.md #generate require that the pmos-wireframe-meta manifest is emitted for
+      EVERY <section class="wf-state"> the screen carries (default/empty/loading/error/…), with each state's
+      fields/components/annotations tagged by their `state` value, and the top-level `states` array
+      enumerating all state names present in the file — so a multi-state screen is fully described by one
+      manifest. A single per-file manifest (not one per section) whose entries carry a `state` discriminator
+      is the shape; confirm the reader contract in n67 matches. Do NOT add `data-screen` to the sections
+      (see T1/T6).
+  - id: T4
+    title: "data-anchor coverage on every <g> / top-level <rect>|<path> via retrofitSvg (AC2, A6)"
+    ac: [AC2]
+    deps: [T1]
+    parallel: false
+    status: pending
+    detail: >
+      In html-template.md and SKILL.md #generate document that every `<g>` and every top-level
+      `<rect>`/`<path>` MUST carry `data-anchor` — either emitted directly by the generator or injected by
+      retrofitSvg() (_shared/html-authoring/assets/svg-anchor.js). RECON VERDICT (confirmed by reading
+      svg-anchor.js:120-155): retrofitSvg IS safe for the nested case — it finds EVERY `<svg>…</svg>` block
+      in the whole HTML string via `svgBlockRe` and splices each independently, and _retrofitOneSvg walks
+      tags tracking <g> nesting depth (retrofits every <g> at any depth; retrofits <rect>/<path> only at
+      depth 0), so an <svg> nested inside the larger per-screen HTML document AND all of the multiple
+      wf-state SVGs are covered. This is idempotent and already wired into the "Apply comment-resolver edit"
+      section (SKILL.md:374). Cross-note A6: the comment WRITE-BACK path (apply-edit-at-anchor.js
+      _resolveAnchor) needs a data-anchor branch to resolve SVG-region comments — that shim fix is sibling
+      story 260710-n67's deliverable, not rgb's; rgb only guarantees the anchors are present to resolve
+      against.
+  - id: T5
+    title: "Adopt the numbered annotation-list output convention: footer + chat reply (AC5)"
+    ac: [AC5]
+    deps: [T2]
+    parallel: false
+    status: pending
+    detail: >
+      In html-template.md and SKILL.md #generate adopt the numbered annotation-list output convention: each
+      screen's annotations are rendered as a numbered list in the .wf-footer (keyed to the `<!-- N: … -->`
+      comments and the manifest `annotations` array) AND restated in the skill's chat reply at the end of
+      #generate, alongside the assumptions the generator made (domain copy invented, states inferred, regions
+      named). This gives the text-reviewable output the SVG payload otherwise lacks. The list in the footer,
+      the `<!-- N -->` comments in the SVG, and the manifest `annotations` are three renderings of ONE
+      dataset — do not let them drift (§K).
+  - id: T6
+    title: "Preserve the pipeline: index/canvas/extract-screens keep working; no --emit-svg, no .svg (AC6, AC7, D1)"
+    ac: [AC6, AC7]
+    deps: [T1, T3]
+    parallel: false
+    status: pending
+    detail: >
+      Verify (not assume) that the surrounding pipeline still works after the template rewrite: still one
+      .html per (component × device); #index-serve's index.html card grid and canvas.html/canvas.json still
+      build; assets/canvas/build-canvas.js screen discovery (deviceFromFilename by filename + titleFromHtml
+      <title>/<h1>/<h2> fallback — confirmed at build-canvas.js:33-42 and extract-screens.js:50-63) still
+      resolves each file to one screen; extract-screens.js's section-level path keys on `data-screen`
+      (ATTR_DATA_SCREEN, line 27) which the SVG template does NOT emit, so extraction stays FILE-LEVEL (one
+      screen per file) — this is the intended behavior and T1 must not regress it. Add NO `--emit-svg` flag
+      and NO standalone `.svg` deliverable — the SVG lives inline in the per-screen .html only (D1). Do NOT
+      touch build-canvas.js's SCREEN_WIDTH/SCREEN_HEIGHT tables (mobile-web 390x844 etc.) — reconciling them
+      to the canvas tokens is sibling story 260710-n67 (A8 consequence), out of scope here. Run
+      `node assets/canvas/build-canvas.js <a-sample-wireframes-dir>` against a template-conformant sample and
+      confirm it logs `canvas-aggregator: wrote … (N screens, M arrows)`.
+  - id: T7
+    title: "lint-wireframe-svg.mjs green on every emitted screen; eval + hygiene + comments coverage, no regressions (AC8, AC9)"
+    ac: [AC8, AC9]
+    deps: [T1, T2, T3, T4, T5, T6]
+    parallel: false
+    status: pending
+    detail: >
+      Run plugins/pmos-toolkit/skills/feature-sdlc/tools/skill-eval-check.sh --target claude-code on the
+      wireframes skill DIR. Run the four hygiene lints: plugins/pmos-toolkit/tools/lint-non-interactive-inline.sh
+      (frozen block byte-identical), plugins/pmos-toolkit/tools/audit-recommended.sh on the SKILL.md FILE,
+      tools/lint-flags-vs-hints.sh (DIR), tools/lint-phase-refs.sh (DIR). Run bash scripts/check-comments-coverage.sh
+      (must pass: the per-screen template still carries <meta name="pmos:skill" content="wireframes"> + the
+      comments.js/css links + inline pmos-comments block; the 14 contract tests, emit references, resolver
+      integration, and anchor calibration tests stay intact). Run scripts/lint-wireframe-svg.mjs
+      (260710-p5x) on every screen the rewritten template produces — must pass. Prove any residual skill-eval
+      finding PRE-EXISTING on HEAD^1 before accepting; never rename the skill to satisfy a-name-matches-dir.

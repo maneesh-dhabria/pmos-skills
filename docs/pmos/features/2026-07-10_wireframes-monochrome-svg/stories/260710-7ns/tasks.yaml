@@ -1,0 +1,104 @@
+schema_version: 1
+story: 260710-7ns
+epic: 260710-grd
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-toolkit/skills/wireframes
+# Ship four complete worked examples so #generate starts from the nearest exemplar rather than from blank —
+# the reference skill's own instruction, and the fix for the fan-out drift #review already documents
+# ("one wireframe with 31 aria-labels, another with 1"). Hard rules carried from the design: (1) every example
+# is a COMPLETE inline-SVG payload in the emit format of dep 260710-rgb — no fragments, no ellipses; (2) every
+# example composes ONLY from named primitives in reference/primitives.md (dep 260710-p5x) — a needed-but-missing
+# primitive is ADDED to the library (count-claim updated), never one-offed here (AC3); (3) all four pass
+# scripts/lint-wireframe-svg.mjs — the [D] gate by which a bad exemplar cannot ship (§7 risk 5). The 4th example
+# (multi-state: default/empty/loading/error in one file) is the one the reference cannot demonstrate and the most
+# likely to be copied wrong — it gets its own task. Deps 260710-p5x (primitives + lint) and 260710-rgb (emit
+# format + numbered-annotation convention) do not exist yet; plan against their ACs.
+# Release prereqs (version bump / changelog / README-row / tag) are /complete-dev's at epic release — NOT tasks.
+tasks:
+  - id: T1
+    title: "reference/examples.md — three single-state exemplars (desktop dashboard, mobile form, modal overlay)"
+    ac: [AC1, AC2, AC3, AC4]
+    deps: []
+    parallel: false
+    status: pending
+    detail: >
+      Create plugins/pmos-toolkit/skills/wireframes/reference/examples.md and author examples 1-3 as COMPLETE inline
+      <svg> payloads in the emit format defined by dep 260710-rgb (reference/html-template.md): the <svg> root with
+      viewBox at the device canvas token, one <g data-region="…"> per region carrying <title>/<desc>, the
+      <g data-region="annotations"> group as the ONLY place #d33 appears, and the inline
+      <script type="application/json" id="pmos-wireframe-meta"> manifest. (1) Desktop dashboard on the 1280x800
+      canvas: side-nav + metrics row + data table — composed from the layout, navigation and data-display primitive
+      families. (2) Mobile form on the 375x812 canvas: labelled inputs + primary CTA, every interactive primitive's
+      tap target >=44px so the lint's mobile geometry check passes. (3) Modal confirmation overlay: scrim + dialog +
+      button-group from the Overlay primitives. Each example carries its numbered annotation list (keyed to the
+      `<!-- N: … -->` comments) AND the assumptions its author made, per the 260710-rgb output convention (AC2).
+      Compose ONLY from named primitives in reference/primitives.md — no ad-hoc geometry, no inline-invented
+      primitive (AC3); if one is missing, hand it to T3, do not one-off it. Run
+      `node scripts/lint-wireframe-svg.mjs` on all three; each must exit 0 (AC4).
+  - id: T2
+    title: "reference/examples.md — the multi-state screen (default / empty / loading / error in one file)"
+    ac: [AC1, AC2, AC3, AC4]
+    deps: []
+    parallel: false
+    status: pending
+    detail: >
+      Author example 4 — the exemplar the reference has NO concept of and the one most likely to be copied wrong, so
+      it gets the most care. One .html-shaped payload with FOUR `<section class="wf-state">` blocks (default, empty,
+      loading, error), each an independent inline <svg> at the same canvas token, switchable via the wf-chrome state
+      tabs. Per dep 260710-rgb, the pmos-wireframe-meta manifest is emitted for EVERY state section and its `states`
+      array enumerates all four, so the multi-state screen is fully described. Each state composes from primitives:
+      default = populated list/table; empty = empty-state primitive with a CTA (not bare "No data"); loading =
+      skeleton primitive (not a bare spinner); error = error-state primitive with a stated recovery path. The four
+      states must be visibly, structurally distinct (the S1-S4 survivor heuristics) yet share region ids so a
+      reviewer reads them as one screen. Numbered annotations + assumptions per state (AC2). Missing primitive ->
+      T3, never one-off (AC3). Run `node scripts/lint-wireframe-svg.mjs` on all four state sections; each exits 0
+      (AC4). This task may be authored in parallel with T1 (both create sibling sections of examples.md — coordinate
+      so the file is written once; if executed serially, T2 appends).
+  - id: T3
+    title: "Primitive-gap reconciliation — route any missing primitive into reference/primitives.md, not a one-off"
+    ac: [AC3, AC6]
+    deps: [T1, T2]
+    parallel: false
+    status: pending
+    detail: >
+      Collect every primitive gap surfaced by T1/T2 (recorded in their notes). For each, ADD the primitive to
+      reference/primitives.md (dep 260710-p5x's file) in its correct group, wrapped in
+      <g transform="translate(0,0)"> per that file's convention, and UPDATE primitives.md's stated count-claim to
+      match the new actual inventory (the count-claim drift class the [J] gate caught on epic 260709-23a — AC6).
+      Then re-point the affected example(s) at the newly-named primitive and re-lint. If T1/T2 surfaced NO gaps,
+      this task asserts that explicitly (grep the examples for any inline geometry not traceable to a named
+      primitive) and makes no edit. Under no circumstance does an example carry geometry that is not a named
+      primitive.
+  - id: T4
+    title: "SKILL.md #generate — start from the nearest example, not from blank"
+    ac: [AC5]
+    deps: [T1, T2]
+    parallel: false
+    status: pending
+    detail: >
+      In plugins/pmos-toolkit/skills/wireframes/SKILL.md Phase 5 (#generate, {#generate}): instruct the generator,
+      in the body, to START FROM THE NEAREST EXAMPLE in reference/examples.md AND MODIFY IT — do not build from
+      blank. Name reference/examples.md explicitly and state the nearest-pick rule: desktop multi-region page ->
+      example 1 (dashboard); single mobile form -> example 2; overlay/dialog -> example 3; any screen with more than
+      one required state -> example 4 (multi-state). The subagent already receives only its assigned pattern files
+      (SKILL.md:206-ish); this adds the matching example to that payload. Keep the instruction consistent with the
+      existing "Strict format requirements — subagents drift unless the format is shown verbatim" rationale in
+      html-template.md. Do NOT add a flag; this is body prose, not a contract flag.
+  - id: T5
+    title: "Count-claim coherence + skill-eval + hygiene lints green; frozen block byte-identical"
+    ac: [AC6, AC7]
+    deps: [T1, T2, T3, T4]
+    parallel: false
+    status: pending
+    detail: >
+      Grep examples.md and SKILL.md for every count-claim in prose ("four examples", "N primitives used", any
+      per-example primitive tally) and confirm each matches the actual inventory (AC6). Run
+      feature-sdlc/tools/skill-eval-check.sh --target claude-code on the wireframes skill DIR. Run the four hygiene
+      lints: lint-non-interactive-inline.sh (frozen block byte-identical — #generate's prose change must not touch
+      the non-interactive block), audit-recommended.sh on the SKILL.md FILE, tools/lint-flags-vs-hints.sh (no new
+      flag introduced), tools/lint-phase-refs.sh (the new examples.md cite resolves; #generate anchor intact).
+      Re-run `node scripts/lint-wireframe-svg.mjs` on all four examples (AC4 regression guard). Prove any residual
+      pre-existing skill-eval finding on HEAD^1 before accepting it; never rename the skill to satisfy
+      a-name-verb-or-gerund.

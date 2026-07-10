@@ -1,0 +1,94 @@
+schema_version: 1
+story: 260710-dsc
+epic: 260710-grd
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-toolkit/skills/wireframes
+# Rewrites reference/eval-rubric.md as an SVG-native, JUDGMENT-ONLY rubric and rebuilds SKILL.md's #review
+# (Phase 6) hard-fail set + second-loop trigger on the survivor id set. Depends on 260710-p5x (the lint that
+# now owns the deterministic checks must exist to be cited). Hard rules from 02_design.html §10 amendments:
+# (A1) the retired set is A1 A2 A3 A4 A5 D1 D2 D3 D4 — A2 included (it demotes from reviewer heuristic to the
+# lint's palette allowlist); survivor set N1–N10 F1–F2 G1–G4 S1–S4 C1–C3 is enumerated so the epic's
+# dangling-cite gate has a positive allowlist; (A2/§H) NOTHING in the rubric asks the reviewer to measure,
+# count, or total — all arithmetic lives in lint-wireframe-svg.mjs (p5x); (§K) the rubric cites that one home.
+# Recon: survivor set VERIFIED against the live rubric (exact match). #review uses NO id tokens today — its
+# hard-fail prose names retired CONCEPTS (contrast, aria coverage), which the rewrite must replace.
+# Release prereqs (version bump / changelog / README-row / tag) are /complete-dev's at epic release — NOT tasks.
+tasks:
+  - id: T1
+    title: "eval-rubric.md — strike A1/A3/A4/A5 + A2 + D1–D4; reword F1 to drop the deterministic tap-target (AC1)"
+    ac: [AC1]
+    deps: []
+    parallel: false
+    status: pending
+    detail: >
+      In plugins/pmos-toolkit/skills/wireframes/reference/eval-rubric.md remove the entire "### A — Accessibility
+      (WCAG 2.1 AA baseline)" table (A1 semantic HTML, A2 contrast, A3 focus, A4 labels, A5 touch targets) and the
+      entire "### D — Device-Appropriate Patterns" table (D1–D4). A2 is removed AS A REVIEWER HEURISTIC — it is
+      trivially satisfied by the closed monochrome palette and is enforced by the lint's allowlist instead (D3, A1).
+      RECON NUANCE: the surviving F1 (Fitts) row currently reads "touch targets ≥ 44×44 on mobile/native" — a
+      deterministic geometry check that A2/§H moves to the lint (p5x gate 6); reword F1 to judgment-only Fitts
+      reachability (primary actions large/reachable; destructive not adjacent to primary) and delete the numeric
+      tap-target clause. Leave N1–N10, G1–G4, S1–S4, C1–C3 tables intact in this task.
+  - id: T2
+    title: "eval-rubric.md — enumerate the survivor id set + add SVG-native judgment checks (AC2, AC3)"
+    ac: [AC2, AC3]
+    deps: [T1]
+    parallel: false
+    status: pending
+    detail: >
+      In eval-rubric.md, add an explicit survivor-id enumeration — N1–N10, F1–F2, G1–G4, S1–S4, C1–C3 (VERIFIED
+      against the live rubric; exact match) — as a positive allowlist the epic's dangling-cite gate can check
+      against, not only a negative denylist (A1). Add new SVG-native JUDGMENT checks: (a) whether each data-region
+      group is named meaningfully; (b) whether the numbered annotation list is an adequate text alternative for the
+      screen; (c) whether the composition respects the negative-space rule (per grid-system.md). Every new check
+      must be judgment-only — NOTHING asks the reviewer to measure, count, or total anything (A2, §H). If these get
+      new ids, keep them inside the enumerated survivor namespace and update the enumeration in lockstep so
+      prose-vs-list cannot drift.
+  - id: T3
+    title: "eval-rubric.md — cite lint as the deterministic home (§K) + rebuild severity calibration (AC4, AC6)"
+    ac: [AC4, AC6]
+    deps: [T2]
+    parallel: false
+    status: pending
+    detail: >
+      In eval-rubric.md add a one-line statement that the deterministic checks (palette allowlist, 44px tap-target
+      geometry, <title>/<desc> presence) live in scripts/lint-wireframe-svg.mjs, and cite it — one fact, one home
+      (§K, p5x dependency). Rebuild the "How to use this rubric" severity calibration: the current step-4 list marks
+      A1/A4 and D2/D3 as high — those rows are GONE. State the NEW high-severity set explicitly on the survivor ids
+      (e.g. missing required state S1, destructive-without-confirm N5, unrecoverable error state S3, an inadequate
+      annotation-list text alternative) rather than leaving it implicit. Remove every retired-id reference from the
+      calibration prose.
+  - id: T4
+    title: "SKILL.md #review — restate the hard-fail set + second-loop trigger on the survivor ids (AC5)"
+    ac: [AC5]
+    deps: [T3]
+    parallel: false
+    status: pending
+    detail: >
+      In plugins/pmos-toolkit/skills/wireframes/SKILL.md Phase 6 (## Phase 6: Self-Refinement … {#review}, and the
+      Rigor & Corner-Cut Protocol lines that describe its hard-fails). RECON: #review uses no rubric ID TOKENS
+      today, but its hard-fail prose names RETIRED CONCEPTS — line 240 "contrast below threshold, missing aria
+      coverage, a missing required state" and the low-rigor brief "aria coverage on icon-only buttons, focus-visible
+      styles, contrast". Restate the hard-fail set and the second-loop trigger on SVG-native terms: the
+      deterministic hard-fails are now what lint-wireframe-svg.mjs (p5x) catches (off-grid, out-of-allowlist colour,
+      #d33 bleed, missing <title>/<desc>, sub-44px mobile tap target, viewBox mismatch); the judgment second-loop
+      triggers are the surviving rubric ids (e.g. S1 missing state, inadequate annotation text-alternative). No
+      surviving reference in the phase to contrast/aria/focus-visible or any retired id.
+  - id: T5
+    title: "Dangling-cite grep gate + eval/hygiene green, no regressions (AC7, AC8)"
+    ac: [AC7, AC8]
+    deps: [T1, T2, T3, T4]
+    parallel: false
+    status: pending
+    detail: >
+      Run the A1 dangling-cite gate as an ERE (note grep -Eo, NOT plain grep — the seed's BRE pattern silently never
+      matched): `grep -Eo '\b(A1|A2|A3|A4|A5|D1|D2|D3|D4)\b'
+      plugins/pmos-toolkit/skills/wireframes/reference/eval-rubric.md` yields ZERO matches, and the same ERE over the
+      #review phase span of SKILL.md yields ZERO matches (AC7). Then run
+      `bash plugins/pmos-toolkit/tools/skill-eval-check.sh plugins/pmos-toolkit/skills/wireframes` (DIR) and the four
+      hygiene lints: tools/lint-flags-vs-hints.sh + tools/lint-phase-refs.sh (DIR),
+      plugins/pmos-toolkit/tools/lint-non-interactive-inline.sh (block byte-identical),
+      plugins/pmos-toolkit/tools/audit-recommended.sh on the SKILL.md FILE (AC8). Prove any residual skill-eval
+      finding PRE-EXISTING on HEAD^1 before accepting it; never rename the skill to satisfy a-name-matches-dir.
