@@ -1,0 +1,159 @@
+schema_version: 1
+story: 260710-n67
+epic: 260710-grd
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-toolkit/skills/wireframes
+# The blast-radius story of epic 260710-grd (monochrome-SVG /wireframes refactor). Touches four skills beyond
+# /wireframes — /prototype, /design-crit, /msf-wf — so each task names its real target path even though skill_dir
+# is the primary. Hard rules carried from the design + amendments A0/A6/A8:
+#   (1) [Blocker, A6] the comment write-back path breaks unless the apply-edit shim learns a data-anchor branch —
+#       ported verbatim from /diagram; without it every SVG-region comment orphans, falsifying D1's inline-SVG case.
+#   (2) [design §7 risk 1] /prototype must NEVER return a silently-empty entity model — a zero-match grep must
+#       report, not proceed. Manifest is primary source; the tag-grep survives only as a legacy fallback.
+#   (3) [A0] window.pmosDesignScan() lives in slop-prepass.mjs:90-97, NOT capture.mjs. No silent caps — a skip SAYS so.
+#   (4) [A8] build-canvas.js device size table is now wrong (mobile 390x844 -> canvas token 375x812); reconcile it.
+# Depends on 260710-rgb (emits <script id="pmos-wireframe-meta">) and 260710-dsc (rewrites eval-rubric ids) — both
+# available at claim-time merge (D9) before this story's skill-eval.
+# Release prereqs (version bump / changelog / README-row / tag) are /complete-dev's at epic release — NOT tasks.
+tasks:
+  - id: T1
+    title: "[Blocker] Port /diagram's data-anchor branch into wireframes _resolveAnchor (A6, design §7 risk 2)"
+    ac: [AC1]
+    deps: []
+    parallel: false
+    status: pending
+    detail: >
+      In plugins/pmos-toolkit/skills/wireframes/scripts/apply-edit-at-anchor.js, inside _resolveAnchor (lines
+      83-112): the id path today matches only id="<slug>" (lines 86-97) then falls through to the >=40-char quote
+      substring (lines 100-109). Port the SVG branch from plugins/pmos-toolkit/skills/diagram/scripts/
+      apply-edit-at-anchor.js:97-110 verbatim in shape: INSIDE the existing `if (id) { ... }` block, AFTER the
+      id="<id>" match fails and BEFORE the quote fallback, add a second RegExp `data-anchor\s*=\s*["']<escaped-id>["']`
+      using the same `id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")` escaping already present; on match return
+      `{ ok: true, strategy: "id-first", dom_range: {...}, score: 1.0 }` — the SAME strategy string /diagram
+      reports, because comments.js:444-445 stores shape_id = the data-anchor value and drives it through id_anchor.
+      Do not touch the quote-substring fallback or the clarification/infeasibility heuristics. This is the item that
+      makes design risk-2's "id-first path is dominant" true; until this lands it is false.
+  - id: T2
+    title: "New inline-<svg> fixture + a 6th test case proving data-anchor resolves, not orphans (AC2)"
+    ac: [AC2]
+    deps: [T1]
+    parallel: false
+    status: pending
+    detail: >
+      Add plugins/pmos-toolkit/skills/wireframes/tests/fixtures/apply-edit-at-anchor/wireframes_svg_mini.html — an
+      inline-<svg> screen in the post-refactor emit format: an outer <svg id="screen-dashboard"> containing at least
+      one region group `<g data-region="sidebar" data-anchor="sidebar">` with NO id attribute (and short <text>
+      nodes, i.e. under 40 chars, so the quote path cannot rescue it), plus the meta name="pmos:skill"
+      content="wireframes" head tag matching the existing fixture. Then in tests/apply-edit-at-anchor.test.js add a
+      6th case (f): apply() with anchor `{ id_anchor: "sidebar", quote_anchor: null }` against the new fixture,
+      asserting out.success === true and (via a resolver-level assert or the returned diff) that it resolved rather
+      than returning error_enum "anchor_orphaned" — the pre-T1 shim would orphan this. Keep the 5 existing cases
+      (a)-(e) against wireframes_mini.html unchanged and green; update the pass/fail banner count from 5 to 6 so the
+      assertion count RISES. Confirm the WHY: the existing wireframes_mini.html is all `<section id="...">` DOM with
+      no <svg>, so it never exercised the SVG path — which is why the 5 legacy tests pass against the id-only shim.
+  - id: T3
+    title: "/prototype reads the pmos-wireframe-meta manifest first; a zero-field screen reports, never proceeds empty (AC3, AC4)"
+    ac: [AC3, AC4]
+    deps: []
+    parallel: false
+    status: pending
+    detail: >
+      In plugins/pmos-toolkit/skills/prototype/SKILL.md:183 (Phase 4 #mock-data "Extract visible-field summary") and
+      :219 (Phase 6 #generate-devices "Extract visible-field summary per screen"), and in
+      plugins/pmos-toolkit/skills/prototype/reference/mock-data-prompt.md:8-10 ("Wireframes visible-field summary"):
+      make the PRIMARY source the `fields` array of each screen's `<script type="application/json"
+      id="pmos-wireframe-meta">` manifest (emitted by story 260710-rgb). Read + JSON.parse that block per screen
+      state; the manifest's `fields` is the declared replacement for the grep. The existing `<th>`/`<label>`/`<dt>`
+      / `data-field` tag-grep survives ONLY as an explicitly-labelled legacy fallback for pre-refactor wireframes
+      that carry no manifest. Add the silent-empty guard (design §7 risk 1 — the dangerous class is a grep that
+      returns zero matches instead of erroring): when NEITHER the manifest NOR the legacy tags yield any fields for
+      a screen, /prototype must REPORT it to the user (name the screen + that its entity model would be empty) and
+      NOT proceed to dispatch the mock-data subagent with an empty model. State this in all three edit sites; keep
+      the mock-data-prompt.md subagent template body otherwise intact.
+  - id: T4
+    title: "/design-crit: exempt wireframe SVG artifacts from the slop pre-pass with a logged reason — no silent cap (AC5, A0)"
+    ac: [AC5]
+    deps: []
+    parallel: false
+    status: pending
+    detail: >
+      DECISION (recorded in plan-content.html #decision-design-crit): EXEMPT wireframe artifacts rather than teach
+      the engine an SVG dialect. window.pmosDesignScan() is injected + invoked at
+      plugins/pmos-toolkit/skills/design-crit/assets/slop-prepass.mjs:90-97 (NOT capture.mjs — amendment A0). In
+      slop-prepass.mjs, detect a wireframe target by its `<meta name="pmos:skill" content="wireframes">` head tag
+      (already present on every emitted wireframe + the fixtures) BEFORE the scan; when matched, do not run the
+      HTML/CSS-tuned scan against the monochrome SVG payload — instead write slop-findings.json in the existing
+      graceful-degradation shape (`skipped: true` + `reason: "wireframe SVG artifact — slop tells are HTML/CSS
+      heuristics; the monochrome SVG payload has no surface to scan (epic 260710-grd A9)"` + empty findings, exit 0)
+      and emit the literal stderr skip-note that design-crit/SKILL.md:228-230 already contracts and surfaces. This
+      reuses design-crit's existing "earned, not asserted" skip machinery so the run SAYS it skipped and why — no
+      silent cap. Add one sentence to design-crit/SKILL.md's #slop-prepass phase (around :228) documenting the
+      wireframe exemption + its skip-note, citing slop-prepass.mjs as the home (do not restate the JSON shape, per
+      §K). Do NOT touch capture.mjs.
+  - id: T5
+    title: "build-canvas.js: reconcile the device size table with the four canvas tokens (AC6, A8)"
+    ac: [AC6]
+    deps: []
+    parallel: false
+    status: pending
+    detail: >
+      In plugins/pmos-toolkit/skills/wireframes/assets/canvas/build-canvas.js:23-24, SCREEN_WIDTH/SCREEN_HEIGHT
+      currently hardcode desktop-web 1280x800, mobile-web 390x844, tablet-web 834x1112 with a 1280x800 DEFAULT.
+      Reconcile against the four canvas tokens now canonical in reference/grid-system.md (story 260710-p5x, present
+      via claim-time merge): mobile 375x812 (NOT 390x844), tablet 768x1024, desktop 1280x800, wide 1440x900. Update
+      the tables so mobile-web -> 375x812 and add tablet -> 768x1024 and wide -> 1440x900 entries; keep desktop-web
+      1280x800 and the 1280x800 DEFAULT for genuinely-unknown devices. Per amendment A8 the five chrome variants
+      (desktop-web, desktop-app, mobile-web, android-app, ios-app) stay orthogonal to canvas tokens: map the
+      mobile-family chrome variants (mobile-web, android-app, ios-app) to the mobile token and the desktop family
+      (desktop-web, desktop-app) to desktop, so they no longer silently fall through to DEFAULT. tablet/wide are
+      canvas-only selection targets, NOT new chrome frames. canvas.html then renders each screen at its true aspect
+      (deviceFromFilename already tolerates suffix patterns). Add a comment citing grid-system.md as the numeric home.
+  - id: T6
+    title: "/msf-wf: re-point the rubric spot-check, extend the dangling-cite grep, cover a coordinate-adjacent SVG edit (AC7, AC8)"
+    ac: [AC7, AC8]
+    deps: [T2]
+    parallel: false
+    status: pending
+    detail: >
+      In plugins/pmos-toolkit/skills/msf-wf/SKILL.md the --apply-edits block is lines 181-188; the rubric spot-check
+      cite `../wireframes/reference/eval-rubric.md` is at line 185 (the story header says :186 — verify against the
+      live file and cite the true line). Story 260710-dsc rewrites eval-rubric.md to SVG-native ids (survivor set
+      N1-N10/F1-F2/G1-G4/S1-S4/C1-C3; retired A1-A5/D1-D4); the FILE-path cite stays valid but must not name any
+      RETIRED rubric id. Confirm msf-wf/SKILL.md names no retired id (a grep today returns zero hits) and, if the
+      epic's dangling-cite gate is materialised as a script/list in this repo, add msf-wf/SKILL.md to its scan set
+      using the pinned pattern `grep -Eo '\b(A1|A2|A3|A4|A5|D1|D2|D3|D4)\b'` (ERE, asserts zero matches — amendment
+      A1). AC8: msf-wf/SKILL.md:184-185 applies approved edits via the `Edit` tool (substring replace), not the
+      apply-edit shim; add a fixture test (reuse T2's wireframes_svg_mini.html) asserting a coordinate-adjacent
+      substring Edit against the SVG payload — e.g. changing a <text> label next to an x=/y= attribute — lands
+      cleanly and does not corrupt the surrounding coordinates (design §7 risk 3).
+  - id: T7
+    title: "README prose refresh — output is no longer 'Static mid-fi HTML wireframes' (AC9, A5)"
+    ac: [AC9]
+    deps: []
+    parallel: true
+    status: pending
+    detail: >
+      In plugins/pmos-toolkit/README.md:25, the /wireframes row reads "Static mid-fi HTML wireframes plus a
+      Figma-like canvas viewer." Rewrite the description so it no longer calls the output "Static mid-fi HTML" —
+      describe it as monochrome SVG wireframes (the post-refactor payload) plus a Figma-like canvas viewer. Keep the
+      row format and the /wireframes link intact. (Per A5, do NOT claim Tailwind was removed from index.html/
+      canvas.html — those keep their CDN loads; this line is only about the screen payload.)
+  - id: T8
+    title: "Eval + hygiene green across EVERY touched skill; comments coverage + non-interactive block intact (AC10, AC11)"
+    ac: [AC10, AC11]
+    deps: [T1, T2, T3, T4, T5, T6, T7]
+    parallel: false
+    status: pending
+    detail: >
+      Run plugins/pmos-toolkit/skills/feature-sdlc/tools/skill-eval-check.sh --target claude-code against the DIR of
+      EACH touched skill: wireframes, prototype, design-crit, msf-wf (skill-eval-check.sh + the lints take a
+      DIRECTORY). Run the four hygiene lints: tools/lint-non-interactive-inline.sh (frozen block byte-identical in
+      every edited SKILL.md), tools/audit-recommended.sh on each edited SKILL.md FILE (the FILE, not the dir — no
+      new unclassified AskUserQuestion introduced; prototype's existing defer-only/Recommended tags preserved),
+      tools/lint-flags-vs-hints.sh, tools/lint-phase-refs.sh. Run `node tests/apply-edit-at-anchor.test.js` (6 cases
+      green) for both wireframes and the msf-wf SVG-edit fixture test. Run scripts/check-comments-coverage.sh — it
+      keys on file/skill existence, not HTML body structure, so its 14 contract tests / 15 emit references / 1
+      resolver / 2 anchor tests stay unchanged and PASS. Prove any residual skill-eval finding is PRE-EXISTING on
+      HEAD^1 before accepting it; never rename a skill to satisfy a-name checks.

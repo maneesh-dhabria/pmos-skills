@@ -1,0 +1,176 @@
+[
+  {
+    "id": "overview",
+    "level": 2,
+    "title": "Overview",
+    "parent_id": null
+  },
+  {
+    "id": "problem-this-refactor-solves",
+    "level": 2,
+    "title": "1. Problem this refactor solves",
+    "parent_id": null
+  },
+  {
+    "id": "goals",
+    "level": 2,
+    "title": "2. Goals",
+    "parent_id": null
+  },
+  {
+    "id": "non-goals",
+    "level": 2,
+    "title": "3. Non-goals",
+    "parent_id": null
+  },
+  {
+    "id": "decisions",
+    "level": 2,
+    "title": "4. Decisions",
+    "parent_id": null
+  },
+  {
+    "id": "d1-html-shell-inline-svg-payload",
+    "level": 3,
+    "title": "D1 — HTML shell, inline SVG payload",
+    "parent_id": "s-decisions"
+  },
+  {
+    "id": "d2-monochrome-default-fidelity-mid-opts-into-brand",
+    "level": 3,
+    "title": "D2 — Monochrome default; --fidelity mid opts into brand",
+    "parent_id": "s-decisions"
+  },
+  {
+    "id": "d3-accessibility-moves-to-prototype-svg-native-rubric-here",
+    "level": 3,
+    "title": "D3 — Accessibility moves to /prototype; SVG-native rubric here",
+    "parent_id": "s-decisions"
+  },
+  {
+    "id": "d4-all-41-pattern-files-migrate-in-one-epic",
+    "level": 3,
+    "title": "D4 — All 41 pattern files migrate in one epic",
+    "parent_id": "s-decisions"
+  },
+  {
+    "id": "scope-proposed-stories",
+    "level": 2,
+    "title": "5. Scope — proposed stories",
+    "parent_id": null
+  },
+  {
+    "id": "contracts-changed",
+    "level": 2,
+    "title": "6. Contracts changed",
+    "parent_id": null
+  },
+  {
+    "id": "risks",
+    "level": 2,
+    "title": "7. Risks",
+    "parent_id": null
+  },
+  {
+    "id": "acceptance",
+    "level": 2,
+    "title": "8. Acceptance",
+    "parent_id": null
+  },
+  {
+    "id": "d-deterministic-gates",
+    "level": 3,
+    "title": "[D] deterministic gates",
+    "parent_id": "s-acceptance"
+  },
+  {
+    "id": "j-judgment-gates",
+    "level": 3,
+    "title": "[J] judgment gates",
+    "parent_id": "s-acceptance"
+  },
+  {
+    "id": "open-questions-deliberately-left-for-spec",
+    "level": 2,
+    "title": "9. Open questions (deliberately left for spec)",
+    "parent_id": null
+  },
+  {
+    "id": "amendments",
+    "level": 2,
+    "title": "10. Amendments",
+    "parent_id": null
+  },
+  {
+    "id": "a0-design-crit-pmosdesignscan-lives-in-slop-prepass-mjs",
+    "level": 3,
+    "title": "A0 — pmosDesignScan() lives in slop-prepass.mjs, not capture.mjs [corrects §5 S8, §7 risk 4]",
+    "parent_id": "s-amendments"
+  },
+  {
+    "id": "a1-the-dangling-cite-gate-is-broken-twice-over",
+    "level": 3,
+    "title": "A1 — The dangling-cite gate is broken twice over [Blocker; corrects §8]",
+    "parent_id": "s-amendments"
+  },
+  {
+    "id": "a2-deterministic-checks-belong-in-the-lint-not-the-rubric",
+    "level": 3,
+    "title": "A2 — Deterministic checks belong in the lint, not the rubric [§H seam; corrects §4 D3, §5 S2/S3]",
+    "parent_id": "s-amendments"
+  },
+  {
+    "id": "a3-the-palette-gets-one-home-and-the-lint-reads-it",
+    "level": 3,
+    "title": "A3 — The palette gets one home, and the lint reads it [§K; corrects §5 S2/S4 deps]",
+    "parent_id": "s-amendments"
+  },
+  {
+    "id": "a4-fidelity-is-nl-sugar-not-a-contract-flag",
+    "level": 3,
+    "title": "A4 — --fidelity is NL-sugar, not a contract flag [§I; corrects §4 D2, §5 S4, §6]",
+    "parent_id": "s-amendments"
+  },
+  {
+    "id": "a5-the-tailwind-claim-overstates-and-the-skill-description-goes-stale",
+    "level": 3,
+    "title": "A5 — The Tailwind claim overstates, and the skill's own description goes stale [corrects §6; adds to xrh]",
+    "parent_id": "s-amendments"
+  },
+  {
+    "id": "a6-the-comment-write-back-path-breaks-and-6-is-wrong-about-it",
+    "level": 3,
+    "title": "A6 — The comment write-back path breaks, and §6 is wrong about it [Blocker; corrects §6 \"Untouched\"]",
+    "parent_id": "s-amendments"
+  },
+  {
+    "id": "a7-index-html-gains-the-narrative-story-column",
+    "level": 3,
+    "title": "A7 — index.html gains the narrative story column [resolves §9 Q1]",
+    "parent_id": "s-amendments"
+  },
+  {
+    "id": "a8-tablet-and-wide-are-canvas-only",
+    "level": 3,
+    "title": "A8 — tablet and wide are canvas-only [resolves §9 Q2]",
+    "parent_id": "s-amendments"
+  },
+  {
+    "id": "a9-fidelity-mid-brands-the-chrome-only",
+    "level": 3,
+    "title": "A9 — mid brands the chrome only [resolves §9 Q3]",
+    "parent_id": "s-amendments"
+  },
+  {
+    "id": "a10-the-overlay-rot-risk-does-not-reproduce",
+    "level": 3,
+    "title": "A10 — The overlay-rot risk does not reproduce [corrects §7 risk implication]",
+    "parent_id": "s-amendments"
+  },
+  {
+    "id": "story-map",
+    "level": 2,
+    "title": "11. Story map",
+    "parent_id": null
+  }
+]

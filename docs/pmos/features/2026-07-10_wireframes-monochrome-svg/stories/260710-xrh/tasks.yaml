@@ -1,0 +1,159 @@
+schema_version: 1
+story: 260710-xrh
+epic: 260710-grd
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-toolkit/skills/wireframes
+# Story C of epic 260710-grd (the /wireframes monochrome-SVG refactor). Binds 02_design.html D1, D2
+# and amendments A3, A4, A5, A8, A9, A10. The house-style / fidelity story. Hard rules carried from the
+# design: (1) the palette has ONE home — reference/grid-system.md, created by dep p5x — and every other
+# copy CITES it, never restates it (§K, A3); (2) the SCREEN PAYLOAD goes monochrome (no accent/success/
+# error/gradient/shadow/dark colour); CHROME (state tabs, device frame, footer) keeps colour; (3) #d33
+# is quarantined to the .wf-anno annotation layer and appears NOWHERE else; (4) --fidelity fails all four
+# §I tests, so it is a silent nl-sugar alias, NOT an argument-hint contract flag (A4); (5) under `mid`
+# the overlay brands the CHROME only — the SVG payload is monochrome in EVERY mode (A9).
+# Depends on 260710-p5x: grid-system.md (palette/canvas/type/size single home) must exist to cite.
+# Release prereqs (version bump / changelog / README-row / tag) are /complete-dev's at epic release — NOT tasks.
+tasks:
+  - id: T1
+    title: "wireframe.css — collapse screen payload to monochrome; chrome keeps colour (AC2, D1, A9)"
+    ac: [AC2]
+    deps: []
+    parallel: false
+    status: pending
+    detail: >
+      In plugins/pmos-toolkit/skills/wireframes/assets/wireframe.css strip colour from every SCREEN-PAYLOAD
+      rule while leaving CHROME rules coloured. Payload rules to neutralise (use --wf-text / --wf-muted /
+      --wf-surface greys + a hairline border, NO hue): .mock-button--primary (line 139, drop --wf-accent
+      fill), .mock-button--danger (140, drop --wf-error fill), .wf-message--error (165) and
+      .wf-message--success (166, drop --wf-error/--wf-success colour), .wf-fab (195, drop --wf-accent),
+      .mock-img (146, replace the linear-gradient with a flat grey fill or striped placeholder), .mock-card
+      box-shadow (137, drop --wf-shadow — payload carries no shadow). CHROME rules KEEP colour and are NOT
+      touched: .wf-chrome / .wf-tab / .wf-tab[aria-selected] (95, already black/white), .wf-footer, the
+      .wf-frame--* device frames incl. their box-shadow and the .wf-traffic macOS lights #ef4444/#f59e0b/
+      #22c55e (176-178), .wf-notch #000, the mobile frame border #18181b. Two GLOBAL/affordance rules stay:
+      :focus-visible (62, accessibility ring — keep --wf-accent) and the .placeholder striped grey (150,
+      already neutral). The @media (prefers-color-scheme: dark) block (38-52): remove the payload-token
+      overrides so the payload never re-hues in dark mode (AC2 "no dark-mode colour"); the chrome greys may
+      remain. NET RESULT the AC pins: --wf-accent must no longer participate in ANY rule a SCREEN renders —
+      after this edit it survives only in :focus-visible (affordance) and .wf-anno (retired in T2). Do NOT
+      delete the token declarations (:root, 26-30) — design-overlay.css and the mapping in
+      reference/design-md-to-css.md still reference the --wf-* namespace; only the SCREEN rules stop using
+      the hues. Leave every selector name intact so no HTML template or lint breaks.
+  - id: T2
+    title: ".wf-anno + ::after recoloured to #d33; #d33 appears ONLY in the annotation layer (AC3)"
+    ac: [AC3]
+    deps: [T1]
+    parallel: false
+    status: pending
+    detail: >
+      In wireframe.css re-colour the annotation layer to #d33 (a literal hex, the one reserved annotation
+      colour): .wf-anno (line 102) outline becomes `1px dashed #d33`; .wf-anno::after (103-107) background
+      becomes #d33 (text stays #fff). These two rules are the ONLY place #d33 may appear anywhere in the
+      stylesheet — after the edit `grep -c '#d33' wireframe.css` must be exactly 2 and no other selector may
+      use it. Because T1 removed --wf-accent from .wf-anno, the "annotation blue bleeding into the UI"
+      defect the design names is gone: the annotation layer is now the sole hue in a monochrome sheet.
+      RECON NOTE for the /prototype V4 assurance (AC3): V4 (prototype/reference/eval-rubric.md:77) is a
+      CLASS-PRESENCE check — "Zero `.annotation`, `.state-tab`, `.wireframe-frame` artifacts" — it is
+      colour-agnostic AND its class names do not even match the current wireframe output (.wf-anno /
+      .wf-tab / .wf-frame). Re-colouring .wf-anno changes a CSS colour value only; it adds/removes no class
+      and emits no new artifact, so V4 is unaffected. State this reason in the plan/commit; do NOT edit V4
+      (that rubric belongs to /prototype and to sibling story 260710-dsc/n67, not xrh).
+  - id: T3
+    title: "SKILL.md — inline ~15-line house-style token table CITING grid-system.md (AC1, §K, A3)"
+    ac: [AC1]
+    deps: []
+    parallel: false
+    status: pending
+    detail: >
+      In plugins/pmos-toolkit/skills/wireframes/SKILL.md add a compact (~15-line) house-style token table as
+      the non-negotiable drawing contract the generator subagents in #generate must honour: the monochrome
+      screen palette (ink/greys + hairline border), the reserved annotation colour #d33, and the grid/type
+      tokens. The table MUST open with a one-line statement that reference/grid-system.md (created by dep
+      260710-p5x) is the AUTHORITATIVE copy and this table merely cites it — do NOT restate grid-system.md's
+      values as a second home (§K "one fact, one home"; A3). Place the table near #component-breakdown /
+      #generate where the drawing contract is consumed. Note that grid-system.md is not yet on this branch;
+      the citation targets the file p5x lands (dep already declared).
+  - id: T4
+    title: "SKILL.md — chrome->canvas mapping table; tablet/wide are canvas-only, not devices (AC4, AC5, A8)"
+    ac: [AC4, AC5]
+    deps: []
+    parallel: false
+    status: pending
+    detail: >
+      In SKILL.md add a chrome->canvas mapping table: desktop-web + desktop-app -> 1280x800; mobile-web +
+      ios-app + android-app -> 375x812; tablet -> 768x1024; wide -> 1440x900. The canvas DIMENSIONS are
+      CITED from reference/grid-system.md (p5x), not restated (§K). State explicitly (A8) that `tablet` and
+      `wide` are CANVAS TARGETS the generator may select, NOT user-facing devices: #component-breakdown step
+      4 keeps its five chrome variants (desktop-web, desktop-app, mobile-web, android-app, ios-app)
+      unchanged, and NO tablet or wide chrome frame is added to wireframe.css. RECON NOTE: build-canvas.js
+      lines 23-24 hardcode a DIFFERENT size table (mobile-web 390x844, tablet-web 834x1112) and is
+      explicitly out of scope here — its reconciliation to the four canvas tokens is sibling story
+      260710-n67's job (A8 consequence). Do NOT edit build-canvas.js in xrh.
+  - id: T5
+    title: "SKILL.md flags — --fidelity lo|mid as nl-sugar silent alias; mid brands chrome only (AC6, AC7, A4, A9)"
+    ac: [AC6, AC7]
+    deps: []
+    parallel: false
+    status: pending
+    detail: >
+      In SKILL.md "Flags & natural language" section add `--fidelity lo|mid` as a THIRD silent alias
+      alongside the two existing nl-sugar flags: precede its bullet with a literal `<!-- nl-sugar -->` line
+      and document that natural-language forms ("brand it", "match the app's look") resolve to `mid` and the
+      hard default is `lo`. It MUST NOT be added to the frontmatter argument-hint (A4: it passes zero of
+      §I's four tests — no machine coupling, not destructive, a two-value prose-expressible enum, hard
+      default pins no prompt). lint-flags-vs-hints.sh must stay green BECAUSE the flag is nl-sugar-marked,
+      not because it is hinted. Document the mode semantics (A9): under `mid`, design-overlay.css is linked
+      so the CHROME (frame, state tabs, footer) takes the host brand, while the SVG payload stays STRICTLY
+      MONOCHROME in every mode — `mid` never re-enables Tailwind or hues for screen content. Under the
+      default `lo`, the overlay is generated but not linked into per-screen HTML (mechanics land in T6).
+  - id: T6
+    title: "SKILL.md #resolve-design-md — conditional overlay LINK only; generation unchanged (AC8, D2, A10)"
+    ac: [AC8]
+    deps: [T5]
+    parallel: false
+    status: pending
+    detail: >
+      In SKILL.md #resolve-design-md (Phase 3) make ONLY the LINK of design-overlay.css into per-screen
+      HTML conditional on `mid`; step 4 still GENERATES design-overlay.css every run (D2 — the file is
+      always written, only the <link> is gated). --bootstrap-design-only mode (which produces only
+      DESIGN.md + COMPONENTS.md) is unaffected. Update #generate's "File requirements" and the generator
+      subagent instructions so the overlay link is emitted only in `mid` (chrome-branding) and omitted in
+      `lo`. RECON/A10: /prototype's design-artifact-resolver.md step 2a mtime-reuse keys on
+      overlay-mtime vs DESIGN.md-mtime and #resolve-design-md regenerates the overlay every run, so an
+      unlinked overlay never goes stale by mtime — /prototype's reuse path keeps working. Note in-body that
+      the overlay is now write-only from /wireframes' view (the design-md-to-css generation "canary" moves
+      to /prototype consumption; p5x adds an "overlay generates without error" lint assertion, not this
+      story).
+  - id: T7
+    title: "Retire the stale 'mid-fi / Tailwind' prose in SKILL.md + README (AC9, A5)"
+    ac: [AC9]
+    deps: []
+    parallel: false
+    status: pending
+    detail: >
+      Update the three stale surfaces (A5). (1) SKILL.md frontmatter `description` (line 3): remove
+      "single-file, mid-fi, Tailwind" — describe the output as static monochrome SVG wireframes; it MUST
+      remain a SINGLE-LINE double-quoted YAML scalar (a folded `>-` scalar reads as ~2 chars to
+      `grep '^description:'` and fails skill-eval). (2) SKILL.md Phase-0 intro prose (line 10): drop "Output
+      is mid-fidelity (Tailwind via CDN, neutral palette…)"; state the screen payload is monochrome inline
+      SVG (chrome may be branded under `mid`). (3) plugins/pmos-toolkit/README.md line 25: "Static mid-fi
+      HTML wireframes plus a Figma-like canvas viewer" -> drop "mid-fi", reflect monochrome SVG. Do NOT
+      claim Tailwind was removed wholesale — index.html and canvas.html still load the Tailwind/panzoom CDNs
+      (A5); only the SCREEN BODIES stop using Tailwind.
+  - id: T8
+    title: "Eval + hygiene green, no regressions (AC10)"
+    ac: [AC10]
+    deps: [T1, T2, T3, T4, T5, T6, T7]
+    parallel: false
+    status: pending
+    detail: >
+      Run plugins/pmos-toolkit/skills/feature-sdlc/tools/skill-eval-check.sh --target claude-code on the
+      wireframes skill DIR. Run the four hygiene lints: plugins/pmos-toolkit/tools/lint-non-interactive-inline.sh
+      (frozen block byte-identical), plugins/pmos-toolkit/tools/audit-recommended.sh on the SKILL.md FILE,
+      tools/lint-flags-vs-hints.sh (DIR — asserts --fidelity is NOT hinted yet handled/nl-sugar-marked, and
+      the two existing nl-sugar flags stay green), tools/lint-phase-refs.sh (DIR). Confirm `grep -c '#d33'
+      wireframe.css` == 2 and that no --wf-accent reference remains in any screen-payload rule. Prove any
+      residual skill-eval finding is PRE-EXISTING on HEAD^1 before accepting it; never rename the skill to
+      satisfy a-name-matches-dir.

@@ -1,0 +1,74 @@
+schema_version: 1
+story: 260710-xwa
+epic: 260710-grd
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-toolkit/skills/wireframes
+# Folds a per-screen narrative story column into the EXISTING index.html (amendment A7 — fold, don't add a third
+# surface to keep in sync). Per screen: the wireframe beside its ingested source screenshot (when one exists) and a
+# numbered annotation list. Hard rules carried from the design + amendments A5/A7 and §K:
+#   (1) [§K] the annotation list is READ from the screen's <script id="pmos-wireframe-meta"> manifest (story
+#       260710-rgb's `annotations`), never re-derived or hand-authored — one fact, one home, so narrative + artifact
+#       cannot drift.
+#   (2) A screen with no ingested screenshot renders cleanly with the column ABSENT — not a broken image, empty box,
+#       or placeholder. Screenshot ingestion is and stays optional.
+#   (3) [A5] index.html KEEPS its Tailwind CDN load; this story does not de-Tailwind it and no prose claims it did.
+#       index.html stays a working launcher (existing per-screen + canvas.html links preserved); the narrative is additive.
+# DRIFT NOTE for /execute: #index-serve authors index.html INLINE in SKILL.md:254 — there is no separate index
+# template file in reference/, and no assets/site-template.html exists in the live tree (the story's premise that a
+# review-doc template already ships is stale). Author the narrative-row layout fresh in the #index-serve phase prose.
+# Depends on 260710-rgb (the manifest); available via claim-time merge (D9) before this story's skill-eval.
+# Release prereqs (version bump / changelog / README-row / tag) are /complete-dev's at epic release — NOT tasks.
+tasks:
+  - id: T1
+    title: "Add the per-screen narrative row to #index-serve; annotations read from the manifest (AC1, AC2, AC4, AC5)"
+    ac: [AC1, AC2, AC4, AC5]
+    deps: []
+    parallel: false
+    status: pending
+    detail: >
+      In plugins/pmos-toolkit/skills/wireframes/SKILL.md Phase 7 #index-serve (:252-258): index.html is authored
+      inline here (a Tailwind-CDN + wireframe.css card grid) — extend that prose so the emitted index.html gains,
+      per screen, a narrative row: the wireframe (link/preview as today) BESIDE its ingested source screenshot and a
+      numbered annotation list. Source screenshot: read from {feature_folder}/wireframes/assets/source-screens/ (the
+      ingest target populated by --screenshots per reference/screenshot-ingestion.md:119) — display the matching
+      image for that screen when one exists. Annotation list (§K, AC2): READ each screen's `annotations` array from
+      its `<script type="application/json" id="pmos-wireframe-meta">` manifest (story 260710-rgb) — the numbered
+      list keyed to the `<!-- N: … -->` primitive comments — NEVER re-derive or hand-author it, so the narrative and
+      the wireframe cannot drift. Preserve index.html as a working launcher (AC4): keep every existing per-screen
+      file link and the "Canvas view (all devices)" link to canvas.html; the narrative is ADDITIVE, layered onto the
+      existing cards. Keep the Tailwind CDN load and wireframe.css (AC5, A5) — do NOT de-Tailwind index.html and add
+      no prose claiming it was removed; the page must stay readable from file:// with no server (inline the manifest
+      JSON / screenshot <img> with relative paths so no fetch is required). Emit the pmos-comments instrumentation
+      exactly as before.
+  - id: T2
+    title: "No-screenshot screens render cleanly with the column absent (AC3)"
+    ac: [AC3]
+    deps: [T1]
+    parallel: false
+    status: pending
+    detail: >
+      In the same #index-serve prose (SKILL.md:252-258), state the optional-screenshot rule explicitly: a screen
+      that has NO matching file in assets/source-screens/ renders its narrative row with the screenshot column
+      ABSENT — collapse the grid to wireframe + annotation list only. It must NOT render a broken <img>, an empty
+      placeholder box, or any "expected a screenshot" affordance. Screenshot ingestion is optional and stays
+      optional: a run invoked with no --screenshots produces an index with zero screenshot columns and reads
+      identically clean. Make the emit conditional on file existence per screen, not on a global flag (mixed
+      runs — some screens ingested, some not — must each render correctly). The numbered annotation list from the
+      manifest still renders for every screen regardless of screenshot presence.
+  - id: T3
+    title: "Eval + hygiene green; comments coverage + non-interactive block intact (AC6, AC7)"
+    ac: [AC6, AC7]
+    deps: [T1, T2]
+    parallel: false
+    status: pending
+    detail: >
+      Run plugins/pmos-toolkit/skills/feature-sdlc/tools/skill-eval-check.sh --target claude-code against the
+      wireframes skill DIR. Run the four hygiene lints (each takes a DIRECTORY except audit-recommended, which takes
+      the SKILL.md FILE): tools/lint-non-interactive-inline.sh (frozen block byte-identical — this story does not
+      touch it), tools/audit-recommended.sh on wireframes/SKILL.md (no new AskUserQuestion introduced; the existing
+      #locate-requirements defer-only prompt unchanged), tools/lint-flags-vs-hints.sh, tools/lint-phase-refs.sh
+      (the #index-serve anchor and its cross-refs still resolve). Run scripts/check-comments-coverage.sh: index.html
+      keeps its inline pmos-comments block + overlay, so comments instrumentation is unaffected and coverage PASSES
+      (AC6). Prove any residual skill-eval finding is PRE-EXISTING on HEAD^1 before accepting it.

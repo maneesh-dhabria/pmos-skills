@@ -1,0 +1,38 @@
+[
+  {
+    "id": "scope",
+    "level": 2,
+    "title": "Scope",
+    "parent_id": null
+  },
+  {
+    "id": "governing-rules",
+    "level": 2,
+    "title": "Governing rules",
+    "parent_id": null
+  },
+  {
+    "id": "decision-design-crit",
+    "level": 3,
+    "title": "Decision — /design-crit: exempt, don't teach an SVG dialect",
+    "parent_id": null
+  },
+  {
+    "id": "waves",
+    "level": 2,
+    "title": "Waves",
+    "parent_id": null
+  },
+  {
+    "id": "risks",
+    "level": 2,
+    "title": "Risks",
+    "parent_id": null
+  },
+  {
+    "id": "verification",
+    "level": 2,
+    "title": "Verification",
+    "parent_id": null
+  }
+]
