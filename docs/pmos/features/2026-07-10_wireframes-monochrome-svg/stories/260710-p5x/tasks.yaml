@@ -122,7 +122,8 @@ tasks:
     ac: [AC9]
     deps: [T1, T2, T3, T4, T5, T6]
     parallel: false
-    status: pending
+    status: done
+    evidence: "[D] skill-eval-check.sh --target claude-code: 22 pass / 0 fail (exit 0) after adding grid-system.md leading ToC (the one new finding, fixed — not accepted as residual). 4 hygiene lints all PASS (flags-vs-hints, phase-refs, non-interactive-inline 'all 60 match canonical', audit-recommended 11/11 marked). SKILL.md untouched on branch. selftest 21 green."
     detail: >
       Run `bash plugins/pmos-toolkit/tools/skill-eval-check.sh plugins/pmos-toolkit/skills/wireframes` (DIR arg) and
       the four hygiene lints: tools/lint-flags-vs-hints.sh + tools/lint-phase-refs.sh (both DIR args),

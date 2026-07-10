@@ -7,6 +7,18 @@ lint (`scripts/lint-wireframe-svg.mjs`) enforces these values; it **parses its c
 palette block below** rather than hardcoding the hexes, so editing the palette here is the only edit needed
 to move the enforcer with it (§K, amendment A3). Do not restate these values elsewhere — reference this file.
 
+## Contents
+
+- [Palette — the closed 6-token set](#palette--the-closed-6-token-set)
+- [The 8px grid](#the-8px-grid)
+- [Outer margins & gutters](#outer-margins--gutters)
+- [Desktop 12-column math](#desktop-12-column-math)
+- [Canvas presets](#canvas-presets)
+- [Type scale](#type-scale)
+- [Standard component sizes](#standard-component-sizes)
+- [Coordinate & structural conventions](#coordinate--structural-conventions)
+- [Negative space](#negative-space)
+
 ---
 
 ## Palette — the closed 6-token set
