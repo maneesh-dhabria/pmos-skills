@@ -294,15 +294,57 @@ function main() {
   process.exit(anyFail ? 1 : 0);
 }
 
-// Placeholders wired in later tasks so `main` references resolve; real bodies land in T5/T6.
-function assertOverlayRegenerable(_dir) { return false; }
+// ── T5 / A10: overlay-regeneration assertion ─────────────────────────────────────────────────────────────
+// A node lint cannot invoke the model-driven DESIGN.md → design-overlay.css generation described in
+// reference/design-md-to-css.md. So it validates the overlay ARTIFACT as the deterministic proxy for
+// "generation succeeded" — the faithful reading of amendment A10 ("generation regressions still fail fast now
+// that wireframe screens no longer render the overlay"). SCOPE: when a DESIGN.md is present in <design-dir>,
+// assert design-overlay.css exists, is non-empty, and parses as valid CSS (balanced braces, not truncated).
+// When no DESIGN.md is present the assertion is SKIPPED — logged on stderr, never silently passed.
+//
+// Layout (per design-md-to-css.md): DESIGN.md at <design-dir>/DESIGN.md, overlay at
+// <design-dir>/assets/design-overlay.css.
+function assertOverlayRegenerable(dir, warn) {
+  warn = warn || ((s) => process.stderr.write(`  · ${s}\n`));
+  const designMd = join(dir, 'DESIGN.md');
+  const overlay = join(dir, 'assets', 'design-overlay.css');
+  if (!existsSync(designMd)) {
+    warn(`no DESIGN.md in ${dir} — overlay-regeneration assertion skipped (logged, not silent)`);
+    return false;
+  }
+  let css;
+  try { css = readFileSync(overlay, 'utf8'); }
+  catch { console.error(`✗ overlay: DESIGN.md present but ${overlay} is missing — generation regression (A10)`); return true; }
+  const problems = validateCss(css);
+  if (problems.length === 0) { console.log(`✓ overlay: ${overlay} regenerates without error (${css.trim().length} bytes, CSS parses)`); return false; }
+  console.error(`✗ overlay: ${overlay} failed A10 regeneration check`);
+  for (const p of problems) console.error('  - ' + p);
+  return true;
+}
+
+// Deterministic "does this parse as CSS?" proxy: non-empty, balanced braces, ≥1 rule, not truncated mid-rule.
+// Comments are stripped first so a brace inside /* … */ never skews the count.
+function validateCss(cssRaw) {
+  const problems = [];
+  const css = cssRaw.replace(/\/\*[\s\S]*?\*\//g, '');
+  if (css.trim().length === 0) { problems.push('overlay is empty (no CSS after stripping comments)'); return problems; }
+  let depth = 0, opens = 0;
+  for (const ch of css) {
+    if (ch === '{') { depth++; opens++; }
+    else if (ch === '}') { depth--; if (depth < 0) { problems.push('unbalanced braces: a "}" precedes its "{" (truncation/corruption)'); return problems; } }
+  }
+  if (depth !== 0) problems.push(`unbalanced braces: ${depth} unclosed "{" — overlay looks truncated`);
+  if (opens === 0) problems.push('overlay has no CSS rule (no "{ … }" block found)');
+  return problems;
+}
+
 function runSelftest() {
   console.error('selftest not yet implemented (added in T6)');
   process.exit(2);
 }
 
 // Exported for the selftest + external callers (kept even though CLI is the primary entry).
-export { loadPalette, normHex, validateSvg };
+export { loadPalette, normHex, validateSvg, validateCss };
 
 const invoked = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
 if (invoked) main();

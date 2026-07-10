@@ -89,7 +89,8 @@ tasks:
     ac: [AC6]
     deps: [T4]
     parallel: false
-    status: pending
+    status: done
+    evidence: "assertOverlayRegenerable() + validateCss(): DESIGN.md present → asserts design-overlay.css exists/non-empty/balanced-braces; truncated overlay fails A10; no DESIGN.md → logged skip. All 3 paths verified."
     detail: >
       Extend lint-wireframe-svg.mjs with the A10 assertion: when a DESIGN.md is present in the run, assert that the
       design overlay (design-overlay.css) is REGENERABLE-without-error — i.e. exists, is non-empty, and parses as
