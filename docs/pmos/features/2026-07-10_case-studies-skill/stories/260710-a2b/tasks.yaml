@@ -1,0 +1,95 @@
+schema_version: 1
+story: 260710-a2b
+epic: 260710-4bh
+route: feature
+plugin: pmos-learnkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-learnkit/skills/case-studies
+# Story A of epic 260710-4bh. Binds 02_design.html INV-1..7, D1/D5, #schema, #change-surface.
+# The data foundation only: import the 665 source YAMLs into a bundled single-array JSON snapshot, freeze the
+# schema, gate it with a validator. No SKILL.md, no viewer, no match here (that is Story B 260710-vdc).
+# Hard rules from the design: zero runtime dependency + offline (INV-1); single source of truth = one JSON array
+# (INV-2); closed vocabularies enforced, 0 dangling topics (INV-3); curated abstract in-corpus, no full text (INV-4);
+# no diagram/body_md machinery (this corpus has none — #schema); no edits to sibling skills or lib.mjs (INV-6).
+# Source repo (build-time only, NOT a runtime dep): ~/Desktop/Projects/personal/case-studies-scraping.
+tasks:
+  - id: T1
+    title: "corpus-vocab.mjs — the four closed registries + validators (INV-3)"
+    ac: [AC3]
+    deps: []
+    parallel: false
+    status: pending
+    detail: >
+      Create plugins/pmos-learnkit/skills/case-studies/scripts/corpus-vocab.mjs (zero-dep Node ESM). Export
+      PILLARS (4: core-pm-craft, design-ux, platform, business-model), REGIONS (9: north-america, europe, india,
+      southeast-asia, anz, latin-america, japan-korea, china, mea), ARTIFACT_TYPES (5: blog_post, filing, paper,
+      talk_writeup, handbook), LANGUAGES (ISO 639-1 set observed in corpus), and TOPICS (the 98-tag closed set —
+      import verbatim from the source repo's harvest/topics_vocabulary.json at authoring time and inline the array;
+      do NOT read the source repo at runtime). Export validator helpers (e.g. isTopic/isPillar/isRegion/
+      isArtifactType). No skill name hard-referenced (substrate-neutral, mirrors frameworks/corpus-vocab.mjs).
+  - id: T2
+    title: "import-corpus.mjs — one-shot YAML→JSON transform with derived year + quantified (D5, #schema)"
+    ac: [AC1]
+    deps: [T1]
+    parallel: false
+    status: pending
+    detail: >
+      Create scripts/import-corpus.mjs (zero-dep Node ESM). Read every *.yaml under the --src dir (default
+      ~/Desktop/Projects/personal/case-studies-scraping/case-studies), across the 4 pillar subdirs. Parse YAML
+      without adding a runtime dependency: vendor a minimal block-scalar-aware YAML reader sufficient for this flat
+      schema, OR document a dev-only parse — but the SHIPPED skill must have zero deps (the importer is build-time
+      tooling, so a dev-time parser is acceptable if the committed JSON is the artifact). Import the 17 source
+      fields 1:1. Derive year = first 4 chars of published (the literal 'unknown' passes through unchanged) and
+      quantified = /\d/.test(evidence). Emit a single flat array sorted by id (stable), written atomically
+      (temp+rename) to data/case-studies.json. Idempotent re-run. Print a summary (count, per-pillar counts,
+      dup-id/dup-url check).
+  - id: T3
+    title: "Run the importer → data/case-studies.json (665) + data/.gitignore"
+    ac: [AC1, AC2]
+    deps: [T2]
+    parallel: false
+    status: pending
+    detail: >
+      Run: node scripts/import-corpus.mjs --src ~/Desktop/Projects/personal/case-studies-scraping/case-studies
+      --out data/case-studies.json. Confirm exactly 665 records, 0 duplicate ids, 0 duplicate urls. Commit
+      data/case-studies.json. Create data/.gitignore containing 'library.html' (the regenerable Story B output),
+      mirroring frameworks/data/.gitignore and primer/data/.gitignore.
+  - id: T4
+    title: "validate-corpus.mjs — schema + uniqueness + closed-vocab + coverage gate; --selftest (AC4)"
+    ac: [AC4]
+    deps: [T3]
+    parallel: false
+    status: pending
+    detail: >
+      Create scripts/validate-corpus.mjs (zero-dep Node ESM, imports corpus-vocab.mjs). Hard-gate (exit 1 on any
+      failure) over data/case-studies.json: required fields present on every record (id, title, url, company,
+      pillar, topics); id uniqueness; url uniqueness; every topics[] value ∈ TOPICS (list danglers); pillar ∈
+      PILLARS; region ∈ REGIONS; artifact_type ∈ ARTIFACT_TYPES; language ∈ LANGUAGES; year is /^\d{4}$/ or the
+      literal 'unknown'; quantified is boolean; topics length 1..5. Coverage report (counts, per-pillar, quantified
+      %). Add a --selftest that runs the checks over an in-file mini fixture (green + a deliberately broken case).
+      Run it over the real 665-record corpus and confirm exit 0.
+  - id: T5
+    title: "reference/corpus-schema.md — the frozen record contract (#schema)"
+    ac: [AC5]
+    deps: [T4]
+    parallel: false
+    status: pending
+    detail: >
+      Create reference/corpus-schema.md documenting the data/case-studies.json record: a field-by-field table
+      (all 17 source fields + the 2 derived fields year/quantified), the required-field set the validator enforces,
+      the closed-vocab pointers (to corpus-vocab.mjs), the id/url uniqueness contract, and an explicit note that
+      this corpus carries NO body_md and NO diagram (unlike frameworks). Must match 02_design.html#schema exactly.
+  - id: T6
+    title: "tests/validate-corpus.test.sh — validator over green + broken fixtures (AC8)"
+    ac: [AC8]
+    deps: [T4]
+    parallel: true
+    status: pending
+    detail: >
+      Create tests/validate-corpus.test.sh (+ a small mini-corpus fixture json). Assert the validator exits 0 on a
+      green fixture and non-zero on a fixture with (a) a dangling topic, (b) a duplicate id, (c) a bad pillar.
+      bash-3.2-safe. Wire into the skill's test conventions.
+release_prerequisites:
+  # None ship from this story to main independently — Story A rides the epic release (Loop 3) together with Story B.
+  # No version bump, no changelog, no README row here.
+  - "None (foundation story; ships with 260710-vdc in the epic release train)."
