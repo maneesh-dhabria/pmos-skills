@@ -4,12 +4,15 @@ id: 260710-vdc
 title: "/case-studies skill surface — SKILL.md (token-dispatch browse/retrieve + frozen non-interactive block), build-library.mjs viewer as a thin adapter over the shared library-viewer substrate (columns reader; pillar/topics/region/artifact_type/year facets), match.mjs deterministic prefilter + LLM re-rank returning a chat shortlist AND an offer to open the filtered viewer, a --json contract at /frameworks parity, reference docs, and tests"
 type: feature
 kind: story
-status: planned
+status: in-progress
 route: skill
 priority: should
 labels: [pmos-learnkit, case-studies, skill, library-viewer]
 created: 2026-07-10
-updated: 2026-07-10
+updated: 2026-07-11
+claimed_by: "build:0d5e385f-c675-46f6-a126-345344fa277d"
+driver_holder: "build:0d5e385f-c675-46f6-a126-345344fa277d"
+worktree: .claude/worktrees/feat-260710-vdc
 parent: 260710-4bh
 feature_folder: docs/pmos/features/2026-07-10_case-studies-skill/
 design_doc: docs/pmos/features/2026-07-10_case-studies-skill/02_design.html
