@@ -17,6 +17,7 @@ feature_folder: docs/pmos/features/2026-07-10_case-studies-skill/
 design_doc: docs/pmos/features/2026-07-10_case-studies-skill/02_design.html
 plan_doc: docs/pmos/features/2026-07-10_case-studies-skill/stories/260710-a2b/03_plan.html
 tasks_file: docs/pmos/features/2026-07-10_case-studies-skill/stories/260710-a2b/tasks.yaml
+worktree: .claude/worktrees/feat-260710-a2b
 dependencies: []
 ---
 
