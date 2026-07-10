@@ -55,7 +55,8 @@ tasks:
     ac: [AC3]
     deps: [T1]
     parallel: true
-    status: pending
+    status: done
+    evidence: "assets/canvas-{desktop,wide,tablet,mobile}.svg at grid-system.md presets w/ matching viewBox; data-region=grid (#e6e6e6 0.5 hairline, title+desc) 8px guides + data-region=margins dashed rulers (title+desc). All 4 pass the T4 lint (exit 0)."
     detail: >
       Create the four blanks (all confirmed absent): assets/canvas-desktop.svg (1280×800), canvas-wide.svg
       (1440×900), canvas-tablet.svg (768×1024), canvas-mobile.svg (375×812) — dimensions read from grid-system.md
