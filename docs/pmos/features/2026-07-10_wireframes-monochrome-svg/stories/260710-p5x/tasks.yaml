@@ -68,7 +68,8 @@ tasks:
     ac: [AC4, AC5, AC8]
     deps: [T1]
     parallel: false
-    status: pending
+    status: done
+    evidence: "scripts/lint-wireframe-svg.mjs — parses palette:start/end allowlist from grid-system.md; 7 §H gates all fire on a broken fixture (7 violations, file+element+value); clean SVG exits 0"
     detail: >
       Create plugins/pmos-toolkit/skills/wireframes/scripts/lint-wireframe-svg.mjs (confirmed absent), zero-dep Node
       (built-ins only), mirroring the sibling shape of
