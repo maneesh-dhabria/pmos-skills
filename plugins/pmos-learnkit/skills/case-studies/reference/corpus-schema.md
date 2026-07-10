@@ -38,7 +38,10 @@ That is **17 source fields** (`discovered_via` optional) + **2 derived** = 19 ke
 
 ## Derivation rules (owned by `import-corpus.mjs`)
 
-- **`year`** = `published === 'unknown' ? 'unknown' : published.slice(0, 4)`.
+- **`year`** = first 4 chars of `published` when they form a 4-digit year, else `'unknown'` —
+  `const y = published.slice(0, 4); year = /^\d{4}$/.test(y) ? y : 'unknown'`. The literal
+  `'unknown'`, a missing/blank value, and any non-date string all fold to `'unknown'`, so every
+  emitted `year` satisfies the validator gate (`/^\d{4}$/` or `unknown`).
 - **`quantified`** = `/\d/.test(evidence)`.
 
 Both are recomputed on every import; the importer is idempotent (stable id sort + atomic

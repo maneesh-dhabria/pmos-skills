@@ -131,9 +131,13 @@ function toRecord(raw, file) {
     if (raw[f] === undefined) continue; // optional fields (discovered_via) may be absent
     rec[f] = raw[f];
   }
-  // derived: year
-  const published = typeof raw.published === 'string' ? raw.published : '';
-  rec.year = published === 'unknown' ? 'unknown' : published.slice(0, 4);
+  // derived: year — first 4 chars of `published` when they are a 4-digit year; anything else
+  // (the literal 'unknown', a missing/blank/non-string value, or a non-date string) folds to
+  // 'unknown'. This keeps every emitted `year` inside the validator's gate (/^\d{4}$/ | 'unknown')
+  // and is a superset of the documented rule on all real inputs (YYYY-* and 'unknown').
+  const published = typeof raw.published === 'string' ? raw.published.trim() : '';
+  const y = published.slice(0, 4);
+  rec.year = /^\d{4}$/.test(y) ? y : 'unknown';
   // derived: quantified — true iff evidence contains a digit
   rec.quantified = /\d/.test(typeof raw.evidence === 'string' ? raw.evidence : '');
   return rec;
