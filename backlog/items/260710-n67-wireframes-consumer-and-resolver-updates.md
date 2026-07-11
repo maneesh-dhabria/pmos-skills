@@ -4,12 +4,15 @@ id: 260710-n67
 title: "/wireframes consumers — port /diagram's data-anchor branch into the apply-edit shim (the comment write-back path breaks without it), make /prototype read the screen manifest, resolve /design-crit's SVG blindness explicitly, reconcile build-canvas.js canvas tokens, and re-point /msf-wf's rubric cite"
 type: feature
 kind: story
-status: planned
+status: in-progress
 route: skill
 priority: should
 labels: [pmos-toolkit, wireframes, prototype, design-crit, msf-wf, skill]
 created: 2026-07-10
-updated: 2026-07-10
+updated: 2026-07-11
+claimed_by: build:0d5e385f-c675-46f6-a126-345344fa277d
+driver_holder: build:0d5e385f-c675-46f6-a126-345344fa277d
+worktree: .claude/worktrees/feat-260710-n67
 parent: 260710-grd
 feature_folder: docs/pmos/features/2026-07-10_wireframes-monochrome-svg/
 design_doc: docs/pmos/features/2026-07-10_wireframes-monochrome-svg/02_design.html
