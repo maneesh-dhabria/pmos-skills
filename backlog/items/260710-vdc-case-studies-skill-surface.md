@@ -11,7 +11,7 @@ priority: should
 labels: [pmos-learnkit, case-studies, skill, library-viewer]
 created: 2026-07-10
 updated: 2026-07-11
-worktree: .claude/worktrees/feat-260710-vdc
+worktree:
 parent: 260710-4bh
 feature_folder: docs/pmos/features/2026-07-10_case-studies-skill/
 design_doc: docs/pmos/features/2026-07-10_case-studies-skill/02_design.html
