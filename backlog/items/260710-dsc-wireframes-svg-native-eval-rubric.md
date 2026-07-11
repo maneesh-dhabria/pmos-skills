@@ -5,6 +5,7 @@ title: "/wireframes — rewrite eval-rubric.md as an SVG-native, judgment-only r
 type: feature
 kind: story
 status: done
+released: v2.105.0
 route: skill
 priority: should
 labels: [pmos-toolkit, wireframes, skill]

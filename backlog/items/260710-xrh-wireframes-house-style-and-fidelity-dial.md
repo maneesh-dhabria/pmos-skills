@@ -5,6 +5,7 @@ title: "/wireframes — inline house-style table citing the single home, wirefra
 type: feature
 kind: story
 status: done
+released: v2.105.0
 route: skill
 priority: should
 labels: [pmos-toolkit, wireframes, skill]

@@ -5,6 +5,7 @@ title: "/wireframes — rewrite html-template.md for the inline-SVG payload, add
 type: feature
 kind: story
 status: done
+released: v2.105.0
 route: skill
 priority: should
 labels: [pmos-toolkit, wireframes, skill]

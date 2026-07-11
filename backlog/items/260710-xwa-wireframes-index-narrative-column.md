@@ -5,6 +5,7 @@ title: "/wireframes — fold a narrative story column into index.html: per scree
 type: feature
 kind: story
 status: done
+released: v2.105.0
 route: skill
 priority: could
 labels: [pmos-toolkit, wireframes, skill]

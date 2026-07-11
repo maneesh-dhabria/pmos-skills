@@ -5,6 +5,7 @@ title: "/wireframes — recompose all 41 pattern skeletons from named SVG primit
 type: feature
 kind: story
 status: done
+released: v2.105.0
 route: skill
 priority: should
 labels: [pmos-toolkit, wireframes, skill]

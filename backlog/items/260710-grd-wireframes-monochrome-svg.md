@@ -4,12 +4,13 @@ id: 260710-grd
 title: "/wireframes — realign core generation with the reference wireframe skill: monochrome 8px-snapped inline SVG on fixed canvases, a normative grid/palette/type substrate, a deterministic SVG lint, an SVG-native eval rubric, worked examples, 41 migrated pattern skeletons, and a screen manifest the downstream consumers read"
 type: feature
 kind: epic
-status: defined
+status: released
+released: v2.105.0
 route: skill
 priority: should
 labels: [pmos-toolkit, wireframes, prototype, design-crit, skill, from-design-brief]
 created: 2026-07-10
-updated: 2026-07-10
+updated: 2026-07-11
 design_doc: docs/pmos/features/2026-07-10_wireframes-monochrome-svg/02_design.html
 feature_folder: docs/pmos/features/2026-07-10_wireframes-monochrome-svg/
 parent:

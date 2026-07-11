@@ -5,6 +5,7 @@ title: "/wireframes — ship four complete worked examples in our format (deskto
 type: feature
 kind: story
 status: done
+released: v2.105.0
 route: skill
 priority: should
 labels: [pmos-toolkit, wireframes, skill]

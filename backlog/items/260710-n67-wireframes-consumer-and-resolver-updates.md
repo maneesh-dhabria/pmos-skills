@@ -5,6 +5,7 @@ title: "/wireframes consumers — port /diagram's data-anchor branch into the ap
 type: feature
 kind: story
 status: done
+released: v2.105.0
 route: skill
 priority: should
 labels: [pmos-toolkit, wireframes, prototype, design-crit, msf-wf, skill]
