@@ -4,15 +4,12 @@ id: 260710-8z9
 title: "/wireframes — recompose all 41 pattern skeletons from named SVG primitives and re-point every heuristic cite at the new rubric, in one cutover with zero dangling ids"
 type: feature
 kind: story
-status: in-progress
+status: done
 route: skill
 priority: should
 labels: [pmos-toolkit, wireframes, skill]
 created: 2026-07-10
 updated: 2026-07-11
-claimed_by: build:0d5e385f-c675-46f6-a126-345344fa277d
-driver_holder: build:0d5e385f-c675-46f6-a126-345344fa277d
-worktree: .claude/worktrees/feat-260710-8z9
 parent: 260710-grd
 feature_folder: docs/pmos/features/2026-07-10_wireframes-monochrome-svg/
 design_doc: docs/pmos/features/2026-07-10_wireframes-monochrome-svg/02_design.html
@@ -47,23 +44,23 @@ Coherence contract: `02_design.html` — D3, D4; amendment A1; §7 risk 5.
 
 ## Acceptance Criteria
 
-- [ ] Every one of the 41 `## Skeleton` blocks is recomposed as a composition of named primitives from
+- [x] Every one of the 41 `## Skeleton` blocks is recomposed as a composition of named primitives from
   `reference/primitives.md`, on the 8px grid, in the closed palette. No `mock-*` class name survives in a skeleton.
-- [ ] Every skeleton that a screen could emit passes `scripts/lint-wireframe-svg.mjs`.
-- [ ] Every heuristic cite is re-pointed at the surviving id set defined by 260710-dsc (`N1`–`N10`, `F1`–`F2`,
+- [x] Every skeleton that a screen could emit passes `scripts/lint-wireframe-svg.mjs`.
+- [x] Every heuristic cite is re-pointed at the surviving id set defined by 260710-dsc (`N1`–`N10`, `F1`–`F2`,
   `G1`–`G4`, `S1`–`S4`, `C1`–`C3`). Where a retired id carried real guidance (e.g. an `A5` tap-target note), the
   guidance is either restated as prose without an id, or dropped as now-enforced-by-lint — never left pointing at a
   dead id.
-- [ ] **Dangling-cite gate (`[D]`, corrected per amendment A1):**
+- [x] **Dangling-cite gate (`[D]`, corrected per amendment A1):**
   `grep -Eo '\b(A1|A2|A3|A4|A5|D1|D2|D3|D4)\b'` across all 41 pattern files **and** `patterns/README.md` yields
   **zero matches**. The check asserts zero matches explicitly rather than relying on a zero exit code — the seed's
   BRE pattern `grep 'A1|A3|…'` matched a literal pipe string and returned 0 hits on every file, making the gate
   unfailable.
-- [ ] `patterns/README.md`'s stated file count and per-category counts match the actual inventory, and its claim
+- [x] `patterns/README.md`'s stated file count and per-category counts match the actual inventory, and its claim
   that best-practices are "cross-referenced to `eval-rubric.md` heuristic IDs" is still true of the new id set.
-- [ ] The `## Best practices` / `## Common mistakes` judgment layer is preserved in every file. This story rewrites
+- [x] The `## Best practices` / `## Common mistakes` judgment layer is preserved in every file. This story rewrites
   skeletons and cites; it does not thin the guidance.
-- [ ] Work proceeds in reviewable batches (roughly by category, ~7 batches); each batch is checked against
+- [x] Work proceeds in reviewable batches (roughly by category, ~7 batches); each batch is checked against
   `reference/primitives.md` before the next begins. A bad batch poisons generation everywhere (§7 risk 5).
-- [ ] Conforms to `skill-patterns.md §A–§L` + repo `CLAUDE.md`; `skill-eval.md` and all four hygiene lints stay
+- [x] Conforms to `skill-patterns.md §A–§L` + repo `CLAUDE.md`; `skill-eval.md` and all four hygiene lints stay
   green; the frozen non-interactive block stays byte-identical.
