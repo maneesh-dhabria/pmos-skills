@@ -4,14 +4,12 @@ id: 260709-qfn
 title: "/interview-guide — confirm round duration (defer-only, never assume), --duration contract flag, time-budgeted interviewer reference, data-duration + per-dim data-budget anchors, validator gates, duration-fit self-review axis"
 type: feature
 kind: story
-status: in-progress
+status: done
 route: skill
 priority: should
 labels: [pmos-managerkit, interview-guide, skill]
 created: 2026-07-09
 updated: 2026-07-11
-claimed_by: build:f5fd8fd4-loop
-driver_holder: build:f5fd8fd4-loop
 parent: 260709-xhr
 feature_folder: docs/pmos/features/2026-07-09_interview-guide-duration/
 design_doc: docs/pmos/features/2026-07-09_interview-guide-duration/02_design.html
