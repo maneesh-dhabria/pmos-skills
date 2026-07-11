@@ -52,14 +52,26 @@ the file `/interview-feedback score` fills after the round, so every anchor must
 - one overall `<div ... data-input="reco">` with four options carrying
   `data-reco="strong-yes|yes|no|strong-no"`, plus a `data-input="notes:reco"` slot.
 
+**Machine anchors (optional — time budget, emitted only when a round duration was confirmed):**
+- `data-duration="<int>"` on the root `<main data-card="scorecard">` — the confirmed live-round length in
+  whole minutes (a positive integer).
+- `data-budget="<int>"` on each `<section class="dim">` — the minutes allotted to that competency
+  (positive integers **summing to ≤ `data-duration`**).
+- The scoring sheet is the **single machine-readable home** for the round's time plan — the interviewer
+  reference renders these numbers as prose, it does not author its own (§K). Emit **both** anchors or
+  **neither**; a sheet with no confirmed duration carries neither and validates byte-identically to the
+  pre-duration contract.
+
 **Section checklist:**
 - [ ] every reference area has a matching sheet dimension (and vice-versa) — 1:1 by id.
 - [ ] weights reflect competency importance for this role/seniority and sum to 100.
 - [ ] each dimension names 1–3 green flags and 1–3 red flags (what a strong/weak answer shows).
 - [ ] the reco control lists all four options and has a notes slot.
+- [ ] (duration confirmed) root `data-duration` + per-dim `data-budget` present; budgets sum to ≤ duration.
 - [ ] `node scripts/validate-scorecard-anchors.mjs scoring-sheet.html` exits 0.
 
-The validator is the §H hard gate — the model never totals the weights by hand; the script does.
+The validator is the §H hard gate — the model never totals the weights or the minute budgets by hand; the
+script does.
 
 ---
 

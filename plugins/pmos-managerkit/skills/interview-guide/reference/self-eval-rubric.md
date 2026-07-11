@@ -1,6 +1,6 @@
 # Self-eval rubric — interview-guide drafts
 
-The self-review pass (Phase [Self-Review](../SKILL.md#self-review)) scores the drafts against three axes
+The self-review pass (Phase [Self-Review](../SKILL.md#self-review)) scores the drafts against four axes
 before handing them to the manager. This is a **self-review, not an enforced gate** (design D6): it
 surfaces gaps and axis scores; the **manager is the gate**. Nothing here refuses the run — a low score is
 reported, not blocking.
@@ -40,13 +40,28 @@ If a case was authored:
 
 For a non-case round, mark Axis 3 **N/A** and note it.
 
+## Axis 4 — Duration-fit (reporting-only; skipped when no duration was confirmed)
+
+**Only when a round duration was confirmed** (Phase [Collect](../SKILL.md#collect) step 6 — pinned via
+`--duration` or answered interactively). If no duration was confirmed, mark Axis 4 **N/A** and note it —
+this axis never fabricates a length to score against (design D2/A2):
+- [ ] the per-area `data-budget` minutes plus a realistic open/close overhead fit within `data-duration`
+      (the anchor validator proves the budgets *sum* to ≤ duration; this axis judges whether the round is
+      actually *runnable* in that time — enough minutes per competency, not just arithmetically valid).
+- [ ] the probe ladder in each reference area is trimmed to its area's minute budget, not aspirational.
+- [ ] (case-presentation) the presentation vs. Q&A split is realistic for the confirmed duration.
+
+This axis is **reporting-only** — like the others it never blocks (design D6), and it is additionally
+**skipped, not failed,** when the round carries no time budget.
+
 ## Output
 
-Report to the manager: the three axis scores (or N/A), the gaps found per axis, and the specific edits
+Report to the manager: the four axis scores (or N/A), the gaps found per axis, and the specific edits
 you'd suggest. Do not silently fix and hide — the manager decides what to change. Example summary block:
 
 ```html
 <!-- interview-guide self-review:
-     completeness=4 · alignment=3 (metric-sense area has no sheet dimension — add or drop) · case-realism=N/A
+     completeness=4 · alignment=3 (metric-sense area has no sheet dimension — add or drop)
+     · case-realism=N/A · duration-fit=3 (strategy area over-budgeted; trim probes or extend the round)
      manager: resolve the alignment gap before using this kit. -->
 ```
