@@ -29,13 +29,13 @@
 
 ## Best practices
 1. Position consistently — pick top OR bottom and stick (N4)
-2. Auto-dismiss in 4–6 seconds; pause on hover/focus (N1, A3)
+2. Auto-dismiss in 4–6 seconds; pause on hover/focus (N1)
 3. If toast has an action ("Undo"), DON'T auto-dismiss until user dismisses or acts (N3)
 4. Stack vertically with newest at edge (top of stack on bottom-positioned, etc.) (N4)
 5. Keep message ≤ 1 line (≤ 60 chars) (G4)
-6. Use `role="status"` for non-urgent and `role="alert"` for errors (A1)
-7. Icon + color + text — never color alone (A2)
-8. Close button for keyboard / screen-reader users (A3)
+6. Use `role="status"` for non-urgent and `role="alert"` for errors
+7. Icon + color + text — never color alone
+8. Close button for keyboard / screen-reader users
 9. Don't use for important info — toasts disappear (N1, N9)
 
 ## Common mistakes
@@ -43,7 +43,7 @@
 - Auto-dismiss too fast (< 3s) → user can't read (N1)
 - Auto-dismiss while pointing at "Undo" button → action lost (N3)
 - 5+ toasts stacked → overload (F2)
-- No close button → fails keyboard users (A3)
+- No close button → fails keyboard users
 - Toasts that block content → defeats their purpose (N3)
 
 ## Device variants
@@ -54,22 +54,31 @@
 
 ## Skeleton
 
-```html
-<!-- Container, fixed at bottom-right -->
-<div role="region" aria-label="Notifications"
-     style="position:fixed;bottom:1rem;right:1rem;display:flex;flex-direction:column;gap:.5rem;z-index:100">
-
-  <div role="status" class="mock-card wf-row" style="background:var(--wf-text);color:var(--wf-surface);min-width:280px">
-    <span aria-hidden="true">✓</span>
-    <span class="wf-grow">Deal saved</span>
-    <button class="mock-button" style="color:var(--wf-accent);background:transparent;border:0">Undo</button>
-    <button class="mock-button" aria-label="Dismiss" style="color:inherit;background:transparent;border:0">×</button>
-  </div>
-
-  <div role="alert" class="mock-card wf-row" style="background:var(--wf-error);color:#fff;min-width:280px">
-    <span aria-hidden="true">⚠</span>
-    <span class="wf-grow">Couldn't connect to server</span>
-    <button class="mock-button" style="color:#fff;background:transparent;border:0">Retry</button>
-  </div>
-</div>
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+  <rect x="0" y="0" width="1280" height="800" fill="#fff"/>
+  <g data-region="app-bar">
+    <title>App bar</title><desc>Top navigation of the deals screen the toast overlays.</desc>
+    <rect x="0" y="0" width="1280" height="56" fill="#fff" stroke="#e6e6e6"/>
+    <text x="24" y="32" font-size="20" fill="#000" stroke="none">Deals</text>
+  </g>
+  <g data-region="content">
+    <title>Page content</title><desc>The underlying working surface; the toast is non-blocking and does not cover it.</desc>
+    <rect x="24" y="80" width="1232" height="640" fill="#f4f4f4"/>
+  </g>
+  <g data-region="toast-stack">
+    <title>Toast stack</title><desc>Transient confirmations stacked bottom-right, newest on top.</desc>
+    <rect x="936" y="680" width="320" height="48" fill="#000"/>
+    <text x="952" y="712" font-size="14" fill="#fff" stroke="none">Deal saved</text>
+    <text x="1200" y="712" font-size="14" fill="#fff" stroke="none">Undo</text>
+    <rect x="936" y="736" width="320" height="48" fill="#000"/>
+    <text x="952" y="768" font-size="14" fill="#fff" stroke="none">Couldn't connect to server</text>
+    <text x="1200" y="768" font-size="14" fill="#fff" stroke="none">Retry</text>
+  </g>
+  <g data-region="annotations">
+    <title>Annotations</title><desc>Design notes on toast dismissal behaviour.</desc>
+    <rect x="904" y="672" width="360" height="120" fill="none" stroke="#d33" stroke-dasharray="4 4"/>
+    <text x="904" y="656" font-size="12" fill="#d33" stroke="none">Success toast auto-dismisses in 4–6s; a toast with "Undo" stays until acted on.</text>
+  </g>
+</svg>
 ```

@@ -27,42 +27,33 @@
 - count-overflow ("99+")
 
 ## Best practices
-1. Color + text label (A2) — never color alone for meaning
+1. Color + text label — never color alone for meaning
 2. Concise: ≤ 2 words for status; just a number for counts (G3, N8)
 3. Consistent color mapping across the app (N4) — green for success, red for error, etc.
 4. Use neutral pill for category/tag — don't over-color (G2, N8)
 5. Counts: cap at "99+" — never show "1,247" in a small pill (G3)
 6. Don't put badges inside badges
 7. Status badges next to entity title; counts next to nav items
-8. Border + light fill for accessibility in dark mode (A2)
+8. Border + light fill for accessibility in dark mode
 
 ## Common mistakes
-- Color-only with no text → fails colorblind (A2)
+- Color-only with no text → fails colorblind
 - Every tag in saturated color → loses signal; reserve color for important states (N8)
 - Inconsistent color meaning → "Red" means error here, "warning" elsewhere (N4)
-- Tiny font (< 11 px) for accessibility (A2)
+- Tiny font (< 11 px) for accessibility
 
 ## Device variants
 - **all devices**: same pattern
 
 ## Skeleton
 
-```html
-<!-- Status badges -->
-<span class="mock-pill" style="background:#dcfce7;color:#166534;border-color:#bbf7d0">● Active</span>
-<span class="mock-pill" style="background:#fef3c7;color:#92400e;border-color:#fde68a">● Pending</span>
-<span class="mock-pill" style="background:#fee2e2;color:#991b1b;border-color:#fecaca">● Failed</span>
-<span class="mock-pill">Draft</span>
-
-<!-- Count badge -->
-<button class="mock-button" aria-label="Notifications, 12 unread" style="position:relative">
-  🔔
-  <span class="mock-pill" style="position:absolute;top:-4px;right:-4px;background:var(--wf-error);color:#fff;border:2px solid var(--wf-surface);min-width:20px;text-align:center">12</span>
-</button>
-
-<!-- Overflow -->
-<span class="mock-pill" style="background:var(--wf-error);color:#fff">99+</span>
-
-<!-- With icon -->
-<span class="mock-pill" style="background:#dbeafe;color:#1e40af">⚡ Beta</span>
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="32" viewBox="0 0 80 32" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+  <g data-region="badge" transform="translate(0,0)">
+    <title>Badge</title>
+    <desc>Compact status label: a filled pill containing a concise text label.</desc>
+    <rect x="0" y="0" width="80" height="32" fill="#000"/>
+    <text x="40" y="24" font-size="12" fill="#fff" stroke="none" text-anchor="middle">Active</text>
+  </g>
+</svg>
 ```

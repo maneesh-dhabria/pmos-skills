@@ -24,17 +24,17 @@
 - pressed (touch — usually doesn't show; consider popover instead)
 
 ## Best practices
-1. Show on hover AND on keyboard focus (A3)
+1. Show on hover AND on keyboard focus
 2. Delay opening by ~300–500 ms — prevents tooltip storm on fast mouse movement (N8)
 3. Hide on Esc, on blur, on mouseout (N3)
 4. Position adaptively — flip if no room (N4)
-5. ARIA: tooltip content has `role="tooltip"`, trigger uses `aria-describedby` pointing to it (A1, A4)
+5. ARIA: tooltip content has `role="tooltip"`, trigger uses `aria-describedby` pointing to it
 6. Don't put interactive elements in tooltips — they disappear on hover-out (N3)
-7. Touch fallback: tooltip turns into a popover on tap, with explicit close (D1)
-8. Never use tooltip for the ONLY explanation of an icon-only button — also use a visible label or screen-reader text (A4)
+7. Touch fallback: tooltip turns into a popover on tap, with explicit close — tooltips have no hover trigger on touch surfaces
+8. Never use tooltip for the ONLY explanation of an icon-only button — also use a visible label or screen-reader text
 
 ## Common mistakes
-- Tooltip is the only explanation of an icon → fails touch users and screen readers (D1, A4)
+- Tooltip is the only explanation of an icon → fails touch users and screen readers
 - Long paragraphs in tooltip → use a popover (N8)
 - Interactive content (buttons, links) inside → unreachable (N3)
 - Tooltip covers the trigger → user can't see what they're hovering
@@ -46,26 +46,14 @@
 
 ## Skeleton
 
-```html
-<!-- Trigger with tooltip -->
-<span style="position:relative;display:inline-block">
-  <button class="mock-button" aria-label="Help" aria-describedby="tip-pw">?</button>
-
-  <!-- Tooltip (open state) -->
-  <div role="tooltip" id="tip-pw"
-       style="position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);
-              background:var(--wf-text);color:var(--wf-surface);padding:.4rem .6rem;
-              border-radius:var(--wf-radius);font-size:12px;white-space:nowrap;z-index:10">
-    Min 8 chars, one number, one symbol
-    <span aria-hidden="true"
-          style="position:absolute;top:100%;left:50%;transform:translateX(-50%);
-                 border:5px solid transparent;border-top-color:var(--wf-text)"></span>
-  </div>
-</span>
-
-<!-- Icon button with both visible label and tooltip on hover -->
-<button class="mock-button" aria-describedby="tip-export" aria-label="Export to CSV">
-  ⬇ Export
-</button>
-<div role="tooltip" id="tip-export" style="display:none">Download all rows as CSV (⌘E)</div>
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="40" viewBox="0 0 160 40" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+  <g data-region="tooltip" transform="translate(0,0)">
+    <title>Tooltip</title>
+    <desc>A small floating panel with a short text hint and a downward caret pointing at its trigger.</desc>
+    <rect x="0" y="0" width="160" height="32" fill="#000"/>
+    <text x="8" y="24" font-size="12" fill="#fff" stroke="none">Copy to clipboard</text>
+    <path d="M16 32 L24 40 L32 32 Z" fill="#000"/>
+  </g>
+</svg>
 ```

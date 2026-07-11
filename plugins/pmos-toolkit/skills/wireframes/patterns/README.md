@@ -1,6 +1,6 @@
 # Wireframe Patterns Library
 
-Opinionated, lightweight pattern references the `/wireframes` skill loads on demand. Every component in a feature's inventory should map to one pattern file here. Each file describes **when to use**, **anatomy**, **required states**, **best practices** (cross-referenced to `reference/eval-rubric.md` heuristic IDs), **common mistakes**, **device variants**, and a **skeleton snippet** using the shared `wireframe.css` vocabulary.
+Opinionated, lightweight pattern references the `/wireframes` skill loads on demand. Every component in a feature's inventory should map to one pattern file here. Each file describes **when to use**, **anatomy**, **required states**, **best practices** (cross-referenced to `reference/eval-rubric.md` heuristic IDs), **common mistakes**, **device variants**, and a **skeleton snippet** — an inline monochrome `<svg>` composed from the named primitives in `reference/primitives.md`, on the 8px grid in the closed palette.
 
 ## How the skill uses this library
 
@@ -133,7 +133,9 @@ Opinionated, lightweight pattern references the `/wireframes` skill loads on dem
 
 ## Skeleton
 
-\`\`\`html
-<!-- minimal example using wireframe.css vocabulary -->
+\`\`\`svg
+<!-- inline monochrome <svg> at the device canvas token, composed from
+     reference/primitives.md; 8px grid; closed palette; #d33 only in a
+     data-region="annotations" subtree; every <text stroke="none"> -->
 \`\`\`
 ```

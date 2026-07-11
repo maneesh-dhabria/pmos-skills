@@ -24,9 +24,9 @@
 
 ## Best practices
 1. Always show labels — icon-only fails recognition for non-experts (N6, N2)
-2. Active tab: filled icon + accent color + weight (G2, A2)
-3. 44×44 minimum touch target, 48×48 preferred (F1, A5)
-4. iOS: tab bar at bottom, ~49pt height. Android: bottom nav, 56dp height (D2, D3)
+2. Active tab: filled icon + accent color + weight (G2)
+3. Primary actions are large and easy to hit; keep destinations comfortably tappable (F1)
+4. Bottom nav sits at the base of the screen with 3–5 equal-width destinations (F2) — more than five crowds the labels
 5. Never put the FAB IN the tab bar — overlap with [fab.md](fab.md), don't merge
 6. Tab order matches information importance, not alphabetical (N4)
 7. Tapping the active tab scrolls to top of that section (N7) — established convention
@@ -45,20 +45,38 @@
 
 ## Skeleton
 
-```html
-<nav class="wf-tabbar" role="tablist" aria-label="Primary">
-  <button role="tab" aria-selected="true" class="wf-stack" style="text-align:center;color:var(--wf-accent)">
-    <span aria-hidden="true">🏠</span><span style="font-size:11px">Home</span>
-  </button>
-  <button role="tab" aria-selected="false" class="wf-stack wf-muted" style="text-align:center">
-    <span aria-hidden="true">🔍</span><span style="font-size:11px">Search</span>
-  </button>
-  <button role="tab" aria-selected="false" class="wf-stack wf-muted" style="text-align:center;position:relative">
-    <span aria-hidden="true">🔔</span><span style="font-size:11px">Inbox</span>
-    <span class="mock-pill" style="position:absolute;top:-2px;right:8px;background:var(--wf-error);color:#fff">3</span>
-  </button>
-  <button role="tab" aria-selected="false" class="wf-stack wf-muted" style="text-align:center">
-    <span aria-hidden="true">👤</span><span style="font-size:11px">Profile</span>
-  </button>
-</nav>
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" width="375" height="812" viewBox="0 0 375 812" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+  <g data-region="tab-bar">
+    <title>Bottom tab bar</title>
+    <desc>Fixed bottom navigation bar with four equal-width destinations at the base of the screen.</desc>
+    <rect x="0" y="744" width="368" height="64" fill="#fff" stroke="#e6e6e6"/>
+  </g>
+  <g data-region="tabs">
+    <title>Tab destinations</title>
+    <desc>Home (active), Search, Inbox with an unread badge, and Profile — each an icon above a text label.</desc>
+    <rect data-interactive="true" x="8" y="744" width="88" height="64" fill="none"/>
+    <rect x="8" y="744" width="88" height="8" fill="#000"/>
+    <rect x="40" y="760" width="24" height="24" fill="#000"/>
+    <text x="24" y="800" font-size="12" fill="#000" stroke="none">Home</text>
+    <rect data-interactive="true" x="96" y="744" width="88" height="64" fill="none"/>
+    <rect x="128" y="760" width="24" height="24" fill="#666"/>
+    <text x="112" y="800" font-size="12" fill="#666" stroke="none">Search</text>
+    <rect data-interactive="true" x="184" y="744" width="88" height="64" fill="none"/>
+    <rect x="216" y="760" width="24" height="24" fill="#666"/>
+    <circle cx="248" cy="760" r="8" fill="#000"/>
+    <text x="248" y="768" font-size="12" fill="#fff" stroke="none" text-anchor="middle">3</text>
+    <text x="200" y="800" font-size="12" fill="#666" stroke="none">Inbox</text>
+    <rect data-interactive="true" x="272" y="744" width="88" height="64" fill="none"/>
+    <rect x="304" y="760" width="24" height="24" fill="#666"/>
+    <text x="288" y="800" font-size="12" fill="#666" stroke="none">Profile</text>
+  </g>
+  <g data-region="annotations" transform="translate(16,656)">
+    <title>Annotations</title>
+    <desc>Design notes for the bottom tab bar.</desc>
+    <circle cx="16" cy="16" r="16" fill="#d33"/>
+    <text x="16" y="24" font-size="14" fill="#fff" stroke="none" text-anchor="middle">1</text>
+    <text x="48" y="24" font-size="12" fill="#d33" stroke="none">Every tab shows a text label; the active tab adds a top bar and a filled icon.</text>
+  </g>
+</svg>
 ```

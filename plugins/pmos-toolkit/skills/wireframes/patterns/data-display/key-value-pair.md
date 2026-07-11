@@ -29,7 +29,7 @@
 4. Group related pairs; separate groups with dividers or section headings (G1)
 5. Inline layout for short values; stacked for long (G4)
 6. "Copy" buttons on technical values (IDs, tokens, emails) (N7)
-7. Use `<dl>` / `<dt>` / `<dd>` semantics (A1)
+7. Use `<dl>` / `<dt>` / `<dd>` semantics
 8. Truncate long values with ellipsis + tooltip showing full value
 
 ## Common mistakes
@@ -44,33 +44,45 @@
 
 ## Skeleton
 
-```html
-<!-- Stacked variant -->
-<dl class="wf-stack" style="margin:0">
-  <div>
-    <dt class="mock-label">Plan</dt>
-    <dd style="margin:0">Business · Annual</dd>
-  </div>
-  <div>
-    <dt class="mock-label">Renewal date</dt>
-    <dd style="margin:0">Jun 30, 2026</dd>
-  </div>
-  <div>
-    <dt class="mock-label">Workspace ID</dt>
-    <dd style="margin:0" class="wf-row">
-      <code class="wf-mono">ws_8H3kZ29p</code>
-      <button class="mock-button" aria-label="Copy workspace ID">📋</button>
-    </dd>
-  </div>
-  <div>
-    <dt class="mock-label">Custom domain</dt>
-    <dd class="wf-muted" style="margin:0">— Not set</dd>
-  </div>
-</dl>
+Composed on the **desktop 1280×800** canvas: a stacked variant (label above value) on the left and an
+inline variant (label left, value right) on the right — muted label over ink value throughout.
 
-<!-- Inline variant -->
-<dl style="display:grid;grid-template-columns:max-content 1fr;gap:.5rem 1.5rem;margin:0">
-  <dt class="mock-label">Plan</dt><dd style="margin:0">Business · Annual</dd>
-  <dt class="mock-label">Renewal</dt><dd style="margin:0">Jun 30, 2026</dd>
-</dl>
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+  <rect x="0" y="0" width="1280" height="800" fill="#fff"/>
+
+  <g data-region="stacked-pairs">
+    <title>Stacked key-value pairs</title>
+    <desc>Each pair puts a muted label above its ink value; empty values read "— Not set" rather than blank, and technical values carry a Copy control.</desc>
+    <text x="24" y="40" font-size="12" fill="#666" stroke="none">PLAN</text>
+    <text x="24" y="64" font-size="14" fill="#000" stroke="none">Business · Annual</text>
+
+    <text x="24" y="112" font-size="12" fill="#666" stroke="none">RENEWAL DATE</text>
+    <text x="24" y="136" font-size="14" fill="#000" stroke="none">Jun 30, 2026</text>
+
+    <text x="24" y="184" font-size="12" fill="#666" stroke="none">WORKSPACE ID</text>
+    <text x="24" y="208" font-size="14" fill="#000" stroke="none">ws_8H3kZ29p</text>
+    <rect x="240" y="192" width="40" height="24" fill="#fff" stroke="#000"/>
+    <text x="248" y="208" font-size="12" fill="#666" stroke="none">Copy</text>
+
+    <text x="24" y="256" font-size="12" fill="#666" stroke="none">CUSTOM DOMAIN</text>
+    <text x="24" y="280" font-size="14" fill="#666" stroke="none">— Not set</text>
+  </g>
+
+  <g data-region="inline-pairs">
+    <title>Inline key-value pairs</title>
+    <desc>The desktop-friendly variant: label on the left, value aligned to a second column on the right.</desc>
+    <text x="640" y="40" font-size="12" fill="#666" stroke="none">Plan</text>
+    <text x="840" y="40" font-size="14" fill="#000" stroke="none">Business · Annual</text>
+    <text x="640" y="72" font-size="12" fill="#666" stroke="none">Renewal</text>
+    <text x="840" y="72" font-size="14" fill="#000" stroke="none">Jun 30, 2026</text>
+  </g>
+
+  <g data-region="annotations">
+    <title>Design notes</title>
+    <desc>Stacked layout suits long values and mobile; inline suits short values on desktop. Group related pairs and separate groups with a divider or heading; never leave an empty value blank.</desc>
+    <circle cx="304" cy="200" r="8" fill="#d33"/>
+    <text x="304" y="208" font-size="10" fill="#fff" stroke="none" text-anchor="middle">1</text>
+  </g>
+</svg>
 ```

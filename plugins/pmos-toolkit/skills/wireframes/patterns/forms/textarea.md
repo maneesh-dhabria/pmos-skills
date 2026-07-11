@@ -30,8 +30,8 @@
 2. Allow vertical resize, lock horizontal (browser default; preserve it)
 3. Character counter: visible from the start if there's a limit; turns warning color at 90% (N1)
 4. Don't enforce max-length silently — show counter so user can see they're being cut off (N9)
-5. Show errors below the field, not as tooltips (A4)
-6. Use `aria-describedby` to link counter and error to the field (A4)
+5. Show errors below the field, not as tooltips
+6. Use `aria-describedby` to link counter and error to the field
 7. For long-form content, save drafts on blur (N3)
 
 ## Common mistakes
@@ -47,14 +47,21 @@
 
 ## Skeleton
 
-```html
-<div class="wf-stack" style="max-width:600px">
-  <label for="msg" class="mock-label">Message</label>
-  <textarea id="msg" name="message" rows="4" maxlength="500"
-            class="mock-input" placeholder="What changed in this release?"></textarea>
-  <div class="wf-row" style="justify-content:space-between">
-    <span class="wf-muted" style="font-size:12px">Markdown supported</span>
-    <span id="msg-count" class="wf-muted" style="font-size:12px">0 / 500</span>
-  </div>
-</div>
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+  <g data-region="textarea" transform="translate(24,24)">
+    <title>Multi-line textarea</title>
+    <desc>A labelled textarea sized for several rows, with a helper note and character counter beneath.</desc>
+    <text x="0" y="16" font-size="12" fill="#666" stroke="none">Message</text>
+    <rect x="0" y="24" width="600" height="120" fill="#fff" stroke="#000"/>
+    <text x="8" y="48" font-size="14" fill="#666" stroke="none">What changed in this release?</text>
+    <text x="0" y="168" font-size="12" fill="#666" stroke="none">Markdown supported</text>
+    <text x="520" y="168" font-size="12" fill="#666" stroke="none">0 / 500</text>
+  </g>
+  <g data-region="annotations" transform="translate(640,24)">
+    <title>Counter callout</title>
+    <desc>The counter is visible from the start and turns to a warning near the limit.</desc>
+    <text x="0" y="168" font-size="12" fill="#d33" stroke="none">Counter warns at 90% of the limit.</text>
+  </g>
+</svg>
 ```

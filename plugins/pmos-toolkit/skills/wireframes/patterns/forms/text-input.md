@@ -27,21 +27,21 @@
 - success (rare; only when explicit confirmation matters)
 
 ## Best practices
-1. **Always use a visible label above the field** (A4, N6) — placeholder-as-label fails screen readers and disappears on input
-2. Use `type="email"`, `type="tel"`, `type="url"` — triggers correct mobile keyboard (D1, N7)
+1. **Always use a visible label above the field** (N6) — placeholder-as-label fails screen readers and disappears on input
+2. Use `type="email"`, `type="tel"`, `type="url"` — triggers correct mobile keyboard (N7)
 3. Use `autocomplete` attributes (`name`, `email`, `tel`) — saves user effort (N7)
 4. Field width should hint at expected length: zip = narrow, email = wide (N2)
 5. Error messages: specific + actionable ("Email must include @" not "Invalid input") (N9)
-6. Required fields marked with `*` AND `aria-required="true"` (A4) — never rely on color alone
+6. Required fields marked with `*` AND `aria-required="true"` — never rely on color alone
 7. Don't disable Submit until valid; let user submit and show errors → faster correction loop
-8. Touch targets ≥ 44 px tall on mobile (F1, A5)
-9. Error state shown with icon + color + text, not color alone (A2, N9)
+8. Touch targets ≥ 44 px tall on mobile (F1)
+9. Error state shown with icon + color + text, not color alone (N9)
 
 ## Common mistakes
-- Placeholder used as the only label → fails A4, recall over recognition (N6)
+- Placeholder used as the only label → no visible label, recall over recognition (N6)
 - Generic error "Invalid input" → user has no idea what to fix (N9)
 - Centered placeholder text → makes empty fields look filled
-- Required marked only by color → colorblind users miss it (A2)
+- Required marked only by color → colorblind users miss it
 - All caps labels → harder to read, not impressive (G3)
 - Inputs that auto-format aggressively (e.g., trimming hyphens user typed) without showing what happened → confusing
 
@@ -53,19 +53,29 @@
 
 ## Skeleton
 
-```html
-<div class="wf-stack" style="max-width:360px">
-  <label for="email" class="mock-label">Email <span aria-hidden="true">*</span></label>
-  <input id="email" name="email" type="email" autocomplete="email" required
-         class="mock-input" placeholder="you@company.com">
-  <span class="wf-muted" style="font-size:12px">We'll send confirmation here.</span>
-</div>
-
-<!-- Error state -->
-<div class="wf-stack" style="max-width:360px">
-  <label for="email-2" class="mock-label">Email <span aria-hidden="true">*</span></label>
-  <input id="email-2" type="email" aria-invalid="true" aria-describedby="email-2-err"
-         class="mock-input" style="border-color:var(--wf-error)" value="maneesh@">
-  <span id="email-2-err" style="color:var(--wf-error);font-size:12px">⚠ Email must include a domain (e.g. acme.com)</span>
-</div>
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+  <g data-region="default" transform="translate(24,24)">
+    <title>Default text input</title>
+    <desc>A labelled single-line email field with helper text below.</desc>
+    <text x="0" y="16" font-size="12" fill="#666" stroke="none">Email *</text>
+    <rect x="0" y="24" width="240" height="40" fill="#fff" stroke="#000"/>
+    <text x="8" y="48" font-size="14" fill="#666" stroke="none">you@company.com</text>
+    <text x="0" y="88" font-size="12" fill="#666" stroke="none">We'll send confirmation here.</text>
+  </g>
+  <g data-region="error" transform="translate(24,160)">
+    <title>Error state</title>
+    <desc>The same field with an invalid value; the error message replaces the helper text.</desc>
+    <text x="0" y="16" font-size="12" fill="#666" stroke="none">Email *</text>
+    <rect x="0" y="24" width="240" height="40" fill="#fff" stroke="#000"/>
+    <text x="8" y="48" font-size="14" fill="#000" stroke="none">maneesh@</text>
+    <text x="0" y="88" font-size="12" fill="#000" stroke="none">! Email must include a domain (e.g. acme.com)</text>
+  </g>
+  <g data-region="annotations" transform="translate(320,160)">
+    <title>Redline callout</title>
+    <desc>Error is shown with icon + text, never colour alone.</desc>
+    <rect x="0" y="24" width="240" height="40" fill="none" stroke="#d33" stroke-dasharray="4 4"/>
+    <text x="0" y="88" font-size="12" fill="#d33" stroke="none">Icon + text, not colour alone.</text>
+  </g>
+</svg>
 ```

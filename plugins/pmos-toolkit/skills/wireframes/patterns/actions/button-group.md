@@ -30,7 +30,7 @@
 3. Equal heights (G2)
 4. Consistent spacing between buttons (G4)
 5. On mobile narrow: stack vertically with primary on top OR bottom (test both)
-6. Segmented control: equal-width children, current state visually filled (G2, A2)
+6. Segmented control: equal-width children, current state visually filled (G2)
 7. Don't mix button sizes within a group (G2)
 
 ## Common mistakes
@@ -48,29 +48,36 @@
 
 ## Skeleton
 
-```html
-<!-- Cancel + primary, web convention -->
-<div class="wf-row" style="justify-content:flex-end">
-  <button class="mock-button">Cancel</button>
-  <button class="mock-button mock-button--primary">Save changes</button>
-</div>
-
-<!-- Three-way action -->
-<div class="wf-row" style="justify-content:space-between">
-  <button class="mock-button">‹ Back</button>
-  <div class="wf-row">
-    <button class="mock-button">Save draft</button>
-    <button class="mock-button mock-button--primary">Publish ›</button>
-  </div>
-</div>
-
-<!-- Segmented control -->
-<div role="radiogroup" aria-label="View mode" class="wf-row" style="border:1px solid var(--wf-border-2);border-radius:var(--wf-radius);padding:2px">
-  <button role="radio" aria-checked="true"
-          class="mock-button mock-button--primary" style="border:0;border-radius:6px;flex:1">Day</button>
-  <button role="radio" aria-checked="false"
-          class="mock-button" style="border:0;background:transparent;flex:1">Week</button>
-  <button role="radio" aria-checked="false"
-          class="mock-button" style="border:0;background:transparent;flex:1">Month</button>
-</div>
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800">
+  <g data-region="cancel-save" transform="translate(48,48)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+    <title>Cancel plus primary</title>
+    <desc>Two peer actions with one styled as the primary; the primary sits on the right per web convention.</desc>
+    <rect x="0" y="0" width="120" height="48" fill="#fff" stroke="#000" data-interactive="true"/>
+    <text x="24" y="32" font-size="14" fill="#000" stroke="none">Cancel</text>
+    <rect x="136" y="0" width="160" height="48" fill="#000" data-interactive="true"/>
+    <text x="160" y="32" font-size="14" fill="#fff" stroke="none">Save changes</text>
+  </g>
+  <g data-region="three-way" transform="translate(48,144)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+    <title>Three-way action row</title>
+    <desc>A back affordance separated from a save-draft plus publish pair.</desc>
+    <rect x="0" y="0" width="96" height="48" fill="#fff" stroke="#000" data-interactive="true"/>
+    <text x="16" y="32" font-size="14" fill="#000" stroke="none">‹ Back</text>
+    <rect x="440" y="0" width="136" height="48" fill="#fff" stroke="#000" data-interactive="true"/>
+    <text x="456" y="32" font-size="14" fill="#000" stroke="none">Save draft</text>
+    <rect x="592" y="0" width="136" height="48" fill="#000" data-interactive="true"/>
+    <text x="608" y="32" font-size="14" fill="#fff" stroke="none">Publish ›</text>
+  </g>
+  <g data-region="segmented" transform="translate(48,240)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+    <title>Segmented control</title>
+    <desc>Equal-width mutually-exclusive choices; the current segment reads as filled.</desc>
+    <rect x="0" y="0" width="288" height="48" fill="#fff" stroke="#000"/>
+    <rect x="0" y="0" width="96" height="48" fill="#000" data-interactive="true"/>
+    <text x="24" y="32" font-size="14" fill="#fff" stroke="none">Day</text>
+    <line x1="96" y1="0" x2="96" y2="48" stroke="#000" stroke-width="1"/>
+    <text x="120" y="32" font-size="14" fill="#000" stroke="none">Week</text>
+    <line x1="192" y1="0" x2="192" y2="48" stroke="#000" stroke-width="1"/>
+    <text x="216" y="32" font-size="14" fill="#000" stroke="none">Month</text>
+  </g>
+</svg>
 ```

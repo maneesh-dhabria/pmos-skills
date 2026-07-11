@@ -28,11 +28,11 @@
 1. ONE primary per logical section (G3) — multiple primaries dilute meaning
 2. Label is a verb-noun: "Save changes", "Send invite" (N2) — not "OK"
 3. Position: footer-right in dialogs, top-right or bottom-right in pages (N4) — depends on platform convention
-4. Accent color fill, white text (G3, A2)
+4. Accent color fill, white text (G3)
 5. Disabled state explains why ("Required fields missing") via tooltip or helper text (N9)
 6. Loading: change label to gerund ("Saving…") and show spinner; don't disable text completely (N1)
-7. Touch target ≥ 44 px tall on mobile (F1, A5)
-8. Keyboard activation via Enter/Space; don't use only mouse handlers (A3)
+7. Touch target ≥ 44 px tall on mobile (F1)
+8. Keyboard activation via Enter/Space; don't use only mouse handlers
 
 ## Common mistakes
 - 3 "primary" buttons on one screen → none feels primary (G3)
@@ -49,24 +49,35 @@
 
 ## Skeleton
 
-```html
-<!-- Default -->
-<button class="mock-button mock-button--primary">Save changes</button>
-
-<!-- Loading -->
-<button class="mock-button mock-button--primary" disabled aria-busy="true">
-  <span class="skeleton" style="width:14px;height:14px;border-radius:50%"></span>
-  Saving…
-</button>
-
-<!-- With shortcut hint -->
-<button class="mock-button mock-button--primary">
-  Send <span class="mock-pill" style="background:rgba(255,255,255,.2);color:inherit">⌘↵</span>
-</button>
-
-<!-- Disabled with helper -->
-<div class="wf-stack">
-  <button class="mock-button mock-button--primary" disabled aria-describedby="cta-hint">Save changes</button>
-  <span id="cta-hint" class="wf-muted" style="font-size:12px">Add a project name to enable saving.</span>
-</div>
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800">
+  <g data-region="default-cta" transform="translate(48,48)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+    <title>Default primary CTA</title>
+    <desc>The single dominant action — a filled ink button carrying a verb-noun label.</desc>
+    <rect x="0" y="0" width="160" height="48" fill="#000" data-interactive="true"/>
+    <text x="24" y="32" font-size="14" fill="#fff" stroke="none">Save changes</text>
+  </g>
+  <g data-region="loading-cta" transform="translate(48,144)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+    <title>Loading state</title>
+    <desc>The label becomes a gerund and a spinner sits inside; the button never empties its label.</desc>
+    <rect x="0" y="0" width="160" height="48" fill="#000" data-interactive="true"/>
+    <circle cx="24" cy="24" r="8" fill="#fff"/>
+    <text x="48" y="32" font-size="14" fill="#fff" stroke="none">Saving…</text>
+  </g>
+  <g data-region="shortcut-hint" transform="translate(48,240)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+    <title>Shortcut hint</title>
+    <desc>An optional keyboard-shortcut pill follows the label inside the button.</desc>
+    <rect x="0" y="0" width="160" height="48" fill="#000" data-interactive="true"/>
+    <text x="24" y="32" font-size="14" fill="#fff" stroke="none">Send</text>
+    <rect x="96" y="8" width="56" height="32" fill="#666"/>
+    <text x="104" y="32" font-size="12" fill="#fff" stroke="none">⌘↵</text>
+  </g>
+  <g data-region="disabled-cta" transform="translate(48,336)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+    <title>Disabled state with reason</title>
+    <desc>A muted, non-actionable button paired with helper text explaining why it is disabled.</desc>
+    <rect x="0" y="0" width="160" height="48" fill="#e6e6e6"/>
+    <text x="24" y="32" font-size="14" fill="#666" stroke="none">Save changes</text>
+    <text x="0" y="80" font-size="12" fill="#666" stroke="none">Add a project name to enable saving.</text>
+  </g>
+</svg>
 ```

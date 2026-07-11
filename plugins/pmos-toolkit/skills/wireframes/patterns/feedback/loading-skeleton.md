@@ -28,7 +28,7 @@
 3. Subtle pulse animation, 1.4s ease-in-out — not jarring (N8)
 4. Show within 100 ms of load start; hide as soon as content arrives (N1)
 5. For < 300 ms loads, skip skeletons entirely (N1)
-6. `aria-busy="true"` on container while loading; remove when loaded (A1)
+6. `aria-busy="true"` on container while loading; remove when loaded
 7. Don't show full-page spinner over a half-loaded page — use skeletons in place (N1)
 8. For very long loads (> 5s), supplement with a contextual message ("Crunching the numbers…") (N1)
 
@@ -37,36 +37,49 @@
 - Skeleton dimensions mismatch real content → layout shift on load (N4)
 - Skeleton on every reload, even cached views → flicker (N1)
 - Skeleton shapes that look like real content → users try to interact (N2)
-- No accessibility — screen readers announce nothing (A1)
+- No accessibility — screen readers announce nothing
 
 ## Device variants
 - **desktop / mobile**: same approach; ensure skeleton matches each viewport's actual layout
 
 ## Skeleton
 
-```html
-<!-- Page-level: list with skeleton items -->
-<ul aria-busy="true" class="wf-stack" style="list-style:none;padding:0;margin:0">
-  <li class="wf-row" style="padding:.75rem;border-bottom:1px solid var(--wf-border-2)">
-    <div class="skeleton" style="width:40px;height:40px;border-radius:50%"></div>
-    <div class="wf-grow wf-stack">
-      <div class="skeleton skeleton--lg" style="width:40%"></div>
-      <div class="skeleton" style="width:60%"></div>
-    </div>
-  </li>
-  <li class="wf-row" style="padding:.75rem;border-bottom:1px solid var(--wf-border-2)">
-    <div class="skeleton" style="width:40px;height:40px;border-radius:50%"></div>
-    <div class="wf-grow wf-stack">
-      <div class="skeleton skeleton--lg" style="width:35%"></div>
-      <div class="skeleton" style="width:70%"></div>
-    </div>
-  </li>
-</ul>
-
-<!-- Card-level skeleton -->
-<article class="mock-card" aria-busy="true">
-  <div class="skeleton" style="aspect-ratio:16/10;height:auto;margin-bottom:.75rem"></div>
-  <div class="skeleton skeleton--lg" style="width:70%;margin-bottom:.5rem"></div>
-  <div class="skeleton" style="width:50%"></div>
-</article>
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+  <rect x="0" y="0" width="1280" height="800" fill="#fff"/>
+  <g data-region="app-bar">
+    <title>App bar (loading)</title><desc>Chrome bar with a placeholder block where the loaded title will appear.</desc>
+    <rect x="0" y="0" width="1280" height="56" fill="#fff" stroke="#e6e6e6"/>
+    <rect x="24" y="16" width="160" height="24" fill="#e6e6e6"/>
+  </g>
+  <g data-region="list-skeleton">
+    <title>List skeleton</title><desc>Four placeholder list rows — avatar plus two text bars — mirroring the loaded list's shape and size.</desc>
+    <circle cx="48" cy="120" r="16" fill="#e6e6e6"/>
+    <rect x="88" y="104" width="240" height="16" fill="#e6e6e6"/>
+    <rect x="88" y="128" width="400" height="16" fill="#f4f4f4"/>
+    <line x1="24" y1="152" x2="632" y2="152" stroke="#e6e6e6" stroke-width="1"/>
+    <circle cx="48" cy="184" r="16" fill="#e6e6e6"/>
+    <rect x="88" y="168" width="240" height="16" fill="#e6e6e6"/>
+    <rect x="88" y="192" width="400" height="16" fill="#f4f4f4"/>
+    <line x1="24" y1="216" x2="632" y2="216" stroke="#e6e6e6" stroke-width="1"/>
+    <circle cx="48" cy="248" r="16" fill="#e6e6e6"/>
+    <rect x="88" y="232" width="240" height="16" fill="#e6e6e6"/>
+    <rect x="88" y="256" width="400" height="16" fill="#f4f4f4"/>
+    <line x1="24" y1="280" x2="632" y2="280" stroke="#e6e6e6" stroke-width="1"/>
+    <circle cx="48" cy="312" r="16" fill="#e6e6e6"/>
+    <rect x="88" y="296" width="240" height="16" fill="#e6e6e6"/>
+    <rect x="88" y="320" width="400" height="16" fill="#f4f4f4"/>
+  </g>
+  <g data-region="card-skeleton">
+    <title>Card skeleton</title><desc>Placeholder card — media block, title bar, and one body line — matching the loaded card footprint.</desc>
+    <rect x="680" y="96" width="560" height="240" fill="#e6e6e6"/>
+    <rect x="680" y="352" width="360" height="24" fill="#e6e6e6"/>
+    <rect x="680" y="392" width="480" height="16" fill="#f4f4f4"/>
+  </g>
+  <g data-region="annotations">
+    <title>Annotations</title><desc>Design notes on the loading affordance.</desc>
+    <rect x="16" y="88" width="624" height="272" fill="none" stroke="#d33" stroke-dasharray="4 4"/>
+    <text x="16" y="72" font-size="12" fill="#d33" stroke="none">Skeleton mirrors the loaded layout's shape and size — replaced in place, no bare spinner (S4).</text>
+  </g>
+</svg>
 ```

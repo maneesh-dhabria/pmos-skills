@@ -36,9 +36,9 @@
 5. Show loading skeleton, never a blank panel (N1)
 6. No-results: explain WHY and SUGGEST a fix ("No results for 'foo'. Try fewer words or check spelling.") (N9)
 7. Highlight matched terms in results (N1)
-8. Keyboard navigation: arrow keys through results, Enter to select, Esc to close (A3)
+8. Keyboard navigation: arrow keys through results, Enter to select, Esc to close
 9. Show keyboard shortcut to open search (`⌘K` / `Ctrl K`) — convention in productivity tools (N7)
-10. Mobile: search opens a full-screen view with cancel button — better than a tiny input (D1, F1)
+10. Mobile: search opens a full-screen view with cancel button — better than a tiny input (F1)
 
 ## Common mistakes
 - No clear button → user has to manually delete the query
@@ -54,27 +54,30 @@
 
 ## Skeleton
 
-```html
-<!-- Inline desktop search -->
-<div style="position:relative;max-width:480px">
-  <span style="position:absolute;left:.75rem;top:50%;transform:translateY(-50%)" aria-hidden="true">🔍</span>
-  <input type="search" class="mock-input" placeholder="Search projects, docs, people"
-         style="padding-left:2.25rem;padding-right:5rem" aria-label="Search">
-  <span class="mock-pill" style="position:absolute;right:2.25rem;top:50%;transform:translateY(-50%)">⌘K</span>
-  <button class="mock-button" aria-label="Clear search"
-          style="position:absolute;right:.25rem;top:50%;transform:translateY(-50%)">×</button>
-</div>
-
-<!-- Results popover -->
-<div class="mock-card" style="max-width:480px;margin-top:.5rem" role="listbox">
-  <div class="mock-label">Recent</div>
-  <div role="option" class="wf-row" style="padding:.5rem 0;cursor:pointer"><span>📄</span><span>Q3 OKRs</span></div>
-  <div role="option" class="wf-row" style="padding:.5rem 0;cursor:pointer"><span>👤</span><span>Sarah Kim</span></div>
-  <hr class="mock-divider">
-  <div class="mock-label">Results for "ren"</div>
-  <div role="option" class="wf-row" style="padding:.5rem 0;background:var(--wf-surface-2);cursor:pointer">
-    <span>📄</span>
-    <span>Q3 <strong>Ren</strong>ewal Plan</span>
-  </div>
-</div>
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+  <g data-region="input" transform="translate(24,24)">
+    <title>Search input</title>
+    <desc>An inline search field: magnifier on the left, a keyboard-shortcut pill and clear affordance on the right.</desc>
+    <rect x="0" y="0" width="480" height="40" fill="#fff" stroke="#000"/>
+    <circle cx="20" cy="20" r="6" fill="none" stroke="#666"/>
+    <line x1="24" y1="24" x2="32" y2="32" stroke="#666" stroke-width="1"/>
+    <text x="40" y="24" font-size="14" fill="#666" stroke="none">Search projects, docs, people</text>
+    <rect x="384" y="8" width="40" height="24" fill="#f4f4f4"/>
+    <text x="392" y="24" font-size="12" fill="#666" stroke="none">Cmd K</text>
+    <text x="456" y="24" font-size="14" fill="#000" stroke="none">x</text>
+  </g>
+  <g data-region="results" transform="translate(24,80)">
+    <title>Results popover</title>
+    <desc>Recent searches when focused, then results for the query with the hovered row shaded.</desc>
+    <rect x="0" y="0" width="480" height="200" fill="#fff" stroke="#000"/>
+    <text x="8" y="24" font-size="12" fill="#666" stroke="none">Recent</text>
+    <text x="8" y="56" font-size="14" fill="#000" stroke="none">Q3 OKRs</text>
+    <text x="8" y="88" font-size="14" fill="#000" stroke="none">Sarah Kim</text>
+    <line x1="0" y1="104" x2="480" y2="104" stroke="#e6e6e6" stroke-width="1"/>
+    <text x="8" y="128" font-size="12" fill="#666" stroke="none">Results for "ren"</text>
+    <rect x="0" y="136" width="480" height="40" fill="#f4f4f4"/>
+    <text x="8" y="160" font-size="14" fill="#000" stroke="none">Q3 Renewal Plan</text>
+  </g>
+</svg>
 ```
