@@ -273,7 +273,7 @@ the anchors are present to resolve against.)
 
 ## Vocabulary cheat-sheet
 
-The **screen payload** is composed from the named monochrome primitives in [`primitives.md`](./primitives.md) — 24
+The **screen payload** is composed from the named monochrome primitives in [`primitives.md`](./primitives.md) — 26
 copy-paste SVG blocks (inputs, buttons, cards, nav, content, media, overlays, annotations). Drop a primitive onto
 the canvas and position it with its wrapper `transform="translate(x,y)"`. The **shell** still uses the `.wf-*`
 classes from `./wireframe.css`:
@@ -287,7 +287,7 @@ classes from `./wireframe.css`:
 | `.wf-footer`, `.wf-anno-list` | Footer + numbered annotation list |
 | `.wf-statusbar`, `.wf-tabbar`, `.wf-fab`, `.wf-notch`, `.wf-home-indicator`, `.wf-traffic` | Native chrome |
 | `primitives.md` §Inputs / §Layout / §Navigation / §Content / §Media / §Overlay | The **monochrome SVG payload** — every element the user sees inside the frame |
-| `primitives.md` §Annotation (22–24) | Redline / numbered-marker / measurement — the only place `#d33` is allowed |
+| `primitives.md` §Annotation (24–26) | Redline / numbered-marker / measurement — the only place `#d33` is allowed |
 
 Tailwind utilities remain available for laying out the **shell** (header/footer chrome); the SVG payload lays
 itself out with `transform` and grid-aligned coordinates.
@@ -295,7 +295,7 @@ itself out with `transform` and grid-aligned coordinates.
 ## Annotations
 
 Reviewer notes live in the `<g data-region="annotations">` group — the only place `#d33` may appear — as a
-**numbered marker** (primitive 23) pinned near the region it flags. Each marker's number keys to:
+**numbered marker** (primitive 25) pinned near the region it flags. Each marker's number keys to:
 
 1. a `<!-- N: … -->` comment above the annotated primitive,
 2. a `<li>` in the footer `.wf-anno-list`, and
@@ -351,5 +351,5 @@ regions, another with 1) is a defect the cross-file reviewer will catch.
 - Do NOT add a standalone `.svg` deliverable or an `--emit-svg` flag — the SVG lives **inline** in the per-screen
   `.html` only
 - Do NOT use `Lorem ipsum`, real photographs, or finished iconography — labelled boxes and the crossed-box image
-  placeholder (primitive 16) only
+  placeholder (primitive 17) only
 - Do NOT vary the footer format across files — only "File 03 of 6" is correct
