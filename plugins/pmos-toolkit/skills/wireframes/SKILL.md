@@ -1,13 +1,13 @@
 ---
 name: wireframes
-description: Generate static HTML wireframes (single-file, mid-fi, Tailwind) for a user-facing feature — every screen, component, state, and target device, matched to the host repo's house style (DESIGN.md), plus a single-file Figma-like canvas viewer (canvas.html) aggregating all screens. Optional bridge between /requirements and /spec; auto-triggers /requirements if no req doc exists. Use when the user says "create wireframes", "mock up the UI", "wireframe this feature", "show all screens on a canvas", "Figma-like view", or "extend this existing flow".
+description: Generate static monochrome SVG wireframes for a user-facing feature — every screen, component, state, and target device, matched to the host repo's house style (DESIGN.md), plus a single-file Figma-like canvas viewer (canvas.html) aggregating all screens. Optional bridge between /requirements and /spec; auto-triggers /requirements if no req doc exists. Use when the user says "create wireframes", "mock up the UI", "wireframe this feature", "show all screens on a canvas", "Figma-like view", or "extend this existing flow".
 user-invocable: true
 argument-hint: "<path-to-requirements-doc or feature description> [--feature <slug>] [--screenshots <path>] [--bootstrap-design-only] [--skip-folded-msf-wf] [--non-interactive | --interactive]"
 ---
 
 # Wireframe Generator
 
-Produce static HTML wireframes that visualize every screen, component, and state needed to fulfill a feature's user journeys. Output is mid-fidelity (Tailwind via CDN, neutral palette, real typography, no real images) — polished enough to review with stakeholders but clearly not final design. This is an OPTIONAL stage between requirements and spec for user-facing features; skip it for backend-only or API-only work:
+Produce static monochrome SVG wireframes that visualize every screen, component, and state needed to fulfill a feature's user journeys. The screen payload is monochrome inline SVG drawn from the closed house-style palette (`reference/grid-system.md`) — structural, not final design. Only the chrome (device frame, state tabs, footer) may take the host brand, and only under `--fidelity mid`; the screen payload stays monochrome in every mode. This is an OPTIONAL stage between requirements and spec for user-facing features; skip it for backend-only or API-only work:
 
 ```
 /requirements  →  [/wireframes]  →  /spec  →  [/simulate-spec]  →  /plan  →  /execute  →  /verify
@@ -26,6 +26,8 @@ Every option also has a natural-language form — infer it from the request; an 
 - `--devices=desktop-web,mobile-web,...` — pre-selects target devices; `#component-breakdown` step 4 confirms (or infers) the device list anyway.
 <!-- nl-sugar -->
 - `--msf-auto-apply-threshold N` — confidence override for the folded-MSF-wf apply-loop (default 80; semantics in `_shared/folded-phase.md`).
+<!-- nl-sugar -->
+- `--fidelity lo|mid` — a silent alias, **not** an `argument-hint` contract flag: applying §I's 4-test it passes **zero** (nothing machine-couples to it; it is not a destructive opt-in; a two-value enum with plain-English forms is prose-expressible, not a typed value; and a hard default pins no headless prompt). Natural-language forms — "brand it", "match the app's look" — resolve to `mid`; the hard default is `lo`. Under `mid`, the generated `design-overlay.css` is linked into per-screen HTML so the **chrome** (device frame, state tabs, footer) takes the host brand; the **SVG screen payload stays strictly monochrome in every mode** — `mid` never re-enables Tailwind or hues for screen content (A9). Under the default `lo`, the overlay is generated but not linked (see `#resolve-design-md`).
 
 ## `--bootstrap-design-only` mode
 
@@ -172,7 +174,7 @@ DESIGN.md is the durable, repo-resident brand contract for the target app. This 
      Monorepo with shared `packages/ui/` → `AskUserQuestion`: write to **shared base** or **app-specific** (with `x-extends` to the shared base). Recommend shared.
 <!-- defer-only: ambiguous -->
 3. **Confirm with user.** `AskUserQuestion`: "Use this DESIGN.md for wireframes?" — **Use as-is** / **Edit before continuing** / **Discard for this run**. Edit → print absolute path, wait, re-read. Discard → set `x-source.applied: false`; proceed with `wireframe.css` defaults only (no overlay).
-4. **Generate `design-overlay.css`** per `reference/design-md-to-css.md` into `{feature_folder}/wireframes/assets/design-overlay.css` (regenerated every run).
+4. **Generate `design-overlay.css`** per `reference/design-md-to-css.md` into `{feature_folder}/wireframes/assets/design-overlay.css` — **the file is always written, regenerated every run (D2)**; only whether per-screen HTML *links* it is gated. The overlay is linked into per-screen files **only under `--fidelity mid`** (chrome-branding); under the default `lo` it is generated but left unlinked. `--bootstrap-design-only` is unaffected (it emits DESIGN.md + COMPONENTS.md only, no per-screen HTML). Because the overlay is regenerated every run, an unlinked overlay never goes stale by mtime, so `/prototype`'s `design-artifact-resolver.md` mtime-reuse path keeps working (A10) — `/wireframes` is now effectively write-only over the overlay; consumption moves to `/prototype`.
 5. **Workstream persistence** per resolver Step 5: `target_app`, `design_md_path`, `components_md_path`, `last_extraction_sha` (set only on extract/re-extract).
 6. **Migration from legacy `## Design System / UI Patterns`.** First DESIGN.md for a workstream that has a non-empty legacy section → show existing patterns + proposed DESIGN.md additions, then
    <!-- defer-only: ambiguous -->
@@ -205,6 +207,33 @@ DESIGN.md captures visual identity; this phase captures **structural composition
 
 For each `(component × device)` pair in the matrix, generate one HTML file at `{feature_folder}/wireframes/{NN}_{screen-slug}.html` — `NN` is a 2-digit sequence in intended viewing order starting at `01`; `{screen-slug}` combines component slug and device (e.g., `01_dashboard_desktop-web.html`). Supporting assets live in `{feature_folder}/wireframes/assets/`.
 
+### House style — the drawing contract {#house-style}
+
+**`reference/grid-system.md` (created by dep `260710-p5x`) is the AUTHORITATIVE home for every palette, grid, canvas, type, and component-size value.** The table below is a *citation* of it for the generator subagents — a quick-reference the generators must honour, **not** a second home (§K "one fact, one home"; A3). When the two ever disagree, `grid-system.md` wins; edit values there, never here. The deterministic lint (`scripts/lint-wireframe-svg.mjs`) parses its colour allowlist out of that file, so enforcer and contract stay in lock-step.
+
+| Token / rule | Value | Home in `grid-system.md` |
+|---|---|---|
+| Screen palette | `#000` ink · `#fff` paper · `#666` mute · `#e6e6e6` placeholder · `#f4f4f4` zebra — **no hue** | Palette |
+| Annotation colour | `#d33` — **only** inside `data-region="annotations"`; never on a primitive | Palette (quarantine) |
+| Grid | 8px lattice; every coordinate a multiple of 8 (the 375 mobile width is the lone exception) | The 8px grid |
+| Type scale | 12 caption · 14 body · 20 subheading · 28 heading; one system font | Type scale |
+| Component sizes | input 240×40 · button 120×40 (min 88 wide) · icon 40×40 · list row 48h · app bar 56h | Standard component sizes |
+
+The screen payload is strictly monochrome in every mode; the chrome may take the host brand only under `--fidelity mid` (see the flags section). The overlay never re-hues screen content.
+
+### Chrome → canvas mapping {#chrome-canvas}
+
+Each user-facing **chrome variant** (chosen in `#component-breakdown` step 4) is drawn on one of the four **canvas presets** defined in `reference/grid-system.md` → *Canvas presets* (dimensions **cited**, not restated):
+
+| Chrome variant (device) | Canvas preset | Dimensions (from `grid-system.md`) |
+|---|---|---|
+| desktop-web, desktop-app | desktop | 1280 × 800 |
+| mobile-web, ios-app, android-app | mobile | 375 × 812 |
+| — | tablet | 768 × 1024 |
+| — | wide | 1440 × 900 |
+
+**`tablet` and `wide` are canvas targets, not devices (A8).** They are presets the generator may select for a wide or tablet composition; they are **not** user-facing chrome. `#component-breakdown` step 4 keeps exactly its five chrome variants (desktop-web, desktop-app, mobile-web, android-app, ios-app), and **no `tablet`/`wide` chrome frame is added to `wireframe.css`**. (Reconciling `build-canvas.js`'s separate hardcoded size table to these four presets is sibling story `260710-n67`, out of scope here.)
+
 **Step 1 — Copy the shared stylesheet BEFORE generating anything:**
 
 ```bash
@@ -219,7 +248,7 @@ If the copy fails, `Read` the skill's `assets/wireframe.css` and `Write` it to t
 
 - The component's inventory entry, states, and assigned devices; relevant req-doc journey excerpts; the full template from `reference/html-template.md`.
 - **Only the pattern files tagged on this component's row** (typically 1–3 from `patterns/`) — never the whole library; it dilutes attention. Patterns are authoritative: best practices, common mistakes, and skeletons must be respected.
-- **The merged DESIGN.md verbatim** as YAML + instruction: "Link `./assets/design-overlay.css` immediately after `./assets/wireframe.css` in every file. The overlay handles tokens; honor `## Components` prose for shape patterns and `x-interaction` for behavior."
+- **The merged DESIGN.md verbatim** as YAML + instruction: "Link `./assets/design-overlay.css` immediately after `./assets/wireframe.css` **only under `--fidelity mid`** (chrome-branding); under the default `lo`, link `wireframe.css` alone and leave the screen payload strictly monochrome. The overlay brands the chrome only — the SVG payload stays monochrome in every mode (A9). The overlay handles tokens; honor `## Components` prose for shape patterns and `x-interaction` for behavior."
 - **`components_inventory`** + instruction: prefer COMPONENTS.md variant names over inventing new ones; mock genuinely new components AND flag them in the file footer under "New components proposed: <list>".
 - **`layout_anchor`** (name + skeleton) + instruction: use as the chrome for screen-level wireframes; modals/overlays exempt. Omit when "None — start fresh".
 - **`decision_context`** + instruction: honor every anti-pattern; a wireframe that must violate one flags it in the footer with rationale.
@@ -229,7 +258,17 @@ If the copy fails, `Read` the skill's `assets/wireframe.css` and `Write` it to t
 
 No subagents → generate sequentially in the main agent.
 
-**File requirements (every wireframe MUST satisfy):** one `.html` per `(component × device)` pair; links `./assets/wireframe.css` then `./assets/design-overlay.css` (overlay link skipped only on "Discard for this run"); Tailwind via CDN; state-switcher tabs; toggleable annotations layer; realistic domain copy (no "Lorem ipsum"); the per-device frame, accessibility baseline (semantic HTML, focus-visible, aria labels on icon-only buttons, contrast ≥ 4.5:1), ≥ 44×44px touch targets on mobile/native, and footer — all exactly per `reference/html-template.md`. Do not deviate from the template unless the component genuinely needs it.
+**File requirements (every wireframe MUST satisfy):** one `.html` per `(component × device)` pair; the **screen payload inside each `<section class="wf-state">` is an inline monochrome `<svg>`** at the device's canvas token (`#chrome-canvas`), composed from the named primitives in `reference/primitives.md` and passing `scripts/lint-wireframe-svg.mjs`; links `./assets/wireframe.css`, then — **only under `--fidelity mid`** — `./assets/design-overlay.css` (the overlay link is also skipped on "Discard for this run"; under the default `lo` the overlay is generated but not linked, keeping the screen payload strictly monochrome); Tailwind via CDN (for the **shell** — header/footer chrome — only); state-switcher tabs; toggleable annotations layer; realistic domain copy (no "Lorem ipsum"); the per-device frame, accessibility baseline (semantic HTML, focus-visible, aria labels on icon-only shell buttons, `<title>`/`<desc>` on every SVG region, contrast ≥ 4.5:1), ≥ 44px touch targets on mobile/native (snap to 48 on the 8-grid), and footer — all exactly per `reference/html-template.md`. Do not deviate from the template unless the component genuinely needs it.
+
+**Emit contract (per `reference/html-template.md` — the writer side; `260710-n67` reads these, do not defer it):**
+
+- **Screen manifest.** Emit exactly one inline `<script type="application/json" id="pmos-wireframe-meta">` per file, carrying `{states, fields, components, annotations}` (shapes in `reference/html-template.md` → *Screen manifest*). It is the machine-readable single home replacing `/prototype`'s `<th>`/`<label>`/`<dt>`/`data-field` grep (empty against an SVG payload). One manifest per file — every entry carries a `state` discriminator, and `states` enumerates **every** state the file renders, so a multi-state screen is fully described.
+- **`data-anchor` coverage.** Every `<g>` and every top-level `<rect>`/`<path>` carries a `data-anchor` — authored on the region groups (the slug doubles as the manifest `anchor`) and backstopped by `retrofitSvg()` at write time (idempotent; covers every state section's `<svg>`). See "Apply comment-resolver edit".
+- **Numbered annotation list.** Render each screen's annotations as a numbered `.wf-anno-list` in the footer, keyed 1:1 to the `<!-- N: … -->` comments in the SVG and the manifest `annotations` array (three renderings of one dataset — §K).
+- **No standalone `.svg`, no `--emit-svg` flag** — the SVG lives inline in the per-screen `.html` only (D1).
+- **Comments in the payload must not contain the literal tokens the lint scans** (`<svg`, `<text`, or a palette hex like the annotation red) — the lint is a regex over raw text and would read a commented token as a real element; phrase payload comments in prose.
+
+**After the generators return, restate in the chat reply** (not just the footer): each screen's numbered annotation list **and** the assumptions the generators made — domain copy invented, states inferred, regions named — so the SVG payload has a text-reviewable summary it otherwise lacks.
 
 ---
 

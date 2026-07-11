@@ -22,7 +22,7 @@
 - **/ripple-effects** — Simulate first-, second-, and third-order effects via the Futures Wheel.
 - **/research** — PM decision-support deep-research skill: fan-out sourcing, tiered source verification, and a synthesized cited report.
 - **/simulate-spec** — Pressure-test a spec against realistic and adversarial scenarios.
-- **/wireframes** — Static mid-fi HTML wireframes plus a Figma-like canvas viewer.
+- **/wireframes** — Static monochrome SVG wireframes plus a Figma-like canvas viewer.
 - **/prototype** — High-fidelity, single-HTML interactive prototype stitched from wireframes.
 - **/design-crit** — Critique an app, wireframes, or prototype against a Nielsen + WCAG rubric.
 - **/msf-req** / **/msf-wf** — End-user Motivation/Satisfaction/Friction evaluation of requirements / wireframes.
