@@ -1,6 +1,6 @@
 # Primitives — copy-paste monochrome SVG building blocks
 
-**24 primitives across 7 groups.** Every block below obeys [`grid-system.md`](./grid-system.md) — the single
+**26 primitives across 7 groups.** Every block below obeys [`grid-system.md`](./grid-system.md) — the single
 home for the palette, the 8px grid, the type scale, and the component sizes. This file does **not** restate the
 hex values or dimensions; it composes them. Drop a primitive onto a `assets/canvas-*.svg` blank, reposition it
 by editing its wrapper `translate(...)`, and it stays lint-clean.
@@ -150,7 +150,21 @@ to pass it.
 </g>
 ```
 
-**15. Key-value stat**
+**15. Table data row (columnar body row)**
+```svg
+<g transform="translate(0,0)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+  <rect x="0" y="0" width="480" height="48" fill="#fff"/>
+  <text x="16" y="32" font-size="14" fill="#000" stroke="none">Acme Pilot Q3</text>
+  <text x="240" y="32" font-size="14" fill="#666" stroke="none">Active</text>
+  <text x="400" y="32" font-size="14" fill="#666" stroke="none">2026-09-30</text>
+  <line x1="0" y1="48" x2="480" y2="48" stroke="#e6e6e6" stroke-width="1"/>
+</g>
+```
+
+Pairs with the header row (14). Alternate the `<rect>` fill between `#fff` (paper) and `#f4f4f4` (zebra) down the
+table; keep the cell `x` offsets identical to the header so the columns line up.
+
+**16. Key-value stat**
 ```svg
 <g transform="translate(0,0)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
   <text x="0" y="32" font-size="28" fill="#000" stroke="none">1,284</text>
@@ -160,7 +174,7 @@ to pass it.
 
 ## Media
 
-**16. Image placeholder (crossed box)**
+**17. Image placeholder (crossed box)**
 ```svg
 <g transform="translate(0,0)">
   <rect x="0" y="0" width="240" height="160" fill="#e6e6e6"/>
@@ -169,14 +183,14 @@ to pass it.
 </g>
 ```
 
-**17. Avatar**
+**18. Avatar**
 ```svg
 <g transform="translate(0,0)">
   <circle cx="20" cy="20" r="20" fill="#e6e6e6"/>
 </g>
 ```
 
-**18. Video placeholder (play button)**
+**19. Video placeholder (play button)**
 ```svg
 <g transform="translate(0,0)">
   <rect x="0" y="0" width="320" height="176" fill="#e6e6e6"/>
@@ -187,7 +201,7 @@ to pass it.
 
 ## Overlay
 
-**19. Modal dialog**
+**20. Modal dialog**
 ```svg
 <g transform="translate(0,0)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
   <rect x="0" y="0" width="400" height="240" fill="#fff" stroke="#000"/>
@@ -200,7 +214,19 @@ to pass it.
 </g>
 ```
 
-**20. Toast / snackbar**
+**21. Scrim / modal backdrop**
+```svg
+<g transform="translate(0,0)">
+  <rect x="0" y="0" width="1280" height="800" fill="#f4f4f4"/>
+</g>
+```
+
+The dimmed surface behind a modal, sized to the canvas token (1280×800 desktop / 375×812 mobile — resize the
+`<rect>` to match). Draw it **first**, then the Modal dialog (20) on top. It is non-interactive; a tap on the
+scrim cancels the modal. `#f4f4f4` (zebra/muted surface) reads as "dimmed" in monochrome without introducing a
+new token.
+
+**22. Toast / snackbar**
 ```svg
 <g transform="translate(0,0)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
   <rect x="0" y="0" width="320" height="48" fill="#000"/>
@@ -208,7 +234,7 @@ to pass it.
 </g>
 ```
 
-**21. Tooltip**
+**23. Tooltip**
 ```svg
 <g transform="translate(0,0)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
   <rect x="0" y="0" width="160" height="32" fill="#000"/>
@@ -222,7 +248,7 @@ to pass it.
 `#d33` is permitted here and nowhere else — each block is a `data-region="annotations"` group with a `<title>`
 and a `<desc>`.
 
-**22. Redline callout**
+**24. Redline callout**
 ```svg
 <g data-region="annotations" transform="translate(0,0)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
   <title>Redline callout</title>
@@ -232,7 +258,7 @@ and a `<desc>`.
 </g>
 ```
 
-**23. Numbered marker**
+**25. Numbered marker**
 ```svg
 <g data-region="annotations" transform="translate(0,0)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
   <title>Numbered marker</title>
@@ -242,7 +268,7 @@ and a `<desc>`.
 </g>
 ```
 
-**24. Measurement note**
+**26. Measurement note**
 ```svg
 <g data-region="annotations" transform="translate(0,0)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
   <title>Measurement note</title>
