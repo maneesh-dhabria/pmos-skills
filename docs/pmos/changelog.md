@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-11 — pmos-managerkit 0.7.0: /interview-guide asks how long the round is — and never guesses
+
+**`/interview-guide` now confirms the round's expected duration before it plans anything, and refuses to invent one.** It asks you — 30 / 45 / 60 / 90 minutes or a free-form "Other" — with no pre-picked default, so a headless run defers the question rather than assuming an hour. Pin it up front with `--duration <mins>` and the prompt never fires. Once the length is known, the interviewer reference is *time-budgeted* against it: per-area minute allocations, explicit open/close overhead, and a probe ladder trimmed to what actually fits the round, instead of a generic script you have to ration on the fly.
+
+**The scorecard is now the single machine-readable home for that number, so the guide and the scoring side can't drift.** The sheet carries the confirmed length as a `data-duration` anchor plus a per-dimension `data-budget`, and `/interview-feedback` reads them as the *proposed* duration in its own confirmation step — a better-informed starting point, never an authority, so the interviewer still confirms and a mismatch is still flagged. Per-dimension coverage is scored against the budgeted minutes where present. The anchors are additive and optional: every previously-emitted scorecard and all eight bundled archetype sheets stay valid with no migration, and the arithmetic (positive integers, budgets summing within the round) is enforced by a validator gate rather than totted up by the model.
+
 ## 2026-07-09 — pmos-toolkit 2.104.0: the /artifact PRD template now argues with you before it lets you write a solution
 
 **The PRD template `/artifact` generates has been rebuilt around the parts of a PRD that are easiest to skip and most expensive to skip.** §2 no longer just asks who the customer is — it makes you reframe the problem as a *How Might We* that names an outcome and refuses to name a solution ("add an AI draft button" is called out as a bad answer), then runs a **What Are You Really Trying To Do?** gut-check against the solution you walked in already assuming. Only after that does the template let you commit: §6 now demands the alternatives you considered *and* a falsifiable hypothesis tied to a specific §5 metric, so "we think this will work" has to become a claim that could turn out false.
