@@ -2,7 +2,7 @@
 name: interview-guide
 description: Author the interviewer-facing kit for one interview round before it runs — an interviewer reference (what the round tests, strong/weak markers, a probing ladder, common mistakes), a scoring sheet whose dimensions map to the role's competencies and carry machine anchors, and (for case rounds) a candidate-facing case document with a matching reference-solution. Grounded in a bundled corpus of PM round archetypes; no candidate data. Use when setting up a role's interview loop, writing an interviewer guide or brief, building a scoring sheet or scorecard for a round, or drafting a take-home / case-study prompt. Triggers: "write the interviewer guide for <round>", "build a scoring sheet for <role>", "set up the <role> interview loop", "draft a case study for the product-sense round", "make an interviewer brief".
 user-invocable: true
-argument-hint: "<role / round description…>   [--archetype <id>] [--seniority <level>] [--level-rubric <path>] [--case | --no-case] [--business-context <path>] [--out <path>] [--role-dir <path>] [--non-interactive]"
+argument-hint: "<role / round description…>   [--archetype <id>] [--seniority <level>] [--duration <mins>] [--level-rubric <path>] [--case | --no-case] [--business-context <path>] [--out <path>] [--role-dir <path>] [--non-interactive]"
 ---
 
 # Interview guide
@@ -36,6 +36,7 @@ Contract flags (machine-coupled, typed, or headless-determinism — §I), shown 
 
 - `--archetype <id>` — pin the round archetype (typed value; one of the bundled ids in § Archetypes, or `custom`). Selects best-practices grounding.
 - `--seniority <level>` — pin the seniority the guide is tailored to (typed value, e.g. `new-grad`/`senior`/`staff`); shifts the bar in the markers and the scale calibration. For the **work-history** archetype it also selects the competency **weight row** from the level ladder (`../_shared/interview-guidelines/guidelines/work-history/level-ladder.md`), whose full rung set is `apm` · `pm` · `senior-pm` (default) · `group-pm` · `director` · `vp` (with the common aliases mapped in that file's ladder table). The model reads the selected row's weights verbatim — it never computes them (§H).
+- `--duration <mins>` — pin the confirmed live-round length in whole minutes (typed value; headless determinism). When passed it sets the round's time budget and the Phase [Collect](#collect) duration prompt does **not** fire — in interactive mode as well as headless (design D3 / A1). It drives the `data-duration`/`data-budget` anchors (Phase [Scoring Sheet](#scoring-sheet)) and the per-area minute budget (Phase [Interviewer Reference](#reference)). There is **no default duration** — absent this flag and an interactive answer, the round is emitted with no time budget (design D2, INV-1/INV-2).
 - `--level-rubric <path>` — **work-history only**; typed path to an operator's own leveling guide (free-form markdown) that overrides the bundled level-ladder weights (design D8). See Phase [Scoring Sheet](#scoring-sheet) for the interpret → sum-gate → refuse/fallback contract; a non-summing override is never emitted.
 - `--case` / `--no-case` — force or suppress the case document (headless determinism; overrides the archetype-derived default of Phase [Collect](#collect)). `--case` on a non-case archetype requires a business context (see below); `--no-case` on a case archetype emits only (a)+(b).
 - `--business-context <path>` — typed path to the business context the case is authored from (design D7). Without it, a case DEFERs under `--non-interactive` (D11 — never fabricated).
@@ -54,7 +55,7 @@ These instructions use Claude Code tool names. In other environments:
 - **No subagents:** authoring and the self-review pass run inline; there is no parallel work to degrade.
 - **TaskCreate / TodoWrite missing:** the skill body works without task tracking; the emitted HTML artifacts are the canonical progress record.
 - **`.pmos/settings.yaml` missing:** output-root resolution falls through to its built-in default (`./interview-guides/`); mode resolution uses the built-in default (`interactive`).
-- **`node` missing:** Phase [Scoring Sheet](#scoring-sheet)'s anchor validator (`scripts/validate-scorecard-anchors.mjs`) cannot run — emit the sheet, warn on stderr that the anchor gate was skipped, and tell the operator to run the validator before wiring the sheet into `/interview-feedback`.
+- **`node` missing:** Phase [Scoring Sheet](#scoring-sheet)'s anchor validator (`scripts/validate-scorecard-anchors.mjs`) cannot run — emit the sheet, warn on stderr that the anchor gate was skipped, and tell the operator to run the validator before wiring the sheet into `/interview-feedback`. The same script's `--check-duration` free-form normalizer (Phase [Collect](#collect) step 6) is likewise unavailable — accept only an unambiguous whole-minute duration and skip a free-form answer rather than parsing minutes in the model (§H).
 
 <!-- non-interactive-block:start -->
 1. **Mode resolution.** Compute `(mode, source)` with precedence: `cli_flag > parent_marker > settings.default_mode > builtin-default ("interactive")` (FR-01).
@@ -140,6 +141,26 @@ Resolve the round's parameters before authoring anything:
 
    Under `--non-interactive` with no `--business-context`, this DEFERs (log an open question; emit (a)+(b) and skip (c) — the case is never fabricated, design D11). Surface in the run summary that the case was deferred for lack of a business context.
 
+6. **Round duration.** How long the live round runs. `--duration <mins>` pins it and this prompt does **not** fire (design D3). There is **no archetype default** — the skill never assumes a length (design D2, INV-1). When it is not pinned, confirm it; the offered lengths carry **no `(Recommended)` option** (an unconfirmed duration is a real decision, not one to auto-pick — INV-1/D4), so a non-interactive run DEFERs rather than guessing:
+
+   <!-- defer-only: free-form -->
+   AskUserQuestion:
+     question: "How long is this round scheduled to run? (pick a length or type your own — e.g. '90 mins', '1 hour', '90 + 15 buffer')"
+     header: "Round length"
+     options:
+       - label: "30 minutes"
+         description: "A short screen or focused single-topic round."
+       - label: "45 minutes"
+         description: "A standard single-competency round."
+       - label: "60 minutes"
+         description: "A full round with time for probes and follow-up."
+       - label: "90 minutes"
+         description: "A deep round — case walkthrough, multi-competency, or work-history deep-dive."
+
+   A free-form "Other" answer is **normalized by the validator, never parsed by the model** (§H): run `node scripts/validate-scorecard-anchors.mjs --check-duration '<raw answer>'`, which prints the whole-minute integer on stdout (exit 0) or exits non-zero when it cannot parse — on non-zero, re-prompt rather than guessing (INV-6, A1). The command **warns without blocking** when the parsed value falls outside a 15–240 minute sane band. Preserve the operator's raw phrasing verbatim as prose in the interviewer reference header alongside the normalized number.
+
+   Under `--non-interactive` with no `--duration`, this DEFERs: log an open question, and emit (a)+(b) with **no time budget and no `data-duration` anchor** (the sheet omits `data-duration`/`data-budget` entirely — Phase [Scoring Sheet](#scoring-sheet)); surface the deferral in the run summary. No default duration exists anywhere in the skill (D2, INV-2).
+
 ## Phase: Ground {#ground}
 
 Load the archetype's bundled corpus from `../_shared/interview-guidelines/` (the 260702-cqf home — never read into `/interview-feedback`'s own dir):
@@ -154,9 +175,13 @@ The corpus is canonical and offline — there is no live-research or citation-re
 
 Author output (a) by instantiating `../_shared/interview-guidelines/reference-skeleton.html` (or tailoring the archetype's filled `interviewer-reference.html`). One `<section class="area" data-area="<id>">` per competency, each carrying the reference machine anchors (`data-ref="round"` on `<main>`; `data-area`, `data-signals="green"`/`"red"`, `data-probes="<id>"`) — see `reference/output-shapes.md` for the full anchor list and the section checklist. Each area needs: purpose, ✓ strong / ✕ watch-for signals, a suggested-probe ladder, and a `.calib` good/average/poor line + the common interviewer mistake. **Area ids MUST match the scoring-sheet `data-dim` ids 1:1** so the reference and sheet line up (and so `/interview-feedback`'s questionnaire can lift probes per dimension).
 
+**Time budget (when a duration was confirmed — Phase [Collect](#collect) step 6).** Render the round's time plan as prose in the reference: a per-area minute budget, explicit open/close overhead, and a probe ladder trimmed to fit the area's minutes. **These numbers render the scoring sheet's `data-budget`/`data-duration` anchors (Phase [Scoring Sheet](#scoring-sheet)) — read them, do not author your own** (§K, A3); the sheet is the single home for the plan, the reference is a prose view of it. Show the operator's raw phrasing verbatim in the reference header (e.g. "Scheduled: 90 + 15 buffer → 105 min") next to the normalized total. **When no duration was confirmed** (deferred, or no `--duration`), omit the time budget entirely — no per-area minutes, no header line, no placeholder.
+
 ## Phase: Scoring Sheet {#scoring-sheet}
 
 Author output (b) by instantiating `../_shared/interview-guidelines/scorecard-skeleton.html` — **the anchor contract**. One `<section class="dim" data-dim="<id>">` per competency (ids matching the reference areas), each with `data-weight`, a `data-scale` container whose options carry `data-v`, a `data-input="notes:<dim>"` slot, and `data-flags="green"`/`"red"` lists; plus the single overall `data-input="reco"` control with its four `data-reco` options. Weights **must sum to 100** — assign them by competency importance for this role/seniority. Full anchor list + checklist in `reference/output-shapes.md`.
+
+**Time budget anchors (when a duration was confirmed — Phase [Collect](#collect) step 6).** When the round duration is known, emit `data-duration="<int>"` (whole minutes) on the root `<main data-card="scorecard">`, and `data-budget="<int>"` on each `data-dim` section — the minutes allotted to that competency in the round. The per-dim budgets are **positive integers summing to ≤ the duration** (leave headroom for open/close overhead). **The scoring sheet is the single machine-readable home for the round's time plan** (§K, A3) — the interviewer reference renders these numbers as prose (Phase [Interviewer Reference](#reference)), it does not author its own. When no duration was confirmed (deferred, or `--no`-duration), emit **neither** anchor — the sheet is byte-identical to the pre-duration contract (INV-2, INV-5).
 
 **§H hard gate (deterministic).** After writing the sheet, run:
 
@@ -164,7 +189,7 @@ Author output (b) by instantiating `../_shared/interview-guidelines/scorecard-sk
 node scripts/validate-scorecard-anchors.mjs <scoring-sheet.html>
 ```
 
-It asserts every required anchor is present and that the weights are integers summing to 100 (§H: the script owns the arithmetic — never total the weights by hand). A non-zero exit **blocks the run** — fix the sheet and re-run until it passes; surface the script's `✓ scorecard anchors:` line to the operator on pass. (`--selftest` exercises the validator over a good + broken fixture.)
+It asserts every required anchor is present and that the weights are integers summing to 100; **when the time-budget anchors are present** it additionally asserts `data-duration` is a positive integer and the per-dim `data-budget` values are positive integers summing to ≤ `data-duration` (§H: the script owns all of this arithmetic — never total the weights or the budgets by hand). A non-zero exit **blocks the run** — fix the sheet and re-run until it passes; surface the script's `✓ scorecard anchors:` line to the operator on pass. (`--selftest` exercises the validator over good + broken fixtures for the weight sum, the anchor set, the budget overrun, and the non-integer duration.)
 
 ### Work-history weighting (archetype `work-history`) {#work-history-weights}
 
@@ -191,9 +216,11 @@ For the work-history archetype the scoring sheet is the extended one — the 12 
 
 The case is authored **only** from the operator-supplied business context — never fabricated (design D11). If no context was supplied, this phase does not run (the run emitted (a)+(b) and deferred the case).
 
+The candidate **take-home / case work window** (how long the candidate has to prepare) is a **distinct input** from the live-round `--duration` (how long the round itself runs) — neither derives from the other (INV-4, D7). For `case-presentation`, the live-round duration budgets **presentation vs. Q&A** time in the interviewer reference; the take-home window governs the candidate's prep and lives in the case document. See `reference/case-authoring.md`.
+
 ## Phase: Self-Review {#self-review}
 
-Score the drafts against `reference/self-eval-rubric.md` — three axes: **completeness** (every competency has a reference area, a weighted sheet dimension, and — case rounds — a case that exercises it), **competency-alignment** (reference `data-area` ids ⇔ sheet `data-dim` ids are 1:1; nothing scored that isn't probed, nothing probed that isn't scored), and **case realism** (case rounds: the case is grounded in the supplied context, has a real decision, and is answerable in the stated window). This is a self-review, not an enforced citation gate (design D6) — surface the gaps and the axis scores for the manager to address; the **manager is the gate**, not the skill. Record the self-review summary as a comment block in the interviewer reference.
+Score the drafts against `reference/self-eval-rubric.md` — four axes: **completeness** (every competency has a reference area, a weighted sheet dimension, and — case rounds — a case that exercises it), **competency-alignment** (reference `data-area` ids ⇔ sheet `data-dim` ids are 1:1; nothing scored that isn't probed, nothing probed that isn't scored), **case realism** (case rounds: the case is grounded in the supplied context, has a real decision, and is answerable in the stated window), and **duration-fit** (reporting-only: can the round realistically be run in the confirmed minutes — do the per-area budgets plus open/close overhead fit the duration; **skipped entirely when no duration was confirmed**, design D6/A2). This is a self-review, not an enforced citation gate (design D6) — surface the gaps and the axis scores for the manager to address; the **manager is the gate**, not the skill. Record the self-review summary as a comment block in the interviewer reference.
 
 ## Phase: Write {#write}
 

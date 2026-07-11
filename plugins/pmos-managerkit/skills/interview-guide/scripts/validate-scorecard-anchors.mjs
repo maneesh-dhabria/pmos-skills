@@ -106,7 +106,64 @@ function validate(html) {
     failures.push(...validateWorkHistory(html));
   }
 
+  // 7. Duration budget anchors — OPTIONAL + additive (design D8, INV-5). A sheet with neither
+  //    data-duration nor data-budget validates exactly as before (the 8 bundled scorecards, both base
+  //    fixtures). When present, the arithmetic is the script's job, never the model's (§H, INV-6):
+  //    data-duration must be a positive integer, and per-dim data-budget values must be positive
+  //    integers that sum to at most the round duration. A data-budget without a data-duration to sit
+  //    under is an inconsistent sheet (INV-2 says emit neither, or both) and is refused.
+  const durMatch = html.match(/data-duration\s*=\s*"([^"]*)"/);
+  const budgets = [];
+  {
+    const re = /data-budget\s*=\s*"([^"]*)"/g;
+    let m;
+    while ((m = re.exec(html)) !== null) budgets.push(m[1]);
+  }
+  if (durMatch) {
+    const raw = durMatch[1];
+    if (!/^\d+$/.test(raw) || parseInt(raw, 10) <= 0) {
+      failures.push(`data-duration="${raw}" is not a positive integer`);
+    } else {
+      const dur = parseInt(raw, 10);
+      let bsum = 0;
+      let bbad = false;
+      for (const b of budgets) {
+        if (!/^\d+$/.test(b) || parseInt(b, 10) <= 0) {
+          failures.push(`data-budget="${b}" is not a positive integer`);
+          bbad = true;
+          continue;
+        }
+        bsum += parseInt(b, 10);
+      }
+      if (!bbad && budgets.length > 0 && bsum > dur) {
+        failures.push(`per-dim data-budget values sum to ${bsum}, exceeding data-duration=${dur}`);
+      }
+    }
+  } else if (budgets.length > 0) {
+    failures.push(`found ${budgets.length} data-budget value(s) but no data-duration on the root card (emit both anchors or neither — INV-2)`);
+  }
+
   return failures;
+}
+
+// ── Free-form duration parser (§H) ───────────────────────────────────────────
+// The model NEVER parses minutes itself. It hands the operator's raw phrasing here; this deterministic
+// parser resolves it to a positive integer of minutes or refuses. Handled shapes: a bare integer ("90"),
+// an explicit minute unit ("90 mins", "45 minute"), an hour unit ("1 hour", "2 hrs" → ×60), and additive
+// phrasing where the buffer is written out ("90 + 15 buffer" → 105). Hour/minute-unit tokens are consumed
+// first so their integers are not also counted as bare minutes; whatever integers remain are read as
+// minutes and summed. No digits ⇒ unparseable (non-zero exit ⇒ the skill re-prompts, never guesses).
+function parseDuration(raw) {
+  const s = String(raw).toLowerCase();
+  let total = 0;
+  let found = false;
+  let rest = s;
+  rest = rest.replace(/(\d+)\s*(hours|hour|hrs|hr|h)\b/g, (_, n) => { total += parseInt(n, 10) * 60; found = true; return ' '; });
+  rest = rest.replace(/(\d+)\s*(minutes|minute|mins|min|m)\b/g, (_, n) => { total += parseInt(n, 10); found = true; return ' '; });
+  const bare = rest.match(/\d+/g);
+  if (bare) { for (const b of bare) { total += parseInt(b, 10); found = true; } }
+  if (!found || total <= 0) return { ok: false };
+  return { ok: true, minutes: total };
 }
 
 function escapeRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
@@ -271,6 +328,32 @@ const WH_BROKEN_FIXTURE = `<!DOCTYPE html><html><body>
   </div><div data-input="notes:reco"></div></section>
 </main></body></html>`;
 
+// ── Duration-budget fixtures (design D8, INV-5) ──────────────────────────────
+// A well-formed duration sheet: root data-duration + per-dim data-budget values that sum to ≤ duration.
+const DUR_GOOD_FIXTURE = `<!DOCTYPE html><html><body>
+<main data-card="scorecard" data-archetype="product-sense" data-duration="60">
+  <section class="dim" data-dim="user-empathy" data-weight="60" data-budget="35">
+    <div class="scale" data-scale="1-4"><span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span></div>
+    <div class="notes" data-input="notes:user-empathy"></div>
+    <ul data-flags="green"></ul><ul data-flags="red"></ul>
+  </section>
+  <section class="dim" data-dim="prioritization" data-weight="40" data-budget="20">
+    <div class="scale" data-scale="1-4"><span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span></div>
+    <div class="notes" data-input="notes:prioritization"></div>
+    <ul data-flags="green"></ul><ul data-flags="red"></ul>
+  </section>
+  <section class="reco"><div class="reco-opts" data-input="reco">
+    <span data-reco="strong-no">Strong no</span><span data-reco="no">No</span>
+    <span data-reco="yes">Hire</span><span data-reco="strong-yes">Strong hire</span>
+  </div><div data-input="notes:reco"></div></section>
+</main></body></html>`;
+
+// Broken: per-dim budgets (35 + 40) sum to 75, overrunning the 60-minute round.
+const DUR_OVERRUN_FIXTURE = DUR_GOOD_FIXTURE.replace('data-budget="20"', 'data-budget="40"');
+
+// Broken: data-duration is not a positive integer.
+const DUR_BADINT_FIXTURE = DUR_GOOD_FIXTURE.replace('data-duration="60"', 'data-duration="1h"');
+
 function selftest() {
   let ok = true;
 
@@ -345,6 +428,65 @@ function selftest() {
   }
   if (ok) console.log(`selftest: --check-override sum-gate ✓ (${ovCases.length} cases)`);
 
+  // Duration-budget gate: a well-formed duration sheet passes; a budget overrun and a non-integer
+  // duration are both refused. The base fixtures above (which carry NEITHER anchor) prove the gate is
+  // SKIPPED when absent — the 8 bundled scorecards validate byte-unchanged (INV-5).
+  const durGood = validate(DUR_GOOD_FIXTURE);
+  if (durGood.length !== 0) {
+    ok = false;
+    console.error('SELFTEST FAIL: duration good fixture reported failures:');
+    for (const f of durGood) console.error('  - ' + f);
+  } else {
+    console.log('selftest: duration good fixture ✓ (0 failures)');
+  }
+
+  const durBad = validate(DUR_OVERRUN_FIXTURE);
+  if (!durBad.some((f) => /sum to 75, exceeding data-duration=60/.test(f))) {
+    ok = false;
+    console.error('SELFTEST FAIL: budget-overrun fixture did not report the sum overrun.');
+    console.error('  reported: ' + JSON.stringify(durBad, null, 2));
+  } else {
+    console.log('selftest: budget-overrun fixture ✓ (caught the overrun)');
+  }
+
+  const durBadInt = validate(DUR_BADINT_FIXTURE);
+  if (!durBadInt.some((f) => /data-duration="1h" is not a positive integer/.test(f))) {
+    ok = false;
+    console.error('SELFTEST FAIL: non-integer duration fixture did not report the bad integer.');
+    console.error('  reported: ' + JSON.stringify(durBadInt, null, 2));
+  } else {
+    console.log('selftest: non-integer duration fixture ✓ (caught the bad integer)');
+  }
+
+  // --check-duration free-form parser (§H). Parseable shapes resolve to a positive integer of minutes;
+  // an in-band value returns no band warning; an out-of-band value still parses (warn, never block);
+  // a wordy answer with no number is unparseable (the skill re-prompts).
+  const durCases = [
+    { in: '90',              want: 90,   band: true,  name: 'bare integer' },
+    { in: '90 mins',         want: 90,   band: true,  name: 'explicit minute unit' },
+    { in: '1 hour',          want: 60,   band: true,  name: 'hour unit ×60' },
+    { in: '90 + 15 buffer',  want: 105,  band: true,  name: 'additive buffer phrasing' },
+    { in: '5',               want: 5,    band: false, name: 'below the 15-minute band' },
+    { in: '300',             want: 300,  band: false, name: 'above the 240-minute band' },
+    { in: 'sometime after lunch', want: null, band: null, name: 'unparseable (no number)' },
+  ];
+  for (const c of durCases) {
+    const r = parseDuration(c.in);
+    if (c.want === null) {
+      if (r.ok) { ok = false; console.error(`SELFTEST FAIL: duration case "${c.name}" should be unparseable, got ${r.minutes}`); }
+    } else if (!r.ok || r.minutes !== c.want) {
+      ok = false;
+      console.error(`SELFTEST FAIL: duration case "${c.name}" expected ${c.want}, got ${r.ok ? r.minutes : 'unparseable'}`);
+    } else {
+      const inBand = r.minutes >= 15 && r.minutes <= 240;
+      if (inBand !== c.band) {
+        ok = false;
+        console.error(`SELFTEST FAIL: duration case "${c.name}" band expected ${c.band}, got ${inBand}`);
+      }
+    }
+  }
+  if (ok) console.log(`selftest: --check-duration parser ✓ (${durCases.length} cases)`);
+
   if (ok) { console.log('SELFTEST PASS'); process.exit(0); }
   console.error('SELFTEST FAILED'); process.exit(1);
 }
@@ -353,10 +495,32 @@ function selftest() {
 
 const arg = process.argv[2];
 if (!arg) {
-  console.error('usage: validate-scorecard-anchors.mjs <scoring-sheet.html> | --selftest | --check-override \'<json>\'');
+  console.error('usage: validate-scorecard-anchors.mjs <scoring-sheet.html> | --selftest | --check-override \'<json>\' | --check-duration \'<raw>\'');
   process.exit(2);
 }
 if (arg === '--selftest') { selftest(); }
+
+// --check-duration (design D8, §H): normalize an operator's free-form round-length answer to a positive
+// integer of minutes on stdout (exit 0), or exit non-zero when it cannot be parsed unambiguously so the
+// skill re-prompts rather than guessing. An in-range parse that lands outside the 15–240 sane band still
+// succeeds (exit 0) but WARNS on stderr — the band never blocks (A1). The model never parses minutes itself.
+if (arg === '--check-duration') {
+  const payload = process.argv[3];
+  if (payload === undefined) {
+    console.error('usage: validate-scorecard-anchors.mjs --check-duration \'<raw>\'');
+    process.exit(2);
+  }
+  const r = parseDuration(payload);
+  if (!r.ok) {
+    console.error(`✗ could not parse a duration from ${JSON.stringify(payload)} — ask the operator for a number of minutes`);
+    process.exit(1);
+  }
+  if (r.minutes < 15 || r.minutes > 240) {
+    console.error(`WARN: ${r.minutes} minutes is outside the typical 15–240 minute band — confirm this is intended`);
+  }
+  console.log(String(r.minutes));
+  process.exit(0);
+}
 
 // --level-rubric override sum-gate (design D8): validate an interpreted weight set, no file involved.
 if (arg === '--check-override') {

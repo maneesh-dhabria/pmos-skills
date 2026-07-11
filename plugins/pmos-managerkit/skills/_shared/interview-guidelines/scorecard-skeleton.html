@@ -35,6 +35,21 @@
                                               FEEDS the reco but is not computed from it (design D9);
                                               options carry data-verdict="below|at|above".
 
+  Optional time-budget anchors (additive — /interview-guide emits these when a round duration is
+  confirmed; a sheet that omits them validates exactly as before, so all bundled scorecards and every
+  skill-emitted sheet without a duration are unaffected — design D8, INV-5):
+    - data-duration="<int>"                   on the root <main data-card="scorecard">; the confirmed
+                                              live-round length in whole minutes. A positive integer.
+    - data-budget="<int>"                     one per <section.dim>; the minutes allotted to that
+                                              dimension in the round. Positive integers whose sum is
+                                              ≤ data-duration. This is the SINGLE machine-readable home
+                                              for the round's time plan — the interviewer reference
+                                              renders these numbers as prose, it does not re-author them.
+                                              The arithmetic (integer, sum ≤ duration) is enforced by
+                                              scripts/validate-scorecard-anchors.mjs, never by the model.
+                                              Emit BOTH anchors or NEITHER (a data-budget without a
+                                              data-duration to sit under is refused — INV-2).
+
   Filling discipline (design §9, §12, §16.4): every filled note that makes a subjective claim
   carries a <cite data-cite-tier="transcript|notes|recalled" data-source="…">…</cite>; transcript
   citations are verbatim ≥40-char substrings of transcript.refined.txt (enforced by
