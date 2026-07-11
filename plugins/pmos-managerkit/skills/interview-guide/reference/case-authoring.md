@@ -8,6 +8,21 @@ defers).
 Model this on a strong take-home case: a real product decision, a clear deliverable, honest constraints,
 and a time window a candidate can actually work inside.
 
+## Two distinct time inputs — do not conflate them
+
+A case round has **two separately-sourced durations, and neither derives from the other** (INV-4, D7):
+
+- the **candidate take-home / case work window** — how long the candidate has to prepare the deliverable
+  (e.g. "3 days, ~4 hours of work"). It lives in the candidate-facing document's Constraints and is set by
+  what the case realistically demands, not by the round length.
+- the **live-round `--duration`** — how long the interview session itself runs (Phase
+  [Collect](../SKILL.md#collect) step 6). It budgets the interviewer reference's per-area minutes and, for
+  **`case-presentation`**, splits the round between the candidate's **presentation** and the interviewer's
+  **Q&A**.
+
+Emit each from its own input. A 90-minute live presentation round can carry a 3-day take-home window; the
+two numbers are unrelated and are never inferred from one another.
+
 ## Inputs
 
 - **the business context** (`--business-context <path>` or the operator's pasted answer) — a product
