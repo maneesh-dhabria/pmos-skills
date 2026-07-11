@@ -20,7 +20,8 @@ tasks:
     ac: [AC1, AC4]
     deps: []
     parallel: false
-    status: pending
+    status: done
+    evidence: "reference/grid-system.md — palette sentinel block, 8px grid, 12-col desktop math, 4 canvas presets, type scale, component table"
     detail: >
       Create plugins/pmos-toolkit/skills/wireframes/reference/grid-system.md (confirmed absent). It opens with the
       normative sentence: these are the ONLY values permitted in a /wireframes SVG. It is the single home (§K) for:
@@ -39,7 +40,8 @@ tasks:
     ac: [AC2]
     deps: [T1]
     parallel: true
-    status: pending
+    status: done
+    evidence: "reference/primitives.md — 24 primitives / 7 groups (Inputs·Layout·Navigation·Content·Media·Overlay·Annotation). Count-claim reconciled: 24 svg blocks == 24 numbered headings == stated '24 primitives across 7 groups'. All 24 snippets lint-clean when composed. Annotation trio wrapped data-region=annotations w/ title+desc. Composition-mistakes section covers all 6 required."
     detail: >
       Create plugins/pmos-toolkit/skills/wireframes/reference/primitives.md (confirmed absent). Ships ~24 copy-paste
       monochrome SVG primitives grouped Inputs / Layout / Navigation / Content / Media / Overlay / Annotation. Every
@@ -54,7 +56,8 @@ tasks:
     ac: [AC3]
     deps: [T1]
     parallel: true
-    status: pending
+    status: done
+    evidence: "assets/canvas-{desktop,wide,tablet,mobile}.svg at grid-system.md presets w/ matching viewBox; data-region=grid (#e6e6e6 0.5 hairline, title+desc) 8px guides + data-region=margins dashed rulers (title+desc). All 4 pass the T4 lint (exit 0)."
     detail: >
       Create the four blanks (all confirmed absent): assets/canvas-desktop.svg (1280×800), canvas-wide.svg
       (1440×900), canvas-tablet.svg (768×1024), canvas-mobile.svg (375×812) — dimensions read from grid-system.md
@@ -67,7 +70,8 @@ tasks:
     ac: [AC4, AC5, AC8]
     deps: [T1]
     parallel: false
-    status: pending
+    status: done
+    evidence: "scripts/lint-wireframe-svg.mjs — parses palette:start/end allowlist from grid-system.md; 7 §H gates all fire on a broken fixture (7 violations, file+element+value); clean SVG exits 0"
     detail: >
       Create plugins/pmos-toolkit/skills/wireframes/scripts/lint-wireframe-svg.mjs (confirmed absent), zero-dep Node
       (built-ins only), mirroring the sibling shape of
@@ -87,7 +91,8 @@ tasks:
     ac: [AC6]
     deps: [T4]
     parallel: false
-    status: pending
+    status: done
+    evidence: "assertOverlayRegenerable() + validateCss(): DESIGN.md present → asserts design-overlay.css exists/non-empty/balanced-braces; truncated overlay fails A10; no DESIGN.md → logged skip. All 3 paths verified."
     detail: >
       Extend lint-wireframe-svg.mjs with the A10 assertion: when a DESIGN.md is present in the run, assert that the
       design overlay (design-overlay.css) is REGENERABLE-without-error — i.e. exists, is non-empty, and parses as
@@ -101,7 +106,8 @@ tasks:
     ac: [AC7]
     deps: [T4, T5]
     parallel: false
-    status: pending
+    status: done
+    evidence: "--selftest: 21 assertions green (each of the 7 SVG gates + palette-parse + overlay validateCss has a passing AND a failing fixture; count reported; exit 0). Self-contained SELFTEST_PALETTE, no grid-system.md dependency."
     detail: >
       Add a `--selftest` mode to lint-wireframe-svg.mjs mirroring validate-scorecard-anchors.mjs' selftest
       (good+broken fixtures inline or under a new tests/wireframe-svg-fixtures/ dir — do NOT collide with the
@@ -116,7 +122,8 @@ tasks:
     ac: [AC9]
     deps: [T1, T2, T3, T4, T5, T6]
     parallel: false
-    status: pending
+    status: done
+    evidence: "[D] skill-eval-check.sh --target claude-code: 22 pass / 0 fail (exit 0) after adding grid-system.md leading ToC (the one new finding, fixed — not accepted as residual). 4 hygiene lints all PASS (flags-vs-hints, phase-refs, non-interactive-inline 'all 60 match canonical', audit-recommended 11/11 marked). SKILL.md untouched on branch. selftest 21 green."
     detail: >
       Run `bash plugins/pmos-toolkit/tools/skill-eval-check.sh plugins/pmos-toolkit/skills/wireframes` (DIR arg) and
       the four hygiene lints: tools/lint-flags-vs-hints.sh + tools/lint-phase-refs.sh (both DIR args),
