@@ -2,7 +2,9 @@
  * pmos-toolkit /wireframes — shared stylesheet
  *
  * Goal: every wireframe in a feature folder looks like part of one coherent set.
- * Mid-fidelity, neutral, structural. NOT visual design. NOT brand.
+ * Monochrome screen payload, neutral, structural. NOT visual design. NOT brand.
+ * (Chrome — device frame, state tabs, footer — keeps colour and may take the host
+ * brand under --fidelity mid; the screen payload stays monochrome in every mode.)
  *
  * Borrows the mock-* primitive vocabulary from superpowers:brainstorming
  * (visual-companion frame-template) and the CSS-variable theme discipline
@@ -45,8 +47,9 @@
     --wf-text:      #fafafa;
     --wf-muted:     #a1a1aa;
     --wf-faint:     #71717a;
-    --wf-accent:    #60a5fa;
-    --wf-accent-2:  #3b82f6;
+    /* Payload hue tokens (--wf-accent / --wf-accent-2) intentionally NOT overridden here:
+       no screen-payload rule consumes them anymore, so the payload never re-hues in dark mode.
+       The chrome greys + shadow below remain (chrome keeps colour). */
     --wf-shadow:    0 1px 2px rgba(0,0,0,.4), 0 4px 12px rgba(0,0,0,.3);
   }
 }
@@ -99,11 +102,11 @@ body { margin: 0; }
 /* ===== Annotations layer (reviewer notes) ===== */
 [data-annotations="off"] .wf-anno { outline: none !important; }
 [data-annotations="off"] .wf-anno::after { display: none !important; }
-.wf-anno { outline: 1px dashed var(--wf-accent); outline-offset: 3px; position: relative; }
+.wf-anno { outline: 1px dashed #d33; outline-offset: 3px; position: relative; }
 .wf-anno::after {
   content: attr(data-note);
   position: absolute; top: 100%; left: 0; margin-top: 6px;
-  background: var(--wf-accent); color: #fff; padding: 2px 6px;
+  background: #d33; color: #fff; padding: 2px 6px;
   border-radius: 3px; font-size: 11px; white-space: nowrap; z-index: 20;
   pointer-events: none;
 }
@@ -134,16 +137,16 @@ button, [role="button"], a.btn { min-height: 36px; }
 .mock-nav     { display: flex; gap: 1rem; align-items: center; padding: .65rem 1rem; }
 .mock-sidebar { min-height: 320px; width: 220px; padding: .75rem; }
 .mock-content { min-height: 320px; flex: 1; padding: .75rem; }
-.mock-card     { background: var(--wf-surface); border: 1px solid var(--wf-border-2); border-radius: var(--wf-radius); padding: 1rem; box-shadow: var(--wf-shadow); }
+.mock-card     { background: var(--wf-surface); border: 1px solid var(--wf-border-2); border-radius: var(--wf-radius); padding: 1rem; }
 .mock-button   { display: inline-flex; align-items: center; gap: .5rem; padding: .5rem 1rem; border-radius: var(--wf-radius); border: 1px solid var(--wf-border); background: var(--wf-surface); color: var(--wf-text); cursor: pointer; }
-.mock-button--primary { background: var(--wf-accent); color: #fff; border-color: var(--wf-accent); }
-.mock-button--danger  { background: var(--wf-error);  color: #fff; border-color: var(--wf-error); }
+.mock-button--primary { background: var(--wf-text); color: var(--wf-surface); border-color: var(--wf-text); }
+.mock-button--danger  { background: var(--wf-surface); color: var(--wf-text); border-color: var(--wf-text); font-weight: 600; }
 .mock-input    { display: block; width: 100%; padding: .5rem .75rem; border: 1px solid var(--wf-border); border-radius: var(--wf-radius); background: var(--wf-surface); color: var(--wf-text); }
 .mock-input::placeholder { color: var(--wf-faint); }
 .mock-label    { display: block; font-size: 12px; color: var(--wf-muted); margin-bottom: .25rem; }
 .mock-pill     { display: inline-block; padding: 2px 8px; border-radius: 999px; background: var(--wf-surface-2); border: 1px solid var(--wf-border-2); color: var(--wf-muted); font-size: 11px; }
 .mock-divider  { height: 1px; background: var(--wf-border-2); margin: .75rem 0; border: 0; }
-.mock-img      { background: linear-gradient(135deg, var(--wf-surface-2), var(--wf-border-2)); border: 1px solid var(--wf-border-2); border-radius: var(--wf-radius); display: flex; align-items: center; justify-content: center; color: var(--wf-faint); font-size: 11px; }
+.mock-img      { background: var(--wf-surface-2); border: 1px solid var(--wf-border-2); border-radius: var(--wf-radius); display: flex; align-items: center; justify-content: center; color: var(--wf-faint); font-size: 11px; }
 .mock-img::before { content: "image"; }
 
 .placeholder {
@@ -162,8 +165,8 @@ button, [role="button"], a.btn { min-height: 36px; }
 
 /* ===== Status messages (success / error / empty) ===== */
 .wf-message { display: flex; flex-direction: column; align-items: center; gap: .5rem; padding: 2rem; text-align: center; color: var(--wf-muted); }
-.wf-message--error   { color: var(--wf-error); }
-.wf-message--success { color: var(--wf-success); }
+.wf-message--error   { color: var(--wf-text); }
+.wf-message--success { color: var(--wf-text); }
 .wf-message__title { font-size: 16px; font-weight: 600; color: var(--wf-text); }
 .wf-message__hint  { font-size: 13px; }
 
@@ -192,7 +195,7 @@ button, [role="button"], a.btn { min-height: 36px; }
 .wf-frame--ios-app   .wf-statusbar { background: var(--wf-surface); color: var(--wf-text); }
 .wf-frame--android-app .wf-statusbar { background: var(--wf-text); color: var(--wf-surface); }
 .wf-tabbar { position: absolute; bottom: 0; left: 0; right: 0; height: 56px; background: var(--wf-surface); border-top: 1px solid var(--wf-border-2); display: flex; align-items: center; justify-content: space-around; }
-.wf-fab { position: absolute; right: 16px; bottom: 72px; width: 56px; height: 56px; border-radius: 50%; background: var(--wf-accent); color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: var(--wf-shadow); }
+.wf-fab { position: absolute; right: 16px; bottom: 72px; width: 56px; height: 56px; border-radius: 50%; background: var(--wf-text); color: var(--wf-surface); display: flex; align-items: center; justify-content: center; }
 .wf-home-indicator { position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%); width: 128px; height: 4px; border-radius: 999px; background: var(--wf-text); opacity: .85; }
 .wf-notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 120px; height: 22px; background: #000; border-bottom-left-radius: 14px; border-bottom-right-radius: 14px; }
 
