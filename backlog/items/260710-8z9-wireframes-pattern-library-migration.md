@@ -4,12 +4,15 @@ id: 260710-8z9
 title: "/wireframes — recompose all 41 pattern skeletons from named SVG primitives and re-point every heuristic cite at the new rubric, in one cutover with zero dangling ids"
 type: feature
 kind: story
-status: planned
+status: in-progress
 route: skill
 priority: should
 labels: [pmos-toolkit, wireframes, skill]
 created: 2026-07-10
-updated: 2026-07-10
+updated: 2026-07-11
+claimed_by: build:0d5e385f-c675-46f6-a126-345344fa277d
+driver_holder: build:0d5e385f-c675-46f6-a126-345344fa277d
+worktree: .claude/worktrees/feat-260710-8z9
 parent: 260710-grd
 feature_folder: docs/pmos/features/2026-07-10_wireframes-monochrome-svg/
 design_doc: docs/pmos/features/2026-07-10_wireframes-monochrome-svg/02_design.html
