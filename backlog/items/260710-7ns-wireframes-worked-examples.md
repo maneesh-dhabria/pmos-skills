@@ -4,14 +4,12 @@ id: 260710-7ns
 title: "/wireframes — ship four complete worked examples in our format (desktop dashboard, mobile form, modal overlay, multi-state screen) and make #generate start from the nearest example rather than from blank"
 type: feature
 kind: story
-status: in-progress
+status: done
 route: skill
 priority: should
 labels: [pmos-toolkit, wireframes, skill]
 created: 2026-07-10
 updated: 2026-07-11
-claimed_by: build:f5fd8fd4-loop
-driver_holder: build:f5fd8fd4-loop
 parent: 260710-grd
 feature_folder: docs/pmos/features/2026-07-10_wireframes-monochrome-svg/
 design_doc: docs/pmos/features/2026-07-10_wireframes-monochrome-svg/02_design.html
