@@ -149,22 +149,24 @@ Fill the scorecard. Read the round's scorecard via its machine anchors (`../_sha
 
 **Foreign scorecard (no anchors).** If the round's scorecard lacks the anchors, infer the dimensions/scales from its DOM, then: interactive → echo the inferred structure for confirmation before filling; non-interactive → fill but log every inference as an open question. Never silently guess.
 
-**Confirm the round duration before time-sensitive scoring (F2 / INV-3 / D3).** Coverage, talk-time, and pace are scored *relative to how long the round was meant to run* — so the intended duration is the denominator for those dimensions and MUST be confirmed with the interviewer, **not** trusted from the scorecard header (a stale header field is exactly what mis-scored an on-time 90-min round as a 2× overrun). Before scoring any time-sensitive dimension, **flag any transcript-length vs. scorecard-design-length mismatch** in the output, and confirm the by-design duration.
+**Confirm the round duration before time-sensitive scoring (F2 / INV-3 / D3).** Coverage, talk-time, and pace are scored *relative to how long the round was meant to run* — so the intended duration is the denominator for those dimensions and MUST be confirmed with the interviewer, never silently trusted (a stale header field is exactly what mis-scored an on-time 90-min round as a 2× overrun — epic 260707-rbc). **Read the by-design duration where the round's scorecard now provides it:** the `data-card="scorecard"` element may carry a root `data-duration="<int>"` anchor, written at authoring time by `/interview-guide` (story 260709-qfn). When present, that anchor — not a stale header or a transcript-inferred guess — is the **proposed** value: a better-informed proposal, **not** an authority, so the interviewer still confirms it (INV-3). When absent, fall back to the header/inferred proposal exactly as before, with no new behavior (INV-5). Before scoring any time-sensitive dimension, **flag any transcript-length vs. by-design-length mismatch** in the output, and confirm the by-design duration.
 
 <!-- defer-only: free-form -->
-Confirm the round's intended duration via `AskUserQuestion` — the header/inferred value is the Recommended option (a confident interviewer confirms in one keystroke), but the `defer-only: free-form` tag makes this a genuine interviewer-judgement input with **no safe default**, so under `--non-interactive` it **DEFERs** (never AUTO-PICKs the stale header):
+Confirm the round's intended duration via `AskUserQuestion` — the **proposed** value (the `data-duration` anchor when the scorecard carries one, else the header/inferred value) is the Recommended option (a confident interviewer confirms in one keystroke), but the `defer-only: free-form` tag makes this a genuine interviewer-judgement input with **no safe default**, so under `--non-interactive` it **DEFERs** (never AUTO-PICKs the proposal — the anchor informs, it never authorises):
 
 ```
-question: "What was this round's intended duration? Coverage/talk-time/pace are scored against it; the scorecard header may be stale."
+question: "What was this round's intended duration? Coverage/talk-time/pace are scored against it; the scorecard's by-design anchor (or header) may still need confirming."
 header: "Duration"
 options:
-  - label: "<header/inferred> min (Recommended)"   # the scorecard-header or transcript-inferred value
+  - label: "<proposed> min (Recommended)"   # the data-duration anchor when present, else the header/transcript-inferred value
     description: "Use this as the by-design duration for time-based scoring."
   - label: "Enter the correct by-design duration"
-    description: "Override the header with the interviewer-confirmed round length."
+    description: "Override the proposal with the interviewer-confirmed round length."
 ```
 
-On DEFER (non-interactive): log an open question, surface the transcript-vs-header mismatch, and score the affected dimensions against the flagged (unconfirmed) value while marking them provisional. The confirmed value is the denominator for coverage/talk-time/pace.
+On DEFER (non-interactive): log an open question, surface the transcript-vs-by-design mismatch, and score the affected dimensions against the flagged (unconfirmed) proposal — the `data-duration` anchor when present, else the header/inferred value — while marking them provisional. **When the interviewer confirms a value that disagrees with the `data-duration` anchor, the confirmed answer wins** and the existing mismatch flag records the disagreement — the anchor is never authority (INV-3). The confirmed value is the denominator for coverage/talk-time/pace.
+
+**Ground per-dimension coverage on the authored budget where present (D8, A3).** Each `data-dim` section of the round's scorecard may carry a `data-budget="<int>"` anchor — the minutes `/interview-guide` authored for that dimension. Where a dimension carries `data-budget`, score its **coverage against that per-dimension budget**, not against the round total: a dimension the guide budgeted 10 minutes for is not under-covered for taking 10 minutes of a 90-minute round. Where `data-budget` is absent on some or all dimensions, fall back to the round-total behavior for those dimensions — partial anchoring is valid. Do **not** total the budgets by hand (§H): `/interview-guide`'s `validate-scorecard-anchors.mjs` already gated the per-dim sum ≤ `data-duration` at authoring time; read each dimension's own anchor and score against it.
 
 Score each dimension on its own scale with grounded notes + flags, then set the overall `reco`.
 

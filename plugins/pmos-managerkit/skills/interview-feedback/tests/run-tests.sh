@@ -53,6 +53,22 @@ grep -q 'data-card="scorecard"'  "$GUIDE/interviewer-effectiveness.html" || fail
 grep -q 'data-output="interviewer-notes"' "$REF/interviewer-notes-skeleton.html" || fail "notes skeleton missing output anchor"
 pass=$((pass+1))
 
+echo "== skill-level smoke: absent-duration-anchor regression guard (story 260709-d0w, INV-5) =="
+# A bundled guidelines/<archetype>/scorecard.html is the natural no-migration fixture for the
+# absent-anchor path: it carries NO data-duration and NO data-budget, so Phase Score's duration
+# prompt asks cold (header/inferred proposal) and coverage falls back to the round total exactly
+# as it did before the anchor existed. Guard that these stay anchor-free so the degradation path
+# cannot silently regress. (The duration/budget anchors are OPTIONAL + additive — story 260709-qfn.)
+for card in "$GUIDE"/guidelines/*/scorecard.html; do
+  ! grep -q 'data-duration' "$card" || fail "bundled scorecard unexpectedly carries data-duration: $card"
+  ! grep -q 'data-budget'   "$card" || fail "bundled scorecard unexpectedly carries data-budget: $card"
+done
+# Phase Score must still read the anchor as PROPOSED-not-authority and preserve the defer-only prompt.
+grep -q 'data-duration' "$SKILL_DIR/SKILL.md"          || fail "Phase Score does not read the data-duration anchor"
+grep -q 'data-budget'   "$SKILL_DIR/SKILL.md"          || fail "Phase Score does not read per-dim data-budget anchors"
+grep -q '<!-- defer-only: free-form -->' "$SKILL_DIR/SKILL.md" || fail "duration prompt lost its defer-only tag"
+pass=$((pass+1))
+
 echo "== skill-level smoke: rubric has 8 weighted dimensions summing to 100 =="
 ndim="$(grep -o 'data-dim="[^"]*"' "$GUIDE/interviewer-effectiveness.html" | wc -l | tr -d ' ')"
 [ "$ndim" = "8" ] || fail "rubric expected 8 data-dim sections, found $ndim"
