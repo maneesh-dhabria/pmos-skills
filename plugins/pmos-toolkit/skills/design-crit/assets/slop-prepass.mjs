@@ -71,6 +71,23 @@ try {
   const target = /^https?:\/\//i.test(args.source) ? args.source : pathToFileURL(resolve(args.source)).href;
   await page.goto(target, { waitUntil: 'networkidle', timeout: 30000 });
 
+  // ── Wireframe exemption (epic 260710-grd A9), detected BEFORE the scan ────────
+  // The slop tells are HTML/CSS heuristics (background-clip:text, gradient text,
+  // spacing rhythm, easing curves). A monochrome-SVG /wireframes artifact renders
+  // its payload as SVG primitives — there is no HTML/CSS surface for those tells
+  // to read, so scanning it produces noise, not signal. Record an EARNED skip via
+  // the SAME graceful-degradation machinery (skipped:true + reason + empty findings,
+  // exit 0, the contracted stderr skip-note) rather than a silent cap — the run
+  // says it skipped and why.
+  const isWireframe = await page.evaluate(() =>
+    !!document.querySelector('meta[name="pmos:skill"][content="wireframes"]')
+  );
+  if (isWireframe) {
+    await context.close();
+    await browser.close().catch(() => {});
+    await skip('wireframe SVG artifact — slop tells are HTML/CSS heuristics; the monochrome SVG payload has no surface to scan (epic 260710-grd A9)');
+  }
+
   // Suppress autoScan so we drive the scan explicitly and read its structured
   // return (the live findings) rather than racing the auto-pass.
   await page.addInitScript(() => { window.__PMOS_SLOP_CONFIG__ = { autoScan: false }; });

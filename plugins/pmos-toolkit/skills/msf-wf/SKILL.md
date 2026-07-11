@@ -182,7 +182,7 @@ When `--apply-edits` is present:
 
 <!-- defer-only: ambiguous -->
 1. Present each finding rated Must or Should (and Nice when explicitly requested) per `../_shared/findings-dispositions.md` — severity-tagged `AskUserQuestion` per finding, four canonical dispositions, batches of ≤4. Deltas: **Fix as proposed** applies the stated change via `Edit` to the relevant wireframe `.html`; **Skip** is logged in the findings doc with disposition="Skip"; **Defer** targets the findings doc's Open Questions.
-2. Apply approved edits inline using `Edit` against the wireframe HTML files in the resolved wireframes folder. Spot-check each edit against `../wireframes/reference/eval-rubric.md` after editing — do NOT trigger `/wireframes`' review-loop phase.
+2. Apply approved edits inline using `Edit` against the wireframe HTML files in the resolved wireframes folder. Spot-check each edit against `../wireframes/reference/eval-rubric.md` after editing — do NOT trigger `/wireframes`' review-loop phase. (Cite that rubric **by path only**, never by heuristic id: its SVG-native rewrite retired the old accessibility/detail heuristic ids, so a forward guard asserts this file names none of them — see `tests/svg-edit.test.js`.)
 3. Log every applied change in the findings doc Section D ("Applied changes") with: journey, screen, finding, fix, disposition.
 
 When `--apply-edits` is **absent**, the skill MUST NOT call `Edit` or `Write` against any file in the wireframes folder. Findings doc remains the only output.
