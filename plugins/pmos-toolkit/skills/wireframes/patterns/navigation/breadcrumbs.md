@@ -26,9 +26,9 @@
 2. Current page is plain text, not a link (N3) — users shouldn't click their current location
 3. Use real page titles, not section IDs (N2)
 4. Separator `›` or `/`, never `>` (typography matters; G3)
-5. Mark up with `<nav aria-label="Breadcrumb">` and `<ol>` for screen readers (A1)
-6. Use `aria-current="page"` on the last item (A1)
-7. On mobile, collapse to single back-link "‹ Parent" — full trail is unreadable (D1, F1)
+5. Mark up with `<nav aria-label="Breadcrumb">` and `<ol>` for screen readers
+6. Use `aria-current="page"` on the last item
+7. On mobile, collapse to single back-link "‹ Parent" — full trail is unreadable (F1)
 
 ## Common mistakes
 - Breadcrumbs on a flat 2-level site → adds chrome with no value (N8)
@@ -44,16 +44,25 @@
 
 ## Skeleton
 
-```html
-<nav aria-label="Breadcrumb" class="wf-row" style="font-size:13px">
-  <ol class="wf-row" style="list-style:none;padding:0;margin:0;gap:.5rem">
-    <li><a href="#" class="wf-muted">Workspaces</a></li>
-    <li class="wf-muted" aria-hidden="true">›</li>
-    <li><a href="#" class="wf-muted">Acme</a></li>
-    <li class="wf-muted" aria-hidden="true">›</li>
-    <li><a href="#" class="wf-muted">Projects</a></li>
-    <li class="wf-muted" aria-hidden="true">›</li>
-    <li aria-current="page">Q3 Planning</li>
-  </ol>
-</nav>
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+  <g data-region="breadcrumb">
+    <title>Breadcrumb trail</title>
+    <desc>Parent-page links from the root to the current page; the current page is plain text, not a link.</desc>
+    <text x="24" y="40" font-size="12" fill="#666" stroke="none">Workspaces</text>
+    <text x="144" y="40" font-size="12" fill="#666" stroke="none">›</text>
+    <text x="168" y="40" font-size="12" fill="#666" stroke="none">Acme</text>
+    <text x="232" y="40" font-size="12" fill="#666" stroke="none">›</text>
+    <text x="256" y="40" font-size="12" fill="#666" stroke="none">Projects</text>
+    <text x="360" y="40" font-size="12" fill="#666" stroke="none">›</text>
+    <text x="384" y="40" font-size="12" fill="#000" stroke="none">Q3 Planning</text>
+  </g>
+  <g data-region="annotations" transform="translate(24,80)">
+    <title>Annotations</title>
+    <desc>Design notes for the breadcrumb.</desc>
+    <circle cx="16" cy="16" r="16" fill="#d33"/>
+    <text x="16" y="24" font-size="14" fill="#fff" stroke="none" text-anchor="middle">1</text>
+    <text x="48" y="24" font-size="12" fill="#d33" stroke="none">Current page is plain ink text, never a link to itself.</text>
+  </g>
+</svg>
 ```

@@ -28,8 +28,8 @@
 3. Persistent active state in the rail showing current section (N1)
 4. Allow rail collapse for power users (N7)
 5. Sticky rail on scroll so user doesn't lose orientation when scrolling main content (N6)
-6. Mobile: rail becomes a drawer or reorders above content (D1)
-7. Use `<aside>` for the rail and `<main>` for content (A1)
+6. Mobile: rail becomes a drawer or reorders above content, keeping the primary content in the thumb's reach
+7. Use `<aside>` for the rail and `<main>` for content
 8. Maintain at least 24 px gutter between columns (G4)
 
 ## Common mistakes
@@ -46,23 +46,49 @@
 
 ## Skeleton
 
-```html
-<div style="display:grid;grid-template-columns:240px 1fr;gap:1.5rem;min-height:600px">
-  <aside class="mock-sidebar" style="width:auto;height:fit-content;position:sticky;top:1rem">
-    <div class="wf-stack">
-      <div class="mock-label">Settings</div>
-      <a href="#" class="mock-button" style="justify-content:flex-start;background:var(--wf-accent);color:#fff">General</a>
-      <a href="#" class="mock-button" style="justify-content:flex-start">Billing</a>
-      <a href="#" class="mock-button" style="justify-content:flex-start">Members</a>
-      <a href="#" class="mock-button" style="justify-content:flex-start">Integrations</a>
-      <a href="#" class="mock-button" style="justify-content:flex-start">Audit log</a>
-    </div>
-  </aside>
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+  <rect x="0" y="0" width="1280" height="800" fill="#fff"/>
 
-  <main class="mock-content">
-    <h1 style="margin:0">General</h1>
-    <p class="wf-muted">Workspace name, default timezone, and locale.</p>
-    <!-- form / content -->
-  </main>
-</div>
+  <g data-region="app-bar" transform="translate(0,0)">
+    <title>App bar</title>
+    <desc>Product-level top bar spanning both columns.</desc>
+    <rect x="0" y="0" width="1280" height="56" fill="#fff" stroke="#e6e6e6"/>
+    <text x="24" y="32" font-size="20" fill="#000" stroke="none">Product</text>
+    <rect x="1216" y="8" width="40" height="40" fill="#e6e6e6"/>
+  </g>
+
+  <g data-region="rail" transform="translate(24,88)">
+    <title>Left rail</title>
+    <desc>Persistent 240px navigation rail with an active row.</desc>
+    <rect x="0" y="0" width="240" height="640" fill="#f4f4f4"/>
+    <text x="16" y="32" font-size="12" fill="#666" stroke="none">SETTINGS</text>
+    <rect x="8" y="48" width="224" height="40" fill="#000"/>
+    <text x="24" y="72" font-size="14" fill="#fff" stroke="none">General</text>
+    <text x="24" y="120" font-size="14" fill="#000" stroke="none">Billing</text>
+    <text x="24" y="168" font-size="14" fill="#000" stroke="none">Members</text>
+    <text x="24" y="216" font-size="14" fill="#000" stroke="none">Integrations</text>
+    <text x="24" y="264" font-size="14" fill="#000" stroke="none">Audit log</text>
+  </g>
+
+  <g data-region="main" transform="translate(280,88)">
+    <title>Main content</title>
+    <desc>Wide content column for the selected section.</desc>
+    <text x="0" y="24" font-size="28" fill="#000" stroke="none">General</text>
+    <text x="0" y="64" font-size="14" fill="#666" stroke="none">Workspace name, default timezone, and locale.</text>
+    <rect x="0" y="96" width="976" height="240" fill="#fff" stroke="#e6e6e6"/>
+    <text x="16" y="136" font-size="20" fill="#000" stroke="none">Workspace name</text>
+    <text x="16" y="168" font-size="14" fill="#666" stroke="none">Shown on invoices and the workspace switcher.</text>
+    <rect x="16" y="192" width="240" height="40" fill="#fff" stroke="#000"/>
+    <text x="24" y="216" font-size="14" fill="#666" stroke="none">Acme Inc.</text>
+  </g>
+
+  <g data-region="annotations" transform="translate(24,456)">
+    <title>Annotations</title>
+    <desc>Design notes for the two-column layout.</desc>
+    <circle cx="16" cy="16" r="16" fill="#d33"/>
+    <text x="16" y="24" font-size="14" fill="#fff" stroke="none" text-anchor="middle">1</text>
+    <text x="40" y="24" font-size="12" fill="#d33" stroke="none">Rail 200-280px with a persistent active state; keep a wide gutter to the main column; rail sticks on scroll.</text>
+  </g>
+</svg>
 ```

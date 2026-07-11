@@ -29,18 +29,18 @@
 
 ## Best practices
 1. Page-top banner for account-level info; section-scoped for content-specific (N4)
-2. Color coding + icon + text (A2) — never color alone
+2. Color coding + icon + text — never color alone
 3. Concise but complete — explain WHAT and what to DO (N9)
 4. Dismiss only if reappearing on next page-load makes sense; persist critical issues (N5)
 5. Primary action inline ("Renew now", "Update card") (F1)
-6. ARIA `role="status"` for info/success, `role="alert"` for warning/error (A1)
+6. ARIA `role="status"` for info/success, `role="alert"` for warning/error
 7. Keep ≤ 2 lines in normal viewport (G4)
 8. Don't stack multiple banners — pick the most important (F2)
 
 ## Common mistakes
 - Stacking 3 banners → user blindness (F2)
 - Critical billing banner that's dismissible and gone forever → user misses it (N5)
-- Color-only severity → fails colorblind (A2)
+- Color-only severity → fails colorblind
 - Banner buried in a sidebar → low visibility (N1)
 - Banner that looks too much like an ad → ignored
 
@@ -50,31 +50,41 @@
 
 ## Skeleton
 
-```html
-<!-- Warning banner with action -->
-<div role="alert" class="wf-row" style="background:#fef3c7;border:1px solid #f59e0b;border-radius:var(--wf-radius);padding:.75rem 1rem;gap:.75rem">
-  <span aria-hidden="true" style="color:#92400e">⚠</span>
-  <div class="wf-grow">
-    <strong>Trial ends in 3 days.</strong>
-    Add a payment method to keep access to all features.
-  </div>
-  <button class="mock-button mock-button--primary">Add card</button>
-  <button class="mock-button" aria-label="Dismiss">×</button>
-</div>
-
-<!-- Info banner -->
-<div role="status" class="wf-row" style="background:#dbeafe;border:1px solid #3b82f6;border-radius:var(--wf-radius);padding:.75rem 1rem;gap:.75rem">
-  <span aria-hidden="true" style="color:#1e40af">ℹ</span>
-  <div class="wf-grow">Scheduled maintenance: Saturday April 25, 02:00–04:00 UTC.</div>
-</div>
-
-<!-- Error banner -->
-<div role="alert" class="wf-row" style="background:#fee2e2;border:1px solid var(--wf-error);border-radius:var(--wf-radius);padding:.75rem 1rem;gap:.75rem">
-  <span aria-hidden="true" style="color:var(--wf-error)">⚠</span>
-  <div class="wf-grow">
-    <strong>Payment failed.</strong>
-    Update your card to avoid service interruption.
-  </div>
-  <button class="mock-button mock-button--primary">Update card</button>
-</div>
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+  <rect x="0" y="0" width="1280" height="800" fill="#fff"/>
+  <g data-region="app-bar">
+    <title>App bar</title><desc>Page chrome above the banner region.</desc>
+    <rect x="0" y="0" width="1280" height="56" fill="#fff" stroke="#e6e6e6"/>
+    <text x="24" y="32" font-size="20" fill="#000" stroke="none">Account</text>
+  </g>
+  <g data-region="banner-warning">
+    <title>Warning banner (with action)</title><desc>Full-width page-top banner: trial expiry with an inline "Add card" action and a dismiss control.</desc>
+    <rect x="0" y="56" width="1280" height="64" fill="#f4f4f4" stroke="#e6e6e6"/>
+    <text x="24" y="96" font-size="14" fill="#000" stroke="none">⚠  Trial ends in 3 days. Add a payment method to keep access to all features.</text>
+    <rect x="1104" y="72" width="120" height="40" fill="#000"/>
+    <text x="1128" y="96" font-size="14" fill="#fff" stroke="none">Add card</text>
+    <text x="1240" y="96" font-size="20" fill="#666" stroke="none">×</text>
+  </g>
+  <g data-region="banner-info">
+    <title>Info banner</title><desc>Full-width informational banner: scheduled maintenance notice, no action.</desc>
+    <rect x="0" y="120" width="1280" height="56" fill="#e6e6e6"/>
+    <text x="24" y="152" font-size="14" fill="#000" stroke="none">ℹ  Scheduled maintenance: Saturday April 25, 02:00–04:00 UTC.</text>
+  </g>
+  <g data-region="banner-error">
+    <title>Error banner (with action)</title><desc>Full-width error banner: payment failure with an "Update card" action.</desc>
+    <rect x="0" y="176" width="1280" height="64" fill="#f4f4f4" stroke="#e6e6e6"/>
+    <text x="24" y="216" font-size="14" fill="#000" stroke="none">⚠  Payment failed. Update your card to avoid service interruption.</text>
+    <rect x="1088" y="192" width="136" height="40" fill="#000"/>
+    <text x="1104" y="216" font-size="14" fill="#fff" stroke="none">Update card</text>
+  </g>
+  <g data-region="content">
+    <title>Page content</title><desc>The working surface below the banner stack.</desc>
+    <rect x="24" y="264" width="1232" height="456" fill="#f4f4f4"/>
+  </g>
+  <g data-region="annotations">
+    <title>Annotations</title><desc>Design notes on banner stacking and severity encoding.</desc>
+    <text x="24" y="760" font-size="12" fill="#d33" stroke="none">Ship only the single most important banner; three are shown here to catalogue severities. Severity is carried by icon + label, never colour alone.</text>
+  </g>
+</svg>
 ```

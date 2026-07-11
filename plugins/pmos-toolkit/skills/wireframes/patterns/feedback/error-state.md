@@ -32,8 +32,8 @@
 3. Primary action is Retry (or Reload, Go home) (N3)
 4. Error code shown for support but de-emphasized (N9) — collapse it under "Show details"
 5. Don't blame the user for system errors (N9)
-6. `role="alert"` for the container (A1)
-7. Color + icon + text (A2)
+6. `role="alert"` for the container
+7. Color + icon + text
 8. For network errors, suggest checking connection (N9)
 9. Auto-retry transparent failures with exponential backoff; show error only after several attempts
 
@@ -50,30 +50,30 @@
 
 ## Skeleton
 
-```html
-<!-- Component error -->
-<div class="wf-message wf-message--error" role="alert">
-  <div style="font-size:32px" aria-hidden="true">⚠</div>
-  <div class="wf-message__title">Couldn't load deals</div>
-  <div class="wf-message__hint">Check your internet connection and try again.</div>
-  <div class="wf-row" style="margin-top:.5rem">
-    <button class="mock-button mock-button--primary">Retry</button>
-    <button class="mock-button">Reload page</button>
-  </div>
-  <details style="margin-top:.5rem;font-size:12px">
-    <summary class="wf-muted">Show details</summary>
-    <code class="wf-mono">503 Service Unavailable · req-id 8H3kZ29p</code>
-  </details>
-</div>
-
-<!-- 404 page-level -->
-<div class="wf-message">
-  <div style="font-size:48px;font-weight:700">404</div>
-  <div class="wf-message__title">We couldn't find that page</div>
-  <div class="wf-message__hint">It may have been moved or deleted.</div>
-  <div class="wf-row" style="margin-top:.5rem">
-    <button class="mock-button mock-button--primary">Go to dashboard</button>
-    <button class="mock-button">Contact support</button>
-  </div>
-</div>
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+  <rect x="0" y="0" width="1280" height="800" fill="#fff"/>
+  <g data-region="app-bar">
+    <title>App bar</title><desc>Page chrome above the error container.</desc>
+    <rect x="0" y="0" width="1280" height="56" fill="#fff" stroke="#e6e6e6"/>
+    <text x="24" y="32" font-size="20" fill="#000" stroke="none">Deals</text>
+  </g>
+  <g data-region="error-state">
+    <title>Error state (component)</title><desc>Centred component-level failure: plain-language title, cause-and-recovery helper, Retry/Reload actions, and a collapsed technical detail line.</desc>
+    <text x="640" y="304" font-size="28" fill="#000" stroke="none" text-anchor="middle">⚠</text>
+    <text x="640" y="360" font-size="28" fill="#000" stroke="none" text-anchor="middle">Couldn't load deals</text>
+    <text x="640" y="400" font-size="14" fill="#666" stroke="none" text-anchor="middle">Check your internet connection and try again.</text>
+    <rect x="536" y="440" width="120" height="40" fill="#000"/>
+    <text x="560" y="464" font-size="14" fill="#fff" stroke="none">Retry</text>
+    <rect x="664" y="440" width="136" height="40" fill="#fff" stroke="#000"/>
+    <text x="680" y="464" font-size="14" fill="#000" stroke="none">Reload page</text>
+    <text x="640" y="520" font-size="12" fill="#666" stroke="none" text-anchor="middle">Show details</text>
+    <text x="640" y="544" font-size="12" fill="#666" stroke="none" text-anchor="middle">503 Service Unavailable · req-id 8H3kZ29p</text>
+  </g>
+  <g data-region="annotations">
+    <title>Annotations</title><desc>Design notes on the error state's recovery path.</desc>
+    <rect x="488" y="280" width="304" height="288" fill="none" stroke="#d33" stroke-dasharray="4 4"/>
+    <text x="488" y="600" font-size="12" fill="#d33" stroke="none">Error names what failed in plain language and offers Retry/Reload; the technical code is collapsed under "Show details" (S3).</text>
+  </g>
+</svg>
 ```

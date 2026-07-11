@@ -52,39 +52,38 @@
 
 ## Skeleton
 
-```html
-<div class="wf-stack" style="max-width:640px">
-  <!-- Progress indicator -->
-  <ol class="wf-row" style="list-style:none;padding:0;margin:0;gap:0;font-size:13px" aria-label="Progress">
-    <li class="wf-row" style="flex:1;gap:.5rem">
-      <span class="mock-pill" style="background:var(--wf-success);color:#fff">✓</span>
-      <span>Account</span>
-    </li>
-    <li class="wf-row" style="flex:1;gap:.5rem">
-      <span class="mock-pill" style="background:var(--wf-accent);color:#fff" aria-current="step">2</span>
-      <strong>Plan</strong>
-    </li>
-    <li class="wf-row" style="flex:1;gap:.5rem">
-      <span class="mock-pill">3</span>
-      <span class="wf-muted">Payment</span>
-    </li>
-    <li class="wf-row" style="flex:1;gap:.5rem">
-      <span class="mock-pill">4</span>
-      <span class="wf-muted">Review</span>
-    </li>
-  </ol>
-
-  <hr class="mock-divider">
-
-  <h2 style="font-size:20px">Choose your plan</h2>
-  <p class="wf-muted">You can change this later from billing settings.</p>
-
-  <!-- Step fields here -->
-
-  <hr class="mock-divider">
-  <div class="wf-row" style="justify-content:space-between">
-    <button class="mock-button">‹ Back</button>
-    <button class="mock-button mock-button--primary">Continue ›</button>
-  </div>
-</div>
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+  <g data-region="progress" transform="translate(24,24)">
+    <title>Step progress indicator</title>
+    <desc>Four content-labelled steps: one complete, the current one filled, two pending.</desc>
+    <circle cx="16" cy="16" r="16" fill="#000"/>
+    <text x="16" y="24" font-size="12" fill="#fff" stroke="none" text-anchor="middle">v</text>
+    <text x="40" y="24" font-size="14" fill="#000" stroke="none">Account</text>
+    <circle cx="176" cy="16" r="16" fill="#000"/>
+    <text x="176" y="24" font-size="12" fill="#fff" stroke="none" text-anchor="middle">2</text>
+    <text x="200" y="24" font-size="14" fill="#000" stroke="none">Plan</text>
+    <circle cx="336" cy="16" r="16" fill="#fff" stroke="#666"/>
+    <text x="336" y="24" font-size="12" fill="#666" stroke="none" text-anchor="middle">3</text>
+    <text x="360" y="24" font-size="14" fill="#666" stroke="none">Payment</text>
+    <circle cx="520" cy="16" r="16" fill="#fff" stroke="#666"/>
+    <text x="520" y="24" font-size="12" fill="#666" stroke="none" text-anchor="middle">4</text>
+    <text x="544" y="24" font-size="14" fill="#666" stroke="none">Review</text>
+  </g>
+  <g data-region="step" transform="translate(24,96)">
+    <title>Current step body</title>
+    <desc>The active step's title and description; its fields render below.</desc>
+    <line x1="0" y1="0" x2="640" y2="0" stroke="#e6e6e6" stroke-width="1"/>
+    <text x="0" y="48" font-size="28" fill="#000" stroke="none">Choose your plan</text>
+    <text x="0" y="80" font-size="14" fill="#666" stroke="none">You can change this later from billing settings.</text>
+  </g>
+  <g data-region="nav" transform="translate(24,224)">
+    <title>Step navigation</title>
+    <desc>Back on the left, primary Continue on the right; Submit appears only on the last step.</desc>
+    <rect x="0" y="0" width="120" height="40" fill="#fff" stroke="#000"/>
+    <text x="24" y="24" font-size="14" fill="#000" stroke="none">&lt; Back</text>
+    <rect x="520" y="0" width="120" height="40" fill="#000"/>
+    <text x="544" y="24" font-size="14" fill="#fff" stroke="none">Continue &gt;</text>
+  </g>
+</svg>
 ```

@@ -27,22 +27,22 @@
 
 ## Best practices
 1. Trigger is `⋯` (three dots) for "more actions" or "Action ▾" for explicit menus (N2, N4)
-2. Open on click, NOT hover (hover menus are flaky on touch + accidental opens) (D1)
-3. Keyboard support: Enter/Space opens; arrow keys move; Esc closes; Tab moves focus out (A3)
-4. ARIA: `role="menu"`, items `role="menuitem"`, trigger has `aria-haspopup="menu"` and `aria-expanded` (A1)
+2. Open on click, NOT hover (hover menus are flaky on touch + accidental opens)
+3. Keyboard support: Enter/Space opens; arrow keys move; Esc closes; Tab moves focus out
+4. ARIA: `role="menu"`, items `role="menuitem"`, trigger has `aria-haspopup="menu"` and `aria-expanded`
 5. Destructive actions at the bottom, separated, styled red (G1, N5)
 6. Show keyboard shortcuts inline if applicable (N7)
 7. Close on selection unless menu is intentionally multi-step
 8. Position menu so it stays in viewport (flip up if no room below)
-9. Touch target ≥ 44 px tall (F1, A5)
+9. Touch target ≥ 44 px tall (F1)
 
 ## Common mistakes
-- Hover-only triggers → broken on touch (D1)
-- No keyboard navigation → fails accessibility (A3)
+- Hover-only triggers → broken on touch
+- No keyboard navigation → fails accessibility
 - Destructive in the middle of the list → easy mis-click (N5, G1)
 - Too many items (10+) → use a search-enabled menu or rethink IA (F2)
 - Menu opens off-screen with no flip → users can't see items
-- `⋯` with no `aria-label` → screen readers say "more horizontal" or nothing (A4)
+- `⋯` with no `aria-label` → screen readers say "more horizontal" or nothing
 
 ## Device variants
 - **desktop**: popover anchored to trigger
@@ -52,22 +52,32 @@
 
 ## Skeleton
 
-```html
-<button class="mock-button" aria-haspopup="menu" aria-expanded="true" aria-label="More actions">⋯</button>
-
-<div role="menu" class="mock-card" style="position:absolute;min-width:200px;padding:.25rem">
-  <button role="menuitem" class="wf-row" style="width:100%;padding:.5rem;background:transparent;border:0;text-align:left;cursor:pointer">
-    <span aria-hidden="true">✏️</span><span class="wf-grow">Edit</span><span class="wf-muted" style="font-size:12px">⌘E</span>
-  </button>
-  <button role="menuitem" class="wf-row" style="width:100%;padding:.5rem;background:transparent;border:0;text-align:left;cursor:pointer">
-    <span aria-hidden="true">📋</span><span class="wf-grow">Duplicate</span>
-  </button>
-  <button role="menuitem" class="wf-row" style="width:100%;padding:.5rem;background:transparent;border:0;text-align:left;cursor:pointer">
-    <span aria-hidden="true">📤</span><span class="wf-grow">Share…</span>
-  </button>
-  <hr class="mock-divider">
-  <button role="menuitem" class="wf-row" style="width:100%;padding:.5rem;background:transparent;border:0;text-align:left;cursor:pointer;color:var(--wf-error)">
-    <span aria-hidden="true">🗑️</span><span class="wf-grow">Delete</span>
-  </button>
-</div>
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800">
+  <g data-region="trigger" transform="translate(48,48)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+    <title>Overflow trigger</title>
+    <desc>A three-dot icon button that opens the menu on click.</desc>
+    <rect x="0" y="0" width="40" height="40" fill="#fff" stroke="#000" data-interactive="true"/>
+    <text x="8" y="24" font-size="20" fill="#000" stroke="none">⋯</text>
+  </g>
+  <g data-region="menu" transform="translate(48,104)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+    <title>Menu panel</title>
+    <desc>A popover of menu items; the destructive item is separated at the bottom.</desc>
+    <rect x="0" y="0" width="360" height="192" fill="#fff" stroke="#000"/>
+    <text x="16" y="32" font-size="14" fill="#000" stroke="none">Edit</text>
+    <text x="312" y="32" font-size="12" fill="#666" stroke="none">⌘E</text>
+    <line x1="0" y1="48" x2="360" y2="48" stroke="#e6e6e6" stroke-width="1"/>
+    <text x="16" y="80" font-size="14" fill="#000" stroke="none">Duplicate</text>
+    <line x1="0" y1="96" x2="360" y2="96" stroke="#e6e6e6" stroke-width="1"/>
+    <text x="16" y="128" font-size="14" fill="#000" stroke="none">Share…</text>
+    <line x1="0" y1="144" x2="360" y2="144" stroke="#666" stroke-width="1"/>
+    <text x="16" y="176" font-size="14" fill="#000" stroke="none">Delete</text>
+  </g>
+  <g data-region="annotations" transform="translate(432,104)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+    <title>Destructive-item redline</title>
+    <desc>In high fidelity the Delete item is separated and coloured with the destructive red; kept monochrome here.</desc>
+    <rect x="0" y="144" width="240" height="48" fill="none" stroke="#d33" stroke-dasharray="4 4"/>
+    <text x="0" y="216" font-size="12" fill="#d33" stroke="none">Destructive item — separated and red in hi-fi.</text>
+  </g>
+</svg>
 ```

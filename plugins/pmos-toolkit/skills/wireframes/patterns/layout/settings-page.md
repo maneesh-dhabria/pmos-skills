@@ -34,7 +34,7 @@
 4. Show "Saved" toast / inline indicator after instant saves (N1)
 5. Destructive settings (delete account, leave workspace) at the bottom, in a separate "Danger zone" group, styled distinctly (N5, G1)
 6. Categories rail uses [two-column-layout.md](two-column-layout.md) with sticky positioning
-7. Mobile: rail becomes a single back-link or top accordion (D1)
+7. Mobile: rail becomes a single back-link or top accordion, keeping category controls in the thumb's reach
 8. Search settings (`⌘K`) for products with > 30 settings (N7, F2)
 
 ## Common mistakes
@@ -50,49 +50,60 @@
 
 ## Skeleton
 
-```html
-<header style="margin-bottom:1.5rem">
-  <h1 style="margin:0">Settings</h1>
-</header>
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+  <rect x="0" y="0" width="1280" height="800" fill="#fff"/>
 
-<div style="display:grid;grid-template-columns:220px 1fr;gap:1.5rem">
-  <aside class="mock-sidebar" style="width:auto;height:fit-content;position:sticky;top:1rem">
-    <div class="wf-stack">
-      <a href="#" class="mock-button" style="justify-content:flex-start;background:var(--wf-accent);color:#fff">Profile</a>
-      <a href="#" class="mock-button" style="justify-content:flex-start">Notifications</a>
-      <a href="#" class="mock-button" style="justify-content:flex-start">Security</a>
-      <a href="#" class="mock-button" style="justify-content:flex-start">Billing</a>
-      <a href="#" class="mock-button" style="justify-content:flex-start;color:var(--wf-error)">Danger zone</a>
-    </div>
-  </aside>
+  <g data-region="page-header" transform="translate(24,32)">
+    <title>Page header</title>
+    <desc>Settings title above the two-column body.</desc>
+    <text x="0" y="24" font-size="28" fill="#000" stroke="none">Settings</text>
+  </g>
 
-  <main class="wf-stack">
-    <section class="mock-card">
-      <h2 style="margin:0 0 .5rem;font-size:16px">Profile</h2>
-      <div class="wf-stack">
-        <div class="wf-row" style="justify-content:space-between;align-items:flex-start">
-          <div>
-            <div style="font-weight:500">Display name</div>
-            <div class="wf-muted" style="font-size:13px">Shown across the workspace.</div>
-          </div>
-          <input class="mock-input" value="Maneesh Dhabria" style="max-width:240px">
-        </div>
-        <hr class="mock-divider">
-        <div class="wf-row" style="justify-content:space-between">
-          <div>
-            <div style="font-weight:500">Marketing emails</div>
-            <div class="wf-muted" style="font-size:13px">Product updates and tips.</div>
-          </div>
-          <button role="switch" aria-checked="true" class="mock-button mock-button--primary">On</button>
-        </div>
-      </div>
-    </section>
+  <g data-region="rail" transform="translate(24,96)">
+    <title>Category rail</title>
+    <desc>Settings categories with an active row; danger zone last.</desc>
+    <rect x="0" y="0" width="224" height="560" fill="#f4f4f4"/>
+    <rect x="8" y="8" width="208" height="40" fill="#000"/>
+    <text x="24" y="32" font-size="14" fill="#fff" stroke="none">Profile</text>
+    <text x="24" y="88" font-size="14" fill="#000" stroke="none">Notifications</text>
+    <text x="24" y="136" font-size="14" fill="#000" stroke="none">Security</text>
+    <text x="24" y="184" font-size="14" fill="#000" stroke="none">Billing</text>
+    <text x="24" y="232" font-size="14" fill="#666" stroke="none">Danger zone</text>
+  </g>
 
-    <!-- Sticky save bar -->
-    <div class="wf-row" style="position:sticky;bottom:0;background:var(--wf-surface);border-top:1px solid var(--wf-border-2);padding:.75rem;justify-content:flex-end">
-      <button class="mock-button">Discard</button>
-      <button class="mock-button mock-button--primary">Save changes</button>
-    </div>
-  </main>
-</div>
+  <g data-region="settings-groups" transform="translate(264,96)">
+    <title>Settings groups</title>
+    <desc>Grouped setting rows: bold label, muted description, control on the right.</desc>
+    <rect x="0" y="0" width="992" height="216" fill="#fff" stroke="#e6e6e6"/>
+    <text x="16" y="32" font-size="20" fill="#000" stroke="none">Profile</text>
+    <text x="16" y="80" font-size="14" fill="#000" stroke="none">Display name</text>
+    <text x="16" y="96" font-size="12" fill="#666" stroke="none">Shown across the workspace.</text>
+    <rect x="752" y="64" width="240" height="40" fill="#fff" stroke="#000"/>
+    <text x="760" y="88" font-size="14" fill="#666" stroke="none">Maneesh Dhabria</text>
+    <line x1="16" y1="128" x2="976" y2="128" stroke="#e6e6e6" stroke-width="1"/>
+    <text x="16" y="160" font-size="14" fill="#000" stroke="none">Marketing emails</text>
+    <text x="16" y="176" font-size="12" fill="#666" stroke="none">Product updates and tips.</text>
+    <rect x="888" y="144" width="104" height="40" fill="#000"/>
+    <text x="912" y="168" font-size="14" fill="#fff" stroke="none">On</text>
+  </g>
+
+  <g data-region="save-bar" transform="translate(264,336)">
+    <title>Save bar</title>
+    <desc>Sticky pending-changes bar for multi-field forms.</desc>
+    <rect x="0" y="0" width="992" height="56" fill="#fff" stroke="#e6e6e6"/>
+    <rect x="768" y="8" width="104" height="40" fill="#fff" stroke="#000"/>
+    <text x="784" y="32" font-size="14" fill="#000" stroke="none">Discard</text>
+    <rect x="880" y="8" width="112" height="40" fill="#000"/>
+    <text x="896" y="32" font-size="14" fill="#fff" stroke="none">Save changes</text>
+  </g>
+
+  <g data-region="annotations" transform="translate(24,680)">
+    <title>Annotations</title>
+    <desc>Design notes for the settings page.</desc>
+    <circle cx="16" cy="16" r="16" fill="#d33"/>
+    <text x="16" y="24" font-size="14" fill="#fff" stroke="none" text-anchor="middle">1</text>
+    <text x="40" y="24" font-size="12" fill="#d33" stroke="none">Toggles auto-save; multi-field forms use the sticky save bar. Danger zone is separated and styled distinctly at the end.</text>
+  </g>
+</svg>
 ```

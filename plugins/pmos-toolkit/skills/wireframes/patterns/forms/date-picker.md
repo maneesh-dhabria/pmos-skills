@@ -35,8 +35,8 @@
 5. For ranges: highlight the selected range visually as user picks the second date (N1)
 6. Provide common presets above the calendar (N7) — "Last 7 days" saves clicks
 7. Locale-aware: respect user's date format (en-US: MM/DD/YYYY, en-GB: DD/MM/YYYY) (N2)
-8. Keyboard nav inside calendar: arrow keys move days, Enter selects, Esc closes (A3)
-9. Mobile: use native `<input type="date">` for single dates (D1)
+8. Keyboard nav inside calendar: arrow keys move days, Enter selects, Esc closes
+9. Mobile: use native `<input type="date">` for single dates
 
 ## Common mistakes
 - Three separate selects for year/month/day on every date → tedious (N7). Reserve for far-past birthdates.
@@ -52,29 +52,46 @@
 
 ## Skeleton
 
-```html
-<div class="wf-stack" style="max-width:280px">
-  <label for="due" class="mock-label">Due date</label>
-  <div class="wf-row" style="position:relative">
-    <input id="due" name="due" type="text" placeholder="MM / DD / YYYY"
-           class="mock-input" aria-haspopup="dialog" aria-expanded="false">
-    <button class="mock-button" aria-label="Open calendar"
-            style="position:absolute;right:.25rem">📅</button>
-  </div>
-</div>
-
-<!-- Calendar popover (open state) -->
-<div role="dialog" aria-label="Choose date" class="mock-card" style="width:300px">
-  <div class="wf-row" style="justify-content:space-between">
-    <button class="mock-button" aria-label="Previous month">‹</button>
-    <strong>April 2026</strong>
-    <button class="mock-button" aria-label="Next month">›</button>
-  </div>
-  <hr class="mock-divider">
-  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:.25rem;text-align:center;font-size:12px">
-    <span class="wf-muted">Su</span><span class="wf-muted">Mo</span><span class="wf-muted">Tu</span>
-    <span class="wf-muted">We</span><span class="wf-muted">Th</span><span class="wf-muted">Fr</span><span class="wf-muted">Sa</span>
-    <!-- day cells, with .wf-accent on today, .wf-muted on prev/next month -->
-  </div>
-</div>
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+  <g data-region="input" transform="translate(24,24)">
+    <title>Date input</title>
+    <desc>A labelled date field with a format hint and a calendar-icon trigger.</desc>
+    <text x="0" y="16" font-size="12" fill="#666" stroke="none">Due date</text>
+    <rect x="0" y="24" width="240" height="40" fill="#fff" stroke="#000"/>
+    <text x="8" y="48" font-size="14" fill="#666" stroke="none">MM / DD / YYYY</text>
+    <rect x="248" y="24" width="40" height="40" fill="#e6e6e6"/>
+  </g>
+  <g data-region="calendar" transform="translate(24,96)">
+    <title>Calendar popover (open)</title>
+    <desc>Month navigation, weekday headers, and a day grid with today shaded.</desc>
+    <rect x="0" y="0" width="320" height="320" fill="#fff" stroke="#000"/>
+    <text x="16" y="32" font-size="14" fill="#000" stroke="none">&lt;</text>
+    <text x="120" y="32" font-size="14" fill="#000" stroke="none">April 2026</text>
+    <text x="296" y="32" font-size="14" fill="#000" stroke="none">&gt;</text>
+    <line x1="0" y1="48" x2="320" y2="48" stroke="#e6e6e6" stroke-width="1"/>
+    <text x="8" y="80" font-size="12" fill="#666" stroke="none">Su</text>
+    <text x="56" y="80" font-size="12" fill="#666" stroke="none">Mo</text>
+    <text x="104" y="80" font-size="12" fill="#666" stroke="none">Tu</text>
+    <text x="152" y="80" font-size="12" fill="#666" stroke="none">We</text>
+    <text x="200" y="80" font-size="12" fill="#666" stroke="none">Th</text>
+    <text x="248" y="80" font-size="12" fill="#666" stroke="none">Fr</text>
+    <text x="296" y="80" font-size="12" fill="#666" stroke="none">Sa</text>
+    <text x="8" y="120" font-size="14" fill="#000" stroke="none">1</text>
+    <text x="56" y="120" font-size="14" fill="#000" stroke="none">2</text>
+    <text x="104" y="120" font-size="14" fill="#000" stroke="none">3</text>
+    <text x="152" y="120" font-size="14" fill="#000" stroke="none">4</text>
+    <text x="200" y="120" font-size="14" fill="#000" stroke="none">5</text>
+    <text x="248" y="120" font-size="14" fill="#000" stroke="none">6</text>
+    <text x="296" y="120" font-size="14" fill="#000" stroke="none">7</text>
+    <rect x="144" y="136" width="40" height="40" fill="#f4f4f4"/>
+    <text x="8" y="160" font-size="14" fill="#000" stroke="none">8</text>
+    <text x="56" y="160" font-size="14" fill="#000" stroke="none">9</text>
+    <text x="104" y="160" font-size="14" fill="#000" stroke="none">10</text>
+    <text x="152" y="160" font-size="14" fill="#000" stroke="none">11</text>
+    <text x="200" y="160" font-size="14" fill="#000" stroke="none">12</text>
+    <text x="248" y="160" font-size="14" fill="#000" stroke="none">13</text>
+    <text x="296" y="160" font-size="14" fill="#000" stroke="none">14</text>
+  </g>
+</svg>
 ```

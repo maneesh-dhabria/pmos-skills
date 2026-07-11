@@ -22,7 +22,7 @@
 - multi-avatar-stack (overlapping for groups)
 
 ## Best practices
-1. Always provide an `alt` text or `aria-label` (A4) — at minimum the user's name
+1. Always provide an `alt` text or `aria-label` — at minimum the user's name
 2. Initials fallback: 1 letter for single names, 2 for first+last (G3)
 3. Use deterministic background color from name hash (looks like design intent, not random) (G2)
 4. Round or rounded-square — pick one and stick with it across the app (G2, N4)
@@ -33,7 +33,7 @@
 
 ## Common mistakes
 - Mixed shapes (round + square) on the same page → broken consistency (G2)
-- No alt text → screen readers say nothing meaningful (A4)
+- No alt text → screen readers say nothing meaningful
 - Random colors per render → flickers across reloads
 - 6+ avatars in a stack → noise; cap at 4 + count (F2)
 - Real photo placeholder in wireframes → conveys "design done" prematurely (N8)
@@ -43,21 +43,15 @@
 
 ## Skeleton
 
-```html
-<!-- Initials avatar -->
-<span class="mock-img" style="width:40px;height:40px;border-radius:50%;background:#dbeafe;color:#1e40af;font-weight:600" aria-label="Sarah Kim">SK</span>
-
-<!-- With status dot -->
-<span style="position:relative;display:inline-block">
-  <span class="mock-img" style="width:40px;height:40px;border-radius:50%;background:#fce7f3;color:#9f1239;font-weight:600" aria-label="Maneesh Dhabria">MD</span>
-  <span aria-label="Online" style="position:absolute;bottom:0;right:0;width:12px;height:12px;border-radius:50%;background:var(--wf-success);border:2px solid var(--wf-surface)"></span>
-</span>
-
-<!-- Stacked group -->
-<div class="wf-row" style="gap:0">
-  <span class="mock-img" style="width:32px;height:32px;border-radius:50%;background:#fef3c7;color:#92400e;font-weight:600;border:2px solid var(--wf-surface)">SK</span>
-  <span class="mock-img" style="width:32px;height:32px;border-radius:50%;background:#dbeafe;color:#1e40af;font-weight:600;border:2px solid var(--wf-surface);margin-left:-8px">MD</span>
-  <span class="mock-img" style="width:32px;height:32px;border-radius:50%;background:#dcfce7;color:#166534;font-weight:600;border:2px solid var(--wf-surface);margin-left:-8px">AT</span>
-  <span class="mock-pill" style="margin-left:-4px">+5</span>
-</div>
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+  <g data-region="avatar" transform="translate(0,0)">
+    <title>Avatar</title>
+    <desc>Circular identity mark with an initials fallback and a bottom-right online status dot.</desc>
+    <circle cx="24" cy="24" r="24" fill="#e6e6e6"/>
+    <text x="24" y="32" font-size="20" fill="#666" stroke="none" text-anchor="middle">SK</text>
+    <circle cx="40" cy="40" r="8" fill="#fff"/>
+    <circle cx="40" cy="40" r="4" fill="#000"/>
+  </g>
+</svg>
 ```

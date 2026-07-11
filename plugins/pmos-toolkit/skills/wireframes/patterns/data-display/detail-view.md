@@ -49,46 +49,55 @@
 
 ## Skeleton
 
-```html
-<header class="wf-row" style="justify-content:space-between;align-items:flex-start;gap:1rem">
-  <div>
-    <div class="wf-row">
-      <h1 style="font-size:24px;margin:0">Acme Pilot Q3 Renewal</h1>
-      <span class="mock-pill" style="background:var(--wf-warning);color:#fff">Negotiation</span>
-    </div>
-    <div class="wf-muted" style="font-size:13px;margin-top:.25rem">Owned by Sarah Kim · Updated 2h ago</div>
-  </div>
-  <div class="wf-row">
-    <button class="mock-button">Edit</button>
-    <button class="mock-button mock-button--primary">Mark won</button>
-  </div>
-</header>
+Composed on the **desktop 1280×800** canvas: a page-header band over a two-column body (main + side rail),
+using the Heading-block (#12), List-row (#13), Card (#5) and Key-value-stat (#15) primitives.
 
-<hr class="mock-divider">
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+  <rect x="0" y="0" width="1280" height="800" fill="#fff"/>
 
-<div style="display:grid;grid-template-columns:2fr 1fr;gap:1.5rem">
-  <main class="wf-stack">
-    <section>
-      <h2 class="mock-label">Description</h2>
-      <p>Renewal of existing 12-month pilot. Customer requested expanded SSO and audit-log support.</p>
-    </section>
-    <section>
-      <h2 class="mock-label">Activity</h2>
-      <ul class="wf-stack" style="list-style:none;padding:0">
-        <li class="wf-row"><span>📞</span><div><strong>Sarah Kim</strong> logged a call · 2h ago</div></li>
-        <li class="wf-row"><span>✏️</span><div><strong>Sarah Kim</strong> updated value to $48,000 · 1d ago</div></li>
-      </ul>
-    </section>
-  </main>
-  <aside class="wf-stack">
-    <div class="mock-card">
-      <div class="mock-label">Value</div>
-      <div class="wf-mono" style="font-size:20px">$48,000</div>
-    </div>
-    <div class="mock-card">
-      <div class="mock-label">Close date</div>
-      <div>Jun 30, 2026</div>
-    </div>
-  </aside>
-</div>
+  <g data-region="page-header">
+    <title>Entity header</title>
+    <desc>The entity title with a status pill and last-updated line; secondary Edit and primary Mark won actions sit at the right.</desc>
+    <text x="24" y="56" font-size="28" fill="#000" stroke="none">Acme Pilot Q3 Renewal</text>
+    <rect x="480" y="32" width="112" height="24" fill="#fff" stroke="#666"/>
+    <text x="488" y="48" font-size="12" fill="#666" stroke="none">Negotiation</text>
+    <text x="24" y="80" font-size="12" fill="#666" stroke="none">Owned by Sarah Kim · Updated 2h ago</text>
+    <rect x="1016" y="32" width="96" height="40" fill="#fff" stroke="#000"/>
+    <text x="1040" y="56" font-size="14" fill="#000" stroke="none">Edit</text>
+    <rect x="1128" y="32" width="128" height="40" fill="#000"/>
+    <text x="1152" y="56" font-size="14" fill="#fff" stroke="none">Mark won</text>
+    <line x1="24" y1="104" x2="1256" y2="104" stroke="#e6e6e6" stroke-width="1"/>
+  </g>
+
+  <g data-region="body">
+    <title>Description and activity</title>
+    <desc>The read-first main column: a Description section and a reverse-chronological Activity log.</desc>
+    <text x="24" y="144" font-size="12" fill="#666" stroke="none">DESCRIPTION</text>
+    <text x="24" y="176" font-size="14" fill="#000" stroke="none">Renewal of existing 12-month pilot. Customer requested SSO and audit-log support.</text>
+    <text x="24" y="240" font-size="12" fill="#666" stroke="none">ACTIVITY</text>
+    <text x="24" y="288" font-size="14" fill="#000" stroke="none">Sarah Kim logged a call · 2h ago</text>
+    <line x1="24" y1="304" x2="824" y2="304" stroke="#e6e6e6" stroke-width="1"/>
+    <text x="24" y="336" font-size="14" fill="#000" stroke="none">Sarah Kim updated value to $48,000 · 1d ago</text>
+    <line x1="24" y1="352" x2="824" y2="352" stroke="#e6e6e6" stroke-width="1"/>
+  </g>
+
+  <g data-region="side-rail">
+    <title>Metadata rail</title>
+    <desc>Secondary key-value metadata cards: deal value and close date. On mobile this rail collapses into accordions.</desc>
+    <rect x="880" y="128" width="376" height="96" fill="#fff" stroke="#e6e6e6"/>
+    <text x="896" y="160" font-size="12" fill="#666" stroke="none">VALUE</text>
+    <text x="896" y="192" font-size="20" fill="#000" stroke="none">$48,000</text>
+    <rect x="880" y="240" width="376" height="96" fill="#fff" stroke="#e6e6e6"/>
+    <text x="896" y="272" font-size="12" fill="#666" stroke="none">CLOSE DATE</text>
+    <text x="896" y="304" font-size="20" fill="#000" stroke="none">Jun 30, 2026</text>
+  </g>
+
+  <g data-region="annotations">
+    <title>Design notes</title>
+    <desc>Edit mode reveals field affordances and a sticky Save/Cancel bar; when the user lacks edit rights the Edit and Mark won actions are hidden entirely rather than shown disabled.</desc>
+    <circle cx="1000" cy="48" r="8" fill="#d33"/>
+    <text x="1000" y="56" font-size="10" fill="#fff" stroke="none" text-anchor="middle">1</text>
+  </g>
+</svg>
 ```

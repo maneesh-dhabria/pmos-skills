@@ -32,15 +32,15 @@
 4. Status pill next to title for stateful entities (N1)
 5. Breadcrumbs above title for hierarchical IA (N6)
 6. Sticky on scroll only for long pages where actions need to be reachable (N7)
-7. Mobile: collapse actions into overflow `⋯`; primary becomes a sticky bottom button if critical (D1, F1)
-8. ARIA: `<header>` element, title is `<h1>` (A1)
+7. Mobile: collapse actions into overflow `⋯`; primary becomes a sticky bottom button in reach of the thumb if critical (F1)
+8. Title is the H1 — the single dominant element in the header, above section headings (G3)
 
 ## Common mistakes
-- Multiple H1s on a page → confuses hierarchy and screen readers (A1, G3)
+- Multiple competing titles of equal weight → confuses the scan hierarchy (G3)
 - 5+ buttons in the header → overflow noise (F2)
 - Title same size as section headings → no scan hierarchy (G3)
 - Breadcrumbs that duplicate the title (last crumb = page title is fine; whole header redundant isn't) (N8)
-- Mobile keeps all desktop actions inline → overflow / wrap (D1)
+- Mobile keeps all desktop actions inline → overflow / wrap
 
 ## Device variants
 - **desktop**: full layout with all actions visible
@@ -48,31 +48,55 @@
 
 ## Skeleton
 
-```html
-<header style="margin-bottom:1.5rem">
-  <nav aria-label="Breadcrumb" style="margin-bottom:.5rem;font-size:13px">
-    <ol class="wf-row" style="list-style:none;padding:0;margin:0;gap:.5rem">
-      <li><a href="#" class="wf-muted">Workspaces</a></li>
-      <li class="wf-muted" aria-hidden="true">›</li>
-      <li><a href="#" class="wf-muted">Acme</a></li>
-      <li class="wf-muted" aria-hidden="true">›</li>
-      <li aria-current="page">Deals</li>
-    </ol>
-  </nav>
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+  <rect x="0" y="0" width="1280" height="800" fill="#fff"/>
 
-  <div class="wf-row" style="justify-content:space-between;align-items:flex-start;gap:1rem">
-    <div>
-      <div class="wf-row">
-        <h1 style="font-size:24px;margin:0">Deals</h1>
-        <span class="mock-pill">47 open</span>
-      </div>
-      <p class="wf-muted" style="margin:.25rem 0 0">Track and update opportunities across the pipeline.</p>
-    </div>
-    <div class="wf-row">
-      <button class="mock-button">Import</button>
-      <button class="mock-button">Export</button>
-      <button class="mock-button mock-button--primary">+ New deal</button>
-    </div>
-  </div>
-</header>
+  <g data-region="app-bar" transform="translate(0,0)">
+    <title>App bar</title>
+    <desc>Product-level top bar above the page header.</desc>
+    <rect x="0" y="0" width="1280" height="56" fill="#fff" stroke="#e6e6e6"/>
+    <text x="24" y="32" font-size="20" fill="#000" stroke="none">Product</text>
+    <rect x="1216" y="8" width="40" height="40" fill="#e6e6e6"/>
+  </g>
+
+  <g data-region="breadcrumb" transform="translate(24,88)">
+    <title>Breadcrumb</title>
+    <desc>Hierarchical trail above the page title.</desc>
+    <text x="0" y="16" font-size="12" fill="#666" stroke="none">Workspaces / Acme / Deals</text>
+  </g>
+
+  <g data-region="page-header" transform="translate(24,128)">
+    <title>Page header</title>
+    <desc>Title, status pill, description, and right-aligned page actions.</desc>
+    <text x="0" y="24" font-size="28" fill="#000" stroke="none">Deals</text>
+    <rect x="104" y="8" width="88" height="24" fill="#f4f4f4" stroke="#e6e6e6"/>
+    <text x="112" y="24" font-size="12" fill="#666" stroke="none">47 open</text>
+    <text x="0" y="64" font-size="14" fill="#666" stroke="none">Track and update opportunities across the pipeline.</text>
+    <rect x="920" y="0" width="96" height="40" fill="#fff" stroke="#000"/>
+    <text x="936" y="24" font-size="14" fill="#000" stroke="none">Import</text>
+    <rect x="1024" y="0" width="96" height="40" fill="#fff" stroke="#000"/>
+    <text x="1040" y="24" font-size="14" fill="#000" stroke="none">Export</text>
+    <rect x="1128" y="0" width="104" height="40" fill="#000"/>
+    <text x="1144" y="24" font-size="14" fill="#fff" stroke="none">+ New deal</text>
+  </g>
+
+  <g data-region="tabs" transform="translate(24,248)">
+    <title>Tabs</title>
+    <desc>Section tabs below the header with an active underline.</desc>
+    <text x="0" y="16" font-size="14" fill="#000" stroke="none">Overview</text>
+    <text x="96" y="16" font-size="14" fill="#666" stroke="none">Activity</text>
+    <text x="192" y="16" font-size="14" fill="#666" stroke="none">Settings</text>
+    <rect x="0" y="24" width="64" height="8" fill="#000"/>
+    <line x1="0" y1="40" x2="1232" y2="40" stroke="#e6e6e6" stroke-width="1"/>
+  </g>
+
+  <g data-region="annotations" transform="translate(24,336)">
+    <title>Annotations</title>
+    <desc>Design notes for the page-header pattern.</desc>
+    <circle cx="16" cy="16" r="16" fill="#d33"/>
+    <text x="16" y="24" font-size="14" fill="#fff" stroke="none" text-anchor="middle">1</text>
+    <text x="40" y="24" font-size="12" fill="#d33" stroke="none">Title is the most prominent text; actions right-aligned, one primary plus overflow.</text>
+  </g>
+</svg>
 ```

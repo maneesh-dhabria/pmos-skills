@@ -31,7 +31,7 @@
 5. No-results empty state suggests fixes ("Try fewer keywords, or clear your filter") (N9)
 6. Don't show empty state during initial load — show skeleton instead (N4)
 7. Illustrations: kept geometric/abstract for wireframes — don't draft real art (G4, N8)
-8. ARIA: announce empty via `aria-live="polite"` if dynamically appearing after a filter (A1)
+8. ARIA: announce empty via `aria-live="polite"` if dynamically appearing after a filter
 
 ## Common mistakes
 - "No data" with nothing else → user can't tell if it's broken or expected (N9)
@@ -46,22 +46,30 @@
 
 ## Skeleton
 
-```html
-<!-- First-run empty -->
-<div class="wf-message">
-  <div class="placeholder" style="width:96px;height:96px;border-radius:50%"></div>
-  <div class="wf-message__title">No deals yet</div>
-  <div class="wf-message__hint">Track your sales pipeline by adding your first deal. You can import from CSV too.</div>
-  <div class="wf-row" style="margin-top:.5rem">
-    <button class="mock-button mock-button--primary">+ Add deal</button>
-    <button class="mock-button">Import CSV</button>
-  </div>
-</div>
-
-<!-- No-results empty -->
-<div class="wf-message">
-  <div class="wf-message__title">No matches for "renewall"</div>
-  <div class="wf-message__hint">Check spelling or try fewer words.</div>
-  <button class="mock-button" style="margin-top:.5rem">Clear filter</button>
-</div>
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+  <rect x="0" y="0" width="1280" height="800" fill="#fff"/>
+  <g data-region="app-bar">
+    <title>App bar</title><desc>Page chrome above the empty container.</desc>
+    <rect x="0" y="0" width="1280" height="56" fill="#fff" stroke="#e6e6e6"/>
+    <text x="24" y="32" font-size="20" fill="#000" stroke="none">Deals</text>
+  </g>
+  <g data-region="empty-state">
+    <title>Empty state (first-run)</title><desc>Centred first-run empty state: geometric icon, title, aspirational helper text, and a primary create CTA plus an import option.</desc>
+    <rect x="592" y="240" width="96" height="96" fill="#e6e6e6"/>
+    <line x1="592" y1="240" x2="688" y2="336" stroke="#666" stroke-width="1"/>
+    <line x1="688" y1="240" x2="592" y2="336" stroke="#666" stroke-width="1"/>
+    <text x="640" y="392" font-size="28" fill="#000" stroke="none" text-anchor="middle">No deals yet</text>
+    <text x="640" y="432" font-size="14" fill="#666" stroke="none" text-anchor="middle">Track your sales pipeline by adding your first deal. You can import from CSV too.</text>
+    <rect x="520" y="464" width="136" height="40" fill="#000"/>
+    <text x="536" y="488" font-size="14" fill="#fff" stroke="none">+ Add deal</text>
+    <rect x="664" y="464" width="120" height="40" fill="#fff" stroke="#000"/>
+    <text x="680" y="488" font-size="14" fill="#000" stroke="none">Import CSV</text>
+  </g>
+  <g data-region="annotations">
+    <title>Annotations</title><desc>Design notes on empty-state variants.</desc>
+    <rect x="496" y="216" width="288" height="304" fill="none" stroke="#d33" stroke-dasharray="4 4"/>
+    <text x="496" y="560" font-size="12" fill="#d33" stroke="none">Empty state has a helpful CTA and explanation, not a bare "No data" (S2). The no-results variant instead suggests clearing the filter.</text>
+  </g>
+</svg>
 ```
