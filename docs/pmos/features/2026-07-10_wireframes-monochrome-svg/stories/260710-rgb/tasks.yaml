@@ -23,7 +23,9 @@ tasks:
     ac: [AC1]
     deps: []
     parallel: false
-    status: pending
+    status: done
+    evidence: >
+      reference/html-template.md skeleton rewritten to inline monochrome <svg> at canvas token; shell kept verbatim; materialized screen passes lint-wireframe-svg (exit 0)
     detail: >
       Rewrite plugins/pmos-toolkit/skills/wireframes/reference/html-template.md so the skeleton's screen
       body is an inline monochrome <svg>. KEEP the shell verbatim: the <head> (<meta name="pmos:skill"
@@ -45,7 +47,9 @@ tasks:
     ac: [AC3]
     deps: [T1]
     parallel: false
-    status: pending
+    status: done
+    evidence: >
+      pmos-wireframe-meta <script id> shape pinned in html-template.md + SKILL.md #generate: fields/components/states/annotations with typed keys; declared replacement for the th/label/dt grep
     detail: >
       In html-template.md (shown verbatim in the skeleton) and in SKILL.md #generate, specify a new inline
       `<script type="application/json" id="pmos-wireframe-meta">` emitted per screen carrying
@@ -65,7 +69,9 @@ tasks:
     ac: [AC4]
     deps: [T2]
     parallel: false
-    status: pending
+    status: done
+    evidence: >
+      one manifest per file with per-entry state discriminator + top-level states[] enumerating all states; documented in html-template.md #screen-manifest + SKILL.md emit contract
     detail: >
       In html-template.md + SKILL.md #generate require that the pmos-wireframe-meta manifest is emitted for
       EVERY <section class="wf-state"> the screen carries (default/empty/loading/error/…), with each state's
@@ -79,7 +85,9 @@ tasks:
     ac: [AC2]
     deps: [T1]
     parallel: false
-    status: pending
+    status: done
+    evidence: >
+      data-anchor on every region <g> (slug == manifest anchor) + retrofitSvg backstop documented in html-template.md #data-anchor-coverage + SKILL.md #generate; apply-edit-at-anchor.test.js PASS (5 cases)
     detail: >
       In html-template.md and SKILL.md #generate document that every `<g>` and every top-level
       `<rect>`/`<path>` MUST carry `data-anchor` — either emitted directly by the generator or injected by
@@ -98,7 +106,9 @@ tasks:
     ac: [AC5]
     deps: [T2]
     parallel: false
-    status: pending
+    status: done
+    evidence: >
+      numbered annotation-list convention: footer .wf-anno-list + SVG <!-- N --> + manifest annotations[] (3 renderings, one dataset) + chat-reply restatement w/ assumptions in SKILL.md #generate
     detail: >
       In html-template.md and SKILL.md #generate adopt the numbered annotation-list output convention: each
       screen's annotations are rendered as a numbered list in the .wf-footer (keyed to the `<!-- N: … -->`
@@ -112,7 +122,9 @@ tasks:
     ac: [AC6, AC7]
     deps: [T1, T3]
     parallel: false
-    status: pending
+    status: done
+    evidence: >
+      build-canvas.js on 2 SVG-payload screens -> canvas-aggregator: wrote canvas.html (2 screens, 0 arrows); file-level extraction intact (data-state not data-screen); no --emit-svg, no standalone .svg
     detail: >
       Verify (not assume) that the surrounding pipeline still works after the template rewrite: still one
       .html per (component × device); #index-serve's index.html card grid and canvas.html/canvas.json still
@@ -131,7 +143,9 @@ tasks:
     ac: [AC8, AC9]
     deps: [T1, T2, T3, T4, T5, T6]
     parallel: false
-    status: pending
+    status: done
+    evidence: >
+      skill-eval [D] --target claude-code exit 0 (0 fail/warn); 4 hygiene lints exit 0; check-comments-coverage PASS; lint-wireframe-svg selftest 21/21 + desktop+mobile screens pass; frozen non-interactive block byte-identical
     detail: >
       Run plugins/pmos-toolkit/skills/feature-sdlc/tools/skill-eval-check.sh --target claude-code on the
       wireframes skill DIR. Run the four hygiene lints: plugins/pmos-toolkit/tools/lint-non-interactive-inline.sh
