@@ -4,7 +4,7 @@ id: 260709-d0w
 title: "/interview-feedback — read the by-design duration anchor: data-duration proposes the confirmed duration, per-dim data-budget grounds coverage scoring, confirm-never-trust preserved"
 type: feature
 kind: story
-status: in-progress
+status: done
 route: skill
 priority: should
 labels: [pmos-managerkit, interview-feedback, skill]
