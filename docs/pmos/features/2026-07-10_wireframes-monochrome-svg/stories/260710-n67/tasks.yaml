@@ -23,7 +23,8 @@ tasks:
     ac: [AC1]
     deps: []
     parallel: false
-    status: pending
+    status: done
+    evidence: "apply-edit-at-anchor.js _resolveAnchor: data-anchor= branch ported from /diagram, strategy=id-first; test case (f) green"
     detail: >
       In plugins/pmos-toolkit/skills/wireframes/scripts/apply-edit-at-anchor.js, inside _resolveAnchor (lines
       83-112): the id path today matches only id="<slug>" (lines 86-97) then falls through to the >=40-char quote
@@ -40,7 +41,8 @@ tasks:
     ac: [AC2]
     deps: [T1]
     parallel: false
-    status: pending
+    status: done
+    evidence: "wireframes_svg_mini.html (data-anchor, no id, <40-char text) + 6th test case; apply-edit test 6 cases PASS; lint-wireframe-svg passes on fixture"
     detail: >
       Add plugins/pmos-toolkit/skills/wireframes/tests/fixtures/apply-edit-at-anchor/wireframes_svg_mini.html — an
       inline-<svg> screen in the post-refactor emit format: an outer <svg id="screen-dashboard"> containing at least
@@ -58,7 +60,8 @@ tasks:
     ac: [AC3, AC4]
     deps: []
     parallel: false
-    status: pending
+    status: done
+    evidence: "prototype/SKILL.md:183,219 + mock-data-prompt.md read pmos-wireframe-meta.fields first; tag-grep=legacy fallback; silent-empty guard added"
     detail: >
       In plugins/pmos-toolkit/skills/prototype/SKILL.md:183 (Phase 4 #mock-data "Extract visible-field summary") and
       :219 (Phase 6 #generate-devices "Extract visible-field summary per screen"), and in
@@ -77,7 +80,8 @@ tasks:
     ac: [AC5]
     deps: []
     parallel: false
-    status: pending
+    status: done
+    evidence: "slop-prepass.mjs wireframe exemption via meta detect + earned skip(reason); SKILL.md documents it; slop-prepass.test.mjs T3 green (3/3)"
     detail: >
       DECISION (recorded in plan-content.html #decision-design-crit): EXEMPT wireframe artifacts rather than teach
       the engine an SVG dialect. window.pmosDesignScan() is injected + invoked at
@@ -97,7 +101,8 @@ tasks:
     ac: [AC6]
     deps: []
     parallel: false
-    status: pending
+    status: done
+    evidence: "build-canvas.js SCREEN_WIDTH/HEIGHT reconciled to grid-system.md canvas tokens (mobile 375x812, tablet 768x1024, wide 1440x900); chrome families mapped"
     detail: >
       In plugins/pmos-toolkit/skills/wireframes/assets/canvas/build-canvas.js:23-24, SCREEN_WIDTH/SCREEN_HEIGHT
       currently hardcode desktop-web 1280x800, mobile-web 390x844, tablet-web 834x1112 with a 1280x800 DEFAULT.
@@ -115,7 +120,8 @@ tasks:
     ac: [AC7, AC8]
     deps: [T2]
     parallel: false
-    status: pending
+    status: done
+    evidence: "msf-wf forward guard (retired ids named nowhere, described by concept) + tests/svg-edit.test.js 2 cases PASS (retired-id grep 0 + coordinate-adjacent edit)"
     detail: >
       In plugins/pmos-toolkit/skills/msf-wf/SKILL.md the --apply-edits block is lines 181-188; the rubric spot-check
       cite `../wireframes/reference/eval-rubric.md` is at line 185 (the story header says :186 — verify against the
@@ -133,7 +139,8 @@ tasks:
     ac: [AC9]
     deps: []
     parallel: true
-    status: pending
+    status: done
+    evidence: "README:25 already monochrome-SVG via merged xrh dep; grep mid-fi = 0; AC9 satisfied"
     detail: >
       In plugins/pmos-toolkit/README.md:25, the /wireframes row reads "Static mid-fi HTML wireframes plus a
       Figma-like canvas viewer." Rewrite the description so it no longer calls the output "Static mid-fi HTML" —
@@ -145,7 +152,8 @@ tasks:
     ac: [AC10, AC11]
     deps: [T1, T2, T3, T4, T5, T6, T7]
     parallel: false
-    status: pending
+    status: done
+    evidence: "skill-eval [D] pass wireframes/prototype/design-crit; msf-wf 1 PRE-EXISTING residual (d-progress-tracking, absent on base main); 4 hygiene lints PASS; all node tests PASS; comments-coverage PASS; lint selftest 21"
     detail: >
       Run plugins/pmos-toolkit/skills/feature-sdlc/tools/skill-eval-check.sh --target claude-code against the DIR of
       EACH touched skill: wireframes, prototype, design-crit, msf-wf (skill-eval-check.sh + the lints take a

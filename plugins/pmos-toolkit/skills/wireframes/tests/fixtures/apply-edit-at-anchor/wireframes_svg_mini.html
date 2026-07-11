@@ -13,7 +13,7 @@
   <main class="wf-canvas">
     <!-- Post-refactor emit: one inline monochrome SVG payload per state. Regions carry data-anchor,
          NOT id — comments.js stores shape_id = the data-anchor value and drives it through id_anchor.
-         Short <text> nodes (<40 chars) so the ≥40-char quote fallback cannot rescue an id miss. -->
+         Short text nodes (under 40 chars) so the ≥40-char quote fallback cannot rescue an id miss. -->
     <section class="wf-state active" data-state="default" aria-labelledby="state-default-h">
       <h1 id="state-default-h" class="sr-only">Default state</h1>
       <svg id="screen-dashboard" xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800"

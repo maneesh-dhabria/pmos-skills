@@ -27,6 +27,10 @@ const execFileP = promisify(execFile);
 const HERE = dirname(fileURLToPath(import.meta.url));
 const HELPER = join(HERE, 'slop-prepass.mjs');
 const FIXTURE = join(HERE, '__fixtures__', 'slop-prepass-side-tab.html');
+// A monochrome-SVG /wireframes artifact (carries <meta name="pmos:skill" content="wireframes">).
+const WIREFRAME_FIXTURE = join(
+  HERE, '..', '..', 'wireframes', 'tests', 'fixtures', 'apply-edit-at-anchor', 'wireframes_svg_mini.html'
+);
 const ENV = { ...process.env, SLOP_PREPASS_STAMP: 'test-fixed-stamp' };
 
 let playwrightPresent = true;
@@ -80,6 +84,24 @@ test('T1: reads the side-tab tell (and only it) from the live DOM', { skip: play
 
     // Findings were read from the rendered DOM, not a screenshot: overlays exist.
     assert.ok(report.overlaysRendered > 0, 'engine rendered .pmos-slop-* overlay nodes');
+  });
+});
+
+test('T3: a monochrome-SVG wireframe artifact is exempted with an earned skip (epic 260710-grd A9)', { skip: playwrightPresent ? false : 'playwright not installed' }, async () => {
+  await withOutDir(async (out) => {
+    const { code, stderr } = await runHelper(['--source', WIREFRAME_FIXTURE, '--out', out]);
+
+    // Never hard-fails — the exemption reuses the same graceful-degradation exit path.
+    assert.equal(code, 0, 'wireframe exemption exits 0');
+    // The contracted skip-note fires (no silent cap — the run SAYS it skipped and why).
+    assert.match(stderr, /slop-engine unavailable — skipping deterministic pre-pass/, 'contracted skip-note fired');
+    assert.match(stderr, /wireframe SVG artifact/, 'skip reason names the wireframe exemption');
+
+    // The findings file records the earned skip in the existing shape.
+    const report = JSON.parse(await readFile(join(out, 'slop-findings.json'), 'utf8'));
+    assert.equal(report.skipped, true, 'report records the skip');
+    assert.match(report.reason, /monochrome SVG payload has no surface to scan/, 'reason explains why');
+    assert.deepEqual(report.findings, [], 'no findings on an exempted wireframe');
   });
 });
 
