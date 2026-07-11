@@ -5,6 +5,7 @@ title: "/interview-guide — confirm round duration (defer-only, never assume), 
 type: feature
 kind: story
 status: done
+released: v0.7.0
 route: skill
 priority: should
 labels: [pmos-managerkit, interview-guide, skill]

@@ -4,12 +4,13 @@ id: 260709-xhr
 title: "/interview-guide — confirm the expected interview duration (never assume) and honor it: defer-only duration prompt, --duration contract flag, time-budgeted reference, data-duration + per-dim data-budget anchors, duration-fit self-review axis, and /interview-feedback consuming the anchor"
 type: feature
 kind: epic
-status: defined
+status: released
+released: v0.7.0
 route: skill
 priority: should
 labels: [pmos-managerkit, interview-guide, interview-feedback, skill, from-feedback]
 created: 2026-07-09
-updated: 2026-07-09
+updated: 2026-07-11
 design_doc: docs/pmos/features/2026-07-09_interview-guide-duration/02_design.html
 feature_folder: docs/pmos/features/2026-07-09_interview-guide-duration/
 parent:

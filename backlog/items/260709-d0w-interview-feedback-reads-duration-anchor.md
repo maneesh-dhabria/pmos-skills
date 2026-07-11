@@ -5,6 +5,7 @@ title: "/interview-feedback — read the by-design duration anchor: data-duratio
 type: feature
 kind: story
 status: done
+released: v0.7.0
 route: skill
 priority: should
 labels: [pmos-managerkit, interview-feedback, skill]
