@@ -21,7 +21,9 @@ tasks:
     ac: [AC1]
     deps: []
     parallel: false
-    status: pending
+    status: done
+    evidence: >-
+      eval-rubric.md — removed A (accessibility A1–A5) + D (device D1–D4) tables; F1 reworded to judgment-only Fitts reachability, numeric 44px tap-target clause deleted (owned by lint).
     detail: >
       In plugins/pmos-toolkit/skills/wireframes/reference/eval-rubric.md remove the entire "### A — Accessibility
       (WCAG 2.1 AA baseline)" table (A1 semantic HTML, A2 contrast, A3 focus, A4 labels, A5 touch targets) and the
@@ -36,7 +38,9 @@ tasks:
     ac: [AC2, AC3]
     deps: [T1]
     parallel: false
-    status: pending
+    status: done
+    evidence: >-
+      eval-rubric.md — survivor set enumerated (N1–N10,F1–F2,G1–G4,S1–S4,C1–C3) as positive allowlist; SVG-native judgment additions G5 negative-space, C4 region-naming, C5 annotation text-alternative. Inventory grep == enumerated namespace (N1–N10,F1–F2,G1–G5,S1–S4,C1–C5), zero prose-vs-list drift.
     detail: >
       In eval-rubric.md, add an explicit survivor-id enumeration — N1–N10, F1–F2, G1–G4, S1–S4, C1–C3 (VERIFIED
       against the live rubric; exact match) — as a positive allowlist the epic's dangling-cite gate can check
@@ -51,7 +55,9 @@ tasks:
     ac: [AC4, AC6]
     deps: [T2]
     parallel: false
-    status: pending
+    status: done
+    evidence: >-
+      eval-rubric.md — one-line §K cite that deterministic checks live in scripts/lint-wireframe-svg.mjs; severity calibration rebuilt on survivor ids (high: S1,N5,S3,C5); all retired-id refs removed.
     detail: >
       In eval-rubric.md add a one-line statement that the deterministic checks (palette allowlist, 44px tap-target
       geometry, <title>/<desc> presence) live in scripts/lint-wireframe-svg.mjs, and cite it — one fact, one home
@@ -65,7 +71,9 @@ tasks:
     ac: [AC5]
     deps: [T3]
     parallel: false
-    status: pending
+    status: done
+    evidence: >-
+      SKILL.md #review (Phase 6 loop-structure) + Rigor-Protocol low-rigor brief restated on SVG-native terms: deterministic hard-fails = lint checks, judgment second-loop triggers = S1/C5. No contrast/aria/focus-visible/retired-id refs in the #review span.
     detail: >
       In plugins/pmos-toolkit/skills/wireframes/SKILL.md Phase 6 (## Phase 6: Self-Refinement … {#review}, and the
       Rigor & Corner-Cut Protocol lines that describe its hard-fails). RECON: #review uses no rubric ID TOKENS
@@ -81,7 +89,9 @@ tasks:
     ac: [AC7, AC8]
     deps: [T1, T2, T3, T4]
     parallel: false
-    status: pending
+    status: done
+    evidence: >-
+      AC7 grep -Eo zero matches over eval-rubric.md AND #review span; [D] skill-eval --target claude-code 22/0 exit 0; 4 hygiene lints PASS (flags-vs-hints, phase-refs, non-interactive-inline all-60-match, audit-recommended 11/11); lint selftest 21 green. No skill rename; non-interactive block byte-identical.
     detail: >
       Run the A1 dangling-cite gate as an ERE (note grep -Eo, NOT plain grep — the seed's BRE pattern silently never
       matched): `grep -Eo '\b(A1|A2|A3|A4|A5|D1|D2|D3|D4)\b'
