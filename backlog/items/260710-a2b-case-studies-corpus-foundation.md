@@ -5,11 +5,12 @@ title: "/case-studies corpus foundation — one-shot importer transforming the 6
 type: feature
 kind: story
 status: done
+released: v0.36.0
 route: feature
 priority: should
 labels: [pmos-learnkit, case-studies, corpus]
 created: 2026-07-10
-updated: 2026-07-10
+updated: 2026-07-11
 parent: 260710-4bh
 feature_folder: docs/pmos/features/2026-07-10_case-studies-skill/
 design_doc: docs/pmos/features/2026-07-10_case-studies-skill/02_design.html

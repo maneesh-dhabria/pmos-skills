@@ -5,6 +5,7 @@ title: "/case-studies skill surface — SKILL.md (token-dispatch browse/retrieve
 type: feature
 kind: story
 status: done
+released: v0.36.0
 route: skill
 priority: should
 labels: [pmos-learnkit, case-studies, skill, library-viewer]

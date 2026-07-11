@@ -4,12 +4,13 @@ id: 260710-4bh
 title: "/case-studies — a bundled, offline, searchable learnkit library of 665 curated product case studies: single-array JSON corpus imported from the case-studies-scraping repo, a viewer on the shared library-viewer substrate (columns reader), a deterministic topic-match prefilter + LLM re-rank returning a chat shortlist AND an offer to open the filtered viewer, and a --json contract at parity with /frameworks"
 type: feature
 kind: epic
-status: defined
+status: released
+released: v0.36.0
 route: skill
 priority: should
 labels: [pmos-learnkit, case-studies, skill, library-viewer, curated-corpus]
 created: 2026-07-10
-updated: 2026-07-10
+updated: 2026-07-11
 design_doc: docs/pmos/features/2026-07-10_case-studies-skill/02_design.html
 feature_folder: docs/pmos/features/2026-07-10_case-studies-skill/
 parent:
