@@ -6,8 +6,10 @@ Used by the `#mock-data` phase. Dispatch ONE subagent with this prompt template,
 
 1. **Requirements doc text** — full contents
 2. **Wireframes visible-field summary** — extracted by main agent before dispatch:
-   - Run grep across `wireframes/*.html` for `<th>`, `<label>`, `<dt>` text and any `data-field` attributes
+   - **Primary source:** read each screen's inline `<script type="application/json" id="pmos-wireframe-meta">` manifest and take its declared `fields` array (monochrome-SVG wireframes render fields as `<text>` nodes, so the tag-grep finds nothing in them — the manifest is the declared replacement).
+   - **Legacy fallback (pre-refactor wireframes only):** for a screen with no manifest, grep `wireframes/*.html` for `<th>`, `<label>`, `<dt>` text and any `data-field` attributes.
    - Build a structured list: `{screen, fieldsShown: [name1, name2, …], approxRowCount: N (from wireframe row visible)}`
+   - **Never emit an empty summary silently:** if a screen yields no fields from either source, the main agent reports that screen (its entity model would be empty) rather than proceeding.
 3. **Workstream domain hint** — if `#pipeline-setup` loaded one, pass the `## Tech Stack` and `## Domain Notes` sections verbatim
 4. **Output folder path** — `{feature_folder}/prototype/assets/`
 

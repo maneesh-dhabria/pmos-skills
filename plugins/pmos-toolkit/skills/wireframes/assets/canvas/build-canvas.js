@@ -20,9 +20,26 @@ const fs = require('fs');
 const path = require('path');
 const { extractScreens } = require('./extract-screens');
 
-const SCREEN_WIDTH = { 'desktop-web': 1280, 'mobile-web': 390, 'tablet-web': 834 };
-const SCREEN_HEIGHT = { 'desktop-web': 800, 'mobile-web': 844, 'tablet-web': 1112 };
-const DEFAULT_WIDTH = 1280;
+// Canvas tokens are the numeric home in reference/grid-system.md (story 260710-p5x):
+// desktop 1280×800, mobile 375×812, tablet 768×1024, wide 1440×900. Per epic
+// 260710-grd A8 the five chrome variants stay ORTHOGONAL to canvas tokens — the
+// mobile family (mobile-web, android-app, ios-app) maps to the mobile token and the
+// desktop family (desktop-web, desktop-app) to desktop, so they no longer silently
+// fall through to DEFAULT. tablet/wide are canvas-only selection targets, NOT new
+// chrome frames. The old mobile-web 390×844 / tablet-web 834×1112 values were wrong.
+const SCREEN_WIDTH = {
+  // canvas tokens
+  desktop: 1280, mobile: 375, tablet: 768, wide: 1440,
+  // chrome variants → their canvas-token width
+  'desktop-web': 1280, 'desktop-app': 1280,
+  'mobile-web': 375, 'android-app': 375, 'ios-app': 375,
+};
+const SCREEN_HEIGHT = {
+  desktop: 800, mobile: 812, tablet: 1024, wide: 900,
+  'desktop-web': 800, 'desktop-app': 800,
+  'mobile-web': 812, 'android-app': 812, 'ios-app': 812,
+};
+const DEFAULT_WIDTH = 1280;   // genuinely-unknown device falls back to the desktop token
 const DEFAULT_HEIGHT = 800;
 const GUTTER_X = 200;
 const GUTTER_Y = 400;

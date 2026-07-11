@@ -78,12 +78,14 @@ function _maybeClarification(body) {
   return { question: text, options: [a, b] };
 }
 
-// Anchor resolution: id-first; then naive substring-contains on quote_anchor.text
-// (FR-25, P6). Quote must be ≥40 chars to avoid false matches.
+// Anchor resolution: id-first (id= then SVG data-anchor=); then naive
+// substring-contains on quote_anchor.text (FR-25, P6). Quote must be ≥40 chars
+// to avoid false matches.
 function _resolveAnchor(html, anchor) {
   if (!anchor) return { ok: false, reason: "missing_anchor" };
   const id = anchor.id_anchor;
   if (id) {
+    // Try standard id= first.
     const re = new RegExp(`id\\s*=\\s*["']${id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}["']`);
     const m = html.match(re);
     if (m) {
@@ -92,6 +94,22 @@ function _resolveAnchor(html, anchor) {
         ok: true,
         strategy: "id-first",
         dom_range: { start_offset: idx, end_offset: idx + m[0].length },
+        score: 1.0,
+      };
+    }
+    // Try SVG data-anchor= (post-refactor screen regions carry data-anchor,
+    // no id). comments.js stores shape_id = the data-anchor value and drives
+    // it through id_anchor, so it resolves under the same id-first strategy.
+    const reData = new RegExp(
+      `data-anchor\\s*=\\s*["']${id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}["']`
+    );
+    const mData = html.match(reData);
+    if (mData) {
+      const idx = html.indexOf(mData[0]);
+      return {
+        ok: true,
+        strategy: "id-first",
+        dom_range: { start_offset: idx, end_offset: idx + mData[0].length },
         score: 1.0,
       };
     }
