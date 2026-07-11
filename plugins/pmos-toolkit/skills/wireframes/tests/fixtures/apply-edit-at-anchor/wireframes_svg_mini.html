@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="pmos:skill" content="wireframes">
+  <title>Mini SVG Wireframe — Dashboard Screen (fixture)</title>
+  <link rel="stylesheet" href="../../assets/wireframe.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../../assets/comments.js"></script>
+  <link rel="stylesheet" href="../../assets/comments.css">
+</head>
+<body>
+  <main class="wf-canvas">
+    <!-- Post-refactor emit: one inline monochrome SVG payload per state. Regions carry data-anchor,
+         NOT id — comments.js stores shape_id = the data-anchor value and drives it through id_anchor.
+         Short <text> nodes (<40 chars) so the ≥40-char quote fallback cannot rescue an id miss. -->
+    <section class="wf-state active" data-state="default" aria-labelledby="state-default-h">
+      <h1 id="state-default-h" class="sr-only">Default state</h1>
+      <svg id="screen-dashboard" xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800"
+           stroke="#000" fill="none"
+           font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+        <g data-region="app-bar" data-anchor="app-bar" transform="translate(0,0)">
+          <title>Top app bar</title>
+          <desc>Product name and account avatar.</desc>
+          <rect x="0" y="0" width="1280" height="56" fill="#fff" stroke="#e6e6e6"/>
+          <text x="24" y="32" font-size="20" fill="#000" stroke="none">Acme Reports</text>
+        </g>
+        <g data-region="sidebar" data-anchor="sidebar" transform="translate(0,56)">
+          <title>Navigation sidebar</title>
+          <desc>Primary sections: Home, Renewals, Reports.</desc>
+          <rect x="0" y="0" width="240" height="744" fill="#fff" stroke="#e6e6e6"/>
+          <text x="24" y="40" font-size="14" fill="#000" stroke="none">Home</text>
+          <text x="24" y="72" font-size="14" fill="#000" stroke="none">Renewals</text>
+          <text x="24" y="104" font-size="14" fill="#000" stroke="none">Reports</text>
+        </g>
+        <g data-region="content" data-anchor="content" transform="translate(264,88)">
+          <title>Renewal cards</title>
+          <desc>One card per account.</desc>
+          <rect x="0" y="0" width="360" height="200" fill="#fff" stroke="#e6e6e6"/>
+          <text x="16" y="40" font-size="20" fill="#000" stroke="none">Acme Pilot Q3</text>
+        </g>
+        <!-- annotations: the only place the annotation colour may appear -->
+        <g data-region="annotations" data-anchor="annotations" transform="translate(632,88)">
+          <title>Reviewer annotations</title>
+          <desc>Numbered redlines keyed to the footer list.</desc>
+          <circle cx="16" cy="16" r="16" fill="#d33"/>
+          <text x="16" y="24" font-size="14" fill="#fff" stroke="none" text-anchor="middle">1</text>
+        </g>
+      </svg>
+    </section>
+  </main>
+
+  <footer class="wf-footer">
+    <ol class="wf-anno-list wf-footer__inner">
+      <li>Sidebar collapses below the tablet breakpoint.</li>
+    </ol>
+  </footer>
+
+  <script type="application/json" id="pmos-wireframe-meta">
+  {
+    "states": ["default"],
+    "fields": [
+      { "name": "Account name", "kind": "text",   "state": "default", "region": "content", "anchor": "content" },
+      { "name": "Renewal date", "kind": "date",   "state": "default", "region": "content", "anchor": "content" }
+    ],
+    "components": [
+      { "kind": "app-bar", "variant": null, "label": "Acme Reports",  "state": "default", "region": "app-bar", "anchor": "app-bar" },
+      { "kind": "nav",     "variant": null, "label": "Home",          "state": "default", "region": "sidebar", "anchor": "sidebar" },
+      { "kind": "card",    "variant": null, "label": "Acme Pilot Q3", "state": "default", "region": "content", "anchor": "content" }
+    ],
+    "annotations": [
+      { "n": 1, "note": "Sidebar collapses below the tablet breakpoint.", "anchor": "annotations", "state": "default" }
+    ]
+  }
+  </script>
+</body>
+</html>

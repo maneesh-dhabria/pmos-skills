@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // T19 — per-skill contract test for /wireframes "Apply comment-resolver edit" shim.
-// Exercises 5 cases against the §9.1 input/output contract from
+// Exercises 6 cases against the §9.1 input/output contract from
 // plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md.
 //
 // Wireframes-specific infeasible case: edit targeting index.html navigation
@@ -13,6 +13,8 @@ const assert = require("assert");
 
 const SHIM_PATH = path.join(__dirname, "..", "scripts", "apply-edit-at-anchor.js");
 const FIXTURE = path.join(__dirname, "fixtures", "apply-edit-at-anchor", "wireframes_mini.html");
+// Post-refactor emit: an inline-<svg> screen whose regions carry data-anchor, not id.
+const SVG_FIXTURE = path.join(__dirname, "fixtures", "apply-edit-at-anchor", "wireframes_svg_mini.html");
 
 let apply;
 try {
@@ -115,12 +117,36 @@ function mkInput(overrides) {
     failures.push("case (e) clarification: " + (e && e.message));
   }
 
+  // (f) SVG data-anchor path — a region group carries data-anchor="sidebar" and NO id;
+  //     its <text> nodes are <40 chars so the quote fallback cannot rescue it. The pre-T1
+  //     id-only shim would orphan this; the ported data-anchor branch must resolve it.
+  try {
+    const out = await apply({
+      artifact_path: SVG_FIXTURE,
+      thread_id: "T_F",
+      anchor: { id_anchor: "sidebar", quote_anchor: null },
+      body: "label the Reports nav item more clearly",
+    });
+    assert.strictEqual(out.success, true, "(f) success should be true (data-anchor resolved)");
+    assert.notStrictEqual(
+      out.error_enum,
+      "anchor_orphaned",
+      "(f) must NOT orphan — data-anchor branch resolves the SVG region"
+    );
+    assert.ok(
+      typeof out.diff_ref === "string" && out.diff_ref.indexOf("strategy=id-first") !== -1,
+      "(f) resolved under the id-first strategy (data-anchor)"
+    );
+  } catch (e) {
+    failures.push("case (f) svg data-anchor: " + (e && e.message));
+  }
+
   if (failures.length > 0) {
-    console.error("FAIL: /wireframes apply-edit-at-anchor — " + failures.length + " of 5 cases");
+    console.error("FAIL: /wireframes apply-edit-at-anchor — " + failures.length + " of 6 cases");
     for (const f of failures) console.error("  - " + f);
     process.exit(1);
   }
-  console.log("PASS: /wireframes apply-edit-at-anchor — 5 cases");
+  console.log("PASS: /wireframes apply-edit-at-anchor — 6 cases");
 })().catch((e) => {
   console.error("FAIL: uncaught " + (e && e.stack ? e.stack : e));
   process.exit(1);
