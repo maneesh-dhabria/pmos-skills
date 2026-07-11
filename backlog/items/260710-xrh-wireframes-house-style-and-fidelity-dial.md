@@ -4,16 +4,13 @@ id: 260710-xrh
 title: "/wireframes — inline house-style table citing the single home, wireframe.css collapsed to monochrome with .wf-anno re-coloured to #d33, chrome→canvas mapping, --fidelity parsed as nl-sugar (never a contract flag), and the stale 'mid-fi, Tailwind' prose retired"
 type: feature
 kind: story
-status: in-progress
+status: done
 route: skill
 priority: should
 labels: [pmos-toolkit, wireframes, skill]
 created: 2026-07-10
 updated: 2026-07-11
 parent: 260710-grd
-claimed_by: build:0d5e385f-c675-46f6-a126-345344fa277d
-driver_holder: build:0d5e385f-c675-46f6-a126-345344fa277d
-worktree: .claude/worktrees/feat-260710-xrh
 feature_folder: docs/pmos/features/2026-07-10_wireframes-monochrome-svg/
 design_doc: docs/pmos/features/2026-07-10_wireframes-monochrome-svg/02_design.html
 plan_doc: docs/pmos/features/2026-07-10_wireframes-monochrome-svg/stories/260710-xrh/03_plan.html
