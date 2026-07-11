@@ -21,7 +21,14 @@ tasks:
     ac: [AC2]
     deps: []
     parallel: false
-    status: pending
+    status: done
+    evidence: >
+      assets/wireframe.css: .mock-button--primary now ink-fill (var(--wf-text)/surface); .mock-button--danger
+      ink-outline bold; .mock-img flat grey (gradient removed); .mock-card + .wf-fab box-shadow dropped;
+      .wf-fab ink-fill; .wf-message--error/--success -> var(--wf-text); dark @media payload hue overrides
+      (--wf-accent/-2) removed (chrome greys + shadow kept). grep -e '--wf-accent' shows only :root decl (26/27),
+      an explanatory comment (48), and :focus-visible affordance (63) — NO screen-payload rule. box-shadow only on
+      .wf-frame--* chrome device frames (173/174/189). :focus-visible + .placeholder kept; :root tokens intact.
     detail: >
       In plugins/pmos-toolkit/skills/wireframes/assets/wireframe.css strip colour from every SCREEN-PAYLOAD
       rule while leaving CHROME rules coloured. Payload rules to neutralise (use --wf-text / --wf-muted /
@@ -46,7 +53,13 @@ tasks:
     ac: [AC3]
     deps: [T1]
     parallel: false
-    status: pending
+    status: done
+    evidence: >
+      assets/wireframe.css: .wf-anno outline -> `1px dashed #d33` (L103); .wf-anno::after background -> #d33,
+      text stays #fff (L107). `grep -c '#d33' wireframe.css` == 2 (only the two annotation-layer rules).
+      Because T1 removed --wf-accent from .wf-anno, the annotation-blue-bleed defect is gone; #d33 is the sole
+      hue in an otherwise monochrome sheet. /prototype V4 NOT edited (colour-agnostic class-presence check whose
+      class names do not even match live output — reasoning recorded here per AC3, not acted on).
     detail: >
       In wireframe.css re-colour the annotation layer to #d33 (a literal hex, the one reserved annotation
       colour): .wf-anno (line 102) outline becomes `1px dashed #d33`; .wf-anno::after (103-107) background
@@ -65,7 +78,13 @@ tasks:
     ac: [AC1]
     deps: []
     parallel: false
-    status: pending
+    status: done
+    evidence: >
+      SKILL.md #generate: new `### House style — the drawing contract {#house-style}` opens with a line naming
+      reference/grid-system.md (dep 260710-p5x) as the AUTHORITATIVE home and this table as a CITATION only
+      (§K/A3, "grid-system.md wins; edit values there, never here"). 5-row table (palette, annotation #d33,
+      8px grid, type scale, component sizes) with a per-row "Home in grid-system.md" column — no value is a
+      second home. Placed at top of Phase 5 where generator subagents consume the drawing contract.
     detail: >
       In plugins/pmos-toolkit/skills/wireframes/SKILL.md add a compact (~15-line) house-style token table as
       the non-negotiable drawing contract the generator subagents in #generate must honour: the monochrome
@@ -80,7 +99,14 @@ tasks:
     ac: [AC4, AC5]
     deps: []
     parallel: false
-    status: pending
+    status: done
+    evidence: >
+      SKILL.md #generate: new `### Chrome → canvas mapping {#chrome-canvas}` table — desktop-web+desktop-app ->
+      desktop 1280x800; mobile-web+ios-app+android-app -> mobile 375x812; tablet -> 768x1024; wide -> 1440x900,
+      dimensions CITED from grid-system.md Canvas presets (not restated). Explicit A8 statement: tablet/wide are
+      CANVAS TARGETS not devices; #component-breakdown step 4 keeps exactly its five chrome variants; no
+      tablet/wide frame added to wireframe.css; build-canvas.js reconciliation flagged as sibling 260710-n67
+      (out of scope). build-canvas.js NOT edited.
     detail: >
       In SKILL.md add a chrome->canvas mapping table: desktop-web + desktop-app -> 1280x800; mobile-web +
       ios-app + android-app -> 375x812; tablet -> 768x1024; wide -> 1440x900. The canvas DIMENSIONS are
@@ -96,7 +122,14 @@ tasks:
     ac: [AC6, AC7]
     deps: []
     parallel: false
-    status: pending
+    status: done
+    evidence: >
+      SKILL.md "Flags & natural language": `--fidelity lo|mid` added as a THIRD silent alias preceded by a
+      literal `<!-- nl-sugar -->` line; documents the §I 4-test-zero rationale, NL forms ("brand it"/"match
+      the app's look") -> mid, hard default lo, and the A9 semantics (mid brands CHROME only; SVG payload
+      strictly monochrome every mode). NOT added to frontmatter argument-hint (line 5 unchanged).
+      lint-flags-vs-hints.sh PASS (green because nl-sugar-marked, not because hinted); skill-eval
+      i-nl-sugar-marked PASS.
     detail: >
       In SKILL.md "Flags & natural language" section add `--fidelity lo|mid` as a THIRD silent alias
       alongside the two existing nl-sugar flags: precede its bullet with a literal `<!-- nl-sugar -->` line
@@ -113,7 +146,14 @@ tasks:
     ac: [AC8]
     deps: [T5]
     parallel: false
-    status: pending
+    status: done
+    evidence: >
+      SKILL.md #resolve-design-md step 4: overlay is ALWAYS written / regenerated every run (D2); only the
+      per-screen <link> is gated on `mid`. --bootstrap-design-only unaffected. A10 mtime-reuse reasoning
+      recorded (regenerated-every-run => unlinked overlay never stale by mtime => /prototype reuse keeps
+      working; /wireframes now write-only over overlay, consumption moves to /prototype). #generate "File
+      requirements" and the DESIGN.md generator-subagent instruction both updated to emit the overlay link
+      only under `mid` and keep payload monochrome under `lo`.
     detail: >
       In SKILL.md #resolve-design-md (Phase 3) make ONLY the LINK of design-overlay.css into per-screen
       HTML conditional on `mid`; step 4 still GENERATES design-overlay.css every run (D2 — the file is
@@ -131,7 +171,15 @@ tasks:
     ac: [AC9]
     deps: []
     parallel: false
-    status: pending
+    status: done
+    evidence: >
+      (1) SKILL.md frontmatter description (L3): "single-file, mid-fi, Tailwind" removed -> "static monochrome
+      SVG wireframes"; stays a SINGLE-LINE double-quoted-free scalar (skill-eval a-desc-present PASS, 525
+      chars, single line). (2) SKILL.md Phase-0 intro prose (L10): "mid-fidelity (Tailwind via CDN…)" dropped
+      -> screen payload is monochrome inline SVG, chrome brandable under mid. (3) README.md:25 "Static mid-fi
+      HTML" -> "Static monochrome SVG". Also updated the wireframe.css header comment ("Mid-fidelity" ->
+      "Monochrome screen payload") for in-file coherence. Tailwind NOT claimed removed wholesale — index.html
+      /canvas.html CDNs untouched; only screen-body usage retired (A5).
     detail: >
       Update the three stale surfaces (A5). (1) SKILL.md frontmatter `description` (line 3): remove
       "single-file, mid-fi, Tailwind" — describe the output as static monochrome SVG wireframes; it MUST
@@ -147,7 +195,15 @@ tasks:
     ac: [AC10]
     deps: [T1, T2, T3, T4, T5, T6, T7]
     parallel: false
-    status: pending
+    status: done
+    evidence: >
+      skill-eval-check.sh --target claude-code plugins/pmos-toolkit/skills/wireframes => 22/22 PASS, exit 0
+      (incl i-nl-sugar-marked, i-hint-contract-only, j-phase-refs-resolve, a-desc single-line). Four hygiene
+      lints all PASS: lint-non-interactive-inline.sh (60/60, frozen block byte-identical), audit-recommended.sh
+      on SKILL.md (11 calls, 0 unmarked), tools/lint-flags-vs-hints.sh (in sync), tools/lint-phase-refs.sh (all
+      refs resolve). Deterministic AC checks: `grep -c '#d33' wireframe.css` == 2; no --wf-accent in any
+      screen-payload rule (only :root decl + :focus-visible affordance). No residual skill-eval finding to
+      reconcile — clean 22/22, so no HEAD^1 pre-existing proof needed. Skill NOT renamed.
     detail: >
       Run plugins/pmos-toolkit/skills/feature-sdlc/tools/skill-eval-check.sh --target claude-code on the
       wireframes skill DIR. Run the four hygiene lints: plugins/pmos-toolkit/tools/lint-non-interactive-inline.sh
