@@ -4,12 +4,15 @@ id: 260710-rgb
 title: "/wireframes — rewrite html-template.md for the inline-SVG payload, add the pmos-wireframe-meta screen manifest as the machine-readable home for fields/components/states/annotations, and adopt the numbered annotation-list output convention"
 type: feature
 kind: story
-status: planned
+status: in-progress
 route: skill
 priority: should
 labels: [pmos-toolkit, wireframes, skill]
 created: 2026-07-10
-updated: 2026-07-10
+updated: 2026-07-11
+claimed_by: build:0d5e385f-c675-46f6-a126-345344fa277d
+driver_holder: build:0d5e385f-c675-46f6-a126-345344fa277d
+worktree: .claude/worktrees/feat-260710-rgb
 parent: 260710-grd
 feature_folder: docs/pmos/features/2026-07-10_wireframes-monochrome-svg/
 design_doc: docs/pmos/features/2026-07-10_wireframes-monochrome-svg/02_design.html
