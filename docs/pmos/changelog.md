@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-11 — pmos-learnkit 0.36.0: /case-studies — a searchable, offline library of 665 real product case studies
+
+**`/case-studies` is a new learnkit skill: 665 curated product case studies — real companies, real decisions — bundled into the plugin and usable with no account and no network.** Every study is drawn from a primary source (an engineering blog, a talk, a filing, a handbook, a paper) and carries a curated abstract, what they built, the evidence, why it matters, and a link back to the original. Describe a problem in plain words — "how did companies handle pricing changes", "examples of retention wins" — and the skill returns the handful worth reading, each with a one-line *why it fits*, and offers to open the same set filtered in the library viewer. Bare `/case-studies` (or `browse`) opens the whole collection, filterable by pillar, topic, region, artifact type, and year, straight from `file://`.
+
+**It's built to be a substrate other skills can query, not just a reading surface.** The corpus is a single committed JSON snapshot behind a closed vocabulary — 4 pillars, 98 topics, 9 regions, 5 artifact types — with a validator that gates every record's schema, id-uniqueness, and tag membership so the library can't rot silently. Retrieval is a deterministic topic-match prefilter followed by an LLM re-rank, and a `--json` mode returns a bounded, confidence-capped shortlist in the same shape `/frameworks` uses, so another skill can ask "which case studies for this?" programmatically. The viewer is a thin adapter over the shared library-viewer substrate the rest of learnkit already uses.
+
 ## 2026-07-11 — pmos-managerkit 0.7.0: /interview-guide asks how long the round is — and never guesses
 
 **`/interview-guide` now confirms the round's expected duration before it plans anything, and refuses to invent one.** It asks you — 30 / 45 / 60 / 90 minutes or a free-form "Other" — with no pre-picked default, so a headless run defers the question rather than assuming an hour. Pin it up front with `--duration <mins>` and the prompt never fires. Once the length is known, the interviewer reference is *time-budgeted* against it: per-area minute allocations, explicit open/close overhead, and a probe ladder trimmed to what actually fits the round, instead of a generic script you have to ration on the fly.

@@ -10,7 +10,7 @@ Five plugins, each answering one question:
 | Plugin | Helps you… | Headline skills |
 |---|---|---|
 | **pmos-toolkit** | ship a feature | `/feature-sdlc`, `/requirements` → `/spec` → `/plan` → `/execute` → `/verify` → `/complete-dev`, `/grill`, `/artifact` |
-| **pmos-learnkit** | learn a topic | `/primer`, `/learn-list`, `/frameworks`, `/magazine`, `/playbook`, `/book-summary`, `/critical-thinking` |
+| **pmos-learnkit** | learn a topic | `/primer`, `/learn-list`, `/frameworks`, `/case-studies`, `/magazine`, `/playbook`, `/book-summary`, `/critical-thinking` |
 | **pmos-utilities** | maintain your environment | `/mac-health`, `/reflect`, `/converter`, `/to-notion-doc` |
 | **pmos-managerkit** | do manager work | `/interview-feedback` |
 | **pmos-gamekit** | take a break | `/solitaire`, `/2048`, `/tetris`, `/sudoku`, `/snake`, `/poker`, `/flappy-bird` |
@@ -69,6 +69,7 @@ prefix. The plugin each skill belongs to is in the last column.
 | Ramp up on a topic with cited sources | `/primer <topic>` | learnkit |
 | Get a verified, anti-slop reading list | `/learn-list <topic>` | learnkit |
 | Find the right PM framework for a decision | `/frameworks "<problem>"` | learnkit |
+| Find real-world product case studies on a topic | `/case-studies "<topic>"` | learnkit |
 | Digest your newsletter + podcast backlog | `/magazine` | learnkit |
 | Turn your AI sessions into shareable case studies | `/playbook` | learnkit |
 | Get the durable ideas of a book, PM-framed | `/book-summary <title>` | learnkit |
