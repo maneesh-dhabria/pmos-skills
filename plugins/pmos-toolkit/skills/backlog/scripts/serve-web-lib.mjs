@@ -283,7 +283,10 @@ export function buildModel(items, opts = {}) {
     if (as !== bs) return bs - as;
     return a.updated < b.updated ? 1 : a.updated > b.updated ? -1 : 0;
   });
-  const next = { pick: candidates.length ? candidates[0].id : null };
+  // The full ordered queue is the product; `pick` is read off its head in the same expression, so
+  // INV-2 (pick === queue[0]) cannot drift under later edits to the filter or the comparator above.
+  const queue = candidates.map((c) => c.id);
+  const next = { queue, pick: queue[0] ?? null };
 
   // releases — per-epic rollup (D23). released excluded; blocked-story epic → blocked;
   // all non-wontfix done → release_ready; some open → in_flight.

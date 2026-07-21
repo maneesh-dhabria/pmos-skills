@@ -113,6 +113,10 @@ function testDerivation() {
   // next: S2(should) and S6(could) are candidates (both E1/in-flight); S7 excluded (dep S4 not done).
   // should beats could → S2.
   eq(model.queues.next.pick, 'S2', 'next pick = S2 (in-flight epic, should > could)');
+  // FR-1/FR-2: the lane renders the whole ordered queue, not just its head.
+  eq(model.queues.next.queue, ['S2', 'S6'], 'next queue = [S2,S6] in D22 order (S7 excluded, dep S4 not done)');
+  // INV-2: pick is read off the queue head in one expression, so this can never drift.
+  eq(model.queues.next.pick, model.queues.next.queue[0], 'INV-2: pick === queue[0]');
 
   // releases — FR-6: not-started epics (0 stories done) are excluded from the column.
   // E4 is blocked but has 0 done stories → excluded entirely (its blocked story stays in groom).
@@ -169,6 +173,24 @@ function testGroupedStatusFacets() {
   eq(model.facets.epic_statuses, ['inbox', 'defined'], 'epic_statuses lifecycle-ordered, present-only (FR-4)');
   // Story statuses present: draft (S5), planned (S2/S6/S7), blocked (S4), done (S1/S3).
   eq(model.facets.story_statuses, ['draft', 'planned', 'blocked', 'done'], 'story_statuses lifecycle-ordered, present-only (FR-4)');
+  fs.rmSync(root, { recursive: true, force: true });
+}
+
+// --- FR-1/FR-2: the ready queue when nothing is ready -----------------------------------
+
+function testEmptyReadyQueue() {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'backlog-emptyq-'));
+  const itemsDir = path.join(root, 'backlog', 'items');
+  fs.mkdirSync(itemsDir, { recursive: true });
+  // one epic, one story that is already done → zero build candidates
+  fs.writeFileSync(path.join(itemsDir, 'e1.md'), item({ id: 'E1', kind: 'epic', title: 'E', status: 'defined', labels: ['pmos-toolkit'], created: '2026-06-10' }));
+  fs.writeFileSync(path.join(itemsDir, 's1.md'), item({ id: 'S1', kind: 'story', title: 'S1', status: 'done', parent: 'E1' }));
+  const { items } = parseItems(itemsDir);
+  const model = buildModel(items, { now: Date.parse('2026-06-14T00:00:00Z') });
+
+  eq(model.queues.next.queue, [], 'no candidates → queue = [] (FR-1)');
+  eq(model.queues.next.pick, null, 'no candidates → pick = null (unchanged behaviour)');
+  eq(model.queues.next.pick, model.queues.next.queue[0] ?? null, 'INV-2 holds in the empty case too');
   fs.rmSync(root, { recursive: true, force: true });
 }
 
@@ -252,7 +274,10 @@ async function testServer() {
     ok(api.status === 200, 'GET /api/backlog → 200');
     const model = JSON.parse(api.body);
     ok(Array.isArray(model.epics) && model.epics.length === 4, 'API model has 4 epics');
+    // INV-1: the served pick is byte-identical to before this story — the queue is additive beside it.
     ok(model.queues.next.pick === 'S2', 'API next pick = S2 (matches lib)');
+    ok(JSON.stringify(model.queues.next.queue) === JSON.stringify(['S2', 'S6']), 'API next queue = [S2,S6] (matches lib)');
+    ok(model.queues.next.pick === model.queues.next.queue[0], 'API: INV-2 pick === queue[0]');
 
     const four = await get(port, '/nope');
     ok(four.status === 404, 'unknown path → 404');
@@ -322,6 +347,7 @@ async function main() {
   testDerivation();
   testNullCoercion();
   testGroupedStatusFacets();
+  testEmptyReadyQueue();
   testReleasesExclusion();
   testAcFormatMatrix();
   await testServer();
