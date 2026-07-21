@@ -254,16 +254,19 @@ function renderQueues() {
 
   // FR-3/FR-4/FR-5: one row per ready story, in the queue's own D22 order (never re-sorted here —
   // INV-4 keeps every read-side rule in serve-web-lib.mjs). Head row is the pick.
-  const readyRow = (id, i) => {
+  const readyRow = (id) => {
     const hit = STATE._ix.get(id);
     const parent = hit && hit.epic ? hit.epic.id : "";
     const stale = hit && hit.obj && hit.obj.claim_stale;
+    // Read the published pick rather than re-deriving it from the row index: the model already says
+    // which row `build --next` takes, and INV-4 keeps read-side facts in serve-web-lib.mjs.
+    const isPick = id === q.next.pick;
     const chips =
-      (i === 0 ? ` <span class="chip" title="what /feature-sdlc build --next picks">next</span>` : "") +
-      (stale ? ` <span class="chip" title="claim lock present but stale — /backlog unclaim to clear">stale claim</span>` : "");
+      (isPick ? ` <span class="chip" title="what /feature-sdlc build --next picks">next</span>` : "") +
+      (stale ? ` <span class="chip" title="claim older than 4h TTL — /backlog unclaim ${esc(id)} to clear">stale claim</span>` : "");
     // D6: the lane is deliberately cross-epic, so without the parent the ordering looks arbitrary.
     const parentTag = parent ? ` <span class="id" title="parent epic">${esc(parent)}</span>` : "";
-    const cmd = i === 0 ? `/feature-sdlc build --next` : `/feature-sdlc build --story ${id}`;
+    const cmd = isPick ? `/feature-sdlc build --next` : `/feature-sdlc build --story ${id}`;
     return `<div class="qitem"><span class="id">#${esc(id)}</span> ${esc(titleFor(id))}${chips}${parentTag}<code class="qcmd">${esc(cmd)}</code></div>`;
   };
 

@@ -115,8 +115,9 @@ function testDerivation() {
   eq(model.queues.next.pick, 'S2', 'next pick = S2 (in-flight epic, should > could)');
   // FR-1/FR-2: the lane renders the whole ordered queue, not just its head.
   eq(model.queues.next.queue, ['S2', 'S6'], 'next queue = [S2,S6] in D22 order (S7 excluded, dep S4 not done)');
-  // INV-2: pick is read off the queue head in one expression, so this can never drift.
-  eq(model.queues.next.pick, model.queues.next.queue[0], 'INV-2: pick === queue[0]');
+  // INV-2: pick is read off the queue head in one expression. Guard the indexing — if `queue` ever
+  // stops being emitted, this must report a clean FAIL, not throw and abort the runner before the summary.
+  eq(model.queues.next.pick, (model.queues.next.queue || [])[0] ?? null, 'INV-2: pick === queue[0]');
 
   // releases — FR-6: not-started epics (0 stories done) are excluded from the column.
   // E4 is blocked but has 0 done stories → excluded entirely (its blocked story stays in groom).
@@ -190,7 +191,7 @@ function testEmptyReadyQueue() {
 
   eq(model.queues.next.queue, [], 'no candidates → queue = [] (FR-1)');
   eq(model.queues.next.pick, null, 'no candidates → pick = null (unchanged behaviour)');
-  eq(model.queues.next.pick, model.queues.next.queue[0] ?? null, 'INV-2 holds in the empty case too');
+  eq(model.queues.next.pick, (model.queues.next.queue || [])[0] ?? null, 'INV-2 holds in the empty case too');
   fs.rmSync(root, { recursive: true, force: true });
 }
 
@@ -277,7 +278,7 @@ async function testServer() {
     // INV-1: the served pick is byte-identical to before this story — the queue is additive beside it.
     ok(model.queues.next.pick === 'S2', 'API next pick = S2 (matches lib)');
     ok(JSON.stringify(model.queues.next.queue) === JSON.stringify(['S2', 'S6']), 'API next queue = [S2,S6] (matches lib)');
-    ok(model.queues.next.pick === model.queues.next.queue[0], 'API: INV-2 pick === queue[0]');
+    ok(model.queues.next.pick === (model.queues.next.queue || [])[0], 'API: INV-2 pick === queue[0]');
 
     const four = await get(port, '/nope');
     ok(four.status === 404, 'unknown path → 404');
