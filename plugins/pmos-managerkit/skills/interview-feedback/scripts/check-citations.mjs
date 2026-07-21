@@ -2,8 +2,13 @@
 // check-citations.mjs — grounding-integrity gate for /interview-feedback (design §16.4)
 //
 // Usage:
-//   node check-citations.mjs <output.html> <transcript.refined.txt>
+//   node check-citations.mjs [--stamp] <output.html> <transcript.refined.txt> [<submission.txt>]
 //   node check-citations.mjs --selftest
+//
+// --stamp: on a PASSING gate only, write the proof-of-pass comment
+//   <!-- citations verified: N transcript-tier, M notes-tier[, K submission-tier], YYYY-MM-DD -->
+// into the target HTML, using the counts this script already computed. Idempotent: an existing
+// comment is replaced in place, never appended to. A failing gate leaves the file untouched.
 //
 // Rules:
 //   - data-cite-tier="transcript": quoted text MUST be a verbatim substring of the
@@ -151,9 +156,46 @@ function checkCitations(html, transcript, submission) {
   return { passed, failed: failures.length, failures, byTier };
 }
 
+// --- proof-of-pass stamp (FR-10) ---
+// The gate already computes the per-tier counts; it now also OWNS writing them, so no human or
+// model ever transcribes a number that can go stale (§K: one fact, one home).
+
+// Matches an existing proof comment plus its trailing newline, so a replace is byte-stable.
+const STAMP_RE = /[ \t]*<!--\s*citations verified:[\s\S]*?-->\n?/;
+
+function localDate() {
+  const d = new Date();
+  const p = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
+function buildStamp(byTier) {
+  let s = `citations verified: ${byTier.transcript} transcript-tier, ${byTier.notes} notes-tier`;
+  if (byTier.submission > 0) s += `, ${byTier.submission} submission-tier`;
+  return `<!-- ${s}, ${localDate()} -->`;
+}
+
+// Write/replace the comment in the target HTML. Called ONLY on a passing gate.
+function stampFile(htmlPath, byTier) {
+  const html = readFileSync(htmlPath, 'utf8');
+  const comment = buildStamp(byTier);
+  let next;
+  if (STAMP_RE.test(html)) {
+    next = html.replace(STAMP_RE, () => comment + '\n');
+  } else if (/<\/body>/i.test(html)) {
+    // Keep the closing tag's own indentation and put the comment at column 0, so run 2 — where
+    // STAMP_RE consumes `[ \t]*<!--…-->\n` — reproduces run 1 byte for byte (AC4).
+    next = html.replace(/([ \t]*)<\/body>/i, (_, indent) => comment + '\n' + indent + '</body>');
+  } else {
+    next = html + (html.endsWith('\n') ? '' : '\n') + comment + '\n';
+  }
+  if (next !== html) writeFileSync(htmlPath, next, 'utf8');
+  return comment;
+}
+
 // --- run against files; returns exit code ---
-// Usage: runFiles(html, transcript[, submission]) — submission optional.
-function runFiles(htmlPath, transcriptPath, submissionPath) {
+// Usage: runFiles(html, transcript[, submission], { stamp }) — submission optional.
+function runFiles(htmlPath, transcriptPath, submissionPath, opts = {}) {
   const html = readFileSync(htmlPath, 'utf8');
   const transcript = readFileSync(transcriptPath, 'utf8');
   const submission = submissionPath ? readFileSync(submissionPath, 'utf8') : null;
@@ -165,6 +207,13 @@ function runFiles(htmlPath, transcriptPath, submissionPath) {
     let line = `✓ citations: ${byTier.transcript} transcript, ${byTier.notes} notes`;
     if (byTier.submission > 0) line += `, ${byTier.submission} submission`;
     console.log(line);
+    // Proof-of-pass is written here and nowhere else — inside the exit-0 branch, so a failing
+    // gate never WRITES a stamp. It does not erase one either: per AC5 a failing run leaves the
+    // file untouched. A stamp from an earlier passing run can therefore outlive the edit that
+    // broke it, and is only refreshed by the next passing run. That is safe only because
+    // the gate is a hard STOP — SKILL.md#score forbids presenting the artifact while the gate is
+    // non-zero, so a stale stamp is never on a presented artifact.
+    if (opts.stamp) console.log(`stamped: ${stampFile(htmlPath, byTier)}`);
   }
   return failed === 0 ? 0 : 1;
 }
@@ -304,7 +353,60 @@ function selftest() {
     }
   }
 
-  const total = cases.length;
+  // --- --stamp fixtures (FR-10) ---
+  // Reuse the PASS/FAIL-A bodies so the stamp path is exercised against the same gate semantics.
+  const passHtml = cases[0].html;
+  const failHtml = cases.find((c) => c.name.startsWith('FAIL-A')).html;
+  const run = (p, ...extra) =>
+    spawnSync(process.execPath, [selfPath, ...extra, p, transcriptPath], { encoding: 'utf8' });
+
+  // stamp-insert: no prior comment -> exactly one written, carrying the script's own counts.
+  const sIns = join(dir, 'stamp-insert.html');
+  writeFileSync(sIns, passHtml, 'utf8');
+  run(sIns, '--stamp');
+  const inserted = readFileSync(sIns, 'utf8');
+  const stampCount = (s) => (s.match(/citations verified:/g) || []).length;
+  if (
+    stampCount(inserted) === 1 &&
+    /<!-- citations verified: 1 transcript-tier, 1 notes-tier, \d{4}-\d{2}-\d{2} -->/.test(inserted)
+  ) {
+    pass++;
+  } else {
+    console.error('selftest stamp-insert: comment missing, duplicated, or malformed');
+  }
+
+  // stamp-replace: a prior comment is replaced IN PLACE; a same-day re-run is byte-identical.
+  const sRep = join(dir, 'stamp-replace.html');
+  writeFileSync(
+    sRep,
+    passHtml.replace('</body>', '<!-- citations verified: 99 transcript-tier, 99 notes-tier, 1999-01-01 -->\n</body>'),
+    'utf8'
+  );
+  run(sRep, '--stamp');
+  const replacedOnce = readFileSync(sRep, 'utf8');
+  run(sRep, '--stamp');
+  const replacedTwice = readFileSync(sRep, 'utf8');
+  if (
+    stampCount(replacedOnce) === 1 &&
+    !replacedOnce.includes('99 transcript-tier') &&
+    replacedTwice === replacedOnce
+  ) {
+    pass++;
+  } else {
+    console.error('selftest stamp-replace: not replaced in place, or not idempotent');
+  }
+
+  // no-stamp-on-failure: a failing gate must leave the file byte-untouched.
+  const sFail = join(dir, 'stamp-on-failure.html');
+  writeFileSync(sFail, failHtml, 'utf8');
+  const failRes = run(sFail, '--stamp');
+  if (failRes.status === 1 && readFileSync(sFail, 'utf8') === failHtml) {
+    pass++;
+  } else {
+    console.error('selftest no-stamp-on-failure: failing gate wrote to the target file');
+  }
+
+  const total = cases.length + 3;
   if (pass === total) {
     console.log(`check-citations selftest: ${pass}/${total} PASS`);
     return 0;
@@ -314,14 +416,16 @@ function selftest() {
 }
 
 // --- main ---
-const args = process.argv.slice(2);
+const rawArgs = process.argv.slice(2);
+const stamp = rawArgs.includes('--stamp');
+const args = rawArgs.filter((a) => a !== '--stamp');
 if (args[0] === '--selftest') {
   process.exit(selftest());
 } else if (args.length === 2 || args.length === 3) {
-  process.exit(runFiles(args[0], args[1], args[2]));
+  process.exit(runFiles(args[0], args[1], args[2], { stamp }));
 } else {
   console.error(
-    'Usage: node check-citations.mjs <output.html> <transcript.refined.txt> [<submission.txt>]\n' +
+    'Usage: node check-citations.mjs [--stamp] <output.html> <transcript.refined.txt> [<submission.txt>]\n' +
       '       node check-citations.mjs --selftest'
   );
   process.exit(2);

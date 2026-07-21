@@ -12,7 +12,7 @@ Turn the raw inputs from one interview round into two grounded, self-contained H
 - **(a) a filled scorecard** — every dimension scored on the sheet's own scale, green/red flags ticked, qualitative notes written, and an overall hire/no-hire recommendation — with **every subjective claim carrying an evidence-tier citation**.
 - **(b) interviewer-effectiveness notes** — per interviewer, scored against a bundled researched rubric: what they did well, what to improve.
 
-Grounding is enforced, not asserted. A deterministic gate (`scripts/check-citations.mjs`) refuses any output whose transcript-tier citation is not a verbatim ≥40-char substring of the refined transcript.
+Grounding is enforced, not asserted. A deterministic gate (`scripts/check-citations.mjs`) refuses any output whose transcript-tier citation is not a verbatim ≥40-char substring of the refined transcript. Completeness is enforced the same way: `scripts/check-completeness.mjs` refuses to let either artifact be declared complete while a promised section is still empty (`#completeness-gate`).
 
 **Announce at start:** "Using interview-feedback — turning this round's inputs into a grounded scorecard and interviewer notes." (In `setup`: "…— scaffolding this role's interview process." In `list`: omit; just print the table.)
 
@@ -245,18 +245,40 @@ When the resolved sheet's dimensions carry **no** `data-level` descriptors, **do
 - assessed in context? — the `submission-assessment` block exists and uses the scenario-appropriate frame.
 - referenced in reco? — the recommendation cites the submission assessment.
 
-**Grounding hard gate (blocking STOP-before-done, INV-1).** Run `scripts/check-citations.mjs filled-scorecard.html transcript.refined.txt` — appending the submission file as a **third positional** when one is present (`… transcript.refined.txt <submission-path>`) so `data-cite-tier="submission"` quotes are verified verbatim too. Any transcript- or submission-tier citation that is not a verbatim ≥40-char substring of its source fails the run.
+**Grounding hard gate (blocking STOP-before-done, INV-1).** Run `scripts/check-citations.mjs --stamp filled-scorecard.html transcript.refined.txt` — appending the submission file as a **third positional** when one is present (`… transcript.refined.txt <submission-path>`) so `data-cite-tier="submission"` quotes are verified verbatim too. Any transcript- or submission-tier citation that is not a verbatim ≥40-char substring of its source fails the run.
 
 This gate is a **hard STOP, not an assertion**: `filled-scorecard.html` is NOT presented as complete — and the run does NOT declare done — until `check-citations.mjs` **exits 0** over it.
 
 - **Non-zero exit:** report the failing citations verbatim to the operator, repair each (re-extract the quote as a contiguous single-speaker span from the normalized single-line view per Phase Ground's citation authoring rules, or drop the claim to a lower tier), then **re-run the gate**. Never present the artifact or move to Coach while the gate is non-zero; a non-passing gate blocks completion regardless of run mode.
-- **Passing exit (exit 0):** only then surface the script's `✓ citations:` line to the operator and append the one-line audit comment to `filled-scorecard.html`. The audit comment is written **only on a passing gate** — it is the proof-of-pass, never an assertion written ahead of the check:
+- **Passing exit (exit 0):** only then surface the script's `✓ citations:` line to the operator. `--stamp` makes the **script** write the one-line proof-of-pass comment into `filled-scorecard.html` — inside its own exit-0 branch, replacing any prior comment in place. §K: the script computes the counts *and* writes them, so no model and no human ever transcribes a number that can drift. Never author or edit that comment by hand.
+
+Then run the completeness gate (`#completeness-gate`) over `filled-scorecard.html` and apply its disposition. `filled-scorecard.html` is presented as complete only when **both** gates have been satisfied.
+
+### Completeness gate (blocking STOP-before-done, INV-4) {#completeness-gate}
+
+Canonical for **both** artifacts — Phase Score runs it over `filled-scorecard.html`, Phase Coach over `interviewer-notes.html`. It runs **before** either artifact is declared complete, after the citation gate.
+
+Run `scripts/check-completeness.mjs <artifact.html>`. It flags unfilled promised content — bracketed ghost text, empty `data-input` slots, un-substituted `{{…}}` tokens — deliberately narrowly, so that ordinary prose and an artifact's unused optional blocks are not flagged: a false "draft" on a complete artifact is its own credibility failure. The exact detection rules live in the script's header comment and nowhere else (§K); do not restate or second-guess them here.
+
+**Exit 0** — nothing unfilled; proceed. **Exit 1** — the artifact is NOT presented as complete and the run does NOT declare done until one of these two dispositions has been applied:
+
+Interactive only — under `--non-interactive` this prompt is **not issued**: there is no operator to capture from, so the run goes straight to the stamp disposition below.
 
 ```
-<!-- citations verified: <N> transcript-tier, <M> notes-tier[, <K> submission-tier], <YYYY-MM-DD> -->
+AskUserQuestion:
+  question: "<slot> is still empty. Capture it now?"
+  header: "Unfilled"
+  options:
+    - label: "Capture it now (Recommended)"
+      description: "You dictate the content for <slot>; it goes into the artifact and the gate re-runs."
+    - label: "Ship as draft"
+      description: "The artifact is stamped `draft — pending <slot>` and presented as a draft, not as complete."
 ```
 
-(Counts come from the script's per-tier output — §K: the script owns the counting; do not recompute by hand. The submission-tier clause appears only when K > 0.)
+- **Captured** — write what the operator supplies into the named slot, then **re-run the gate**.
+- **Declined, or `--non-interactive`** — run `scripts/check-completeness.mjs --stamp-draft <artifact.html>`; the script stamps `draft — pending <slot>` naming the specific unfilled slots, and the artifact is presented as a **draft**, never as complete.
+
+**Never fabricate the missing content.** There is no "write it for them" path: the observer's independent read is theirs. The gate captures or it stamps — an empty promised section reads as *"nothing to say"*, which is the opposite of the truth, and inventing a read would be worse than either.
 
 **Calibration hard gate (the second blocking STOP-before-done gate, D3).** The citation gate proves a quote is *real*. It does not prove the score *follows from* that evidence at the sheet's own bar — that surface is what mis-scored a round twice on unchanged evidence. So run **both**:
 
@@ -309,7 +331,7 @@ The first two are judgement, not arithmetic, so per §H they stay with the metho
 
 `interviewer-notes-skeleton.html` carries **no** scoring anchors — no `data-dim`, no `data-v`, no `data-selected` — so `check-scoring-calibration.mjs` structurally cannot run against output (b), and it is **not** invoked here. Do **not** add scoring anchors to (b) to create something to check: giving (b) its own scoring surface is deliberately deferred. Fix the bias everywhere; add machinery only where there is something to check.
 
-Emit **interviewer-effectiveness notes** (output b), one section per interviewer, scored against `../_shared/interview-guidelines/interviewer-effectiveness.html` (the bundled researched rubric — structured/consistent questioning, probing depth, leading-question avoidance, talk-time balance, coverage, bias mitigation, note quality, calibration). Each interviewer's lead/shadow/panel role (from `role.json`) sets expectations. Subjective claims carry the same `data-cite-tier`; per-interviewer claims that could not be attributed are flagged with attribution-confidence. Re-run `check-citations.mjs` over this output too — the **same blocking STOP-before-done gate applies (INV-1)**: the effectiveness notes are not presented as complete until the gate exits 0 over them; on a non-zero exit, repair the failing citations and re-run before declaring done.
+Emit **interviewer-effectiveness notes** (output b), one section per interviewer, scored against `../_shared/interview-guidelines/interviewer-effectiveness.html` (the bundled researched rubric — structured/consistent questioning, probing depth, leading-question avoidance, talk-time balance, coverage, bias mitigation, note quality, calibration). Each interviewer's lead/shadow/panel role (from `role.json`) sets expectations. Subjective claims carry the same `data-cite-tier`; per-interviewer claims that could not be attributed are flagged with attribution-confidence. Re-run `check-citations.mjs --stamp interviewer-notes.html transcript.refined.txt` over this output too — the **same blocking STOP-before-done gate applies (INV-1)**: the effectiveness notes are not presented as complete until the gate exits 0 over them; on a non-zero exit, repair the failing citations and re-run before declaring done. The proof-of-pass comment is the script's to write here as well. Then run the completeness gate (`#completeness-gate`) over `interviewer-notes.html` — the observer's independent read is exactly the block that has shipped empty before — and apply its disposition before declaring done.
 
 ## Phase: Setup {#setup}
 

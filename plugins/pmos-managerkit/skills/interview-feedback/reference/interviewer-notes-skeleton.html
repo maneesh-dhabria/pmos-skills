@@ -12,6 +12,8 @@
     - data-interviewer="<name>"              one per interviewer.
     - data-model-role="lead|shadow|panel"    sets which rubric dimensions apply (reference-resolution.md §8).
     - data-attr-confidence="high|medium|low" when a claim's attribution to this interviewer is uncertain.
+    - data-input="<slot>"                    a promised slot. Empty, or still holding bracketed ghost
+                                             text, means unfinished (scripts/check-completeness.mjs).
   Self-contained HTML — no external assets.
 -->
 <html lang="en">
@@ -69,6 +71,13 @@
         <cite data-cite-tier="notes" data-source="{{note source}}">{{evidence}}</cite>
       </li>
     </ul>
+
+    <!-- Promised-but-optional: include ONLY when this interviewer asked to share their own read.
+         Once included it is a promise to the reader, and scripts/check-completeness.mjs refuses to
+         let the artifact be declared complete while the slot still holds its ghost text. Never
+         write this section on the interviewer's behalf — capture it or stamp the artifact draft. -->
+    <p class="block-label">Observer's independent read</p>
+    <div data-input="observer:read">[ … their own read of the candidate goes here ]</div>
   </section>
 </main>
 </body>
