@@ -1,5 +1,9 @@
 # Output shapes — the three interview-guide artifacts
 
+- [(a) Interviewer reference](#a-interviewer-reference--interviewer-referencehtml) — `interviewer-reference.html`
+- [(b) Scoring sheet](#b-scoring-sheet--scoring-sheethtml) — `scoring-sheet.html`
+- [(c) Case document](#c-case-document--case-documenthtml--case-reference-solutionhtml) — `case-document.html` + `case-reference-solution.html`
+
 The three artifacts `/interview-guide` authors, their machine anchors, and a per-output section
 checklist. The anchor sets are **the** interop contract with `/interview-feedback` — an area id in the
 reference MUST equal the matching dimension id in the sheet, and the sheet's anchors are what
@@ -49,6 +53,11 @@ the file `/interview-feedback score` fills after the round, so every anchor must
 - per dim: `data-weight="<n>"` (integer; **all weights sum to exactly 100**); a `data-scale="1-4"`
   container whose options each carry `data-v="<n>"`; a `data-input="notes:<dim>"` slot; and
   `data-flags="green"` + `data-flags="red"` `<ul>` containers.
+- per dim: `data-level="<descriptor>"` on **every** `data-v` option — that level's at-bar wording for that
+  competency, drawn from the archetype's markers and the seniority. Rules (per-dimension, all-or-none,
+  non-empty, behavioural, unprompted-language-is-top-level-only) are defined once in
+  `../_shared/interview-guidelines/scorecard-skeleton.html`'s contract comment; the validator enforces the
+  first two.
 - one overall `<div ... data-input="reco">` with four options carrying
   `data-reco="strong-yes|yes|no|strong-no"`, plus a `data-input="notes:reco"` slot.
 
@@ -66,6 +75,8 @@ the file `/interview-feedback score` fills after the round, so every anchor must
 - [ ] every reference area has a matching sheet dimension (and vice-versa) — 1:1 by id.
 - [ ] weights reflect competency importance for this role/seniority and sum to 100.
 - [ ] each dimension names 1–3 green flags and 1–3 red flags (what a strong/weak answer shows).
+- [ ] every scale option of every dimension carries a non-empty `data-level` descriptor, with the pass line
+      permitting prompting and "unprompted" wording reserved for the top level.
 - [ ] the reco control lists all four options and has a notes slot.
 - [ ] (duration confirmed) root `data-duration` + per-dim `data-budget` present; budgets sum to ≤ duration.
 - [ ] `node scripts/validate-scorecard-anchors.mjs scoring-sheet.html` exits 0.
