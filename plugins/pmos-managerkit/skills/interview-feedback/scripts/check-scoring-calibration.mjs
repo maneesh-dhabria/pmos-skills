@@ -16,7 +16,9 @@
 // token without reading (that shape was rejected as a ritual — D10):
 //
 //   1. EVIDENCE SWEEP        every scored dimension carries <details data-card="evidence-sweep">
-//                            with >=1 timestamped instance (a <li data-t="…">).
+//                            with >=1 timestamped instance (a <li data-t="…">), each citing a
+//                            tier check-citations.mjs verifies verbatim (see VERIFIED_CITE_TIERS
+//                            and the notes-only carve-out below).
 //                            "Present BEFORE a score exists" is enforced as an IMPLICATION, not as
 //                            document order: D9 places the sweep under the dimension's notes, i.e.
 //                            AFTER the scale in the DOM, so document order would contradict the
@@ -38,9 +40,9 @@
 //
 // Zero-dependency, Node built-ins only. Local and offline, like its siblings (INV-5).
 
-import { readFileSync, writeFileSync, mkdtempSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
@@ -57,6 +59,24 @@ const UNTESTED_COVERAGE_THRESHOLD_PCT = 30;
 // KNOWN_TIERS; it is byte-frozen (INV-3), so this set is deliberately read-only knowledge
 // about it rather than an import.
 const VERIFIED_CITE_TIERS = new Set(['transcript', 'submission']);
+
+// The tier-2 (notes-only) carve-out. SKILL.md Phase Ground documents three grounding tiers,
+// and a round with no recording and no transcript — graded from the interviewer's own written
+// notes — is an explicitly supported, unattended-safe path. Such a round can never produce a
+// transcript-tier citation, so holding it to VERIFIED_CITE_TIERS would not make it honest; it
+// would make the gate unpassable and take the whole documented path offline.
+//
+// The downgrade is decided by the FILESYSTEM, never by the sheet. `runFile` looks for a
+// transcript beside the scorecard: present -> strict, absent -> `notes` also grounds a swept
+// instance. A fabricated sheet in a transcript round therefore cannot opt into the weaker set
+// by relabelling its own tiers (that was the exploit VERIFIED_CITE_TIERS closed). `recalled`
+// is never accepted at any tier: it is a recollection, not a timestamped moment, and its
+// questionnaire path is interactive-only by contract.
+const NOTES_ONLY_CITE_TIERS = new Set([...VERIFIED_CITE_TIERS, 'notes']);
+
+// Transcript filenames the round may carry, per SKILL.md § Storage and the transcribe.sh
+// preserve guard (a curated refined file; a machine whisper file when both exist).
+const TRANSCRIPT_FILENAMES = ['transcript.refined.txt', 'transcript.whisper.txt'];
 
 // A reco value that explicitly declines to make a call on partial coverage. The bundled skeleton's
 // reco control offers strong-yes|yes|no|strong-no only, so in practice a high-untested run defends
@@ -126,7 +146,7 @@ function atBarLevel(values) {
   return Math.ceil((min + max) / 2);
 }
 
-function parseDimensions(html) {
+function parseDimensions(html, verifiedTiers) {
   const dims = [];
   const re = /<section\b[^>]*\bdata-dim\s*=\s*"([^"]*)"[^>]*>/g;
   let m;
@@ -157,9 +177,18 @@ function parseDimensions(html) {
     // swept instance is a timestamped moment in the transcript (or in the written
     // submission), never a recollection.
     //
-    // What this still cannot prove is COMPLETENESS — that the sweep found every instance
-    // rather than the first one. No presence check can; that half of clause (a) rests on
-    // the method, and is a named residual, not a silent one.
+    // Two things this still cannot prove, both named residuals rather than silent ones:
+    //
+    //   COMPLETENESS — that the sweep found every instance rather than the first one. No
+    //   presence check can; that half of clause (a) rests on the method.
+    //
+    //   RELEVANCE — that the quote supports the claim made about it. A real, verbatim
+    //   transcript span can be paired with fabricated interpretive prose ("quote
+    //   laundering"): the citation verifies, the reading of it does not. So the honest
+    //   form of the anti-ritual property is narrower than "faking the sweep means faking a
+    //   quote" — it is "faking the sweep means COPYING a real quote, and the sheet then
+    //   shows the grader exactly which span the number is claimed to rest on." Judging
+    //   quote-against-claim is not script-checkable (§H) and stays with the reviewer.
     let sweepInstances = null;
     let sweepUngrounded = 0;
     const sweepRe = /<details\b[^>]*\bdata-card\s*=\s*"evidence-sweep"[^>]*>/;
@@ -175,7 +204,7 @@ function parseDimensions(html) {
         const liEnd = matchElementEnd(sweepBlock, li.index, 'li');
         const liBlock = sweepBlock.slice(li.index, liEnd < 0 ? sweepBlock.length : liEnd);
         const tiers = [...liBlock.matchAll(/\bdata-cite-tier\s*=\s*"([^"]*)"/g)].map((t) => t[1]);
-        items.push(tiers.some((t) => VERIFIED_CITE_TIERS.has(t)));
+        items.push(tiers.some((t) => verifiedTiers.has(t)));
       }
       sweepInstances = items.length;
       sweepUngrounded = items.filter((grounded) => !grounded).length;
@@ -285,14 +314,19 @@ function recoBand(weighted, allOptions) {
 
 // --- the gates ---
 
-function checkCalibration(rawHtml) {
+// `opts.transcriptPresent` selects the accepted-tier set (see NOTES_ONLY_CITE_TIERS). It
+// defaults to TRUE — the strict set — so any caller that forgets to probe the filesystem
+// gets the safe reading rather than the permissive one.
+function checkCalibration(rawHtml, opts = {}) {
+  const transcriptPresent = opts.transcriptPresent !== false;
+  const verifiedTiers = transcriptPresent ? VERIFIED_CITE_TIERS : NOTES_ONLY_CITE_TIERS;
   // Strip HTML comments before parsing. The scorecard skeleton's contract comment DOCUMENTS
   // the anchors by quoting the tags verbatim, and check-citations.mjs appends an audit comment
   // — a comment-blind parse reads that prose as if it were the sheet. No scoring anchor ever
   // legitimately lives inside a comment, so this can only remove phantoms.
   const html = rawHtml.replace(/<!--[\s\S]*?-->/g, '');
   const failures = [];
-  const dims = parseDimensions(html);
+  const dims = parseDimensions(html, verifiedTiers);
   const root = parseRoot(html);
 
   if (dims.length === 0) {
@@ -338,7 +372,10 @@ function checkCalibration(rawHtml) {
         );
       } else if (d.sweepUngrounded > 0) {
         failures.push(
-          `dimension "${d.id}" has ${d.sweepUngrounded} evidence-sweep instance(s) with no VERIFIED citation — every swept instance needs a <cite data-cite-tier="transcript"> (or "submission") so check-citations.mjs verifies it verbatim; the "notes" and "recalled" tiers are exempt from that check and cannot ground a swept instance`
+          `dimension "${d.id}" has ${d.sweepUngrounded} evidence-sweep instance(s) with no accepted citation — every swept instance needs a <cite data-cite-tier="…"> in {${[...verifiedTiers].join(', ')}}` +
+            (transcriptPresent
+              ? `; this round has a transcript, so "notes" and "recalled" (which check-citations.mjs never verifies verbatim) cannot ground a swept instance`
+              : `; this round has no transcript beside the scorecard, so the tier-2 notes carve-out is in effect and "notes" is accepted — "recalled" never is`)
         );
       }
     }
@@ -405,8 +442,19 @@ function runFile(path) {
     console.error(`check-scoring-calibration: cannot read ${path}: ${e.message}`);
     return 2;
   }
-  const { failures, dims, stats } = checkCalibration(html);
+  // Probe the round for a transcript. The scorecard's own directory IS the round folder
+  // (SKILL.md § Storage), so the siblings are the whole question — this is not a search.
+  const roundDir = dirname(path);
+  const transcriptPresent = TRANSCRIPT_FILENAMES.some((f) => existsSync(join(roundDir, f)));
+  const { failures, dims, stats } = checkCalibration(html, { transcriptPresent });
   for (const f of failures) console.log(f);
+  if (!transcriptPresent) {
+    // Announce the weaker tier set every time it applies — a downgrade the operator cannot
+    // see is a downgrade they cannot challenge.
+    console.log(
+      `note: no transcript beside the scorecard (looked for ${TRANSCRIPT_FILENAMES.join(', ')}) — grading this as a tier-2 notes-only round, so "notes"-tier citations ground the evidence sweep`
+    );
+  }
   console.log(
     `check-scoring-calibration: ${dims.length} dimensions, ${failures.length} failed`
   );
@@ -465,6 +513,8 @@ function dim(opts) {
           ? '<details data-card="evidence-sweep"><ul><li data-t="01:12">no citation on this instance</li></ul></details>'
         : sweep === 'notes-tier'
           ? '<details data-card="evidence-sweep"><ul><li data-t="01:12"><cite data-cite-tier="notes" data-source="interviewer notes">unverifiable tier</cite></li></ul></details>'
+        : sweep === 'recalled-tier'
+          ? '<details data-card="evidence-sweep"><ul><li data-t="01:12"><cite data-cite-tier="recalled" data-source="interviewer recall">a recollection, not a moment</cite></li></ul></details>'
           : `<details data-card="evidence-sweep"><ul>${Array.from(
               { length: sweep },
               (_, i) =>
@@ -477,8 +527,11 @@ function selftest() {
   const dir = mkdtempSync(join(tmpdir(), 'check-scoring-calibration-'));
   const selfPath = fileURLToPath(import.meta.url);
   const cases = [];
-  const add = (name, expect, html, stdoutIncludes) =>
-    cases.push({ name, expect, html, stdoutIncludes });
+  // Cases run in their own subdir with a transcript sibling, i.e. the strict tier set —
+  // the common case, and the safe default for a fixture that says nothing about grounding.
+  // `noTranscript: true` omits the sibling to exercise the tier-2 carve-out.
+  const add = (name, expect, html, stdoutIncludes, opts = {}) =>
+    cases.push({ name, expect, html, stdoutIncludes, noTranscript: opts.noTranscript === true });
 
   // --- PASS: a well-formed two-dimension sheet ---
   add(
@@ -535,7 +588,7 @@ function selftest() {
       dim({ id: 'a', selected: 3, noteLevel: 3, sweep: 'ungrounded' }) +
         dim({ id: 'b', noteLevel: 3 })
     ),
-    'no VERIFIED citation'
+    'no accepted citation'
   );
   // The tier side door: `notes` is a legal citation tier that check-citations.mjs does NOT
   // verify verbatim, so a sweep grounded on it is satisfiable without reading the transcript.
@@ -547,6 +600,32 @@ function selftest() {
         dim({ id: 'b', noteLevel: 3 })
     ),
     'cannot ground a swept instance'
+  );
+
+  // The tier-2 carve-out, proved as a PAIR against one byte-identical sheet: the SAME
+  // notes-tier sweep that fails above passes when no transcript sits beside the scorecard.
+  // Without both halves this is not a carve-out, it is just a hole.
+  add(
+    'PASS-g1-notes-tier-when-no-transcript',
+    0,
+    sheet(
+      dim({ id: 'a', selected: 3, noteLevel: 3, sweep: 'notes-tier' }) +
+        dim({ id: 'b', noteLevel: 3 })
+    ),
+    'tier-2 notes-only round',
+    { noTranscript: true }
+  );
+
+  // …and `recalled` is still refused there. The carve-out admits notes, not "any tier".
+  add(
+    'FAIL-g1-recalled-tier-even-without-transcript',
+    1,
+    sheet(
+      dim({ id: 'a', selected: 3, noteLevel: 3, sweep: 'recalled-tier' }) +
+        dim({ id: 'b', noteLevel: 3 })
+    ),
+    'no accepted citation',
+    { noTranscript: true }
   );
 
   // --- Gate 2: adversarial below-bar rebuttal (at-bar is READ from the scale) ---
@@ -710,8 +789,13 @@ function selftest() {
 
   let pass = 0;
   for (const tc of cases) {
-    const htmlPath = join(dir, `case-${tc.name.replace(/[^\w]+/g, '_')}.html`);
+    const caseDir = join(dir, tc.name.replace(/[^\w]+/g, '_'));
+    mkdirSync(caseDir, { recursive: true });
+    const htmlPath = join(caseDir, 'filled-scorecard.html');
     writeFileSync(htmlPath, tc.html, 'utf8');
+    if (!tc.noTranscript) {
+      writeFileSync(join(caseDir, 'transcript.refined.txt'), 'Interviewer: hello.\n', 'utf8');
+    }
     const res = spawnSync(process.execPath, [selfPath, htmlPath], { encoding: 'utf8' });
     const stdoutOk =
       tc.stdoutIncludes == null || (res.stdout || '').includes(tc.stdoutIncludes);
