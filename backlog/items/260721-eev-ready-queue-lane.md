@@ -10,6 +10,7 @@ priority: should
 labels: [pmos-toolkit, backlog, web-viewer, ux]
 created: 2026-07-21
 updated: 2026-07-21
+released: v2.106.0
 parent: 260704-5ah
 dependencies: []
 plan_doc: docs/pmos/features/2026-07-21_backlog-viewer-ready-queue/stories/260721-eev/03_plan.html

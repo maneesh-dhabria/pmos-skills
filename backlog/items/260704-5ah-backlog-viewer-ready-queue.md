@@ -4,12 +4,13 @@ id: 260704-5ah
 title: "/backlog viewer — READY TO BUILD column should list ALL ready stories in #next order (pick marked), not just the single next pick"
 type: feature
 kind: epic
-status: defined
+status: released
 route: skill
 priority: should
 labels: [pmos-toolkit, backlog, web-viewer, ux]
 created: 2026-07-04
 updated: 2026-07-21
+released: v2.106.0
 design_doc: docs/pmos/features/2026-07-21_backlog-viewer-ready-queue/02_design.html
 feature_folder: docs/pmos/features/2026-07-21_backlog-viewer-ready-queue/
 parent:
