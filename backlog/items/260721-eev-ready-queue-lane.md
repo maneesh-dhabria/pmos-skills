@@ -4,7 +4,7 @@ id: 260721-eev
 title: "/backlog viewer — READY TO BUILD lane renders the full ordered ready queue with the pick marked"
 type: feature
 kind: story
-status: planned
+status: in-progress
 route: skill
 priority: should
 labels: [pmos-toolkit, backlog, web-viewer, ux]
@@ -12,6 +12,9 @@ created: 2026-07-21
 updated: 2026-07-21
 parent: 260704-5ah
 dependencies: []
+worktree: .claude/worktrees/feat-260721-eev
+claimed_by: build:d5978308-5866-4ca8-bdc7-8e51f6619786
+driver_holder: build:d5978308-5866-4ca8-bdc7-8e51f6619786
 plan_doc: docs/pmos/features/2026-07-21_backlog-viewer-ready-queue/stories/260721-eev/03_plan.html
 tasks_file: docs/pmos/features/2026-07-21_backlog-viewer-ready-queue/stories/260721-eev/tasks.yaml
 ---
