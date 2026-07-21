@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-07-21 — pmos-toolkit 2.106.0: the backlog viewer's READY TO BUILD lane now shows everything you can build
+
+**`/backlog`'s READY TO BUILD lane lists the whole ready queue instead of a single story.** The lane's title always promised "everything buildable", but it rendered only the one story the build loop would pick next — so a backlog with six ready stories across five epics showed one row, and the rest were invisible until you drained the queue ahead of them. Now every ready story appears, in the exact order the picker would take them, with the head row marked `next` and each other row carrying its own copy-ready `/feature-sdlc build --story <id>`. Rows show their parent epic, so the deliberately cross-epic ordering reads as intentional rather than arbitrary, and a story sitting on a claim older than the 4-hour TTL is flagged with a `stale claim` chip you can clear on the spot. The same widening applies to the inline text dashboard used in headless runs.
+
+This is a presentation change only: `/backlog next --json` — the machine API the build loop and unattended drivers depend on — still returns the single best ready story, byte-identical.
+
+**References:**
+- [`docs/pmos/features/2026-07-21_backlog-viewer-ready-queue/02_design.html`](features/2026-07-21_backlog-viewer-ready-queue/02_design.html)
+
 ## 2026-07-11 — pmos-toolkit 2.105.0: /wireframes now draws real monochrome SVG, on a grid, from a shared primitive kit
 
 **`/wireframes` has been realigned around inline monochrome SVG instead of the old mid-fi Tailwind markup.** Every screen is now drawn as 8px-snapped vector SVG on a fixed canvas (desktop / mobile / tablet / wide), in a closed six-token greyscale palette with a four-size type scale — so a generated set reads as one consistent system rather than a pile of ad-hoc HTML. Generation starts from the nearest of four complete worked examples (a desktop dashboard, a mobile form, a modal overlay, a multi-state screen) rather than from a blank page, and 41 reusable pattern skeletons are composed from a named primitive kit so common UI shapes come out uniform. The grid, palette, and type rules live in one authoritative home, and a deterministic linter parses its allowlist straight out of that home and fails the build on an off-grid coordinate or an off-palette colour — the rules can't silently drift from what's enforced. Each screen's fields, components, states, and annotations are emitted into a machine-readable `pmos-wireframe-meta` manifest, and `index.html` now tells a narrative: every wireframe sits beside its ingested source screenshot with a numbered annotation list.
