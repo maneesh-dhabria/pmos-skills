@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Epic design — interview scoring calibration (260721-k1x)</title>
+<style>
+  :root { --ink:#1a1a1a; --mut:#666; --line:#e2e2e2; --accent:#2b6cb0; --bg:#fff; --code:#f5f5f5; --warn:#b7791f; }
+  body { font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; color:var(--ink); background:var(--bg); max-width:860px; margin:0 auto; padding:2.5rem 1.25rem 6rem; }
+  h1 { font-size:1.7rem; line-height:1.25; margin:0 0 .25rem; }
+  h2 { font-size:1.25rem; margin:2.4rem 0 .6rem; padding-bottom:.3rem; border-bottom:2px solid var(--line); }
+  h3 { font-size:1.05rem; margin:1.5rem 0 .4rem; }
+  .sub { color:var(--mut); margin:.2rem 0 1.5rem; }
+  table { border-collapse:collapse; width:100%; margin:1rem 0; font-size:.93rem; }
+  th,td { border:1px solid var(--line); padding:.5rem .6rem; text-align:left; vertical-align:top; }
+  th { background:var(--code); font-weight:600; }
+  code { background:var(--code); padding:.1rem .3rem; border-radius:3px; font-size:.88em; }
+  pre { background:var(--code); padding:.8rem 1rem; border-radius:6px; overflow:auto; font-size:.85rem; }
+  .pill { display:inline-block; font-size:.72rem; font-weight:600; padding:.1rem .5rem; border-radius:99px; background:#eef4fb; color:var(--accent); vertical-align:middle; }
+  .fr { font-weight:600; color:var(--accent); }
+  ul { padding-left:1.3rem; } li { margin:.3rem 0; }
+  blockquote { border-left:3px solid var(--accent); margin:1rem 0; padding:.3rem 0 .3rem 1rem; color:#333; }
+  .warn { border-left:3px solid var(--warn); background:#fffbf0; margin:1rem 0; padding:.6rem 1rem; }
+</style>
+</head>
+<body>
+
+<h1>Epic design — interview scoring calibration</h1>
+<p class="sub">Epic <strong>260721-k1x</strong> · route: skill · plugin: pmos-managerkit · <span class="pill">define / Loop 1</span> · source: <code>/reflect</code> retro (<code>/interview-feedback</code>, 1 run, 2026-07-21) · grilled <code>--depth deep</code> (9 branches)</p>
+
+<h2 id="why">Why this epic</h2>
+<p>One <code>/interview-feedback</code> run split cleanly down the middle of the skill's own claimed contract. The
+<strong>grounding half held</strong> — inputs resolved, the Gemini transcript was treated as tier&nbsp;1, both artifacts
+shipped with verbatim-verified citations, and <code>check-citations.mjs</code> exited 0 on every pass. The
+<strong>scoring half failed twice</strong>, and only user pushback caught it: the first challenge ("only initial probed
+answers, or did he eventually get there?") moved Dim&nbsp;1 and flipped the recommendation off No-Hire; the second
+("are you sure about the others — look at the entire transcript") moved Dim&nbsp;2/3/4/6 and flipped it again to Hire.
+The weighted score travelled <strong>2.10&nbsp;→&nbsp;3.00</strong> and the recommendation swung two full bands, on
+the same evidence, with no new input.</p>
+
+<p>The through-line is a <strong>gap between two different claims</strong>. The citation gate proves a quote is
+<em>real</em>. Nothing proves the <em>score follows from the evidence at the rubric's own bar</em>. That second surface
+is entirely unguarded, and it failed in two distinct, separately-fixable ways:</p>
+<ul>
+  <li><strong>Time-bias</strong> — the run scored the <em>first probed answer</em> per dimension and discounted where
+    the candidate eventually landed. Scoring happened <em>linearly, while reading</em>; an eventual insight cannot be
+    credited if it has not been collected yet. This is a <strong>reading-order</strong> defect.</li>
+  <li><strong>Bar-inflation</strong> — the run applied a senior-signal "did he lead with it, unprompted, up front?"
+    standard as the <em>pass line</em>, when the sheet's own level-3 reads "solid, some prompting OK". The level-4
+    ceiling was borrowed down to level 3, so every gap scored a 2. This is a <strong>calibration</strong> defect.</li>
+</ul>
+
+<h3 id="no-bar">The bar has no machine home</h3>
+<p>Triage surfaced the fact that reshapes the whole fix. The strongest proposed safeguard — <em>"paste the scorecard's
+own level-3 text and score against that wording"</em> — <strong>has nothing to read</strong>. The bundled
+<code>scorecard-skeleton.html</code> scale is bare numbers, and so is every archetype sheet that derives from it:</p>
+
+<pre>&lt;div class="scale" data-scale="1-4"&gt;
+  &lt;span data-v="1"&gt;1&lt;/span&gt;&lt;span data-v="2"&gt;2&lt;/span&gt;&lt;span data-v="3"&gt;3&lt;/span&gt;&lt;span data-v="4"&gt;4&lt;/span&gt;
+&lt;/div&gt;</pre>
+
+<p>Measured across the bundled corpus: <strong>8 archetypes · 47 dimensions · 0 level descriptors.</strong> The level-3
+wording the failing run was measured against came from a hand-authored sheet, not from anything the skill guarantees.
+<code>/interview-guide</code> authors the sheets and already emits <code>data-duration</code> and
+<code>data-budget</code>; <strong>the bar belongs in the same place</strong>. So this epic spans the skill pair, exactly
+as the duration/budget interop did (epic 260707-rbc → 260709-qfn).</p>
+
+<div class="warn">
+<strong>Latent §H violation, live today (found while grilling).</strong> <code>fill-scorecard.mjs</code> parses
+<code>data-weight</code> and <strong>never computes anything with it</strong> — there is no weighted-score routine
+anywhere in the skill. The retro's "2.10&nbsp;→&nbsp;3.00" was arithmetic <em>the model performed in its head</em>,
+which §H forbids outright. <span class="fr">FR-6</span>'s script is therefore a <strong>new capability closing an
+existing bug</strong>, not a re-homing of an existing calculation. Plan it as such.
+</div>
+
+<h2 id="scope">Scope &amp; shape</h2>
+<p><strong>Four stories, one plugin</strong> (<code>pmos-managerkit</code> — D17 single-release-unit validation
+passes). The split follows the authoring/consuming boundary the duration anchors already established, plus two splits
+the grill forced (D6, D11):</p>
+<pre>sak  contract + validator            (no deps)
+1a4  188 descriptors, 8 archetypes   (dep: sak)
+jb6  consume + calibrate + rubric    (dep: sak)
+z5n  completeness gate + stamp       (no deps)</pre>
+<p>Files touched: <code>plugins/pmos-managerkit/skills/interview-guide/{SKILL.md, scripts/validate-scorecard-anchors.mjs,
+reference/output-shapes.md}</code> · <code>plugins/pmos-managerkit/skills/_shared/interview-guidelines/{scorecard-skeleton.html,
+guidelines/*/scorecard.html}</code> · <code>plugins/pmos-managerkit/skills/interview-feedback/{SKILL.md,
+scripts/check-citations.mjs, scripts/check-scoring-calibration.mjs (new), scripts/fill-scorecard.mjs}</code>.</p>
+
+<h2 id="decisions">Decisions (maintainer-approved, this define run)</h2>
+<p>D1–D5 were settled in triage; D6–D11 in the <code>--depth deep</code> grill.</p>
+<table>
+  <tr><th>ID</th><th>Decision</th><th>Provenance</th></tr>
+  <tr>
+    <td><strong>D1</strong></td>
+    <td><strong>The bar becomes a machine anchor: <code>data-level</code> on each scale option, authored by
+      <code>/interview-guide</code>.</strong> Each <code>&lt;span data-v="n"&gt;</code> in a
+      <code>data-scale</code> container gains <code>data-level="&lt;descriptor&gt;"</code> carrying that level's
+      at-bar wording for that dimension. Gated <strong>all-or-none per dimension</strong> (a partially-described
+      scale is exactly the ambiguity that invites borrowing the ceiling down), each descriptor non-empty. Mirrors the
+      <code>data-duration</code>/<code>data-budget</code> precedent: authored once in the sheet — the single machine
+      home — read, never re-derived.</td>
+    <td>F1 [blocker], safeguard 2; grilled (chose new anchors over "read whatever the sheet carries" / "consume the
+      reference's <code>.calib</code> prose").</td>
+  </tr>
+  <tr>
+    <td><strong>D2</strong></td>
+    <td><strong>Phase Score's scoring <em>method</em> is rewritten: sweep-then-score, quote-the-bar, floor/ceiling
+      split, untested-not-failed.</strong> <em>(a) Reading order:</em> sweep the <strong>whole</strong> transcript per
+      dimension and collect every instance — early and late, prompted and unprompted, timestamped —
+      <strong>before</strong> assigning any number. <em>(b) Quote the bar:</em> quote the dimension's own
+      <code>data-level</code> text for the level under consideration and score against that wording;
+      "unprompted / up-front" language belongs to the <strong>ceiling</strong> and may not be borrowed down to the
+      pass line. <em>(c) Floor/ceiling split:</em> "did they demonstrate it at all, at any point?" sets the
+      <strong>floor</strong>; "how much nudging did it take?" caps the <strong>ceiling</strong> (heavy → 2, one
+      pointed nudge → 3, none → 4). Prompting adjusts the ceiling; it never zeroes out a genuine demonstration.
+      <em>(d) Untested ≠ failed:</em> a competency never probed is tagged <strong>untested</strong>, not scored below
+      bar.</td>
+    <td>F1 [blocker], safeguards 1–4; adopted.</td>
+  </tr>
+  <tr>
+    <td><strong>D3</strong></td>
+    <td><strong>Four calibration gates, §H-decomposed, enforced by a new
+      <code>scripts/check-scoring-calibration.mjs</code> as a second blocking STOP-before-done gate.</strong>
+      Each is decomposed into a <strong>deterministic</strong> condition the script owns:
+      <ul>
+        <li><strong>Evidence-sweep</strong> — every scored <code>data-dim</code> carries a
+          <code>data-card="evidence-sweep"</code> block with ≥1 timestamped instance, present <em>before</em> a
+          <code>data-selected</code> score exists. <em>Presence + ordering.</em></li>
+        <li><strong>Adversarial below-bar</strong> — every dimension scored below its at-bar level carries a
+          non-empty <code>data-rebuttal</code> answering "what is the strongest case this is actually at bar?".
+          <em>Conditional presence.</em></li>
+        <li><strong>Note-vs-score</strong> — see <strong>D10</strong>: the model records which level its prose
+          describes; the <em>script</em> compares that integer to the assigned score. <em>Integer comparison, not
+          judgment.</em></li>
+        <li><strong>Reco-vs-modal</strong> — the script computes the modal and weighted score
+          (<em>arithmetic → script, never the model</em>) and, on band disagreement, requires a non-empty
+          <code>data-reco-rationale</code>. <em>Arithmetic + conditional presence.</em></li>
+      </ul>
+      Non-zero exit is a hard STOP: the scorecard is not presented and the run does not declare done. This gate
+      <strong>joins</strong> the citation gate; it does not replace it.</td>
+    <td>F1 [blocker], safeguards 1, 5, 6, 7; grilled (chose the four-gate set over "all 7 hard" / "one combined
+      checklist gate").</td>
+  </tr>
+  <tr>
+    <td><strong>D4</strong></td>
+    <td><strong>Completeness gate + draft stamp: an unfilled promised section blocks "done".</strong> Before either
+      artifact is declared complete, scan for unfilled placeholders and empty promised slots (bracketed placeholder
+      prose, empty <code>data-input</code> slots, un-substituted <code>{{…}}</code> tokens). Interactive → prompt to
+      capture the content in the same run (the observer's independent read is the motivating case). Declined, or
+      <code>--non-interactive</code> → <strong>stamp <code>draft — pending &lt;slot&gt;</code></strong>. Never
+      silently passes an artifact with a hole in it; never fabricates the content to fill one.</td>
+    <td>F2 [friction]; grilled (chose gate + stamp over "stamp only" / "prompt only").</td>
+  </tr>
+  <tr>
+    <td><strong>D5</strong></td>
+    <td><strong><code>check-citations.mjs --stamp</code> owns the proof-of-pass comment.</strong> On exit 0 with
+      <code>--stamp</code> it writes/patches <code>&lt;!-- citations verified: … --&gt;</code> into the HTML itself
+      (idempotent replace). <code>SKILL.md</code> stops instructing the model to hand-write it. §K one-fact-one-home:
+      the count cannot drift because no human ever types it. The hand-patched 19&nbsp;→&nbsp;22&nbsp;→&nbsp;24
+      sequence becomes structurally impossible.</td>
+    <td>F3 [nit]; grilled (chose script-writes-it over "countless marker" / "both").</td>
+  </tr>
+  <tr>
+    <td><strong>D6</strong></td>
+    <td><strong>Backfilling the 8 bundled archetypes is its own story (<code>1a4</code>).</strong> The corpus carries
+      47 dimensions and zero descriptors, so <strong>without backfill the epic's central fix never fires on any
+      default path</strong>. But 188 descriptors of authored judgement content is a full <code>/execute</code> run,
+      and fusing it into <code>sak</code> would make one <code>skill-eval</code> span "author the anchor contract"
+      <em>and</em> "make 188 separate calibration judgements". Separate story, separate reviewable diff, depends on
+      <code>sak</code> for the contract.</td>
+    <td>Grill Q1 (chose third story over fold-into-sak / defer / partial 4–5 archetypes).</td>
+  </tr>
+  <tr>
+    <td><strong>D7</strong></td>
+    <td><strong>Untested dimensions leave the denominator; coverage becomes a gated figure.</strong> A dimension
+      tagged untested (D2d) is <strong>excluded from the weighted score</strong> and the remaining weights
+      renormalize. <code>check-scoring-calibration.mjs</code> reports <strong>untested-weight-%</strong> as a
+      first-class coverage figure. When it crosses <strong>30%</strong> (one named constant), the recommendation must
+      either be <em>insufficient evidence</em> or carry a non-empty <code>data-reco-rationale</code> defending a call
+      made on partial coverage. All arithmetic is the script's (§H). This closes the hole where a round that probed 3
+      of 6 dimensions silently produces a confident number.</td>
+    <td>Grill Q2 (chose exclude+renormalize+gate over report-only / always-insufficient / score-neutral — the last
+      violating INV-4).</td>
+  </tr>
+  <tr>
+    <td><strong>D8</strong></td>
+    <td><strong>A provided guide with no rubric is materialized and agreed before any scoring.</strong> When the
+      resolved sheet carries no <code>data-level</code> descriptors, <code>/interview-feedback</code>
+      <strong>derives</strong> them per dimension from the guide's own strong/weak markers, its <code>.calib</code>
+      line, the archetype corpus and the seniority; <strong>writes them into the sheet as real
+      <code>data-level</code> anchors</strong> (the sheet becomes self-describing, and the next run inherits the same
+      bar); <strong>presents them for agreement</strong>; and only then scores. Blocking — no dimension is scored
+      against an unagreed bar. <em>This retires the original "absent anchor → score uncalibrated" degrade path,
+      which was the bar-inflation hole itself.</em> Under <code>--non-interactive</code> the agreement gate
+      <strong>AUTO-PICKs</strong> the synthesized rubric (maintainer's explicit call, overriding the
+      DEFER+provisional recommendation); the sheet records
+      <code>data-rubric-provenance="synthesized-auto"</code> so a reader can always tell the bar was never
+      human-agreed. Residual risk is accepted and named in <a href="#risks">Accepted risks</a>.</td>
+    <td>Maintainer-raised mid-grill; shape grilled (chose synthesize+write+confirm over confirm-without-persisting /
+      refuse / route-back-through-<code>/interview-guide</code>). Headless disposition is a maintainer override.</td>
+  </tr>
+  <tr>
+    <td><strong>D9</strong></td>
+    <td><strong>The evidence sweep renders as a collapsed <code>&lt;details&gt;</code> inside the scorecard.</strong>
+      One <code>&lt;details data-card="evidence-sweep"&gt;</code> per dimension, collapsed by default, under that
+      dimension's notes. The panel reads scores and notes exactly as today; anyone auditing a score expands one block
+      and sees every instance early/late/prompted/unprompted with timestamps. Preserves the standing
+      self-contained-single-artifact property, keeps the gate checkable, costs the reader nothing until they want
+      it.</td>
+    <td>Grill Q5 (chose collapsed-in-scorecard over separate working artifact / always-visible).</td>
+  </tr>
+  <tr>
+    <td><strong>D10</strong></td>
+    <td><strong>Note-vs-score is adjudicated by integer comparison, not by a self-reported verdict.</strong> Each
+      dimension records <code>data-note-matches-level="&lt;n&gt;"</code> — the level whose descriptor the written note
+      actually describes — and the script <strong>compares it to <code>data-selected</code></strong>. The model still
+      makes the judgement (which descriptor does my prose match?), but the check is mechanical and script-owned:
+      textbook §H, and it catches the retro's exact tell ("the note describes at-bar behaviour but carries a
+      below-bar number"). A self-reported <em>consistent/reconciled</em> token was rejected as a ritual — a model
+      satisfies it by stamping every dimension without reading. <strong>On mismatch the gate does not hard-fail:</strong>
+      it requires a non-empty <code>data-score-rationale</code> naming why the number departs from the prose (e.g. a
+      red flag that dragged the score down) — the same disagreement→defence shape as the reco-vs-modal gate, so
+      there is one pattern to learn and no incentive to write the note to match the number.</td>
+    <td>Grill Q8 + Q9 (chose level-match+script-compare over the verdict token; chose rationale-on-mismatch over
+      hard-fail-every-mismatch / advisory).</td>
+  </tr>
+  <tr>
+    <td><strong>D11</strong></td>
+    <td><strong>Output (b) gets the method, not the gate.</strong> <code>interviewer-notes-skeleton.html</code> has
+      <em>no</em> scoring anchors — no <code>data-dim</code>, no <code>data-v</code>, no <code>data-selected</code> —
+      so <code>check-scoring-calibration.mjs</code> structurally cannot run against it. But (b) makes below-bar claims
+      about interviewers from the same transcript with the same reading-order risk, so the
+      <strong>sweep-then-conclude order and the adversarial below-bar pass apply to Phase Coach as method</strong>.
+      Fix the bias everywhere; add machinery only where there is something to check. Giving (b) its own scoring
+      surface is explicitly deferred.</td>
+    <td>Grill Q6 (chose method-yes-gate-no over adding a scoring surface to (b) / scoping the epic to (a) only).</td>
+  </tr>
+</table>
+
+<h2 id="frs">Functional requirements</h2>
+<h3>Story <code>sak</code> — <code>/interview-guide</code> authors the bar</h3>
+<ul>
+  <li><span class="fr">FR-1</span> (D1) — Phase Scoring Sheet emits <code>data-level="&lt;descriptor&gt;"</code> on
+    every <code>data-v</code> option it authors, drawn from the archetype's strong/weak markers and the seniority
+    calibration; <code>scorecard-skeleton.html</code> documents the anchor in its contract comment;
+    <code>reference/output-shapes.md</code> gains the checklist row.</li>
+  <li><span class="fr">FR-2</span> (D1) — <code>validate-scorecard-anchors.mjs</code> asserts <code>data-level</code>
+    is <strong>all-or-none per dimension</strong> and every present descriptor is non-empty; a partially-described
+    scale is a non-zero exit that blocks emit. <code>--selftest</code> fixtures: fully-described, undescribed,
+    partially-described, empty-descriptor.</li>
+</ul>
+<h3>Story <code>1a4</code> — backfill the bundled corpus</h3>
+<ul>
+  <li><span class="fr">FR-3</span> (D6) — author <code>data-level</code> descriptors across all 8 bundled
+    <code>guidelines/&lt;archetype&gt;/scorecard.html</code> files (47 dimensions). Every sheet passes FR-2's
+    validator. <strong>Open, must be settled in this story's <code>/plan</code> before authoring:</strong> whether
+    descriptors need per-seniority variants — see <a href="#open">Open questions</a>.</li>
+</ul>
+<h3>Story <code>jb6</code> — <code>/interview-feedback</code> consumes and calibrates</h3>
+<ul>
+  <li><span class="fr">FR-4</span> (D1) — Phase Score reads the dimension's <code>data-level</code> descriptors; where
+    present they are the bar quoted by the scoring method.</li>
+  <li><span class="fr">FR-5</span> (D2) — Phase Score's scoring method is rewritten to sweep-then-score reading order,
+    quote-the-bar, floor/ceiling split, and untested-not-failed tagging, replacing today's single sentence ("Score
+    each dimension on its own scale with grounded notes + flags").</li>
+  <li><span class="fr">FR-6</span> (D3, D7, D9, D10) — new <code>scripts/check-scoring-calibration.mjs</code>
+    implementing the four gates: sweep presence+ordering; below-bar rebuttal presence;
+    <code>data-note-matches-level</code> vs <code>data-selected</code> integer comparison with
+    rationale-on-mismatch; script-computed modal/weighted score and untested-weight-% with the 30% coverage
+    threshold. <code>fill-scorecard.mjs</code> emits the new anchors
+    (<code>&lt;details data-card="evidence-sweep"&gt;</code>, <code>data-rebuttal</code>,
+    <code>data-note-matches-level</code>, <code>data-score-rationale</code>, <code>data-reco-rationale</code>).
+    <code>SKILL.md</code> Phase Score wires it as a second blocking STOP-before-done gate alongside the citation
+    gate. <code>--selftest</code> fixtures per gate. <strong>Note the weighted-score routine does not exist today</strong>
+    — see the §H warning in <a href="#no-bar">Why this epic</a>.</li>
+  <li><span class="fr">FR-7</span> (D8) — rubric materialization: detect a descriptor-less resolved sheet, derive
+    descriptors per dimension, write them into the sheet, gate on agreement before scoring, stamp
+    <code>data-rubric-provenance</code> (<code>authored</code> / <code>synthesized-agreed</code> /
+    <code>synthesized-auto</code>). Headless AUTO-PICKs per D8.</li>
+  <li><span class="fr">FR-8</span> (D11) — Phase Coach applies the sweep-then-conclude order and the adversarial
+    below-bar pass to output (b) as method; no gate, no new anchors on (b).</li>
+</ul>
+<h3>Story <code>z5n</code> — completeness &amp; proof-of-pass hygiene</h3>
+<ul>
+  <li><span class="fr">FR-9</span> (D4) — the completeness gate: placeholder/empty-slot scan over both artifacts
+    before done; interactive capture prompt; <code>draft — pending &lt;slot&gt;</code> stamp on decline or under
+    <code>--non-interactive</code>.</li>
+  <li><span class="fr">FR-10</span> (D5) — <code>check-citations.mjs --stamp</code> idempotently writes/patches the
+    <code>&lt;!-- citations verified: … --&gt;</code> comment on exit 0; <code>SKILL.md</code> Phase Score / Phase
+    Coach invoke it with <code>--stamp</code> and stop telling the model to author the comment.</li>
+</ul>
+
+<h2 id="finding-map">Finding → FR map</h2>
+<table>
+  <tr><th>Retro finding</th><th>Sev</th><th>Safeguards</th><th>FR</th><th>Story</th></tr>
+  <tr><td>Scoring time-biased — first probed answer scored, eventual arrival discounted</td><td>blocker</td><td>1</td><td>FR-5, FR-6</td><td>jb6</td></tr>
+  <tr><td>Scoring bar-inflated — level-4 "unprompted" standard applied as the level-3 pass line</td><td>blocker</td><td>2, 3</td><td>FR-1, FR-2, FR-3, FR-4, FR-5, FR-7</td><td>sak · 1a4 · jb6</td></tr>
+  <tr><td>Never-probed competencies scored below bar rather than tagged untested</td><td>blocker</td><td>4</td><td>FR-5, FR-6 (D7 math)</td><td>jb6</td></tr>
+  <tr><td>No note-vs-score or reco-vs-modal reconciliation before sending</td><td>blocker</td><td>5, 6</td><td>FR-6 (D10)</td><td>jb6</td></tr>
+  <tr><td>No adversarial pass on below-bar scores — the user ran it manually, twice</td><td>blocker</td><td>7</td><td>FR-6, FR-8</td><td>jb6</td></tr>
+  <tr><td>Unfilled "Observer's independent read" placeholder shipped as complete</td><td>friction</td><td>—</td><td>FR-9</td><td>z5n</td></tr>
+  <tr><td>Hardcoded citation count drifted 19 → 22 → 24 across corrections</td><td>nit</td><td>—</td><td>FR-10</td><td>z5n</td></tr>
+  <tr><td><em>(found in grill)</em> Weighted score computed by the model — §H violation</td><td>blocker</td><td>—</td><td>FR-6</td><td>jb6</td></tr>
+  <tr><td><em>(found in grill)</em> Bundled corpus ships 47 dimensions with no bar at all</td><td>blocker</td><td>2</td><td>FR-3</td><td>1a4</td></tr>
+</table>
+
+<h2 id="invariants">Invariants (cross-cutting; the build must not break)</h2>
+<ul>
+  <li><strong>INV-1</strong> — <strong>No silent uncalibrated scoring.</strong> A dimension is never scored against an
+    absent bar. Where descriptors exist they are quoted (FR-4); where they do not, D8's synthesize→write→agree path
+    runs first (FR-7). <em>The original "absent anchor → byte-identical prior behavior" degrade path is deliberately
+    retired</em> — it was the bar-inflation hole itself. Partial anchoring stays valid <em>across</em> dimensions and
+    invalid <em>within</em> one (FR-2).</li>
+  <li><strong>INV-2</strong> — <strong>§H is respected, with no gate wearing a presence costume.</strong> Every hard
+    condition is presence, ordering, or an integer comparison the script performs; every arithmetic condition (modal,
+    weighted, renormalized, untested-%, band comparison) is computed by
+    <code>check-scoring-calibration.mjs</code> and never by the model. Where a genuine judgement is required, the
+    model records a <em>machine-comparable value</em> (D10's level integer), not a self-graded verdict.</li>
+  <li><strong>INV-3</strong> — <strong>The citation gate is untouched.</strong> The skill's INV-1 (verbatim ≥40-char
+    transcript-tier citations, blocking STOP-before-done) keeps its exact semantics. The calibration gate is a
+    <em>second</em> gate run alongside it; <code>--stamp</code> changes who writes the proof comment, never what the
+    check verifies. The grounding half held in the retro and must not regress.</li>
+  <li><strong>INV-4</strong> — <strong>No fabrication anywhere in the new surface.</strong> The evidence sweep cites
+    real transcript spans under the existing citation rules (contiguous single-speaker, normalized single-line view);
+    an untested competency is tagged, never inferred; a missing observer note is stamped draft, never written for the
+    observer. A <em>synthesized</em> rubric (D8) is the one authored-by-the-skill artifact, and it is always labelled
+    as such via <code>data-rubric-provenance</code> — never passed off as the operator's own bar.</li>
+  <li><strong>INV-5</strong> — <strong>Confidentiality preserved.</strong> The new blocks carry candidate content and
+    live inside the storage root under the existing <code>storage.sh</code> gitignore guard. No new external call,
+    no new network dependency; <code>check-scoring-calibration.mjs</code> is local and offline like its siblings.</li>
+  <li><strong>INV-6</strong> — <strong>All 8 archetypes covered, none regressed.</strong> The new anchors are additive
+    to the competency <code>data-dim</code> pass, so <code>work-history</code>'s extra <code>role-evidence</code> /
+    <code>trajectory-synthesis</code> families are unaffected and the other seven gain the calibration surface
+    uniformly. The <code>level-verdict</code> → <code>reco</code> relationship (design D9) is unchanged.</li>
+  <li><strong>INV-7</strong> — <strong>skill-patterns §A–§L conformance.</strong> One-fact-one-home (the anchor
+    contract lives in <code>scorecard-skeleton.html</code>; both skills cite it, neither restates it); §J phase
+    anchors (<code>#score</code>, <code>#ground</code>, <code>#resolve</code>, <code>#coach</code>,
+    <code>#scoring-sheet</code>) stay stable so cross-references resolve; §I — <strong>no new user-facing flag on
+    <code>/interview-feedback</code></strong> (<code>--stamp</code> is a script argument, not a skill CLI surface, so
+    <code>argument-hint</code> is unchanged); the frozen non-interactive block stays byte-identical.</li>
+</ul>
+
+<h2 id="story-split">Story split</h2>
+<table>
+  <tr><th>Story</th><th>Skill / surface</th><th>FRs</th><th>Deps</th><th>Rationale</th></tr>
+  <tr>
+    <td><strong>260721-sak</strong><br><span class="pill">route: skill</span></td>
+    <td><code>/interview-guide</code> + <code>scorecard-skeleton.html</code></td>
+    <td>FR-1, FR-2</td>
+    <td>—</td>
+    <td>Authors the bar and owns the anchor contract (its single home). Independently shippable: a sheet whose scale
+      carries descriptors is strictly better than one without, whether or not a consumer reads them yet.</td>
+  </tr>
+  <tr>
+    <td><strong>260721-1a4</strong><br><span class="pill">route: skill</span></td>
+    <td><code>_shared/interview-guidelines/guidelines/*/</code></td>
+    <td>FR-3</td>
+    <td><code>sak</code></td>
+    <td>188 descriptors across 8 archetypes — content authoring, not contract work, and a full <code>/execute</code>
+      run on its own. Without it the epic is dormant on every default path (D6).</td>
+  </tr>
+  <tr>
+    <td><strong>260721-jb6</strong><br><span class="pill">route: skill</span></td>
+    <td><code>/interview-feedback</code></td>
+    <td>FR-4 … FR-8</td>
+    <td><code>sak</code></td>
+    <td>The calibration core: consumption, the method rewrite, the new gate script, the untested arithmetic, and D8's
+      rubric materialization. Depends on <code>sak</code> for the anchor contract; <strong>not</strong> on
+      <code>1a4</code> — FR-4 is presence-guarded and correct against an un-backfilled sheet, so the two build in
+      parallel.</td>
+  </tr>
+  <tr>
+    <td><strong>260721-z5n</strong><br><span class="pill">route: skill</span></td>
+    <td><code>/interview-feedback</code></td>
+    <td>FR-9, FR-10</td>
+    <td>—</td>
+    <td>The friction + nit findings. Different files (<code>check-citations.mjs</code> + a placeholder scan), zero
+      dependency on the calibration work, so it can build first or in parallel. Split out of <code>jb6</code> in the
+      grill to keep one <code>skill-eval</code> from spanning a new gate script <em>and</em> two unrelated hygiene
+      fixes.</td>
+  </tr>
+</table>
+<p>All four are <code>pmos-managerkit</code>, so the epic is a single release unit (D17). <code>sak</code> and
+<code>z5n</code> are ready immediately; <code>1a4</code> and <code>jb6</code> unblock on <code>sak</code>.</p>
+
+<h2 id="open">Open questions (must be settled in the named story's <code>/plan</code>)</h2>
+<ul>
+  <li><strong>⚠ Per-seniority descriptor variants — story <code>1a4</code>, blocking its authoring.</strong>
+    <code>level-ladder.md</code> already varies competency <em>weights</em> across
+    <code>apm · pm · senior-pm · group-pm · director · vp</code>. "Solid, some prompting OK" plainly means something
+    different for an APM than for a Director. If descriptors must vary by seniority too, <code>1a4</code> goes from
+    <strong>188 to ~1,128 descriptors</strong> and needs re-scoping (or a parameterized descriptor with a
+    seniority-sensitive clause). Settle this before a single descriptor is authored.</li>
+  <li><strong>The 30% untested-coverage threshold (D7) is a proposal</strong>, not calibrated against real rounds.
+    Ship it as one named constant in <code>check-scoring-calibration.mjs</code> so it is trivially tunable, and
+    revisit after first use.</li>
+</ul>
+
+<h2 id="risks">Accepted risks</h2>
+<ul>
+  <li><strong>Headless runs can score against a bar no human ever saw (D8).</strong> The maintainer chose AUTO-PICK
+    over DEFER+provisional for the rubric-agreement gate under <code>--non-interactive</code>, trading a guarantee for
+    unattended throughput. Mitigated — not eliminated — by <code>data-rubric-provenance="synthesized-auto"</code> on
+    the sheet, which makes the provenance auditable after the fact.</li>
+</ul>
+
+<h2 id="non-goals">Non-goals</h2>
+<ul>
+  <li>No change to the citation gate's semantics, tier model, or ≥40-char verbatim rule — only who writes its
+    proof-of-pass comment (INV-3).</li>
+  <li>No re-scoring or migration of already-produced scorecards. The gates apply to new runs; existing artifacts are
+    left alone.</li>
+  <li>No new user-facing flag on <code>/interview-feedback</code>; <code>argument-hint</code> is unchanged (INV-7).</li>
+  <li>No change to competency weights, the level ladder, <code>--level-rubric</code>, or any weight arithmetic — this
+    epic calibrates <em>how a dimension is scored</em>, not <em>how dimensions are weighted</em>. (D7 renormalizes an
+    existing weight set; it does not reassign weights.)</li>
+  <li>No scoring surface for output (b) — deferred (D11).</li>
+  <li>No multi-candidate comparison, no ATS integration, no comments/overlay substrate — the standing
+    <code>/interview-feedback</code> out-of-scope list (design §15) is unchanged.</li>
+</ul>
+
+<!-- pmos-comments:start -->
+<script id="pmos-comments" type="application/json">{"version":1,"threads":[]}</script>
+<!-- pmos-comments:end -->
+</body>
+</html>

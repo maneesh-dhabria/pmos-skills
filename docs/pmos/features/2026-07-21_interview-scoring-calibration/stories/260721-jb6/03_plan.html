@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Plan — 260721-jb6 · /interview-feedback scoring calibration</title>
+<style>
+  :root { --ink:#1a1a1a; --mut:#666; --line:#e2e2e2; --accent:#2b6cb0; --code:#f5f5f5; --warn:#b7791f; }
+  body { font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; color:var(--ink); max-width:860px; margin:0 auto; padding:2.5rem 1.25rem 6rem; }
+  h1 { font-size:1.6rem; margin:0 0 .25rem; } h2 { font-size:1.2rem; margin:2.2rem 0 .5rem; border-bottom:2px solid var(--line); padding-bottom:.3rem; }
+  h3 { font-size:1rem; margin:1.3rem 0 .3rem; }
+  .sub { color:var(--mut); margin:.2rem 0 1.4rem; }
+  table { border-collapse:collapse; width:100%; margin:1rem 0; font-size:.92rem; }
+  th,td { border:1px solid var(--line); padding:.45rem .6rem; text-align:left; vertical-align:top; }
+  th { background:var(--code); } code { background:var(--code); padding:.1rem .3rem; border-radius:3px; font-size:.88em; }
+  pre { background:var(--code); padding:.7rem .9rem; border-radius:6px; overflow:auto; font-size:.85rem; }
+  ul { padding-left:1.3rem; } li { margin:.3rem 0; }
+  .warn { border-left:3px solid var(--warn); background:#fffbf0; margin:1rem 0; padding:.6rem 1rem; }
+</style>
+</head>
+<body>
+<h1>Plan — <code>/interview-feedback</code> scoring calibration</h1>
+<p class="sub">Story <strong>260721-jb6</strong> · epic 260721-k1x · route: skill · plugin pmos-managerkit · execution_mode: inline · one <code>/execute</code> run · deps: <code>260721-sak</code></p>
+
+<h2 id="surface">Surface &amp; reference</h2>
+<p>Four files in <code>plugins/pmos-managerkit/skills/interview-feedback/</code>: <code>SKILL.md</code>
+(Phase Score <code>#score</code>, Phase Coach <code>#coach</code>),
+<code>scripts/check-scoring-calibration.mjs</code> (<strong>new</strong>),
+<code>scripts/fill-scorecard.mjs</code> (emit the new anchors), and the scorecard shape docs under
+<code>reference/</code>.</p>
+<p>Reference: <code>../../02_design.html</code> (D2, D3, D7, D8, D9, D10, D11; FR-4..FR-8; INV-1..INV-7) +
+<code>scorecard-skeleton.html</code>'s <code>data-level</code> contract (authored by <code>sak</code> — cite, never
+restate) + <code>feature-sdlc/reference/skill-patterns.md §A–§L</code> (§H is the load-bearing one here).</p>
+<p>Depends on <code>sak</code> for the anchor contract. <strong>Not</strong> on <code>1a4</code> — FR-4 is
+presence-guarded and correct against an un-backfilled sheet, so the two build in parallel.</p>
+
+<div class="warn">
+<strong>⚠ The weighted-score routine does not exist.</strong> <code>fill-scorecard.mjs</code> parses
+<code>data-weight</code> into <code>{id, weight, scale, …}</code> and never computes anything with it. There is no
+weighted- or modal-score routine anywhere in the skill — the retro's "2.10 → 3.00" was arithmetic the model did in
+its head, which §H forbids outright. T5 is a <strong>new capability closing an existing bug</strong>, not a
+re-homing. Estimate it as such.
+</div>
+
+<h2 id="anchors">The anchor set</h2>
+<pre>&lt;details data-card="evidence-sweep"&gt;   per dimension, collapsed; timestamped instances    (D9)
+data-rebuttal="…"                      on every below-bar dimension                       (D3)
+data-note-matches-level="&lt;n&gt;"          the level the PROSE describes; script compares     (D10)
+data-score-rationale="…"               required when note-matches-level != data-selected  (D10)
+data-reco-rationale="…"                required on reco-vs-modal band disagreement, and
+                                       when untested-weight ≥ 30%                         (D3, D7)
+data-rubric-provenance="authored|synthesized-agreed|synthesized-auto"                     (D8)</pre>
+
+<h2 id="h-shape">The §H shape (INV-2) — read before writing any gate</h2>
+<p>Every hard condition is <strong>presence, ordering, or an integer comparison the script performs</strong>. Where
+genuine judgement is required, the model records a <strong>machine-comparable value</strong>, never a self-graded
+verdict — a "stamp <code>consistent</code> per dimension" token is satisfiable without reading a word, which is why
+D10 replaced it. Both disagreement gates use the same escape: mismatch → a required non-empty rationale, never a
+hard fail, so there is no incentive to rewrite the note to match the number.</p>
+
+<h2 id="waves">Task waves</h2>
+<table>
+  <tr><th>Task</th><th>FR / AC</th><th>What</th><th>Deps</th></tr>
+  <tr><td><strong>T1</strong></td><td>study</td><td>Pin Phase Score's current one-sentence method + the citation-gate wiring (INV-3 — the pattern to copy, and the thing not to disturb); <code>fill-scorecard.mjs</code>'s parse + emit path; <code>check-citations.mjs</code>'s exit/selftest conventions; the <code>data-level</code> contract from <code>sak</code>; confirm output (b) has no scoring anchors (grounds D11).</td><td>—</td></tr>
+  <tr><td><strong>T2</strong></td><td>FR-6 / AC6</td><td><code>fill-scorecard.mjs</code> emits the anchor set — collapsed <code>&lt;details data-card="evidence-sweep"&gt;</code> per dimension under its notes, plus the five attributes. Foundational: the gate has nothing to read until the anchors exist.</td><td>T1</td></tr>
+  <tr><td><strong>T3</strong></td><td>FR-4, FR-5 / AC1, AC2</td><td>Phase Score method rewrite — sweep-then-score ordering, quote-the-bar, floor/ceiling split, untested-not-failed. Replaces the single sentence.</td><td>T2</td></tr>
+  <tr><td><strong>T4</strong></td><td>FR-6 / AC3</td><td><code>check-scoring-calibration.mjs</code> — the three presence/ordering/comparison gates (sweep, adversarial below-bar, note-vs-score).</td><td>T3</td></tr>
+  <tr><td><strong>T5</strong></td><td>FR-6 / AC3, AC4</td><td>The arithmetic half — modal + weighted score, untested exclusion + renormalization, untested-weight-%, the 30% named constant, reco-vs-modal band comparison. <em>New capability.</em></td><td>T4</td></tr>
+  <tr><td><strong>T6</strong></td><td>FR-6 / AC3</td><td>Wire the gate into Phase Score as a second blocking STOP-before-done gate alongside the citation gate.</td><td>T5</td></tr>
+  <tr><td><strong>T7</strong></td><td>FR-7 / AC5</td><td>Rubric materialization (D8) — detect descriptor-less sheet, derive, write inline, gate on agreement, stamp provenance; headless AUTO-PICK.</td><td>T6</td></tr>
+  <tr><td><strong>T8</strong></td><td>FR-8 / AC7</td><td>Phase Coach gets the method (sweep-then-conclude + adversarial below-bar) and <strong>no gate, no anchors</strong>.</td><td>T7</td></tr>
+  <tr><td><strong>T9</strong></td><td>AC8</td><td><code>--selftest</code> per gate (pass + fail), untested renormalization, the 30% boundary; conformance — citation gate untouched, no new flag, NI block byte-identical, skill-eval + four lints.</td><td>T8</td></tr>
+</table>
+<p>Strictly sequential. T2 must land before T4/T5 (the gate reads what the emitter writes), and T4/T5 before T6
+(wiring a gate that cannot yet pass would block every run). T7 depends on the method existing because the
+synthesized rubric is consumed by it.</p>
+
+<h2 id="risks">Risks &amp; mitigations</h2>
+<ul>
+  <li><strong>A gate wearing a presence costume.</strong> The failure mode the grill caught (D10). Any check
+    satisfiable by stamping a token without reading is not a gate. T4's note-vs-score must be an integer
+    comparison the <em>script</em> performs; T9 re-reads each gate and asks "can a model pass this without doing
+    the work?"</li>
+  <li><strong>Model arithmetic sneaking back in.</strong> The live bug. Every number — modal, weighted,
+    renormalized, untested-%, band — is computed in T5 and only <em>read</em> by the model. T9 greps
+    <code>SKILL.md</code> for any instruction to compute, average, or weight.</li>
+  <li><strong>Blocking every run.</strong> Wiring the gate (T6) before it can pass, or making rationale-required
+    the default rather than the mismatch case, turns a calibration aid into a hard stop on normal runs. T6 comes
+    after T5, and both disagreement gates fire only on disagreement.</li>
+  <li><strong>Regressing the citation gate.</strong> The one half of the contract that worked (INV-3). Frozen:
+    <code>check-citations.mjs</code> is not modified by this story at all (its <code>--stamp</code> is
+    <code>260721-z5n</code>). T9 asserts an empty diff for it.</li>
+  <li><strong>Bloating the panel's artifact.</strong> D9's collapsed <code>&lt;details&gt;</code> keeps the default
+    reading experience (scores + notes) unchanged. T2 must default to collapsed and place the block under the
+    notes, not above them.</li>
+  <li><strong>Over-reaching into output (b).</strong> (b) has no scoring anchors; adding them is explicitly
+    deferred (D11). T8 adds method only, and T9 asserts no new anchors in
+    <code>interviewer-notes-skeleton.html</code>.</li>
+  <li><strong>The headless override's residual risk.</strong> AUTO-PICK means a run can score against a bar no
+    human saw. Not eliminable by design (maintainer's call) — mitigated only by
+    <code>data-rubric-provenance="synthesized-auto"</code>, so T7 must stamp it unconditionally, including on
+    failure paths.</li>
+</ul>
+
+<h2 id="final-verify">Final verification</h2>
+<ul>
+  <li>AC1–AC2: spot-read Phase Score; the method states all four clauses and quotes the sheet's own descriptor.</li>
+  <li>AC3–AC4: <code>check-scoring-calibration.mjs --selftest</code> green across every gate's pass and fail path,
+    untested renormalization, and the 30% boundary; the 30% value is one named constant.</li>
+  <li>AC5: descriptor-less sheet → synthesize → write → agree → score; provenance stamped in all three cases;
+    headless AUTO-PICKs and stamps <code>synthesized-auto</code>.</li>
+  <li>AC6: a filled scorecard carries the full anchor set; sweep blocks are collapsed; panel default view
+    unchanged.</li>
+  <li>AC7: Phase Coach carries the method; <code>git diff</code> shows no new anchors on output (b).</li>
+  <li>AC8: <code>git diff</code> empty for <code>check-citations.mjs</code>; its tests still pass;
+    <code>argument-hint</code> unchanged; NI block byte-identical; <code>skill-eval-check.sh</code> (target
+    claude-code) clean or residuals proven pre-existing on main; four repo lints green.</li>
+  <li>Then <code>/skill-eval</code> (build Loop) re-scores <code>[D]</code>+<code>[J]</code> before <code>/verify</code>.</li>
+</ul>
+
+<!-- pmos-comments:start -->
+<script id="pmos-comments" type="application/json">{"version":1,"threads":[]}</script>
+<!-- pmos-comments:end -->
+</body>
+</html>

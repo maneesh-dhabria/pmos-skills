@@ -1,0 +1,161 @@
+schema_version: 1
+story: 260721-sak
+epic: 260721-k1x
+route: skill
+plugin: pmos-managerkit
+spec: ../../02_design.html
+execution_mode: inline
+skill_dir: plugins/pmos-managerkit/skills/interview-guide
+# Gives the interview scoring bar a machine home. /interview-guide already authors data-duration (root) and
+#   data-budget (per-dim); data-level joins them on each data-v scale option, carrying that level's at-bar wording.
+# Surface (4 files):
+#   plugins/pmos-managerkit/skills/_shared/interview-guidelines/scorecard-skeleton.html  <- the contract's ONE home
+#   plugins/pmos-managerkit/skills/interview-guide/SKILL.md                              (Phase #scoring-sheet)
+#   plugins/pmos-managerkit/skills/interview-guide/scripts/validate-scorecard-anchors.mjs (FR-2 gate + --selftest)
+#   plugins/pmos-managerkit/skills/interview-guide/reference/output-shapes.md             (one checklist row)
+# One-fact-one-home (§K): the attribute is DEFINED in scorecard-skeleton.html's contract comment; SKILL.md, the
+#   validator's error text, and output-shapes.md CITE it and never restate it.
+# §H: the FR-2 gate is deterministic (all-or-none presence + non-empty) -> HARD. No arithmetic anywhere.
+# §I: NO new user-facing flag; argument-hint unchanged.
+# Reference: ../../02_design.html (D1, FR-1, FR-2, INV-1, INV-6, INV-7) +
+#   feature-sdlc/reference/skill-patterns.md §A–§L + host CLAUDE.md (canonical skill path; 4 hygiene lints;
+#   audit-recommended; non-interactive inline-block byte-match). Cite refs, never restate.
+# BYTE-FROZEN this story: all 8 _shared/interview-guidelines/guidelines/*/scorecard.html (backfill is 260721-1a4),
+#   level-ladder.md, all of skills/interview-feedback/ (consumption is 260721-jb6), the frozen NI block,
+#   argument-hint, user-invocable.
+# NO release-prereq tasks (version bump, changelog, README, manifest sync) — /complete-dev owns those (§G).
+tasks:
+  - id: T1
+    title: "Study: scorecard-skeleton.html contract comment, SKILL.md #scoring-sheet emit steps, validate-scorecard-anchors.mjs, output-shapes.md checklist"
+    ac: [AC1, AC2, AC3, AC4, AC5, AC6, AC7]
+    deps: []
+    parallel: false
+    detail: >
+      Read plugins/pmos-managerkit/skills/_shared/interview-guidelines/scorecard-skeleton.html in full — pin
+      (a) the contract comment where data-scale / data-v / data-weight / data-budget are described, and (b) the
+      literal scale block `<div class="scale" data-scale="1-4"><span data-v="1">1</span>…`. That comment is the
+      single home for the new attribute.
+      Read plugins/pmos-managerkit/skills/interview-guide/SKILL.md Phase Scoring Sheet (#scoring-sheet) — pin the
+      exact steps that author data-weight (weights sum to 100) and data-budget (per-dim minutes), because
+      data-level is emitted alongside them and must follow the same authoring shape and the same seniority input.
+      Read scripts/validate-scorecard-anchors.mjs in full — pin the existing presence regexes
+      (/data-scale\s*=\s*"[^"]+"/ and /data-v\s*=\s*"\d+"/), the weight-sum-100 assertion, the
+      budget-sum-<=-duration assertion, the exit-code convention, the error-message format, and the --selftest
+      fixture harness (how fixtures are declared and asserted).
+      Read reference/output-shapes.md — pin the scorecard checklist where the row lands; note line ~32's unanchored
+      `.calib` good/average/poor prose (a known live inconsistency, OUT OF SCOPE here — do not "fix" it).
+      Confirm the byte-frozen regions listed in the header comment.
+      Produce NO edits — confirm every insertion point and every frozen region before any change.
+    verify: >
+      All four insertion points pinned; the validator's exit-code + message conventions and --selftest harness
+      understood well enough to extend them in the same style; the seniority input available at the SKILL.md emit
+      site confirmed (T3 needs it); the frozen regions identified before editing.
+
+  - id: T2
+    title: "FR-1 (D1) — define the data-level contract in scorecard-skeleton.html (the ONE home, §K)"
+    ac: [AC2]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Extend scorecard-skeleton.html's contract comment to define data-level alongside the existing anchors, and
+      add it to the literal scale block as an illustrative example. The contract states, in one place:
+        - data-level="<descriptor>" on each <span data-v="n"> carries THAT level's at-bar wording for THAT
+          dimension (per-dimension, not a shared global ladder).
+        - ALL-OR-NONE PER DIMENSION: a dimension either describes every option of its scale or none of them. A
+          partially-described scale is the exact ambiguity that invites borrowing the top level's standard down to
+          the pass line.
+        - Every present descriptor is non-empty (not whitespace-only).
+        - Descriptors are BEHAVIOURAL and observable in a transcript (what the candidate did), not trait
+          judgements.
+        - "unprompted" / "up front" / "led with it" / "without being asked" language belongs to the TOP level of
+          the scale only; the pass line permits prompting. (This is the rule 260721-1a4 inherits rather than
+          re-deciding, and it is the bar-inflation defect the epic exists to close.)
+      Do NOT restate any of this in SKILL.md, the validator, or output-shapes.md — they cite this comment.
+    verify: >
+      The contract comment defines data-level with all five clauses; the example scale block shows a level-3
+      descriptor that permits prompting and a top-level descriptor that carries the unprompted language; nothing
+      else in the skeleton changed (data-scale, data-v, data-weight, data-budget, ids, structure byte-identical).
+
+  - id: T3
+    title: "FR-1 — SKILL.md #scoring-sheet emits data-level on every data-v option; output-shapes.md checklist row"
+    ac: [AC1, AC2]
+    deps: [T2]
+    parallel: false
+    detail: >
+      In interview-guide/SKILL.md Phase Scoring Sheet (#scoring-sheet), at the step that authors data-weight /
+      data-budget, add the instruction to emit data-level="<descriptor>" on every data-v option of every
+      dimension, derived from that archetype's own strong/weak markers plus the seniority calibration already in
+      scope at that step. Cite scorecard-skeleton.html's contract for the attribute's rules — do not restate them
+      (§K); one sentence naming the constraint that matters most at the emit site ("the pass line permits
+      prompting; unprompted language is top-level only") is acceptable as a pointer, but the normative definition
+      stays in the skeleton.
+      Add the corresponding row to reference/output-shapes.md's scorecard checklist, in the same style as the
+      existing data-weight / data-budget rows, citing the skeleton contract.
+      Do NOT add a flag, do not touch argument-hint, do not modify the non-interactive block.
+    verify: >
+      A freshly-authored sheet for any archetype would carry a non-empty descriptor on every option of every
+      dimension; output-shapes.md has exactly one new checklist row; the attribute's rules appear normatively in
+      scorecard-skeleton.html ONLY; argument-hint and user-invocable unchanged; NI block byte-identical.
+
+  - id: T4
+    title: "FR-2 — validate-scorecard-anchors.mjs: all-or-none-per-dimension + non-empty-descriptor checks"
+    ac: [AC3, AC4]
+    deps: [T3]
+    parallel: false
+    detail: >
+      Add two checks to validate-scorecard-anchors.mjs, in the file's existing style and exit-code convention:
+        (1) ALL-OR-NONE PER DIMENSION — for each dimension, count data-v options carrying data-level. 0 -> legal,
+            no error. All -> legal. Some-but-not-all -> non-zero exit with a message naming the dimension id AND
+            the specific levels missing a descriptor.
+        (2) NON-EMPTY — a data-level present but empty or whitespace-only is a non-zero exit with a DISTINCT
+            message (distinct from (1), so the two failures are diagnosable apart).
+      CRITICAL: a dimension with zero data-level MUST be accepted. Do not turn all-or-none into all-or-fail — all
+      8 bundled archetypes carry zero data-level until 260721-1a4 lands, and a require-everywhere rule would turn
+      the entire corpus red on this story's own merge and block /interview-guide outright.
+      No arithmetic: this gate is presence-and-completeness only (§H deterministic -> hard). Leave the weight-sum
+      and budget-sum assertions untouched.
+    verify: >
+      Hand-check each of the four states against the new code paths: fully-described exits 0; undescribed exits 0;
+      partially-described exits non-zero naming dimension + missing levels; empty-descriptor exits non-zero with
+      the distinct message. Weight-sum-100 and budget-sum-<=-duration assertions unchanged.
+
+  - id: T5
+    title: "FR-2 — four --selftest fixtures: fully-described, undescribed, partially-described, empty-descriptor"
+    ac: [AC5]
+    deps: [T4]
+    parallel: false
+    detail: >
+      Extend the --selftest harness with four fixtures in the harness's existing declaration style, each asserting
+      the exact expected exit code and the expected message substring:
+        - fully-described: every option of every dimension has a non-empty data-level -> exit 0
+        - undescribed: no data-level anywhere -> exit 0 (the legal state the bundled corpus is in today)
+        - partially-described: one dimension describes 2 of 4 options -> non-zero, message names that dimension
+          and the missing levels
+        - empty-descriptor: one option has data-level="" (and one whitespace-only) -> non-zero, distinct message
+      Fixtures must be minimal and self-contained — do NOT copy a bundled archetype sheet in (that couples this
+      story's tests to 260721-1a4's content). Confirm the pre-existing fixtures still assert as before.
+    verify: >
+      `node scripts/validate-scorecard-anchors.mjs --selftest` passes with the four new fixtures asserting as
+      specified and every pre-existing assertion still green; the selftest count increases by exactly 4.
+
+  - id: T6
+    title: "Conformance: corpus stays green + byte-frozen regions + skill-eval + 4 lints"
+    ac: [AC6, AC7]
+    deps: [T5]
+    parallel: false
+    detail: >
+      Run validate-scorecard-anchors.mjs over all 8 bundled _shared/interview-guidelines/guidelines/*/scorecard.html
+      — every one must exit 0 (they carry zero data-level, the legal all-none state). A red here means T4 shipped
+      all-or-fail; fix T4, do not weaken the fixture.
+      Assert `git diff` is EMPTY for: _shared/interview-guidelines/guidelines/ (all 8), level-ladder.md, and all of
+      skills/interview-feedback/.
+      Assert argument-hint and user-invocable unchanged in interview-guide/SKILL.md; the frozen non-interactive
+      block byte-identical to skills/_shared/non-interactive.md.
+      Run skill-eval-check.sh on the skill DIR (target claude-code); any residual must be proven PRE-EXISTING on
+      pre-story main (throwaway `git worktree add --detach`), not accepted on assertion.
+      Run all four repo hygiene lints: lint-flags-vs-hints.sh (DIR), lint-phase-refs.sh (DIR),
+      lint-non-interactive-inline.sh, audit-recommended.sh (the SKILL.md FILE — opposite arg shape, see host
+      CLAUDE.md).
+    verify: >
+      All 8 archetypes exit 0; git diff empty for the three frozen paths; argument-hint / user-invocable / NI block
+      unchanged; skill-eval clean or residuals proven pre-existing on main; all four lints green.

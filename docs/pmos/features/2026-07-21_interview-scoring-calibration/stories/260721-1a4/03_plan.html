@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Plan — 260721-1a4 · archetype level-descriptor backfill</title>
+<style>
+  :root { --ink:#1a1a1a; --mut:#666; --line:#e2e2e2; --accent:#2b6cb0; --code:#f5f5f5; --warn:#b7791f; }
+  body { font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; color:var(--ink); max-width:860px; margin:0 auto; padding:2.5rem 1.25rem 6rem; }
+  h1 { font-size:1.6rem; margin:0 0 .25rem; } h2 { font-size:1.2rem; margin:2.2rem 0 .5rem; border-bottom:2px solid var(--line); padding-bottom:.3rem; }
+  .sub { color:var(--mut); margin:.2rem 0 1.4rem; }
+  table { border-collapse:collapse; width:100%; margin:1rem 0; font-size:.92rem; }
+  th,td { border:1px solid var(--line); padding:.45rem .6rem; text-align:left; vertical-align:top; }
+  th { background:var(--code); } code { background:var(--code); padding:.1rem .3rem; border-radius:3px; font-size:.88em; }
+  pre { background:var(--code); padding:.7rem .9rem; border-radius:6px; overflow:auto; font-size:.85rem; }
+  ul { padding-left:1.3rem; } li { margin:.3rem 0; }
+  .warn { border-left:3px solid var(--warn); background:#fffbf0; margin:1rem 0; padding:.6rem 1rem; }
+</style>
+</head>
+<body>
+<h1>Plan — archetype level-descriptor backfill</h1>
+<p class="sub">Story <strong>260721-1a4</strong> · epic 260721-k1x · route: skill · plugin pmos-managerkit · execution_mode: inline · one <code>/execute</code> run · deps: <code>260721-sak</code></p>
+
+<h2 id="surface">Surface &amp; reference</h2>
+<p>Eight files, one shape:
+<code>plugins/pmos-managerkit/skills/_shared/interview-guidelines/guidelines/&lt;archetype&gt;/scorecard.html</code>.
+Content authoring only — no skill body, no script, no contract change. The contract and its validator come from
+<code>260721-sak</code>; this story is the corpus that satisfies them.</p>
+<table>
+  <tr><th>Archetype</th><th>Dims</th><th>Archetype</th><th>Dims</th></tr>
+  <tr><td><code>analytical</code></td><td>5</td><td><code>product-sense</code></td><td>5</td></tr>
+  <tr><td><code>behavioral</code></td><td>5</td><td><code>recruiter-screen</code></td><td>5</td></tr>
+  <tr><td><code>case-presentation</code></td><td>5</td><td><code>technical</code></td><td>5</td></tr>
+  <tr><td><code>case-study</code></td><td>5</td><td><code>work-history</code></td><td>12</td></tr>
+  <tr><td colspan="4"><strong>47 dimensions · 188 descriptors</strong> at the flat baseline (4 levels each)</td></tr>
+</table>
+<p>Reference: <code>../../02_design.html</code> (D6, FR-3, INV-4, INV-6) + <code>scorecard-skeleton.html</code>'s
+contract comment (the normative rules, authored by <code>sak</code>) + each archetype's own
+<code>guidelines/&lt;archetype&gt;/</code> markers + <code>level-ladder.md</code> (read-only).</p>
+
+<div class="warn">
+<strong>⚠ T0 is a maintainer decision, not an authoring task, and it gates everything after it.</strong>
+<code>level-ladder.md</code> already varies competency <em>weights</em> across
+<code>apm · pm · senior-pm · group-pm · director · vp</code>. If descriptors must vary by seniority too, this story
+goes from <strong>188 to ~1,128 descriptors</strong> and must be re-scoped or re-split. Resolve it before authoring
+a single descriptor; record the choice and its rationale in this plan (AC7).
+</div>
+
+<h2 id="t0">T0 — the seniority question</h2>
+<p>Three candidate shapes, to be put to the maintainer:</p>
+<ul>
+  <li><strong>Flat (188).</strong> One descriptor set per dimension; seniority is already expressed through weights
+    and through which archetypes are run. Cheapest, and consistent with how the corpus works today — but "solid,
+    some prompting OK" genuinely does mean something different for an APM and a Director.</li>
+  <li><strong>Parameterized (188 + a rider).</strong> One descriptor set, plus a short seniority-sensitive clause in
+    the skeleton contract stating how the bar shifts with level. Keeps the corpus at 188 while acknowledging the
+    real variance; the rider is one fact in one home rather than 940 duplicated ones.</li>
+  <li><strong>Per-seniority (~1,128).</strong> Full variants. Correct in principle, but it is a different-sized
+    story and should be re-split rather than absorbed silently.</li>
+</ul>
+<p>Whatever is chosen, AC1's count is restated to match before authoring begins.</p>
+
+<h2 id="waves">Task waves</h2>
+<table>
+  <tr><th>Task</th><th>FR / AC</th><th>What</th><th>Deps</th></tr>
+  <tr><td><strong>T0</strong></td><td>AC7</td><td>Resolve the seniority-variance question with the maintainer; record the decision + rationale in this plan; restate AC1's count if it changed. <strong>Blocks all authoring.</strong></td><td>—</td></tr>
+  <tr><td><strong>T1</strong></td><td>study</td><td>Read <code>scorecard-skeleton.html</code>'s <code>data-level</code> contract (from <code>sak</code>) and all 8 archetype folders — each dimension's id, weight, scale, probes and strong/weak markers. Build the per-dimension source table that T2–T5 author from. Confirm <code>work-history</code>'s 12 dims incl. its <code>role-evidence</code> / <code>trajectory-synthesis</code> families.</td><td>T0</td></tr>
+  <tr><td><strong>T2</strong></td><td>FR-3 / AC1, AC3, AC4</td><td>Author + apply: <code>analytical</code>, <code>behavioral</code> (10 dims).</td><td>T1</td></tr>
+  <tr><td><strong>T3</strong></td><td>FR-3 / AC1, AC3, AC4</td><td>Author + apply: <code>case-presentation</code>, <code>case-study</code>, <code>product-sense</code> (15 dims).</td><td>T2</td></tr>
+  <tr><td><strong>T4</strong></td><td>FR-3 / AC1, AC3, AC4</td><td>Author + apply: <code>recruiter-screen</code>, <code>technical</code> (10 dims).</td><td>T3</td></tr>
+  <tr><td><strong>T5</strong></td><td>FR-3 / AC1, AC3, AC4, AC6</td><td>Author + apply: <code>work-history</code> (12 dims, all families).</td><td>T4</td></tr>
+  <tr><td><strong>T6</strong></td><td>AC2, AC3, AC5, AC7</td><td>Conformance: validator exits 0 on all 8; the ceiling-language grep hits only top-level options; <code>git diff</code> shows <code>data-level</code> insertions <em>only</em>; four repo lints.</td><td>T5</td></tr>
+</table>
+<p>T2–T5 are sequential rather than parallel on purpose: the descriptors must read as one calibrated voice across
+archetypes, and each batch is written against the running vocabulary the previous batch established. Batching by
+archetype (not by level) keeps each task's diff reviewable and each archetype internally consistent.</p>
+
+<h2 id="rules">Authoring rules (from the contract, applied here)</h2>
+<ul>
+  <li><strong>Behavioural and observable in a transcript</strong> — what the candidate <em>did</em>, not what they
+    are. "Named the tradeoff and picked a side" ✓; "strategic thinker" ✗.</li>
+  <li><strong>The pass line permits prompting.</strong> "unprompted" / "up front" / "led with it" / "without being
+    asked" appear at the <strong>top level only</strong>. This is the exact defect the epic exists to close; baking
+    it into a level-3 descriptor would ship the bug into the corpus permanently.</li>
+  <li><strong>Derived, not invented.</strong> Each descriptor traces to that archetype's existing strong/weak
+    markers and probe intent. This is a re-expression of the corpus's own standard at four resolutions, not a new
+    standard.</li>
+  <li><strong>Distinguishable adjacent levels.</strong> If a reader cannot tell 2 from 3 by observable behaviour,
+    the descriptor is not doing its job — the whole point is that the scorer can quote it and check the evidence
+    against it.</li>
+  <li><strong>Purely additive.</strong> No dimension added, removed, renamed, or reweighted.</li>
+</ul>
+
+<h2 id="risks">Risks &amp; mitigations</h2>
+<ul>
+  <li><strong>Authoring the ceiling into the pass line — at corpus scale.</strong> The epic's central defect,
+    replicated 47 times and frozen into the shipped corpus. T6's grep for "unprompted / up front / led with it /
+    without being asked" must hit <em>only</em> the highest <code>data-v</code> of each dimension; a hit anywhere
+    else is a blocking failure, not a nit.</li>
+  <li><strong>Silent drift in the frozen fields.</strong> 8 files of hand-editing is where a stray weight or
+    dimension-id change hides. T6 asserts the <code>git diff</code> contains <code>data-level</code> attribute
+    insertions and nothing else — the strongest available proof of AC5.</li>
+  <li><strong>Scope explosion via T0.</strong> If per-seniority wins, do <strong>not</strong> absorb ~1,128
+    descriptors into this story — re-split and say so. T0's output is a recorded decision either way.</li>
+  <li><strong>Voice drift across batches.</strong> Four authoring tasks over 47 dimensions can produce four
+    different registers. T1's source table fixes the vocabulary up front and T2–T5 run sequentially against it.</li>
+  <li><strong>Partial archetypes.</strong> All-or-none is per <em>dimension</em>, so a half-finished archetype can
+    still pass the validator dimension-by-dimension while leaving the file incomplete. T6 counts dimensions per
+    file against the expected table (5/5/5/5/5/5/5/12 = 47), not just validator exit codes.</li>
+</ul>
+
+<h2 id="final-verify">Final verification</h2>
+<ul>
+  <li>AC1: every one of the 47 dimensions carries a non-empty descriptor on every <code>data-v</code> option;
+    counted per file against 5/5/5/5/5/5/5/12.</li>
+  <li>AC2: <code>validate-scorecard-anchors.mjs</code> exits 0 on all 8 files including the all-or-none and
+    non-empty checks.</li>
+  <li>AC3: ceiling-language grep hits only top-level options across all 8 files.</li>
+  <li>AC5: <code>git diff</code> shows <code>data-level</code> insertions only — <code>data-weight</code>,
+    <code>data-budget</code>, <code>data-scale</code>, <code>data-v</code> values and dimension ids byte-identical.</li>
+  <li>AC6: <code>work-history</code>'s 12 dimensions covered on the same terms; no archetype partially done.</li>
+  <li>AC7: the T0 decision + rationale recorded in this plan; the authored descriptors consistent with it; four
+    repo hygiene lints green.</li>
+  <li>Then <code>/skill-eval</code> (build Loop) re-scores <code>[D]</code>+<code>[J]</code> before <code>/verify</code>.</li>
+</ul>
+
+<!-- pmos-comments:start -->
+<script id="pmos-comments" type="application/json">{"version":1,"threads":[]}</script>
+<!-- pmos-comments:end -->
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Plan — 260721-sak · /interview-guide level-descriptor anchors</title>
+<style>
+  :root { --ink:#1a1a1a; --mut:#666; --line:#e2e2e2; --accent:#2b6cb0; --code:#f5f5f5; }
+  body { font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; color:var(--ink); max-width:860px; margin:0 auto; padding:2.5rem 1.25rem 6rem; }
+  h1 { font-size:1.6rem; margin:0 0 .25rem; } h2 { font-size:1.2rem; margin:2.2rem 0 .5rem; border-bottom:2px solid var(--line); padding-bottom:.3rem; }
+  .sub { color:var(--mut); margin:.2rem 0 1.4rem; }
+  table { border-collapse:collapse; width:100%; margin:1rem 0; font-size:.92rem; }
+  th,td { border:1px solid var(--line); padding:.45rem .6rem; text-align:left; vertical-align:top; }
+  th { background:var(--code); } code { background:var(--code); padding:.1rem .3rem; border-radius:3px; font-size:.88em; }
+  pre { background:var(--code); padding:.7rem .9rem; border-radius:6px; overflow:auto; font-size:.85rem; }
+  ul { padding-left:1.3rem; } li { margin:.3rem 0; }
+</style>
+</head>
+<body>
+<h1>Plan — <code>/interview-guide</code> level-descriptor anchors</h1>
+<p class="sub">Story <strong>260721-sak</strong> · epic 260721-k1x · route: skill · plugin pmos-managerkit · execution_mode: inline · one <code>/execute</code> run · deps: none</p>
+
+<h2 id="surface">Surface &amp; reference</h2>
+<p>Four files. <code>plugins/pmos-managerkit/skills/_shared/interview-guidelines/scorecard-skeleton.html</code> is the
+<strong>anchor contract's single home</strong> (§K) — the shape is defined there and cited from everywhere else, never
+restated. <code>skills/interview-guide/SKILL.md</code> (Phase Scoring Sheet, <code>#scoring-sheet</code>) authors the
+attribute; <code>scripts/validate-scorecard-anchors.mjs</code> gates it;
+<code>reference/output-shapes.md</code> gains one checklist row.</p>
+<p>Reference: <code>../../02_design.html</code> (D1, FR-1, FR-2, INV-1, INV-6, INV-7) +
+<code>feature-sdlc/reference/skill-patterns.md §A–§L</code> (§H deterministic = hard gate; §I no new flag;
+§K one-fact-one-home) + host <code>CLAUDE.md</code>. Cite refs, never restate.</p>
+
+<h2 id="shape">The attribute</h2>
+<pre>&lt;div class="scale" data-scale="1-4"&gt;
+  &lt;span data-v="1" data-level="…"&gt;1&lt;/span&gt;
+  &lt;span data-v="2" data-level="…"&gt;2&lt;/span&gt;
+  &lt;span data-v="3" data-level="Solid — hits the point, some prompting OK"&gt;3&lt;/span&gt;
+  &lt;span data-v="4" data-level="Leads with it unprompted, up front"&gt;4&lt;/span&gt;
+&lt;/div&gt;</pre>
+<p>Additive to the existing <code>data-v</code> options — no new element, no id change, no scale change. The
+consumer (<code>260721-jb6</code>) reads it presence-guarded; this story guarantees only that when it exists it is
+complete and non-empty.</p>
+
+<h2 id="waves">Task waves</h2>
+<table>
+  <tr><th>Task</th><th>FR / AC</th><th>What</th><th>Deps</th></tr>
+  <tr><td><strong>T1</strong></td><td>study</td><td>Pin the exact sites: <code>scorecard-skeleton.html</code>'s contract comment + scale block; <code>SKILL.md</code> Phase <code>#scoring-sheet</code> emit steps (where <code>data-weight</code>/<code>data-budget</code> are authored — <code>data-level</code> joins them); <code>validate-scorecard-anchors.mjs</code>'s existing presence regexes + the weight-sum-100 / budget-sum-≤-duration assertions + the <code>--selftest</code> fixture harness; <code>output-shapes.md</code>'s scorecard checklist. Confirm the byte-frozen regions (all 8 bundled archetypes, <code>level-ladder.md</code>, <code>argument-hint</code>, the NI block). No edits.</td><td>—</td></tr>
+  <tr><td><strong>T2</strong></td><td>FR-1 / AC2</td><td>Define the contract in <code>scorecard-skeleton.html</code>'s comment: <code>data-level</code> carries that level's at-bar wording for that dimension; all-or-none per dimension; non-empty; behavioural + observable-in-transcript, not a trait judgement; "unprompted/up-front" language belongs to the top level only. This is the <strong>one home</strong> — T3/T4 cite it.</td><td>T1</td></tr>
+  <tr><td><strong>T3</strong></td><td>FR-1 / AC1, AC2</td><td><code>SKILL.md</code> <code>#scoring-sheet</code>: emit <code>data-level</code> on every <code>data-v</code> option, derived from the archetype's strong/weak markers + the seniority calibration, citing the skeleton contract (never restating it). Add the <code>output-shapes.md</code> checklist row.</td><td>T2</td></tr>
+  <tr><td><strong>T4</strong></td><td>FR-2 / AC3, AC4</td><td><code>validate-scorecard-anchors.mjs</code>: per-dimension all-or-none check (some-but-not-all → non-zero exit naming the dimension + missing levels) and a distinct empty/whitespace-only-descriptor error. Zero <code>data-level</code> in a dimension is <strong>legal</strong> — do not turn all-or-none into all-or-fail (the bundled corpus is still bare until <code>260721-1a4</code>).</td><td>T3</td></tr>
+  <tr><td><strong>T5</strong></td><td>FR-2 / AC5</td><td><code>--selftest</code>: four fixtures — fully-described, undescribed, partially-described, empty-descriptor — asserting the exact expected exit code and message for each. Existing weight/budget assertions unchanged and still passing.</td><td>T4</td></tr>
+  <tr><td><strong>T6</strong></td><td>AC6, AC7</td><td>Conformance: run the validator over all 8 bundled <code>guidelines/*/scorecard.html</code> (must exit 0 — the legal all-none state); <code>git diff</code> empty for the corpus, <code>level-ladder.md</code>, and <code>interview-feedback/</code>; <code>argument-hint</code> + <code>user-invocable</code> unchanged; NI block byte-identical; <code>skill-eval-check.sh</code> (target claude-code) + the four repo lints.</td><td>T5</td></tr>
+</table>
+<p>Strictly sequential (<code>parallel: false</code>) — T2's contract wording is what T3 emits and T4 enforces, so
+the three must not drift. T6 is the only task that touches the bundled corpus, and only to read it.</p>
+
+<h2 id="risks">Risks &amp; mitigations</h2>
+<ul>
+  <li><strong>All-or-none silently becoming all-or-fail.</strong> The single most likely defect: a validator that
+    requires <code>data-level</code> everywhere turns all 8 bundled archetypes red on this story's own merge and
+    blocks <code>/interview-guide</code> outright. T4's rule is explicitly <em>per dimension</em>, and T5's
+    "undescribed" fixture plus T6's corpus run are the two independent proofs.</li>
+  <li><strong>Restating the contract in three places.</strong> §K violation waiting to happen —
+    <code>SKILL.md</code>, the validator's error text, and <code>output-shapes.md</code> all want to describe the
+    attribute. Only <code>scorecard-skeleton.html</code> defines it; the other three cite it.</li>
+  <li><strong>Authoring the ceiling into level 3.</strong> The bar-inflation defect this epic exists to close can be
+    baked straight into the descriptors. T2 pins the rule in the contract ("unprompted/up-front" is top-level only)
+    so <code>260721-1a4</code> inherits it rather than re-deciding it.</li>
+  <li><strong>Scope creep into the corpus.</strong> Backfilling "just a couple of archetypes while I'm here" would
+    fold <code>1a4</code> back in and blow the story's <code>skill-eval</code> scope. T6 asserts an empty
+    <code>git diff</code> for <code>guidelines/</code>.</li>
+</ul>
+
+<h2 id="final-verify">Final verification</h2>
+<ul>
+  <li>AC1–AC5: spot-read each of the four files; run <code>validate-scorecard-anchors.mjs --selftest</code> and
+    confirm all four new fixtures assert as specified alongside the pre-existing ones.</li>
+  <li>AC6: validator exits 0 on all 8 bundled archetypes; <code>git diff</code> empty for
+    <code>_shared/interview-guidelines/guidelines/</code>, <code>level-ladder.md</code>, and all of
+    <code>skills/interview-feedback/</code>.</li>
+  <li>AC7: <code>skill-eval-check.sh --target claude-code</code> clean (residuals proven pre-existing on main);
+    <code>lint-flags-vs-hints.sh</code>, <code>lint-phase-refs.sh</code>, <code>lint-non-interactive-inline.sh</code>,
+    <code>audit-recommended.sh</code> green; <code>argument-hint</code> unchanged.</li>
+  <li>Then <code>/skill-eval</code> (build Loop) re-scores <code>[D]</code>+<code>[J]</code> before <code>/verify</code>.</li>
+</ul>
+
+<!-- pmos-comments:start -->
+<script id="pmos-comments" type="application/json">{"version":1,"threads":[]}</script>
+<!-- pmos-comments:end -->
+</body>
+</html>
