@@ -183,7 +183,9 @@ function stampFile(htmlPath, byTier) {
   if (STAMP_RE.test(html)) {
     next = html.replace(STAMP_RE, () => comment + '\n');
   } else if (/<\/body>/i.test(html)) {
-    next = html.replace(/<\/body>/i, () => comment + '\n</body>');
+    // Keep the closing tag's own indentation and put the comment at column 0, so run 2 — where
+    // STAMP_RE consumes `[ \t]*<!--…-->\n` — reproduces run 1 byte for byte (AC4).
+    next = html.replace(/([ \t]*)<\/body>/i, (_, indent) => comment + '\n' + indent + '</body>');
   } else {
     next = html + (html.endsWith('\n') ? '' : '\n') + comment + '\n';
   }
@@ -206,7 +208,11 @@ function runFiles(htmlPath, transcriptPath, submissionPath, opts = {}) {
     if (byTier.submission > 0) line += `, ${byTier.submission} submission`;
     console.log(line);
     // Proof-of-pass is written here and nowhere else — inside the exit-0 branch, so a failing
-    // gate can never leave a comment that reads as proof of a pass that did not happen.
+    // gate never WRITES a stamp. It does not erase one either: per AC5 a failing run leaves the
+    // file untouched. A stamp from an earlier passing run can therefore outlive the edit that
+    // broke it, and is only refreshed by the next passing run. That is safe only because
+    // the gate is a hard STOP — SKILL.md#score forbids presenting the artifact while the gate is
+    // non-zero, so a stale stamp is never on a presented artifact.
     if (opts.stamp) console.log(`stamped: ${stampFile(htmlPath, byTier)}`);
   }
   return failed === 0 ? 0 : 1;

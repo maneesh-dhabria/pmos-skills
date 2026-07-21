@@ -215,7 +215,7 @@ Then run the completeness gate (`#completeness-gate`) over `filled-scorecard.htm
 
 Canonical for **both** artifacts — Phase Score runs it over `filled-scorecard.html`, Phase Coach over `interviewer-notes.html`. It runs **before** either artifact is declared complete, after the citation gate.
 
-Run `scripts/check-completeness.mjs <artifact.html>`. It flags three shapes of unfilled promised content, keyed on the skeletons' own conventions: bracketed placeholder ghost text carrying an ellipsis (`[ … your observations go here ]`), an empty `data-input` slot (for option-chip slots, "empty" = no chip carries `data-selected`), and an un-substituted `{{…}}` token. Ordinary bracketed prose is not flagged — a false "draft" on a complete artifact is its own credibility failure.
+Run `scripts/check-completeness.mjs <artifact.html>`. It flags unfilled promised content — bracketed ghost text, empty `data-input` slots, un-substituted `{{…}}` tokens — deliberately narrowly, so that ordinary prose and an artifact's unused optional blocks are not flagged: a false "draft" on a complete artifact is its own credibility failure. The exact detection rules live in the script's header comment and nowhere else (§K); do not restate or second-guess them here.
 
 **Exit 0** — nothing unfilled; proceed. **Exit 1** — the artifact is NOT presented as complete and the run does NOT declare done until one of these two dispositions has been applied:
 
