@@ -281,13 +281,22 @@ The two gates are independent and both must pass; the calibration gate **does no
 node scripts/check-scoring-calibration.mjs filled-scorecard.html --no-transcript
 ```
 
-`--no-transcript` is a **declaration about the round**, not a convenience: it is **refused (exit 2)** when a transcript sits beside the scorecard, and it makes the calibration gate take over the two checks the citation gate would still have been making — no `transcript`- or `submission`-tier citation may appear anywhere (in a round with no transcript, one is a lie by construction), and every `<cite>` must name a non-empty `data-source`. Skip the citation gate **only** on this path, and only because there is nothing for it to verify; a round with a transcript **or** a written submission runs both gates as documented above.
+`--no-transcript` is a **declaration about the round**, not a convenience: it is **refused (exit 2)** when a transcript is found in or above the scorecard's directory, and it makes the calibration gate take over the two checks the citation gate would still have been making — no `transcript`-tier citation may appear anywhere (in a round with no transcript, one is a lie by construction), and every `<cite>` must name a non-empty `data-source`. The refusal is deliberately **eager**: it matches any `transcript*.{txt,md,vtt,srt,json}` case-insensitively, one directory up as well, because a false refusal costs the operator seconds while a missed transcript is silent. If it fires on a file that is genuinely not this round's transcript, move that file out of the round folder rather than working around the gate.
+
+**A transcript-less round that still has a written submission** grounds on `submission`-tier quotes, which *are* verifiable — a submission's existence has nothing to do with whether the live portion was recorded. Run both gates, passing the submission file in **both** positional slots:
+
+```
+node scripts/check-citations.mjs filled-scorecard.html <submission-path> <submission-path>
+node scripts/check-scoring-calibration.mjs filled-scorecard.html --no-transcript
+```
+
+This is not the placeholder trick above — every check that runs is a real one. The second positional is the transcript source, and it goes unread precisely because the calibration gate has already made a `transcript`-tier citation impossible on this path; the third is what verifies the `submission`-tier quotes verbatim. Skip the citation gate **only** when the round has neither a transcript nor a submission, i.e. when there is genuinely nothing for it to verify.
 
 **What a green pair does not prove (named residuals, not silent ones).** Between them the gates prove each cited quote is *real* and each number is *defended*. Three things they do not prove:
 
 - **Completeness** — that the sweep found every instance rather than the first one. A presence check cannot tell one representative instance from the only one you looked at.
 - **Relevance** — that a quote supports the claim built on it. A genuine transcript span can sit under invented interpretive prose. (A lexical-overlap floor between quote and note was considered and **rejected**: good notes paraphrase, so it would fail honest analytical prose while passing keyword-padded fabrication, and it would pressure the author to copy transcript words into the note — the same rewrite-to-match pathology clause **(d)**'s note-vs-score anchor exists to refuse.)
-- **That the gate saw the real round** — the tier-2 declaration is corroborated against the scorecard's own directory, so a false declaration fails loudly *in place*; but a caller who both relocates the artifact and declares the downgrade defeats that. No gate that reads only the files it is handed can defend against a caller who chooses what to hand it.
+- **That the gate saw the real round** — the tier-2 declaration is corroborated against the filesystem around the scorecard, eagerly, so a false declaration fails loudly on the documented layout and on the near misses (a differently-named transcript, one level of nesting). But the veto can only read where it is pointed: a caller who puts the sheet somewhere the transcript is not, and declares the downgrade, defeats it. No gate that reads only the files it is handed can defend against a caller who chooses what to hand it.
 
 The first two are judgement, not arithmetic, so per §H they stay with the method above and with the reviewer; the third is the operator's sight of the round folder. A passing gate is a floor, never a sign-off.
 

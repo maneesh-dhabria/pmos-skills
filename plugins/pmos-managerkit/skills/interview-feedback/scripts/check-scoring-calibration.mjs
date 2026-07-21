@@ -41,7 +41,7 @@
 //
 // Zero-dependency, Node built-ins only. Local and offline, like its siblings (INV-5).
 
-import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -75,22 +75,54 @@ const VERIFIED_CITE_TIERS = new Set(['transcript', 'submission']);
 // one nobody can see.
 //
 // The declaration is CORROBORATED, not trusted: --no-transcript is REFUSED when a transcript
-// does sit beside the scorecard. That kills the honest-mistake case (a caller that passes the
-// flag by habit in a real transcript round now fails loudly) without pretending the flag is
-// unforgeable.
+// is found near the scorecard (see findTranscriptNear — deliberately greedy about names and
+// one level of nesting, because the two error directions are not symmetric). That kills the
+// honest-mistake case (a caller that passes the flag by habit in a real transcript round fails
+// loudly) without pretending the flag is unforgeable.
 //
-// What remains, named in SKILL.md next to the other residuals: a caller who both relocates the
-// artifact and declares the downgrade can still launder a fabricated sheet. No gate that reads
-// only the files it is handed can defeat a caller who chooses what to hand it — that is the
-// operator's sight of the round folder and the reviewer's job, not this script's.
+// What remains, named in SKILL.md next to the other residuals: the veto reads the filesystem
+// around the artifact it was handed, so a caller who puts the sheet somewhere the transcript
+// is not — and declares the downgrade — can still launder a fabricated sheet. No gate that
+// reads only the files it is handed can defeat a caller who chooses what to hand it; that is
+// the operator's sight of the round folder and the reviewer's job, not this script's.
 //
 // `recalled` is accepted at NEITHER setting: it is a recollection, not a timestamped moment,
 // and its questionnaire path is interactive-only by contract.
 const NOTES_ONLY_CITE_TIERS = new Set([...VERIFIED_CITE_TIERS, 'notes']);
 
-// Transcript filenames the round may carry, per SKILL.md § Storage and the transcribe.sh
-// preserve guard (a curated refined file; a machine whisper file when both exist).
-const TRANSCRIPT_FILENAMES = ['transcript.refined.txt', 'transcript.whisper.txt'];
+// What counts as "a transcript is present" for the purpose of VETOING a --no-transcript
+// declaration. Deliberately much wider than the two canonical names in SKILL.md § Storage
+// (transcript.refined.txt, transcript.whisper.txt), because the two error directions here
+// are not symmetric:
+//
+//   false POSITIVE — a stray transcript-ish file vetoes an honest tier-2 run. Loud, exit 2,
+//                    names the file, and the operator fixes it in seconds.
+//   false NEGATIVE — a real transcript goes unseen and a fabricated sheet passes. Silent.
+//
+// So the veto is greedy: any `transcript*` file with a text-ish extension, matched
+// case-insensitively, in the scorecard's own directory OR its parent (a "I put the outputs
+// in a subfolder" layout is exactly where an exact-match-in-one-dir probe goes blind).
+const TRANSCRIPT_FILE_RE = /^transcript.*\.(txt|md|vtt|srt|json)$/i;
+const TRANSCRIPT_SEARCH_DEPTH = 2; // the scorecard's directory, then its parent
+
+// Every path where a transcript would veto a --no-transcript declaration, nearest first.
+function findTranscriptNear(scorecardPath) {
+  let dir = dirname(scorecardPath);
+  for (let i = 0; i < TRANSCRIPT_SEARCH_DEPTH; i++) {
+    let entries;
+    try {
+      entries = readdirSync(dir);
+    } catch {
+      return null; // unreadable directory is not evidence of a transcript
+    }
+    const hit = entries.find((e) => TRANSCRIPT_FILE_RE.test(e));
+    if (hit) return join(dir, hit);
+    const parent = dirname(dir);
+    if (parent === dir) break; // filesystem root
+    dir = parent;
+  }
+  return null;
+}
 
 // A reco value that explicitly declines to make a call on partial coverage. The bundled skeleton's
 // reco control offers strong-yes|yes|no|strong-no only, so in practice a high-untested run defends
@@ -366,11 +398,15 @@ function checkCalibration(rawHtml, opts = {}) {
   // with a dummy, which is the ritual shape this whole gate exists to refuse). So the two
   // checks that gate would still have been making here are made here instead:
   if (!transcriptPresent) {
-    //   (i) a transcript-tier citation is a LIE by construction in a round with no transcript.
-    const bogus = [...html.matchAll(/\bdata-cite-tier\s*=\s*"(transcript|submission)"/g)];
+    //   (i) a TRANSCRIPT-tier citation is a lie by construction in a round with no transcript.
+    //       `submission` is NOT included: a written submission's existence is independent of
+    //       whether the live portion was ever transcribed, so a notes-graded round can hold a
+    //       genuine submission-tier quote. Those are still verified verbatim — SKILL.md routes
+    //       such a round through check-citations.mjs with the submission file.
+    const bogus = [...html.matchAll(/\bdata-cite-tier\s*=\s*"transcript"/g)];
     if (bogus.length > 0) {
       failures.push(
-        `--no-transcript declared, but the sheet carries ${bogus.length} "${bogus[0][1]}"-tier citation(s) — a round with no transcript cannot have quoted one, and nothing verified these verbatim`
+        `--no-transcript declared, but the sheet carries ${bogus.length} "transcript"-tier citation(s) — a round with no transcript cannot have quoted one, and nothing verified these verbatim`
       );
     }
     //   (ii) a notes-tier citation still owes a non-empty data-source (check-citations.mjs's
@@ -494,11 +530,12 @@ function runFile(path, declaredNoTranscript = false) {
   // IS the round folder (SKILL.md § Storage), so its siblings are the whole question.
   // Refusing the flag here is the point: the filesystem cannot GRANT the relaxation (that was
   // the copy-elsewhere hole), but it can and does VETO a false declaration.
-  const foundTranscript = TRANSCRIPT_FILENAMES.find((f) => existsSync(join(dirname(path), f)));
-  if (declaredNoTranscript && foundTranscript) {
+  const foundTranscript = declaredNoTranscript ? findTranscriptNear(path) : null;
+  if (foundTranscript) {
     console.error(
-      `check-scoring-calibration: --no-transcript declared, but ${foundTranscript} sits beside ${path}. ` +
-        `This round HAS a transcript, so its evidence sweep must cite it. Drop the flag and ground the sweep.`
+      `check-scoring-calibration: --no-transcript declared, but ${foundTranscript} is in or above the scorecard's directory. ` +
+        `This round looks like it HAS a transcript, so its evidence sweep must cite it. Drop the flag and ground the sweep — ` +
+        `or, if that file is not this round's transcript, move it out of the round folder.`
     );
     return 2;
   }
@@ -571,6 +608,8 @@ function dim(opts) {
           ? '<details data-card="evidence-sweep"><ul><li data-t="01:12">no citation on this instance</li></ul></details>'
         : sweep === 'notes-tier'
           ? '<details data-card="evidence-sweep"><ul><li data-t="01:12"><cite data-cite-tier="notes" data-source="interviewer notes">unverifiable tier</cite></li></ul></details>'
+        : sweep === 'submission-tier'
+          ? '<details data-card="evidence-sweep"><ul><li data-t="p3"><cite data-cite-tier="submission" data-source="take-home.md">a span from the written submission</cite></li></ul></details>'
         : sweep === 'notes-tier-no-source'
           ? '<details data-card="evidence-sweep"><ul><li data-t="01:12"><cite data-cite-tier="notes">no source named</cite></li></ul></details>'
         : sweep === 'recalled-tier'
@@ -600,6 +639,11 @@ function selftest() {
       stdoutIncludes,
       noTranscriptFile: opts.noTranscriptFile === true,
       flag: opts.flag === true,
+      // `extraFiles` writes arbitrary siblings (a non-canonically-named transcript);
+      // `nest` puts the scorecard one directory below them (an outputs-in-a-subfolder
+      // layout). Both exist to attack the veto's reach, not the gates.
+      extraFiles: opts.extraFiles || null,
+      nest: opts.nest === true,
     });
 
   // --- PASS: a well-formed two-dimension sheet ---
@@ -699,7 +743,36 @@ function selftest() {
 
   // (4) file PRESENT, flag declared -> refused outright (exit 2). A false declaration is not
   //     a scoring failure to be repaired, it is a lie about the round.
-  add('REFUSE-flag-contradicted-by-transcript', 2, notesSheet, 'sits beside', { flag: true });
+  add('REFUSE-flag-contradicted-by-transcript', 2, notesSheet, 'is in or above', { flag: true });
+
+  // The veto's REACH, not just its existence. Both of these keep the scorecard exactly where
+  // it belongs and vary the transcript instead — stealthier than relocating the sheet, because
+  // "did you run this from inside the round folder?" cannot catch either.
+  add(
+    'REFUSE-flag-vs-noncanonically-named-transcript',
+    2,
+    notesSheet,
+    'is in or above',
+    { noTranscriptFile: true, flag: true, extraFiles: { 'transcript.txt': 'Interviewer: hi.\n' } }
+  );
+  add('REFUSE-flag-vs-transcript-one-directory-up', 2, notesSheet, 'is in or above', {
+    flag: true,
+    nest: true,
+  });
+
+  // A written submission's existence is INDEPENDENT of whether the live round was transcribed,
+  // so submission-tier grounding is legitimate under the flag — it is not a lie by construction
+  // the way a transcript-tier citation is.
+  add(
+    'PASS-no-transcript-with-submission-tier-cite',
+    0,
+    sheet(
+      dim({ id: 'a', selected: 3, noteLevel: 3, sweep: 'submission-tier' }) +
+        dim({ id: 'b', noteLevel: 3, sweep: 'notes-tier' })
+    ),
+    '✓ calibration:',
+    { noTranscriptFile: true, flag: true }
+  );
 
   // `recalled` is refused even inside the carve-out — it admits notes, not "any tier".
   add(
@@ -899,11 +972,15 @@ function selftest() {
   let pass = 0;
   for (const tc of cases) {
     const caseDir = join(dir, tc.name.replace(/[^\w]+/g, '_'));
-    mkdirSync(caseDir, { recursive: true });
-    const htmlPath = join(caseDir, 'filled-scorecard.html');
+    const sheetDir = tc.nest ? join(caseDir, 'outputs') : caseDir;
+    mkdirSync(sheetDir, { recursive: true });
+    const htmlPath = join(sheetDir, 'filled-scorecard.html');
     writeFileSync(htmlPath, tc.html, 'utf8');
     if (!tc.noTranscriptFile) {
       writeFileSync(join(caseDir, 'transcript.refined.txt'), 'Interviewer: hello.\n', 'utf8');
+    }
+    for (const [name, body] of Object.entries(tc.extraFiles || {})) {
+      writeFileSync(join(caseDir, name), body, 'utf8');
     }
     const argv = tc.flag ? [selfPath, htmlPath, '--no-transcript'] : [selfPath, htmlPath];
     const res = spawnSync(process.execPath, argv, { encoding: 'utf8' });
