@@ -212,6 +212,11 @@ function fill(html, values) {
       block = injectInputSlot(block, 'notes:' + id, notes[id]);
     }
 
+    // 2b. Calibration anchors (FR-6 / D9, D10). Presence-guarded per key: a values.json
+    //     carrying none of them leaves the block byte-identical, so every pre-calibration
+    //     caller keeps its exact output.
+    block = fillCalibrationDim(block, id, values);
+
     // 3. Append flag <li> items.
     const f = flags[id] || {};
     if (Array.isArray(f.green) && f.green.length) {
@@ -223,6 +228,10 @@ function fill(html, values) {
 
     out = out.slice(0, s.blockStart) + block + out.slice(s.blockEnd);
   }
+
+  // 3b. Root-level calibration anchors (FR-6 / D3, D7, D8): the reco-disagreement /
+  //     partial-coverage defence, and the provenance of the bar that was scored against.
+  out = fillCalibrationRoot(out, values);
 
   // 4. Mark the chosen reco.
   if (values.reco != null) {
@@ -275,6 +284,156 @@ function fill(html, values) {
   }
 
   return out;
+}
+
+// ---------------------------------------------------------------------------
+// calibration anchors (FR-6; design D3, D7, D8, D9, D10)
+// ---------------------------------------------------------------------------
+//
+// Emitted so scripts/check-scoring-calibration.mjs has something mechanical to read.
+// Every key is presence-guarded — a values.json carrying none of them produces the
+// byte-identical output every pre-calibration caller already got.
+//
+// Per dimension (on the <section data-dim> open tag, plus one block):
+//   data-untested                      the competency was never probed (D2d). Excluded from the
+//                                      weighted score, weights renormalize (D7). An EXPLICIT tag,
+//                                      not "absence of a score" — a dimension nobody remembered to
+//                                      score must stay distinguishable from one deliberately left
+//                                      untested, or forgetting silently shrinks the denominator and
+//                                      inflates the result (the defect class this epic closes).
+//   data-note-matches-level="<n>"      the level whose descriptor the written note actually
+//                                      describes; the SCRIPT compares it to data-selected (D10).
+//   data-score-rationale="<text>"      required only when those two disagree (D10).
+//   data-rebuttal="<text>"             required on a below-bar score (D3 gate 2).
+//   <details data-card="evidence-sweep">   collapsed, under that dimension's notes (D9).
+//
+// At the artifact root (on <main data-card="scorecard">):
+//   data-reco-rationale="<text>"       defends a reco that disagrees with the computed band, or a
+//                                      call made at/above the untested-coverage threshold (D3, D7).
+//   data-rubric-provenance="…"         authored | synthesized-agreed | synthesized-auto (D8).
+//
+// These carry plain text, not markup: they are read by attribute, and the graded prose with its
+// <cite> tags lives in the notes slot and the sweep block where check-citations.mjs scans it.
+
+// Attribute-safe text. Also escapes < and > — setAttrOnOpenTag locates the end of an
+// opening tag with indexOf('>'), so an operator-supplied rationale containing a bare
+// '>' would otherwise truncate the tag it is being written into.
+function escAttrText(s) {
+  return escAttr(s).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// Add (or replace) an attribute on the FIRST opening tag of `block`.
+// Passing value === true writes a bare boolean attribute.
+function setAttrOnOpenTag(block, name, value) {
+  const gt = block.indexOf('>');
+  if (gt < 0) return block;
+  let openTag = block.slice(0, gt);
+  // Drop any pre-existing copy (valued or bare) so re-filling is idempotent.
+  openTag = openTag
+    .replace(new RegExp('\\s+' + escapeRe(name) + '\\s*=\\s*"[^"]*"', 'g'), '')
+    .replace(new RegExp('\\s+' + escapeRe(name) + '(?=[\\s/]|$)', 'g'), '');
+  const add = value === true ? ' ' + name : ' ' + name + '="' + escAttrText(value) + '"';
+  return openTag + add + block.slice(gt);
+}
+
+// Render one dimension's collapsed evidence sweep (D9). `instances` is an array of
+// {t, html} — a timestamp string and the instance's HTML, which MUST carry its own
+// <cite data-cite-tier="transcript"> (or "submission") tag: check-scoring-calibration.mjs
+// gate 1 rejects an instance with no VERIFIED citation, because a timestamp alone can be
+// invented and the `notes`/`recalled` tiers are exempt from check-citations.mjs's verbatim
+// substring check. A swept instance is a moment in the transcript, so a verified tier is
+// also the honest one.
+function renderEvidenceSweep(instances) {
+  const items = instances
+    .filter((i) => i && i.html)
+    .map(
+      (i) =>
+        '        <li data-t="' + escAttr(i.t == null ? '' : i.t) + '">' + i.html + '</li>\n'
+    )
+    .join('');
+  if (!items) return '';
+  return (
+    '\n      <details data-card="evidence-sweep">\n' +
+    '        <summary>Evidence sweep — every instance, early and late, prompted and unprompted</summary>\n' +
+    '        <ul>\n' +
+    items +
+    '        </ul>\n' +
+    '      </details>'
+  );
+}
+
+// Insert `insert` immediately after the element bearing data-input="<key>" closes,
+// i.e. UNDER that dimension's notes (D9). No slot -> unchanged.
+function insertAfterInputSlot(block, key, insert) {
+  const re = new RegExp(
+    '<([a-zA-Z0-9]+)\\b[^>]*\\bdata-input\\s*=\\s*"' + escapeRe(key) + '"[^>]*>'
+  );
+  const m = block.match(re);
+  if (!m) return block;
+  const end = matchElementEnd(block, m.index, m[1]);
+  if (end < 0) return block;
+  return block.slice(0, end) + insert + block.slice(end);
+}
+
+function fillCalibrationDim(block, id, values) {
+  const pick = (key) => {
+    const map = values[key];
+    return map && map[id] != null ? map[id] : null;
+  };
+
+  let out = block;
+
+  const untested = Array.isArray(values.untested) && values.untested.includes(id);
+  if (untested) out = setAttrOnOpenTag(out, 'data-untested', true);
+
+  const level = pick('noteMatchesLevel');
+  if (level != null) out = setAttrOnOpenTag(out, 'data-note-matches-level', String(level));
+
+  const rationale = pick('scoreRationales');
+  if (rationale != null) out = setAttrOnOpenTag(out, 'data-score-rationale', rationale);
+
+  const rebuttal = pick('rebuttals');
+  if (rebuttal != null) out = setAttrOnOpenTag(out, 'data-rebuttal', rebuttal);
+
+  const sweep = values.sweeps && values.sweeps[id];
+  if (Array.isArray(sweep) && sweep.length) {
+    out = insertAfterInputSlot(out, 'notes:' + id, renderEvidenceSweep(sweep));
+  }
+
+  return out;
+}
+
+// True when `index` falls inside an HTML comment. The skeleton opens with a long doc-comment
+// that DOCUMENTS the anchor contract by quoting the very tags we search for — matching the
+// first `<main data-card="scorecard">` in the file stamps the prose, not the element, and the
+// artifact silently ships without its root anchors. (Same trap the role-evidence pass hit.)
+function isInsideHtmlComment(html, index) {
+  const open = html.lastIndexOf('<!--', index);
+  if (open === -1) return false;
+  const close = html.indexOf('-->', open);
+  return close === -1 || close > index;
+}
+
+function fillCalibrationRoot(html, values) {
+  if (values.recoRationale == null && values.rubricProvenance == null) return html;
+  const re = /<main\b[^>]*\bdata-card\s*=\s*"scorecard"[^>]*>/g;
+  let m = null;
+  let hit;
+  while ((hit = re.exec(html)) !== null) {
+    if (!isInsideHtmlComment(html, hit.index)) {
+      m = hit;
+      break;
+    }
+  }
+  if (!m) return html;
+  let openTag = m[0];
+  if (values.recoRationale != null) {
+    openTag = setAttrOnOpenTag(openTag, 'data-reco-rationale', values.recoRationale);
+  }
+  if (values.rubricProvenance != null) {
+    openTag = setAttrOnOpenTag(openTag, 'data-rubric-provenance', values.rubricProvenance);
+  }
+  return html.slice(0, m.index) + openTag + html.slice(m.index + m[0].length);
 }
 
 // ---------------------------------------------------------------------------
@@ -740,6 +899,87 @@ function selftest() {
   assert(
     bcPlain === bcWithRoles,
     'bc: role/trajectory values are inert on a non-work-history sheet (byte-identical)'
+  );
+
+  // (g) calibration anchors (FR-6 / D3, D7, D8, D9, D10).
+  const calValues = {
+    scores: { 'example-dimension-one': 2 },
+    notes: { 'example-dimension-one': 'Second-probe insight.', 'example-dimension-two': 'n/a' },
+    untested: ['example-dimension-two'],
+    noteMatchesLevel: { 'example-dimension-one': 3 },
+    scoreRationales: { 'example-dimension-one': 'One instance, late and prompted.' },
+    rebuttals: { 'example-dimension-one': 'Strongest case for at-bar: the second answer was complete.' },
+    sweeps: {
+      'example-dimension-one': [
+        { t: '12:04', html: '<cite data-cite-tier="transcript" data-source="transcript">first pass</cite>' },
+        { t: '31:50', html: '<cite data-cite-tier="transcript" data-source="transcript">second probe</cite>' },
+      ],
+    },
+    recoRationale: 'Below bar on one dimension, defended above.',
+    rubricProvenance: 'derived-from-jd; agreed 2026-07-21',
+    reco: 'no',
+  };
+  const cal = fill(skeleton, calValues);
+  const calOne = sliceDim(cal, 'example-dimension-one');
+  const calTwo = sliceDim(cal, 'example-dimension-two');
+
+  assert(/data-note-matches-level\s*=\s*"3"/.test(calOne), 'cal: data-note-matches-level emitted');
+  assert(/data-score-rationale\s*=\s*"[^"]+"/.test(calOne), 'cal: data-score-rationale emitted');
+  assert(/data-rebuttal\s*=\s*"[^"]+"/.test(calOne), 'cal: data-rebuttal emitted');
+  assert(
+    /<section\b[^>]*\bdata-untested(?=[\s/>])/.test(calTwo),
+    'cal: untested dimension tagged, not scored (D7)'
+  );
+  assert(
+    !/data-untested/.test(calOne),
+    'cal: a scored dimension is never tagged untested'
+  );
+  assert(
+    /<details\b[^>]*data-card\s*=\s*"evidence-sweep"/.test(calOne),
+    'cal: evidence-sweep details block rendered'
+  );
+  assert(
+    !/<details\b[^>]*data-card\s*=\s*"evidence-sweep"[^>]*\bopen\b/.test(calOne),
+    'cal: evidence sweep is COLLAPSED by default (no open attribute)'
+  );
+  assert(
+    calOne.indexOf('data-input="notes:example-dimension-one"') <
+      calOne.indexOf('data-card="evidence-sweep"'),
+    'cal: sweep sits UNDER that dimension\'s notes (D9)'
+  );
+  assert(
+    (calOne.match(/<li\b[^>]*data-t\s*=\s*"/g) || []).length === 2,
+    'cal: both swept instances rendered with timestamps'
+  );
+  assert(
+    (calOne.match(/<li\b[^>]*data-t[^>]*>\s*<cite\b[^>]*data-cite-tier="(?:transcript|submission)"/g) || [])
+      .length === 2,
+    'cal: every swept instance cites a VERIFIED tier (gate 1 of check-scoring-calibration)'
+  );
+  // Assert against the ELEMENT, not the file: the skeleton's doc-comment quotes
+  // `<main data-card="scorecard">` in prose, so a whole-file regex passes while the real root
+  // carries nothing (caught in browser verification, not by the string assertion it replaced).
+  const calBody = cal.replace(/<!--[\s\S]*?-->/g, '');
+  const calComments = (cal.match(/<!--[\s\S]*?-->/g) || []).join('');
+  assert(
+    /<main\b[^>]*data-reco-rationale\s*=\s*"[^"]+"/.test(calBody),
+    'cal: root data-reco-rationale emitted on the real <main>, not the doc-comment'
+  );
+  assert(
+    /<main\b[^>]*data-rubric-provenance\s*=\s*"[^"]+"/.test(calBody),
+    'cal: root data-rubric-provenance emitted on the real <main>, not the doc-comment'
+  );
+  assert(
+    !/data-reco-rationale|data-rubric-provenance/.test(calComments),
+    'cal: the skeleton doc-comment is never stamped (regression: comment-blind root match)'
+  );
+  // No placeholder prose, and the default reading experience is untouched: a fill with no
+  // calibration values must be byte-identical to the pre-change output for the same values.
+  assert(
+    !/data-rebuttal|data-note-matches-level|data-score-rationale|evidence-sweep|data-rubric-provenance/.test(
+      filled
+    ),
+    'cal: calibration anchors are absent entirely when no calibration values are supplied'
   );
 
   for (const line of checks) console.error(line);
