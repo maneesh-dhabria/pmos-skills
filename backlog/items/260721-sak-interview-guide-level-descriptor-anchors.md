@@ -9,7 +9,7 @@ priority: must
 route: skill
 dependencies: []
 plugin: pmos-managerkit
-status: in-progress
+status: done
 feature_folder: docs/pmos/features/2026-07-21_interview-scoring-calibration/
 plan_doc: docs/pmos/features/2026-07-21_interview-scoring-calibration/stories/260721-sak/03_plan.html
 tasks: docs/pmos/features/2026-07-21_interview-scoring-calibration/stories/260721-sak/tasks.yaml
@@ -17,7 +17,7 @@ worktree: .claude/worktrees/feat-260721-sak
 claimed_by: build:d5978308-5866-4ca8-bdc7-8e51f6619786
 driver_holder: build:d5978308-5866-4ca8-bdc7-8e51f6619786
 build_branch: feat/260721-sak
-build_commit:
+build_commit: 4b0dc4ea
 labels: [pmos-managerkit, interview-guide, scoring, calibration, anchors, skill, from-feedback]
 created: 2026-07-21
 updated: 2026-07-21
