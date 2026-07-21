@@ -9,21 +9,19 @@ priority: must
 route: skill
 dependencies: [260721-sak]
 plugin: pmos-managerkit
-status: in-progress
+status: done
 feature_folder: docs/pmos/features/2026-07-21_interview-scoring-calibration/
 plan_doc: docs/pmos/features/2026-07-21_interview-scoring-calibration/stories/260721-jb6/03_plan.html
 tasks: docs/pmos/features/2026-07-21_interview-scoring-calibration/stories/260721-jb6/tasks.yaml
 worktree: .claude/worktrees/feat-260721-jb6
-claimed_by: build:d5978308-5866-4ca8-bdc7-8e51f6619786
-driver_holder: build:d5978308-5866-4ca8-bdc7-8e51f6619786
 build_branch: feat/260721-jb6
-build_commit:
+build_commit: d47b5a80
 labels: [pmos-managerkit, interview-feedback, scoring, calibration, gates, skill, from-feedback]
 created: 2026-07-21
 updated: 2026-07-21
 ---
 
-<!-- status: planned at define (Loop 1); tasks.yaml authored, route:skill. Build via /skill-sdlc build --story 260721-jb6 -->
+<!-- status: built at Loop 2 on 2026-07-21; branch feat/260721-jb6 @ d47b5a80, UNMERGED/UNPUSHED. /verify verdict PASS — report at docs/pmos/features/2026-07-21_interview-scoring-calibration/stories/260721-jb6/verify/2026-07-21-review.html. Releases with epic 260721-k1x once 1a4 + z5n are done. -->
 
 ## Context
 
