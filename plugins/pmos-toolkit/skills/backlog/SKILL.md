@@ -226,7 +226,11 @@ Write the body per `schema.md`'s section order (always `## Context` — use "_TB
 2. **Default — launch the web viewer (INV-2).** Interactively, hand off to `#web` (run `scripts/serve-web.mjs`, open the browser); the viewer derives the three queues + epic→story tree live from the record files. Print the `Backlog viewer ready at http://127.0.0.1:<port>/` line and stop here.
 3. **Fallback — inline derived render.** When the web viewer cannot run — `--non-interactive`, headless, no browser, or the server fails to bind — render the three-queue dashboard inline, **derived on read** from `items/*.md` (the define/build loops run `--non-interactive` and take this path). Three compact sections, each derived at render time:
    - **Groom (waiting on you):** the `#groom` summary (counts + top rows).
-   - **Next (the machine's queue):** the single `#next` pick (or "nothing ready").
+   - **Next (the machine's queue):** every story in `#next`'s candidate set (its steps 1–3), in that same
+     D22 order — **not** just step 4's single top candidate — with the head marked as the pick
+     `/feature-sdlc build --next` takes and each other row carrying `/feature-sdlc build --story <id>`
+     (or "nothing ready"). Widening the dashboard to the whole queue does not change `#next` itself: its
+     own output contract is frozen (INV-1).
    - **Releases (the shelf):** the `#releases` release-ready list (or "nothing release-ready").
    Each row carries its copy-ready next command. **Never print a stored INDEX blob** — there is none; the listing is computed fresh from the record files this read (INV-1/INV-3).
 
