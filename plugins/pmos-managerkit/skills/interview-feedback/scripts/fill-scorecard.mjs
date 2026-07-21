@@ -338,9 +338,11 @@ function setAttrOnOpenTag(block, name, value) {
 
 // Render one dimension's collapsed evidence sweep (D9). `instances` is an array of
 // {t, html} — a timestamp string and the instance's HTML, which MUST carry its own
-// <cite data-cite-tier> tag: check-scoring-calibration.mjs gate 1 rejects an instance
-// with no citation (a timestamp alone can be invented), and check-citations.mjs then
-// verifies the quote verbatim like any other citation.
+// <cite data-cite-tier="transcript"> (or "submission") tag: check-scoring-calibration.mjs
+// gate 1 rejects an instance with no VERIFIED citation, because a timestamp alone can be
+// invented and the `notes`/`recalled` tiers are exempt from check-citations.mjs's verbatim
+// substring check. A swept instance is a moment in the transcript, so a verified tier is
+// also the honest one.
 function renderEvidenceSweep(instances) {
   const items = instances
     .filter((i) => i && i.html)
@@ -909,8 +911,8 @@ function selftest() {
     rebuttals: { 'example-dimension-one': 'Strongest case for at-bar: the second answer was complete.' },
     sweeps: {
       'example-dimension-one': [
-        { t: '12:04', html: '<cite data-cite-tier="notes" data-source="notes">first pass</cite>' },
-        { t: '31:50', html: '<cite data-cite-tier="notes" data-source="notes">second probe</cite>' },
+        { t: '12:04', html: '<cite data-cite-tier="transcript" data-source="transcript">first pass</cite>' },
+        { t: '31:50', html: '<cite data-cite-tier="transcript" data-source="transcript">second probe</cite>' },
       ],
     },
     recoRationale: 'Below bar on one dimension, defended above.',
@@ -950,8 +952,9 @@ function selftest() {
     'cal: both swept instances rendered with timestamps'
   );
   assert(
-    (calOne.match(/<li\b[^>]*data-t[^>]*>\s*<cite\b[^>]*data-cite-tier/g) || []).length === 2,
-    'cal: every swept instance carries a citation (gate 1 of check-scoring-calibration)'
+    (calOne.match(/<li\b[^>]*data-t[^>]*>\s*<cite\b[^>]*data-cite-tier="(?:transcript|submission)"/g) || [])
+      .length === 2,
+    'cal: every swept instance cites a VERIFIED tier (gate 1 of check-scoring-calibration)'
   );
   // Assert against the ELEMENT, not the file: the skeleton's doc-comment quotes
   // `<main data-card="scorecard">` in prose, so a whole-file regex passes while the real root

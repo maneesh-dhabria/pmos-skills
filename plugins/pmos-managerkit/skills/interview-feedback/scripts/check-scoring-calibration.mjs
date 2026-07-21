@@ -51,6 +51,13 @@ import { fileURLToPath } from 'node:url';
 // after first use. Do not inline this number anywhere else.
 const UNTESTED_COVERAGE_THRESHOLD_PCT = 30;
 
+// The citation tiers check-citations.mjs actually VERIFIES verbatim. `notes` and `recalled`
+// are legal tiers there but exempt from the substring check, so they cannot ground a sweep
+// instance — see the evidence-sweep parse below. Kept in sync by hand with that script's
+// KNOWN_TIERS; it is byte-frozen (INV-3), so this set is deliberately read-only knowledge
+// about it rather than an import.
+const VERIFIED_CITE_TIERS = new Set(['transcript', 'submission']);
+
 // A reco value that explicitly declines to make a call on partial coverage. The bundled skeleton's
 // reco control offers strong-yes|yes|no|strong-no only, so in practice a high-untested run defends
 // its call with data-reco-rationale; a sheet that does offer this option satisfies the gate with it.
@@ -139,11 +146,20 @@ function parseDimensions(html) {
 
     // Evidence sweep: the block, its timestamped instances, and how many of those are
     // grounded. Counting bare <li data-t> alone would make this gate a presence costume —
-    // a model could satisfy it with invented timestamps it never read. Requiring each
-    // instance to carry a citation hands the verification to check-citations.mjs, which
-    // already refuses any transcript-tier quote that is not a verbatim >=40-char substring
-    // of the transcript. Faking the sweep then means faking a quote, which the other gate
-    // catches. (T9 anti-ritual re-read: "can a model pass this without doing the work?")
+    // a model could satisfy it with invented timestamps it never read.
+    //
+    // Requiring a citation is necessary but NOT sufficient: check-citations.mjs verifies
+    // only the `transcript` and `submission` tiers verbatim; `notes` and `recalled` are
+    // exempt by design (they need a non-empty data-source and nothing more). A sweep
+    // instance tagged `notes` therefore passes both gates while being entirely invented —
+    // the exact anti-ritual hole this gate exists to close, entered through the tier side
+    // door. So an instance must cite a VERIFIED tier. That is also the honest shape: a
+    // swept instance is a timestamped moment in the transcript (or in the written
+    // submission), never a recollection.
+    //
+    // What this still cannot prove is COMPLETENESS — that the sweep found every instance
+    // rather than the first one. No presence check can; that half of clause (a) rests on
+    // the method, and is a named residual, not a silent one.
     let sweepInstances = null;
     let sweepUngrounded = 0;
     const sweepRe = /<details\b[^>]*\bdata-card\s*=\s*"evidence-sweep"[^>]*>/;
@@ -158,7 +174,8 @@ function parseDimensions(html) {
         if (!present(getAttr(li[0], 'data-t'))) continue;
         const liEnd = matchElementEnd(sweepBlock, li.index, 'li');
         const liBlock = sweepBlock.slice(li.index, liEnd < 0 ? sweepBlock.length : liEnd);
-        items.push(/\bdata-cite-tier\s*=/.test(liBlock));
+        const tiers = [...liBlock.matchAll(/\bdata-cite-tier\s*=\s*"([^"]*)"/g)].map((t) => t[1]);
+        items.push(tiers.some((t) => VERIFIED_CITE_TIERS.has(t)));
       }
       sweepInstances = items.length;
       sweepUngrounded = items.filter((grounded) => !grounded).length;
@@ -321,7 +338,7 @@ function checkCalibration(rawHtml) {
         );
       } else if (d.sweepUngrounded > 0) {
         failures.push(
-          `dimension "${d.id}" has ${d.sweepUngrounded} evidence-sweep instance(s) carrying no citation — every swept instance needs a <cite data-cite-tier="…"> so check-citations.mjs can verify it verbatim`
+          `dimension "${d.id}" has ${d.sweepUngrounded} evidence-sweep instance(s) with no VERIFIED citation — every swept instance needs a <cite data-cite-tier="transcript"> (or "submission") so check-citations.mjs verifies it verbatim; the "notes" and "recalled" tiers are exempt from that check and cannot ground a swept instance`
         );
       }
     }
@@ -446,10 +463,12 @@ function dim(opts) {
         ? '<details data-card="evidence-sweep"><ul><li>no timestamp</li></ul></details>'
         : sweep === 'ungrounded'
           ? '<details data-card="evidence-sweep"><ul><li data-t="01:12">no citation on this instance</li></ul></details>'
+        : sweep === 'notes-tier'
+          ? '<details data-card="evidence-sweep"><ul><li data-t="01:12"><cite data-cite-tier="notes" data-source="interviewer notes">unverifiable tier</cite></li></ul></details>'
           : `<details data-card="evidence-sweep"><ul>${Array.from(
               { length: sweep },
               (_, i) =>
-                `<li data-t="0${i}:12"><cite data-cite-tier="notes" data-source="notes">instance ${i}</cite></li>`
+                `<li data-t="0${i}:12"><cite data-cite-tier="transcript" data-source="transcript">instance ${i}</cite></li>`
             ).join('')}</ul></details>`;
   return `<section class="dim" ${attrs}><div class="scale" data-scale="1-4">${options}</div><div data-input="notes:${id}">note</div>${sweepBlock}</section>`;
 }
@@ -516,7 +535,18 @@ function selftest() {
       dim({ id: 'a', selected: 3, noteLevel: 3, sweep: 'ungrounded' }) +
         dim({ id: 'b', noteLevel: 3 })
     ),
-    'carrying no citation'
+    'no VERIFIED citation'
+  );
+  // The tier side door: `notes` is a legal citation tier that check-citations.mjs does NOT
+  // verify verbatim, so a sweep grounded on it is satisfiable without reading the transcript.
+  add(
+    'FAIL-g1-unverifiable-tier',
+    1,
+    sheet(
+      dim({ id: 'a', selected: 3, noteLevel: 3, sweep: 'notes-tier' }) +
+        dim({ id: 'b', noteLevel: 3 })
+    ),
+    'cannot ground a swept instance'
   );
 
   // --- Gate 2: adversarial below-bar rebuttal (at-bar is READ from the scale) ---
