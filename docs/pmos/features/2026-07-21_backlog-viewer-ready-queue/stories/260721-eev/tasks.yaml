@@ -1,0 +1,123 @@
+schema_version: 1
+story: 260721-eev
+epic: 260704-5ah
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+execution_mode: inline
+skill_dir: plugins/pmos-toolkit/skills/backlog
+# The whole epic in one story (design D8 / backlog D18 singleton wrap). The derivation change has no observable
+#   effect without the render, and the render cannot be tested without the derivation — split, neither half is
+#   independently verifiable, which fails the D24 litmus in the direction that matters.
+#
+# THE DEFECT, pinned before the story starts (no re-derivation needed at execute time):
+#   scripts/serve-web-lib.mjs computes the full D22-ordered candidate list, then keeps only candidates[0]:
+#       const next = { pick: candidates.length ? candidates[0].id : null };
+#   So the queue already exists, correctly ordered, at the moment it is discarded. This is a presentation
+#   change, not a scheduling change.
+#
+# BYTE-FROZEN — must not appear in the diff (design § no-bar, INV-1/INV-3):
+#   - plugins/pmos-toolkit/skills/backlog/SKILL.md :: the entire `#next` section (steps 1-5 AND the
+#     `--status in-progress` reconcile-sweep block). `/feature-sdlc build --next` and unattended /loop drivers
+#     consume `/backlog next --json`; its shape, value, and pick order are the one thing this epic promised not
+#     to touch.
+#   - scripts/serve-web-lib.mjs :: the `candidates` filter block and the `candidates.sort()` comparator.
+#     Only what is READ OFF them changes.
+#   - scripts/serve-web.mjs :: serves the model, does not shape it.
+#
+# NO release-prereq tasks — /complete-dev owns those (§G). No version bump, no changelog, no tag here.
+
+tasks:
+  - id: T1
+    title: "serve-web-lib.mjs — emit queues.next.queue, derive pick from it"
+    frs: [FR-1, FR-2]
+    detail: >
+      Replace the single truncating line with the D9 two-liner:
+      `const queue = candidates.map((c) => c.id); const next = { queue, pick: queue[0] ?? null };`
+      One expression, so INV-2 (pick === queue[0]) is structural and cannot drift under future edits to the
+      filter or the comparator. `pick` keeps its exact name, position, and value; `queue` is `[]` when nothing
+      is ready. Do NOT touch the filter or the sort above it.
+    files:
+      - plugins/pmos-toolkit/skills/backlog/scripts/serve-web-lib.mjs
+
+  - id: T2
+    title: "serve-web-lib.mjs — surface stale-claim state for ready rows"
+    frs: [FR-10]
+    detail: >
+      The readiness filter admits a story whose claim lock exists but is stale (`has_lock && stale` is NOT
+      excluded). Such a story is simultaneously a build candidate and a groom.stale_claims row. The renderer
+      needs to say so (D10). Carry the flag on the existing per-story model that viewer.html already resolves
+      through STATE._ix — NOT as a parallel array keyed to queue positions, which would be a second thing to
+      keep in sync. Readiness itself is unchanged (INV-3).
+    files:
+      - plugins/pmos-toolkit/skills/backlog/scripts/serve-web-lib.mjs
+
+  - id: T3
+    title: "tests — queue ordering, pick===queue[0], empty case, and the INV-1 API guard"
+    frs: [FR-9]
+    invariants: [INV-1, INV-2]
+    detail: >
+      The existing fixture ALREADY produces the ordering case — S2 (should) and S6 (could), both under
+      in-flight epic E1, with S7 excluded on an unsatisfied dep S4. Today it asserts `next.pick === 'S2'`
+      (test line ~115) and the API-parity check asserts the same (~line 255). Add: `queue` deep-equals
+      ['S2','S6']; `pick === queue[0]`; a no-candidate model yields `queue: []` and `pick: null`; and the
+      served API response still carries `next.pick` unchanged. No new fixture is required.
+    files:
+      - plugins/pmos-toolkit/skills/backlog/tests/serve-web.test.mjs
+    gate: "node plugins/pmos-toolkit/skills/backlog/tests/serve-web.test.mjs exits 0"
+
+  - id: T4
+    title: "viewer.html — render every queue row in order"
+    frs: [FR-3, FR-6]
+    detail: >
+      `renderQueues()` currently reads `const next = q.next.pick;` and emits at most one `.qitem`. Map over
+      `q.next.queue` instead, one row per id, in array order (already D22 — do NOT re-sort in the page; INV-4
+      keeps all read-side rules in serve-web-lib.mjs). Empty queue keeps the existing
+      "nothing ready — run /backlog groom" state verbatim.
+    files:
+      - plugins/pmos-toolkit/skills/backlog/web/viewer.html
+
+  - id: T5
+    title: "viewer.html — chips, per-row commands, parent epic"
+    frs: [FR-4, FR-5, FR-10]
+    detail: >
+      Head row: a `next` chip and `/feature-sdlc build --next` (the command the loop actually runs, so the
+      chip is reinforced by the text rather than merely decorating it). Every other row:
+      `/feature-sdlc build --story <id>` — the parallelisable rows must stay copy-pasteable, which is the
+      entire point of the lane (D5). Every row shows its parent epic id as muted text (D6) — the list is
+      deliberately cross-epic, so without it the ordering looks arbitrary. A row whose claim is stale carries
+      a `stale claim` chip (D10). Reuse the existing `.chip` class — no new CSS.
+    files:
+      - plugins/pmos-toolkit/skills/backlog/web/viewer.html
+
+  - id: T6
+    title: "viewer.html — lane sub-caption restated"
+    frs: [FR-7]
+    detail: >
+      "What /feature-sdlc build picks next" describes a pick, not a queue, and is half the reason the lane was
+      misread. Restate it as everything buildable now, in pick order.
+    files:
+      - plugins/pmos-toolkit/skills/backlog/web/viewer.html
+
+  - id: T7
+    title: "SKILL.md #dashboard — the fallback lists the queue too"
+    frs: [FR-8]
+    detail: >
+      Step 3's "Next (the machine's queue)" bullet currently says "the single #next pick (or nothing ready)".
+      It becomes the full ordered ready list with the pick marked (D7). The inline fallback is the SAME view
+      without a browser, and it is the path every --non-interactive define/build tick takes — leaving it
+      single-pick would make the headless render, the one unattended drivers read, the degraded copy.
+      The `#next` section is byte-frozen; do not touch it.
+    files:
+      - plugins/pmos-toolkit/skills/backlog/SKILL.md
+
+  - id: T8
+    title: "Gates + live dogfood"
+    detail: >
+      Deterministic: `node .../tests/serve-web.test.mjs`; `skill-eval-check.sh <skill DIR>`; the 4 hygiene
+      lints; `audit-recommended.sh <SKILL.md FILE>` (note the opposite arg shapes). Any skill-eval residual
+      must be PROVEN pre-existing on pre-story main before it is accepted. Dogfood: run `/backlog web` against
+      the real backlog, which currently holds >= 2 ready stories — the lane MUST render more than one row with
+      the head chipped `next`. That is the defect itself, observable without a synthetic fixture, and it is the
+      only check that proves the page and the model agree.
+    gate: "all deterministic gates exit 0; dogfood screenshot shows >1 row"
