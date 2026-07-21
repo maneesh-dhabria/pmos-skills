@@ -9,7 +9,7 @@ priority: must
 route: skill
 dependencies: [260721-sak]
 plugin: pmos-managerkit
-status: planned
+status: blocked
 feature_folder: docs/pmos/features/2026-07-21_interview-scoring-calibration/
 plan_doc: docs/pmos/features/2026-07-21_interview-scoring-calibration/stories/260721-1a4/03_plan.html
 tasks: docs/pmos/features/2026-07-21_interview-scoring-calibration/stories/260721-1a4/tasks.yaml
@@ -77,3 +77,59 @@ resolve this with the maintainer and record the choice before authoring starts. 
   covered on the same terms as the other seven; no archetype is partially done.
 - [ ] **AC7** The seniority-variance decision is recorded in the story's `03_plan.html` with its rationale, and the
   authored descriptors are consistent with it. All four repo hygiene lints green.
+
+## Notes
+
+### 2026-07-21 — build attempt: BLOCKED at T0 (maintainer decision required)
+
+Unattended `build --next` picked this story (D22: in-flight epic `260721-k1x`, `must` > `z5n`'s `should`),
+claimed it, and stopped at **T0** without authoring a descriptor. T0 is the plan's own gate — *"a maintainer
+decision, not an authoring task, and it gates everything after it"* — and under `--non-interactive` a scope
+decision the define loop explicitly reserved for a human is **deferred, never auto-picked**. Choosing it
+autonomously could 2–6x the story's size and silently redefine AC1.
+
+**No files were modified. No worktree was created.** The claim has been released.
+
+#### What the build DID do: ground T0 in measurement
+
+The plan's `~1,128` figure assumes the seniority axis applies to all 8 archetypes. **It does not.** Measured
+across the bundled corpus:
+
+| Archetype | dims | `data-v` options | `data-level` today | own seniority ladder? |
+|---|---:|---:|---:|---|
+| analytical, behavioral, case-presentation, case-study, product-sense, technical | 5 each | 20 each | 0 | **no** |
+| recruiter-screen | 5 | 20 | 0 | **no** — its `seniority-signal` is a *dimension name*, not a level axis |
+| work-history | 12 | 48 | 0 | **yes** — `level-ladder.md`, 6 levels |
+| **total** | **47** | **188** | **0** | 1 of 8 |
+
+So the real cost of each shape is:
+
+| Shape | Descriptors | Note |
+|---|---:|---|
+| **A — Flat** | **188** | one set per dimension; seniority expressed via weights + archetype choice |
+| **B — Flat + rider** | **188** + 1 clause | one descriptor set; a seniority-sensitive clause in the skeleton contract states how the bar shifts |
+| **C — Per-seniority where a ladder exists** | **428** | work-history 48×6 = 288, flat 140 elsewhere |
+| **C′ — Per-seniority everywhere** (the plan's `~1,128`) | 1,128 | **requires inventing a seniority axis for 6 archetypes that have none** — not a backfill, a new design |
+
+The plan's headline scare number is therefore the cost of an option nobody should pick. The genuine choice is
+A / B / C.
+
+#### Recommendation (NOT applied — yours to make)
+
+**B, with the rider scoped to work-history.** `level-ladder.md` already varies *weights* by level, so the bar
+already shifts with seniority through the weighting; a single seniority clause names that explicitly instead of
+duplicating 240 near-identical work-history descriptors. Keeps AC1 at 188, keeps one fact in one home
+(`skill-patterns.md §K`), and leaves C available later as its own story if calibration data shows the flat
+descriptors mis-fire at the APM and Director ends.
+
+#### Also found — fix when this story is unblocked
+
+- The story's **Surfaces** section points at `_shared/interview-guidelines/level-ladder.md`. The file is actually
+  at `_shared/interview-guidelines/guidelines/work-history/level-ladder.md` (it is work-history-scoped, which is
+  itself the evidence for the table above).
+- AC1's "188" is correct as the flat baseline — confirmed by direct count, not inferred.
+- AC2's validator (`interview-guide/scripts/validate-scorecard-anchors.mjs`, from `260721-sak`) is present and
+  shipped, so the rest of the story is unblocked the moment T0 lands.
+
+**To unblock:** record the A/B/C choice + rationale in `stories/260721-1a4/03_plan.html` (AC7), restate AC1's
+count if it changed, then `/backlog set 260721-1a4 status=planned` and the next `build --next` will pick it up.
