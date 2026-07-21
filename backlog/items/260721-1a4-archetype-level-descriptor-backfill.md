@@ -9,7 +9,7 @@ priority: must
 route: skill
 dependencies: [260721-sak]
 plugin: pmos-managerkit
-status: in-progress
+status: done
 feature_folder: docs/pmos/features/2026-07-21_interview-scoring-calibration/
 plan_doc: docs/pmos/features/2026-07-21_interview-scoring-calibration/stories/260721-1a4/03_plan.html
 tasks: docs/pmos/features/2026-07-21_interview-scoring-calibration/stories/260721-1a4/tasks.yaml
@@ -59,23 +59,23 @@ resolve this with the maintainer and record the choice before authoring starts. 
 
 ## Acceptance Criteria
 
-- [ ] **AC1 (FR-3)** Every one of the 47 dimensions across all 8 bundled `guidelines/<archetype>/scorecard.html`
+- [x] **AC1 (FR-3)** Every one of the 47 dimensions across all 8 bundled `guidelines/<archetype>/scorecard.html`
   files carries a non-empty `data-level` descriptor on **every** `data-v` option of its scale (188 descriptors at
   the flat baseline; restate if the seniority question in `/plan` changes the shape).
-- [ ] **AC2 (FR-3)** Every one of the 8 files exits 0 under `validate-scorecard-anchors.mjs` (the FR-2 rule from
+- [x] **AC2 (FR-3)** Every one of the 8 files exits 0 under `validate-scorecard-anchors.mjs` (the FR-2 rule from
   `260721-sak`), including the all-or-none and non-empty-descriptor checks.
-- [ ] **AC3** Level-3 descriptors are written at the **pass line**, not the ceiling: "unprompted", "up front",
+- [x] **AC3** Level-3 descriptors are written at the **pass line**, not the ceiling: "unprompted", "up front",
   "led with it", "without being asked" and equivalents appear only at the top level of each scale. A grep for
   those phrases across the 8 files returns hits only in the highest `data-v` of each dimension.
-- [ ] **AC4** Descriptors are derived from each archetype's existing strong/weak markers and probe intent — not
+- [x] **AC4** Descriptors are derived from each archetype's existing strong/weak markers and probe intent — not
   invented fresh. Each is behavioural and observable in a transcript (what the candidate *did*), not a trait
   judgement.
-- [ ] **AC5** Purely additive: no dimension is added, removed, renamed or reweighted; `data-weight`,
+- [x] **AC5** Purely additive: no dimension is added, removed, renamed or reweighted; `data-weight`,
   `data-budget`, `data-scale`, `data-v` values and dimension ids are byte-identical before and after. `git diff`
   shows `data-level` attribute insertions only.
-- [ ] **AC6** `work-history`'s 12 dimensions (including its `role-evidence` / `trajectory-synthesis` families) are
+- [x] **AC6** `work-history`'s 12 dimensions (including its `role-evidence` / `trajectory-synthesis` families) are
   covered on the same terms as the other seven; no archetype is partially done.
-- [ ] **AC7** The seniority-variance decision is recorded in the story's `03_plan.html` with its rationale, and the
+- [x] **AC7** The seniority-variance decision is recorded in the story's `03_plan.html` with its rationale, and the
   authored descriptors are consistent with it. All four repo hygiene lints green.
   **RESOLVED 2026-07-21 — shape B (flat + rider)**, see `03_plan.html#t0-decision`. The recording half of AC7 is
   already satisfied; what remains is consistency: descriptors written for each archetype's default level, plus the
@@ -150,3 +150,25 @@ pass-line grep, AC5's additive-only diff, and `skill-eval`; no per-archetype rev
 **Scheduled for the loop tick after `260721-z5n`.**
 
 Status returned to `planned`.
+
+### Build note — 2026-07-21 (Loop 2)
+
+Built on `feat/260721-1a4` (dep-merged `feat/260721-sak`). `/verify` **PASS**, 7/7 ACs —
+report at `docs/pmos/features/2026-07-21_interview-scoring-calibration/stories/260721-1a4/verify/report.html`.
+
+The adversarial `[J]` review returned 27 findings after every `[D]` gate was already green. The
+blocker: 11 of work-history's 12 level-3 descriptors restated that dimension's own level-4 `hi`
+anchor with no prompting allowance — the ceiling on the pass line, i.e. the exact defect this epic
+exists to remove. AC3's phrase-grep passed because no banned *literal* was used. Root cause:
+work-history's `interviewer-reference.html` ships no per-dimension strong/watch bullets (its
+`data-area` blocks are the six method phases), so the lo/hi anchor pair was the only grounding and
+the hi anchor was copied down. All 12 work-history dims were re-authored (also fixing a two-axis
+ladder: levels 1–3 read as career claims, level 4s as interview acts); case-study's three level-3s
+were de-gated from a debrief that round makes optional; four indistinguishable adjacent pairs were
+split; one non-monotone ladder ordered; five trait/inference descriptors replaced.
+
+**Follow-up for the epic, before release:** an UNSCORED dimension appears to be caught by neither
+z5n's completeness gate (score chips carry no `data-input`) nor jb6's sweep gate (rules say "every
+*scored* `data-dim`"). **Candidate hardening:** promote the L3-vs-`hi`-anchor token-overlap measure
+used in verify into `validate-scorecard-anchors.mjs` as an advisory warning, so this blocker class
+becomes `[D]`-catchable instead of depending on an adversarial reviewer.
