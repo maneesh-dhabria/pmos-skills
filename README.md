@@ -12,7 +12,7 @@ Five plugins, each answering one question:
 | **pmos-toolkit** | ship a feature | `/feature-sdlc`, `/requirements` → `/spec` → `/plan` → `/execute` → `/verify` → `/complete-dev`, `/grill`, `/artifact` |
 | **pmos-learnkit** | learn a topic | `/primer`, `/learn-list`, `/frameworks`, `/case-studies`, `/magazine`, `/playbook`, `/book-summary`, `/critical-thinking` |
 | **pmos-utilities** | maintain your environment | `/mac-health`, `/reflect`, `/converter`, `/to-notion-doc` |
-| **pmos-managerkit** | do manager work | `/interview-feedback` |
+| **pmos-managerkit** | do manager work | `/interview-guide`, `/interview-feedback`, `/one-on-one` |
 | **pmos-gamekit** | take a break | `/solitaire`, `/2048`, `/tetris`, `/sudoku`, `/snake`, `/poker`, `/flappy-bird` |
 
 **What makes it different:** every workflow has built-in adversarial and
@@ -75,7 +75,9 @@ prefix. The plugin each skill belongs to is in the last column.
 | Get the durable ideas of a book, PM-framed | `/book-summary <title>` | learnkit |
 | Practice product judgment / critical thinking | `/critical-thinking` | learnkit |
 | Diagnose a slow / hot / battery-hungry Mac | `/mac-health` | utilities |
+| Author the interviewer kit for an interview round | `/interview-guide` | managerkit |
 | Score interview rounds into a grounded scorecard | `/interview-feedback` | managerkit |
+| Run recurring 1:1s with your direct reports | `/one-on-one` | managerkit |
 | Play a quick browser game | `/solitaire`, `/2048`, `/tetris`, `/sudoku`, `/snake`, `/poker`, `/flappy-bird` | gamekit |
 
 ## How it works

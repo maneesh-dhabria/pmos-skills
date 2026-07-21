@@ -196,9 +196,18 @@ function stampFile(htmlPath, byTier) {
 // --- run against files; returns exit code ---
 // Usage: runFiles(html, transcript[, submission], { stamp }) — submission optional.
 function runFiles(htmlPath, transcriptPath, submissionPath, opts = {}) {
-  const html = readFileSync(htmlPath, 'utf8');
-  const transcript = readFileSync(transcriptPath, 'utf8');
-  const submission = submissionPath ? readFileSync(submissionPath, 'utf8') : null;
+  // An unreadable input is an operator error, not a crash: exit 2 with the offending path, the
+  // same shape --no-transcript uses for a refused declaration. A stack trace here reads as a
+  // broken gate and invites working around it; a named path says which argument to fix.
+  let html, transcript, submission;
+  try {
+    html = readFileSync(htmlPath, 'utf8');
+    transcript = readFileSync(transcriptPath, 'utf8');
+    submission = submissionPath ? readFileSync(submissionPath, 'utf8') : null;
+  } catch (err) {
+    console.error(`check-citations: cannot read ${err.path ?? 'input'} (${err.code ?? err.message})`);
+    return 2;
+  }
   const { passed, failed, failures, byTier } = checkCitations(html, transcript, submission);
   for (const f of failures) console.log(f);
   console.log(`check-citations: ${passed} passed, ${failed} failed`);

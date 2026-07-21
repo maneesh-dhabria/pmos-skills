@@ -226,7 +226,14 @@ function clearDraftStamp(path) {
 }
 
 function runFile(path, opts = {}) {
-  const html = readFileSync(path, 'utf8');
+  // Same contract as check-citations: an unreadable input exits 2 with the path, never a stack trace.
+  let html;
+  try {
+    html = readFileSync(path, 'utf8');
+  } catch (err) {
+    console.error(`check-completeness: cannot read ${err.path ?? 'input'} (${err.code ?? err.message})`);
+    return 2;
+  }
   const { findings } = scan(html);
   if (findings.length === 0) {
     if (clearDraftStamp(path)) console.log('cleared stale `draft — pending` stamp');

@@ -182,25 +182,27 @@ Score each dimension on its own scale with grounded notes + flags, then set the 
 
   A genuine demonstration that needed a probe is a **capped** score, never a zeroed one. Collapsing these two questions into one is the bar-inflation defect.
 
-**(d) Untested ≠ failed.** A competency the round never probed is **tagged** `data-untested`, not scored below bar. An untested dimension leaves the weighted-score denominator entirely and the remaining weights renormalize — the gate does that arithmetic and reports untested-weight-% as a coverage figure (D7). Never invent a score for evidence that does not exist, and never score an untested dimension "neutral" (INV-4).
+**(d) Untested ≠ failed.** A competency the round never probed is **tagged** `data-untested`, not scored below bar. An untested dimension leaves the weighted-score denominator entirely and the remaining weights renormalize — the gate does that arithmetic and reports untested-weight-% as a coverage figure (D7). Never invent a score for evidence that does not exist, and never score an untested dimension "neutral" (INV-4, calibration design).
 
 **Record the note-vs-score reading as you write the note (D10).** For each dimension set `data-note-matches-level="<n>"` — the level whose descriptor your **prose actually describes**. This is your judgement; the **comparison is the script's**. When it differs from the score you assigned, that is a legitimate outcome (a red flag can drag a number below what the prose alone implies) and the gate asks only for a non-empty `data-score-rationale` naming why. Do **not** rewrite the note to match the number — the whole point of the anchor is to make that gap visible.
 
 Every below-bar score additionally carries a non-empty `data-rebuttal`: **the strongest case that this dimension is actually at bar.** Write it before you settle the score, not to justify one already chosen.
 
-**No arithmetic here.** Modal score, weighted score, renormalized weights, untested-weight-%, and the reco band are all computed by `scripts/check-scoring-calibration.mjs`. Read its numbers; never compute, average, total, or weight anything by hand (§H, INV-2).
+**No arithmetic here.** Modal score, weighted score, renormalized weights, untested-weight-%, and the reco band are all computed by `scripts/check-scoring-calibration.mjs`. Read its numbers; never compute, average, total, or weight anything by hand (§H, INV-2 calibration design).
 
-### Rubric materialization — a sheet with no bar (D8) {#rubric-materialization}
+### Rubric materialization — a dimension with no bar (D8) {#rubric-materialization}
 
-When the resolved sheet's dimensions carry **no** `data-level` descriptors, **do not score it uncalibrated.** That degrade path is **retired**: scoring against a bar that exists only in the scorer's head *is* the bar-inflation defect (INV-1). Materialize the bar first:
+**The trigger is per-dimension, not per-sheet.** Any dimension whose scale carries **no** `data-level` descriptors — whether that is every dimension on the sheet or one of twelve — **is not scored uncalibrated.** That degrade path is **retired**: scoring against a bar that exists only in the scorer's head *is* the bar-inflation defect (INV-1, calibration design).
 
-1. **Derive** descriptors for every option of every dimension from the round's own materials — the interviewer reference's strong/weak signals and its `.calib` line, the archetype corpus, and the seniority. Follow the `data-level` contract in `../_shared/interview-guidelines/scorecard-skeleton.html` (behavioural, all-or-none per dimension, non-empty, ceiling language reserved for the top level) — cite it; do not restate it.
+Partial anchoring is legal *across* dimensions and refused *within* one (the `data-level` contract's all-or-none rule, enforced by `validate-scorecard-anchors.mjs`), so a **mixed sheet is the expected state** while the corpus is backfilled: the anchored dimensions take the `authored` path and quote their own wording, and the un-anchored ones run the three steps below. Reading the trigger as sheet-level is the hole this invariant closes — on a mixed sheet a sheet-level test never fires and the un-anchored dimensions get scored against nothing. **No gate catches this**: no script reads `data-level` on the scoring side, so this rule is the only thing standing between a half-backfilled sheet and an uncalibrated score. Materialize the bar for each such dimension first:
+
+1. **Derive** descriptors for every option of each un-anchored dimension from the round's own materials — the interviewer reference's strong/weak signals and its `.calib` line, the archetype corpus, and the seniority. Follow the `data-level` contract in `../_shared/interview-guidelines/scorecard-skeleton.html` (behavioural, all-or-none per dimension, non-empty, ceiling language reserved for the top level) — cite it; do not restate it.
 2. **Write them into the sheet** as real `data-level` anchors. This is what makes the fix persistent rather than per-run: the sheet becomes self-describing and the **next** run against it inherits the same bar and takes the `authored` path.
 3. **Present them for agreement — blocking.** No dimension is scored against an unagreed bar:
 
    ```
    AskUserQuestion:
-     question: "This round's scorecard carries no level descriptors, so there is no bar to score against. I derived one per dimension from the interviewer reference and the archetype. Use it?"
+     question: "<N> of this round's dimensions carry no level descriptors, so there is no bar to score them against. I derived one per un-anchored dimension from the interviewer reference and the archetype. Use it?"
      header: "Rubric"
      options:
        - label: "Use the derived rubric (Recommended)"
@@ -209,9 +211,11 @@ When the resolved sheet's dimensions carry **no** `data-level` descriptors, **do
          description: "Review the derived descriptors dimension by dimension before anything is scored."
    ```
 
+   Ask **once for the whole sheet**, listing the un-anchored dimensions by name — not once per dimension. On a mixed sheet the already-anchored dimensions are not in scope for this question; their bar is already agreed by whoever authored it.
+
    Under `--non-interactive` this **AUTO-PICKs** the derived rubric (it carries a Recommended option and is deliberately **not** `defer-only`-tagged). That is an explicit maintainer override of the safer defer-and-mark-provisional shape, trading a guarantee for unattended throughput; the residual risk — a headless run scoring against a bar no human ever saw — is accepted and named in the design's Accepted risks.
 
-4. **Stamp `data-rubric-provenance` unconditionally, on every path including failures** — `authored` (the sheet already carried descriptors), `synthesized-agreed` (derived and human-agreed), `synthesized-auto` (derived and AUTO-PICKed headless). The stamp is the **only** mitigation for the accepted risk above, so it is never skipped and never guessed: a reader must always be able to tell whose bar was scored against.
+4. **Stamp `data-rubric-provenance` unconditionally, on every path including failures** — `authored` (the sheet already carried descriptors), `synthesized-agreed` (derived and human-agreed), `synthesized-auto` (derived and AUTO-PICKed headless). The stamp is the **only** mitigation for the accepted risk above, so it is never skipped and never guessed: a reader must always be able to tell whose bar was scored against. **On a mixed sheet the stamp is weakest-link, not majority:** if *any* dimension was synthesized this run, the sheet stamps `synthesized-agreed` / `synthesized-auto` — `authored` is reserved for a sheet where every dimension arrived anchored. A reader must never infer from `authored` that a bar they never saw was in play.
 
 **Written submission (take-home / design doc / writing sample).** A round may include a candidate-authored written artifact alongside the live conversation. Detect it: `--written-submission <path>` wins; else auto-detect a submission file in `inputs/` (filename predicate — `*submission*`, `*take-home*`/`*takehome*`, `*design-doc*`, `*writing-sample*`, or an obvious doc among the inputs that is neither the recording, transcript, nor interviewer notes). When one is present:
 
@@ -254,7 +258,7 @@ This gate is a **hard STOP, not an assertion**: `filled-scorecard.html` is NOT p
 
 Then run the completeness gate (`#completeness-gate`) over `filled-scorecard.html` and apply its disposition. `filled-scorecard.html` is presented as complete only when **both** gates have been satisfied.
 
-### Completeness gate (blocking STOP-before-done, INV-4) {#completeness-gate}
+### Completeness gate (blocking STOP-before-done, INV-4, calibration design) {#completeness-gate}
 
 Canonical for **both** artifacts — Phase Score runs it over `filled-scorecard.html`, Phase Coach over `interviewer-notes.html`. It runs **before** either artifact is declared complete, after the citation gate.
 
@@ -295,7 +299,7 @@ This gate has exactly the same status as the citation gate: **a hard STOP, not a
 - **Non-zero exit:** the message names the dimension and what is missing. Fix that dimension (complete its sweep, write the rebuttal, correct or defend the note-vs-score gap, defend the reco), then **re-run the gate**. Never present the artifact or move to Coach while either gate is non-zero, in any run mode.
 - **Passing exit (exit 0):** surface the script's `✓ calibration:` line alongside the `✓ citations:` line.
 
-The two gates are independent and both must pass; the calibration gate **does not replace** the citation gate and does not touch what it verifies (INV-3).
+The two gates are independent and both must pass; the calibration gate **does not replace** the citation gate and does not touch what it verifies (INV-3, calibration design).
 
 **Tier-2 rounds (no transcript) run a different pair.** A round graded from interviewer notes has no transcript file, and the citation gate takes one as a required positional — so the documented invocation above cannot run. **Do not hand it a placeholder or an unrelated file to get past that.** `check-citations.mjs` never reads the transcript argument for a `notes`-tier citation, so any file at all would produce a green `✓ citations:` line: a pass bought with a dummy, which is the exact ritual shape these gates exist to refuse. Instead:
 
@@ -332,6 +336,13 @@ The first two are judgement, not arithmetic, so per §H they stay with the metho
 `interviewer-notes-skeleton.html` carries **no** scoring anchors — no `data-dim`, no `data-v`, no `data-selected` — so `check-scoring-calibration.mjs` structurally cannot run against output (b), and it is **not** invoked here. Do **not** add scoring anchors to (b) to create something to check: giving (b) its own scoring surface is deliberately deferred. Fix the bias everywhere; add machinery only where there is something to check.
 
 Emit **interviewer-effectiveness notes** (output b), one section per interviewer, scored against `../_shared/interview-guidelines/interviewer-effectiveness.html` (the bundled researched rubric — structured/consistent questioning, probing depth, leading-question avoidance, talk-time balance, coverage, bias mitigation, note quality, calibration). Each interviewer's lead/shadow/panel role (from `role.json`) sets expectations. Subjective claims carry the same `data-cite-tier`; per-interviewer claims that could not be attributed are flagged with attribution-confidence. Re-run `check-citations.mjs --stamp interviewer-notes.html transcript.refined.txt` over this output too — the **same blocking STOP-before-done gate applies (INV-1)**: the effectiveness notes are not presented as complete until the gate exits 0 over them; on a non-zero exit, repair the failing citations and re-run before declaring done. The proof-of-pass comment is the script's to write here as well. Then run the completeness gate (`#completeness-gate`) over `interviewer-notes.html` — the observer's independent read is exactly the block that has shipped empty before — and apply its disposition before declaring done.
+
+**Tier-2 rounds (no transcript) here too.** The invocation above takes a transcript as a required positional, so on a notes-graded round it cannot run — and the tier-2 escape hatch Phase [Score](#score) uses (`check-scoring-calibration.mjs --no-transcript`) is unavailable to output (b), which has no scoring anchors to check. **Do not hand the citation gate a placeholder** to manufacture a green line; the reasoning is identical to Phase [Score](#score)'s. Instead:
+
+- **No transcript, but a written submission exists** → run it exactly as Phase [Score](#score) does, submission in both positional slots: `node scripts/check-citations.mjs --stamp interviewer-notes.html <submission-path> <submission-path>`.
+- **Neither transcript nor submission** → there is genuinely nothing verbatim to verify, so skip the citation gate and say so in the run summary rather than implying it passed. The one check that still has teeth is deterministic, so run it in the gate's place: `grep -c 'data-cite-tier="transcript"' interviewer-notes.html` must return **0** — in a round with no transcript a `transcript`-tier citation is a lie by construction, and this is the assertion `--no-transcript` would have made for you on output (a).
+
+The completeness gate reads only the artifact, so it runs unchanged on every tier. Both gates exit **2** with the offending path when an input is unreadable — that is an argument to fix, never a reason to route around the gate.
 
 ## Phase: Setup {#setup}
 
