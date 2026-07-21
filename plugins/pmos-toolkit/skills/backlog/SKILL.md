@@ -230,7 +230,7 @@ Write the body per `schema.md`'s section order (always `## Context` — use "_TB
      D22 order — **not** just step 4's single top candidate — with the head marked as the pick
      `/feature-sdlc build --next` takes and each other row carrying `/feature-sdlc build --story <id>`
      (or "nothing ready"). Widening the dashboard to the whole queue does not change `#next` itself: its
-     own output contract is frozen (INV-1).
+     own output contract is frozen — `/backlog next --json` stays the single best story, byte-identical.
    - **Releases (the shelf):** the `#releases` release-ready list (or "nothing release-ready").
    Each row carries its copy-ready next command. **Never print a stored INDEX blob** — there is none; the listing is computed fresh from the record files this read (INV-1/INV-3).
 
