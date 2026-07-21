@@ -9,13 +9,13 @@ priority: must
 route: skill
 dependencies: [260721-sak]
 plugin: pmos-managerkit
-status: planned
+status: in-progress
 feature_folder: docs/pmos/features/2026-07-21_interview-scoring-calibration/
 plan_doc: docs/pmos/features/2026-07-21_interview-scoring-calibration/stories/260721-1a4/03_plan.html
 tasks: docs/pmos/features/2026-07-21_interview-scoring-calibration/stories/260721-1a4/tasks.yaml
-worktree:
-claimed_by:
-driver_holder:
+worktree: .claude/worktrees/feat-260721-1a4
+claimed_by: build:d5978308-5866-4ca8-bdc7-8e51f6619786
+driver_holder: build:d5978308-5866-4ca8-bdc7-8e51f6619786
 build_branch:
 build_commit:
 labels: [pmos-managerkit, interview-guidelines, scoring, calibration, corpus, backfill, skill, from-feedback]
