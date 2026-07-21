@@ -6,10 +6,11 @@
 // must exit 0 before a filled scorecard is presented or a run declares done.
 //
 // Usage:
-//   node check-scoring-calibration.mjs <filled-scorecard.html>
+//   node check-scoring-calibration.mjs <filled-scorecard.html> [--no-transcript]
 //   node check-scoring-calibration.mjs --selftest
 //
-// Exit: 0 all gates pass · 1 one or more failures · 2 usage/read error.
+// Exit: 0 all gates pass · 1 one or more failures · 2 usage/read error, or a --no-transcript
+// declaration contradicted by a transcript sitting beside the scorecard.
 //
 // The four gates (design D3) — every hard condition is presence, ordering, or an integer comparison
 // THIS SCRIPT performs. Nothing here is a self-graded verdict the model can satisfy by stamping a
@@ -66,12 +67,25 @@ const VERIFIED_CITE_TIERS = new Set(['transcript', 'submission']);
 // transcript-tier citation, so holding it to VERIFIED_CITE_TIERS would not make it honest; it
 // would make the gate unpassable and take the whole documented path offline.
 //
-// The downgrade is decided by the FILESYSTEM, never by the sheet. `runFile` looks for a
-// transcript beside the scorecard: present -> strict, absent -> `notes` also grounds a swept
-// instance. A fabricated sheet in a transcript round therefore cannot opt into the weaker set
-// by relabelling its own tiers (that was the exploit VERIFIED_CITE_TIERS closed). `recalled`
-// is never accepted at any tier: it is a recollection, not a timestamped moment, and its
-// questionnaire path is interactive-only by contract.
+// The downgrade is therefore available, but it is DECLARED, not inferred: the caller passes
+// --no-transcript. An earlier revision inferred it from the filesystem (no transcript beside
+// the scorecard -> relax), which was worse than it looked: it made the accepted-tier set a
+// function of WHERE the gate ran, so copying the sheet to an empty directory and re-running
+// the identical command silently bought the weaker set. A relaxation nobody has to ask for is
+// one nobody can see.
+//
+// The declaration is CORROBORATED, not trusted: --no-transcript is REFUSED when a transcript
+// does sit beside the scorecard. That kills the honest-mistake case (a caller that passes the
+// flag by habit in a real transcript round now fails loudly) without pretending the flag is
+// unforgeable.
+//
+// What remains, named in SKILL.md next to the other residuals: a caller who both relocates the
+// artifact and declares the downgrade can still launder a fabricated sheet. No gate that reads
+// only the files it is handed can defeat a caller who chooses what to hand it — that is the
+// operator's sight of the round folder and the reviewer's job, not this script's.
+//
+// `recalled` is accepted at NEITHER setting: it is a recollection, not a timestamped moment,
+// and its questionnaire path is interactive-only by contract.
 const NOTES_ONLY_CITE_TIERS = new Set([...VERIFIED_CITE_TIERS, 'notes']);
 
 // Transcript filenames the round may carry, per SKILL.md § Storage and the transcribe.sh
@@ -189,6 +203,15 @@ function parseDimensions(html, verifiedTiers) {
     //   quote" — it is "faking the sweep means COPYING a real quote, and the sheet then
     //   shows the grader exactly which span the number is claimed to rest on." Judging
     //   quote-against-claim is not script-checkable (§H) and stays with the reviewer.
+    //
+    //   A lexical-overlap floor (quote and note must share N non-stopword tokens) was
+    //   proposed for the crude form and is deliberately NOT built. A good note PARAPHRASES:
+    //   "walked through the consistency implications" citing "if two replicas disagree we'd
+    //   need a tiebreak" shares almost no tokens and is excellent grounding. Such a check
+    //   would fail honest analytical prose and pass keyword-padded fabrication — and it
+    //   would pressure the author to copy transcript words into the note, the same
+    //   rewrite-to-match pathology gate 3 exists to refuse. Wrong-direction incentive, so
+    //   the floor stays where a script can hold it honestly.
     let sweepInstances = null;
     let sweepUngrounded = 0;
     const sweepRe = /<details\b[^>]*\bdata-card\s*=\s*"evidence-sweep"[^>]*>/;
@@ -337,6 +360,31 @@ function checkCalibration(rawHtml, opts = {}) {
     };
   }
 
+  // Notes-only rounds: assume the citation gate did NOT run over this sheet. It cannot — its
+  // documented invocation takes the transcript as a required positional, and a round that has
+  // no transcript has nothing to hand it (feeding it a placeholder file would buy a green line
+  // with a dummy, which is the ritual shape this whole gate exists to refuse). So the two
+  // checks that gate would still have been making here are made here instead:
+  if (!transcriptPresent) {
+    //   (i) a transcript-tier citation is a LIE by construction in a round with no transcript.
+    const bogus = [...html.matchAll(/\bdata-cite-tier\s*=\s*"(transcript|submission)"/g)];
+    if (bogus.length > 0) {
+      failures.push(
+        `--no-transcript declared, but the sheet carries ${bogus.length} "${bogus[0][1]}"-tier citation(s) — a round with no transcript cannot have quoted one, and nothing verified these verbatim`
+      );
+    }
+    //   (ii) a notes-tier citation still owes a non-empty data-source (check-citations.mjs's
+    //        own rule for the exempt tiers — the one thing it checks that still applies).
+    const sourceless = [...html.matchAll(/<cite\b[^>]*>/g)].filter(
+      (c) => getAttr(c[0], 'data-cite-tier') != null && !present(getAttr(c[0], 'data-source'))
+    );
+    if (sourceless.length > 0) {
+      failures.push(
+        `--no-transcript declared, but ${sourceless.length} <cite> element(s) carry a tier with no non-empty data-source — name the notes the claim rests on`
+      );
+    }
+  }
+
   for (const d of dims) {
     const isScored = d.selected != null && !d.untested;
 
@@ -434,7 +482,7 @@ function checkCalibration(rawHtml, opts = {}) {
 
 // --- run ---
 
-function runFile(path) {
+function runFile(path, declaredNoTranscript = false) {
   let html;
   try {
     html = readFileSync(path, 'utf8');
@@ -442,17 +490,27 @@ function runFile(path) {
     console.error(`check-scoring-calibration: cannot read ${path}: ${e.message}`);
     return 2;
   }
-  // Probe the round for a transcript. The scorecard's own directory IS the round folder
-  // (SKILL.md § Storage), so the siblings are the whole question — this is not a search.
-  const roundDir = dirname(path);
-  const transcriptPresent = TRANSCRIPT_FILENAMES.some((f) => existsSync(join(roundDir, f)));
+  // Corroborate a declared downgrade against the round folder. The scorecard's own directory
+  // IS the round folder (SKILL.md § Storage), so its siblings are the whole question.
+  // Refusing the flag here is the point: the filesystem cannot GRANT the relaxation (that was
+  // the copy-elsewhere hole), but it can and does VETO a false declaration.
+  const foundTranscript = TRANSCRIPT_FILENAMES.find((f) => existsSync(join(dirname(path), f)));
+  if (declaredNoTranscript && foundTranscript) {
+    console.error(
+      `check-scoring-calibration: --no-transcript declared, but ${foundTranscript} sits beside ${path}. ` +
+        `This round HAS a transcript, so its evidence sweep must cite it. Drop the flag and ground the sweep.`
+    );
+    return 2;
+  }
+
+  const transcriptPresent = !declaredNoTranscript;
   const { failures, dims, stats } = checkCalibration(html, { transcriptPresent });
   for (const f of failures) console.log(f);
-  if (!transcriptPresent) {
+  if (declaredNoTranscript) {
     // Announce the weaker tier set every time it applies — a downgrade the operator cannot
     // see is a downgrade they cannot challenge.
     console.log(
-      `note: no transcript beside the scorecard (looked for ${TRANSCRIPT_FILENAMES.join(', ')}) — grading this as a tier-2 notes-only round, so "notes"-tier citations ground the evidence sweep`
+      'note: --no-transcript declared and no transcript found beside the scorecard — grading this as a tier-2 notes-only round, so "notes"-tier citations ground the evidence sweep'
     );
   }
   console.log(
@@ -513,6 +571,8 @@ function dim(opts) {
           ? '<details data-card="evidence-sweep"><ul><li data-t="01:12">no citation on this instance</li></ul></details>'
         : sweep === 'notes-tier'
           ? '<details data-card="evidence-sweep"><ul><li data-t="01:12"><cite data-cite-tier="notes" data-source="interviewer notes">unverifiable tier</cite></li></ul></details>'
+        : sweep === 'notes-tier-no-source'
+          ? '<details data-card="evidence-sweep"><ul><li data-t="01:12"><cite data-cite-tier="notes">no source named</cite></li></ul></details>'
         : sweep === 'recalled-tier'
           ? '<details data-card="evidence-sweep"><ul><li data-t="01:12"><cite data-cite-tier="recalled" data-source="interviewer recall">a recollection, not a moment</cite></li></ul></details>'
           : `<details data-card="evidence-sweep"><ul>${Array.from(
@@ -529,9 +589,18 @@ function selftest() {
   const cases = [];
   // Cases run in their own subdir with a transcript sibling, i.e. the strict tier set —
   // the common case, and the safe default for a fixture that says nothing about grounding.
-  // `noTranscript: true` omits the sibling to exercise the tier-2 carve-out.
+  // `noTranscriptFile: true` omits the sibling; `flag: true` passes --no-transcript. The two
+  // are INDEPENDENT on purpose: the pair that matters is "no file, no flag" (still strict —
+  // relocating a sheet must buy nothing) against "no file, flag" (the carve-out).
   const add = (name, expect, html, stdoutIncludes, opts = {}) =>
-    cases.push({ name, expect, html, stdoutIncludes, noTranscript: opts.noTranscript === true });
+    cases.push({
+      name,
+      expect,
+      html,
+      stdoutIncludes,
+      noTranscriptFile: opts.noTranscriptFile === true,
+      flag: opts.flag === true,
+    });
 
   // --- PASS: a well-formed two-dimension sheet ---
   add(
@@ -602,30 +671,70 @@ function selftest() {
     'cannot ground a swept instance'
   );
 
-  // The tier-2 carve-out, proved as a PAIR against one byte-identical sheet: the SAME
-  // notes-tier sweep that fails above passes when no transcript sits beside the scorecard.
-  // Without both halves this is not a carve-out, it is just a hole.
-  add(
-    'PASS-g1-notes-tier-when-no-transcript',
-    0,
-    sheet(
-      dim({ id: 'a', selected: 3, noteLevel: 3, sweep: 'notes-tier' }) +
-        dim({ id: 'b', noteLevel: 3 })
-    ),
-    'tier-2 notes-only round',
-    { noTranscript: true }
+  // --- the tier-2 carve-out, as a MATRIX over one byte-identical notes-tier sheet ---
+  //
+  // The four cells below are the whole contract. Any one of them alone proves nothing: a
+  // carve-out that only ever passes is a hole, and one that only ever fails is an outage.
+  // Both dimensions are notes-tier: a genuine tier-2 round has no transcript for EITHER of
+  // them to have quoted, which the "lie by construction" check below independently enforces.
+  const notesSheet = sheet(
+    dim({ id: 'a', selected: 3, noteLevel: 3, sweep: 'notes-tier' }) +
+      dim({ id: 'b', noteLevel: 3, sweep: 'notes-tier' })
   );
 
-  // …and `recalled` is still refused there. The carve-out admits notes, not "any tier".
+  // (1) file present, no flag -> strict. (This is FAIL-g1-unverifiable-tier above.)
+  // (2) file ABSENT, no flag -> STILL strict. The regression guard for the copy-elsewhere
+  //     hole: relocating a sheet to an empty directory must buy exactly nothing, because the
+  //     absence of a transcript beside the artifact is a fact about the invocation, not the
+  //     round.
+  add('FAIL-g1-relocated-sheet-buys-nothing', 1, notesSheet, 'no accepted citation', {
+    noTranscriptFile: true,
+  });
+
+  // (3) file absent, flag declared -> the carve-out, announced on stdout.
+  add('PASS-g1-notes-tier-when-declared', 0, notesSheet, 'tier-2 notes-only round', {
+    noTranscriptFile: true,
+    flag: true,
+  });
+
+  // (4) file PRESENT, flag declared -> refused outright (exit 2). A false declaration is not
+  //     a scoring failure to be repaired, it is a lie about the round.
+  add('REFUSE-flag-contradicted-by-transcript', 2, notesSheet, 'sits beside', { flag: true });
+
+  // `recalled` is refused even inside the carve-out — it admits notes, not "any tier".
   add(
-    'FAIL-g1-recalled-tier-even-without-transcript',
+    'FAIL-g1-recalled-tier-even-when-declared',
     1,
     sheet(
       dim({ id: 'a', selected: 3, noteLevel: 3, sweep: 'recalled-tier' }) +
-        dim({ id: 'b', noteLevel: 3 })
+        dim({ id: 'b', noteLevel: 3, sweep: 'notes-tier' })
     ),
     'no accepted citation',
-    { noTranscript: true }
+    { noTranscriptFile: true, flag: true }
+  );
+
+  // The two checks the citation gate would have made, which cannot run without a transcript.
+  // A transcript-tier citation in a transcript-less round is a lie by construction…
+  add(
+    'FAIL-no-transcript-but-transcript-tier-cite',
+    1,
+    sheet(
+      dim({ id: 'a', selected: 3, noteLevel: 3, sweep: 1 }) + dim({ id: 'b', noteLevel: 3 })
+    ),
+    'cannot have quoted one',
+    { noTranscriptFile: true, flag: true }
+  );
+
+  // …and a notes-tier citation still owes the source it rests on.
+  add(
+    'FAIL-notes-cite-without-data-source',
+    1,
+    sheet(
+      dim({ id: 'a', selected: 3, noteLevel: 3, sweep: 'notes-tier-no-source' }) +
+        dim({ id: 'b', noteLevel: 3, sweep: 'notes-tier' })
+    ),
+    'no non-empty data-source',
+    { noTranscriptFile: true, flag: true }
   );
 
   // --- Gate 2: adversarial below-bar rebuttal (at-bar is READ from the scale) ---
@@ -793,12 +902,14 @@ function selftest() {
     mkdirSync(caseDir, { recursive: true });
     const htmlPath = join(caseDir, 'filled-scorecard.html');
     writeFileSync(htmlPath, tc.html, 'utf8');
-    if (!tc.noTranscript) {
+    if (!tc.noTranscriptFile) {
       writeFileSync(join(caseDir, 'transcript.refined.txt'), 'Interviewer: hello.\n', 'utf8');
     }
-    const res = spawnSync(process.execPath, [selfPath, htmlPath], { encoding: 'utf8' });
+    const argv = tc.flag ? [selfPath, htmlPath, '--no-transcript'] : [selfPath, htmlPath];
+    const res = spawnSync(process.execPath, argv, { encoding: 'utf8' });
     const stdoutOk =
-      tc.stdoutIncludes == null || (res.stdout || '').includes(tc.stdoutIncludes);
+      tc.stdoutIncludes == null ||
+      ((res.stdout || '') + (res.stderr || '')).includes(tc.stdoutIncludes);
     if (res.status === tc.expect && stdoutOk) {
       pass++;
     } else {
@@ -825,12 +936,19 @@ function selftest() {
 const args = process.argv.slice(2);
 if (args[0] === '--selftest') {
   process.exit(selftest());
-} else if (args.length === 1) {
-  process.exit(runFile(args[0]));
 } else {
+  const declaredNoTranscript = args.includes('--no-transcript');
+  const positionals = args.filter((a) => a !== '--no-transcript');
+  if (positionals.length === 1) {
+    process.exit(runFile(positionals[0], declaredNoTranscript));
+  }
   console.error(
-    'Usage: node check-scoring-calibration.mjs <filled-scorecard.html>\n' +
-      '       node check-scoring-calibration.mjs --selftest'
+    'Usage: node check-scoring-calibration.mjs <filled-scorecard.html> [--no-transcript]\n' +
+      '       node check-scoring-calibration.mjs --selftest\n' +
+      '\n' +
+      '  --no-transcript  the round has NO transcript and was graded from interviewer notes\n' +
+      '                   (tier 2). Accepts "notes"-tier citations for the evidence sweep.\n' +
+      '                   Refused if a transcript sits beside the scorecard.'
   );
   process.exit(2);
 }
