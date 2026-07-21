@@ -55,7 +55,8 @@
   Optional level-descriptor anchors (additive — /interview-guide emits these on the sheets it authors; a
   sheet that omits them validates exactly as before, so every bundled scorecard is unaffected until the
   corpus is backfilled). THIS COMMENT IS THE SINGLE HOME OF THE data-level CONTRACT — /interview-guide's
-  SKILL.md, its validator's error text, and reference/output-shapes.md cite these rules, none restate them:
+  SKILL.md, its validator's error text, reference/output-shapes.md, and /interview-feedback's SKILL.md
+  (#rubric-materialization, the other author that writes descriptors) cite these rules, none restate them:
     - data-level="<descriptor>"               on a <span data-v="n"> scale option; carries THAT level's
                                               at-bar wording for THAT dimension. The bar is PER-DIMENSION,
                                               not a shared global ladder — one dimension's level 3 and
@@ -86,7 +87,9 @@
                                                 stay flat. Where an archetype ships a level-ladder.md
                                                 (today: work-history only), that ladder's weight row
                                                 for the target level is what moves the bar.
-                                                GUIDE-AUTHORED (/interview-guide, per round) — the
+                                                PER-ROUND SHEET (minted by /interview-guide, or
+                                                materialized into by /interview-feedback's
+                                                #rubric-materialization) — the
                                                 sheet is minted for ONE role at ONE resolved seniority,
                                                 so its single set is written at THAT seniority's bar.
                                                 Calibrating at authoring time is not a per-seniority
