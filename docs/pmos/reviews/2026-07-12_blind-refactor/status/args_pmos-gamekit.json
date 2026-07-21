@@ -1,0 +1,76 @@
+{
+ "runDir": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor",
+ "plugin": "pmos-gamekit",
+ "units": [
+  {
+   "id": "pmos-gamekit__2048",
+   "type": "skill",
+   "skill": "2048",
+   "prefix": "2048",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-gamekit__2048.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-gamekit__2048.md"
+  },
+  {
+   "id": "pmos-gamekit__flappy-bird",
+   "type": "skill",
+   "skill": "flappy-bird",
+   "prefix": "flappy-bird",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-gamekit__flappy-bird.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-gamekit__flappy-bird.md"
+  },
+  {
+   "id": "pmos-gamekit__poker",
+   "type": "skill",
+   "skill": "poker",
+   "prefix": "poker",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-gamekit__poker.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-gamekit__poker.md"
+  },
+  {
+   "id": "pmos-gamekit__snake",
+   "type": "skill",
+   "skill": "snake",
+   "prefix": "snake",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-gamekit__snake.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-gamekit__snake.md"
+  },
+  {
+   "id": "pmos-gamekit__solitaire",
+   "type": "skill",
+   "skill": "solitaire",
+   "prefix": "solitaire",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-gamekit__solitaire.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-gamekit__solitaire.md"
+  },
+  {
+   "id": "pmos-gamekit__sudoku",
+   "type": "skill",
+   "skill": "sudoku",
+   "prefix": "sudoku",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-gamekit__sudoku.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-gamekit__sudoku.md"
+  },
+  {
+   "id": "pmos-gamekit__tetris",
+   "type": "skill",
+   "skill": "tetris",
+   "prefix": "tetris",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-gamekit__tetris.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-gamekit__tetris.md"
+  },
+  {
+   "id": "pmos-gamekit__shared",
+   "type": "shared",
+   "prefix": "pmos-gamekit-shared",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/_shared.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/_shared__pmos-gamekit.md"
+  },
+  {
+   "id": "pmos-gamekit__cross",
+   "type": "cross",
+   "prefix": "pmos-gamekit-cross",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/_cross/pmos-gamekit.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/_cross__pmos-gamekit.md"
+  }
+ ]
+}

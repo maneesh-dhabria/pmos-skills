@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PMOS Skills v3 — Recommended Proposal v2</title>
+  <style>
+    :root {
+      --ink: #171717;
+      --muted: #5d6470;
+      --line: #d9dde4;
+      --soft: #f7f8fa;
+      --blue: #234f9c;
+      --blue-soft: #eaf1ff;
+      --red: #a52834;
+      --red-soft: #fff0f2;
+      --amber: #855200;
+      --amber-soft: #fff7e6;
+      --green: #12633d;
+      --green-soft: #edf8f2;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: white;
+      font: 15px/1.58 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    header {
+      background: linear-gradient(180deg, #f7f9fc, #fff);
+      border-bottom: 1px solid var(--line);
+    }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 30px; }
+    h1 { margin: 0 0 10px; font-size: 36px; line-height: 1.12; letter-spacing: -.02em; }
+    h2 { margin: 44px 0 13px; font-size: 25px; line-height: 1.25; }
+    h3 { margin: 27px 0 8px; font-size: 18px; }
+    p { margin: 0 0 13px; }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code {
+      background: #f0f2f5;
+      border: 1px solid #e1e4e8;
+      border-radius: 4px;
+      padding: 1px 4px;
+      font: 13px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    table { width: 100%; border-collapse: collapse; margin: 15px 0 28px; table-layout: fixed; }
+    th, td { border: 1px solid var(--line); padding: 10px 11px; text-align: left; vertical-align: top; }
+    th { background: var(--soft); font-weight: 700; }
+    ul, ol { margin: 8px 0 17px 22px; padding: 0; }
+    li { margin: 6px 0; }
+    .lede { max-width: 950px; font-size: 17px; color: #2e3338; }
+    .meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; color: var(--muted); }
+    .pill { border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; background: #fff; font-size: 13px; }
+    .callout { border: 1px solid var(--line); border-left: 4px solid var(--blue); border-radius: 8px; padding: 15px 17px; background: var(--blue-soft); margin: 17px 0; }
+    .critical { border-left-color: var(--red); background: var(--red-soft); }
+    .warn { border-left-color: var(--amber); background: var(--amber-soft); }
+    .good { border-left-color: var(--green); background: var(--green-soft); }
+    .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 17px 0; }
+    .grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 17px 0; }
+    .card { border: 1px solid var(--line); border-radius: 8px; padding: 14px; background: white; }
+    .card strong { display: block; margin-bottom: 5px; }
+    .tag, .verdict { display: inline-block; border-radius: 4px; padding: 1px 7px; font-size: 12px; font-weight: 750; white-space: nowrap; }
+    .r0, .adopt { color: var(--green); background: var(--green-soft); border: 1px solid #bddfcf; }
+    .r1, .modify { color: var(--blue); background: var(--blue-soft); border: 1px solid #bfd2f7; }
+    .r2, .defer { color: var(--amber); background: var(--amber-soft); border: 1px solid #e6cb94; }
+    .r3, .reject { color: var(--red); background: var(--red-soft); border: 1px solid #e9b7bd; }
+    .small { color: var(--muted); font-size: 13px; }
+    .principle { font-size: 19px; line-height: 1.45; font-weight: 650; }
+    .phase { border-left: 3px solid var(--line); padding-left: 16px; margin: 19px 0; }
+    footer { margin-top: 48px; border-top: 1px solid var(--line); color: var(--muted); }
+    @media (max-width: 900px) {
+      .wrap { padding: 22px; }
+      .grid, .grid3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      table { table-layout: auto; }
+    }
+    @media (max-width: 600px) {
+      .grid, .grid3 { grid-template-columns: 1fr; }
+      h1 { font-size: 29px; }
+      th, td { padding: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>PMOS Skills v3 — Recommended Proposal v2</h1>
+      <p class="lede">A standalone recommendation for simplifying the PMOS skills marketplace while preserving proven engines, earned safeguards, and reliable platform behavior. This proposal synthesizes and resolves the major disagreements between the <a href="index.html">original v3 proposal</a> and the <a href="revised-proposal.html">critical revision</a>.</p>
+      <div class="meta">
+        <span class="pill">Date: 2026-07-11</span>
+        <span class="pill">Status: superseded by <a href="revised_proposal_v3.html">revised_proposal_v3.html</a> (2026-07-12, post-grill)</span>
+        <span class="pill">Scope: 64 user-facing skills across 5 plugins</span>
+        <span class="pill">Posture: staged refactor, source-compatible</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section id="executive-verdict">
+      <h2>Executive Verdict</h2>
+      <div class="callout good">
+        <p class="principle">Adopt the revised proposal as the strategic baseline, but do not introduce a <code>source/ → dist/</code> build system yet.</p>
+        <p>v3 should be a staged simplification of the repository that preserves working engines and hard-earned safeguards. It should not be a wholesale rewrite, a line-count exercise, or a packaging-architecture migration disguised as an instruction cleanup.</p>
+      </div>
+      <p>The original proposal identifies the correct destination: smaller job-card skills, script-owned deterministic mechanics, clearer product boundaries, structured verification evidence, and less ceremony. The revised proposal supplies the better diagnosis: several supposed rebuild candidates are already script-backed products; the existing skill rubric enforces v2 conventions; and frontmatter descriptions impose a marketplace-wide context cost.</p>
+      <p>This proposal combines those strengths while rejecting two forms of premature architecture: a new compiled distribution layer and indiscriminate skill consolidation.</p>
+
+      <div class="grid">
+        <div class="card"><strong><span class="verdict adopt">ADOPT</span></strong><span class="small">Job-card posture, description diet, comments trust contract, verify verdicts, execute modes, and extraction of genuine prose state machines.</span></div>
+        <div class="card"><strong><span class="verdict modify">MODIFY</span></strong><span class="small">Introduce the v3 rubric transitionally; use behavioral tests according to risk; keep one feature-sdlc entrypoint plus thin aliases.</span></div>
+        <div class="card"><strong><span class="verdict defer">DEFER</span></strong><span class="small">Build system, shared PMOS CLI, corpus separation, and broad skill mergers until measured duplication or usage justifies them.</span></div>
+        <div class="card"><strong><span class="verdict reject">REJECT</span></strong><span class="small">Line-count compliance, vague platform-neutral tool vocabulary, and rebuilding engines that already own their mechanics.</span></div>
+      </div>
+    </section>
+
+    <section id="principle">
+      <h2>Governing Principle</h2>
+      <div class="callout">
+        <p class="principle">Preserve proven engines and earned safeguards; remove duplicated narration and model-executed mechanics; redesign only where the product contract—not merely the instruction file—is wrong.</p>
+      </div>
+      <p>This distinguishes four kinds of work that the earlier proposals sometimes blur:</p>
+      <ul>
+        <li><strong>Instruction diet:</strong> reduce prose while keeping behavior and engine contracts intact.</li>
+        <li><strong>Mechanics extraction:</strong> move deterministic state, parsing, routing, and validation from model instructions into scripts.</li>
+        <li><strong>Contract correction:</strong> change a user-visible promise or outcome taxonomy because the current behavior is misleading.</li>
+        <li><strong>Product redesign:</strong> change the skill boundary, workflow, or persistence model. Reserve this for cases where the product itself is wrong.</li>
+      </ul>
+    </section>
+
+    <section id="evidence">
+      <h2>Evidence Snapshot</h2>
+      <p>The repository does contain overly long instruction files, but length alone does not reveal whether a skill needs a rewrite or merely a clearer wrapper. The surrounding implementation changes the diagnosis.</p>
+      <table>
+        <thead><tr><th style="width:17%">Skill</th><th style="width:14%">SKILL.md</th><th style="width:18%">Implementation posture</th><th>Recommended interpretation</th></tr></thead>
+        <tbody>
+          <tr><td><code>complete-dev</code></td><td>778 lines</td><td>Only a small supporting script</td><td>A genuine prose state machine. Diff routing, version handling, tagging, push planning, and release state should become deterministic code.</td></tr>
+          <tr><td><code>feature-sdlc</code></td><td>715 lines plus references</td><td>Some scripts, extensive orchestration prose</td><td>R3 extraction is justified, but the user-facing surface should remain one primary entrypoint with the existing thin aliases.</td></tr>
+          <tr><td><code>comments</code></td><td>166 lines</td><td>Established resolver, anchor, wave-planning, and test substrate</td><td>Trim the wrapper and correct the resolution contract. Do not rebuild the engine.</td></tr>
+          <tr><td><code>mytasks</code></td><td>493 lines</td><td>Existing CRUD, recurrence, goal, and web application code</td><td>Instruction diet around a working product. Splitting goals is a later product decision, not a prerequisite.</td></tr>
+          <tr><td><code>backlog</code></td><td>282 lines</td><td>Existing mutation, ID, locking, and browser support</td><td>Reduce the body to verbs, routing, and safety rules. Preserve the engine.</td></tr>
+        </tbody>
+      </table>
+      <div class="callout warn">
+        <p><strong>Marketplace-wide context is the first optimization target.</strong> The 64 frontmatter descriptions total roughly 39 KB. Because descriptions are discovery metadata rather than invoked skill bodies, shortening them produces a broad, low-risk benefit. The target should be concise purpose and trigger coverage—not an arbitrary sentence count that damages routing.</p>
+      </div>
+    </section>
+
+    <section id="proposal-assessment">
+      <h2>Assessment of the Two Earlier Proposals</h2>
+      <table>
+        <thead><tr><th style="width:22%">Question</th><th style="width:26%">Original proposal</th><th style="width:26%">Critical revision</th><th>Recommendation</th></tr></thead>
+        <tbody>
+          <tr><td>What should a skill body become?</td><td>A compact job card with script-owned mechanics.</td><td>Agrees, but replaces line-count targets with loaded-context measurement.</td><td><span class="verdict adopt">ADOPT</span> Job-card posture and loaded-context measurement.</td></tr>
+          <tr><td>Which skills require redesign?</td><td>Assigns R3 broadly, including comments, mytasks, and backlog.</td><td>Correctly observes that these already have substantial engines.</td><td><span class="verdict adopt">ADOPT REVISION</span> Treat them as R1 trims, with a targeted comments contract change.</td></tr>
+          <tr><td>How should platform behavior be expressed?</td><td>Use abstract adapter vocabulary such as “ask” and “dispatch.”</td><td>Retain concrete primary-platform tool names plus explicit adaptation.</td><td><span class="verdict adopt">ADOPT REVISION</span> Concrete instructions are behaviorally load-bearing.</td></tr>
+          <tr><td>How should shared prose be included?</td><td>Use runtime includes or generate them during packaging.</td><td>Either adopt a real build step or retain inline text and lint.</td><td><span class="verdict defer">DEFER BUILD</span> Keep inline critical contracts and current lint until compilation has a stronger business case.</td></tr>
+          <tr><td>What happens to the rubric?</td><td>Runtime substrate first, without a complete rubric transition.</td><td>Rewrite the rubric before migrating skills.</td><td><span class="verdict modify">MODIFY</span> Add a transitional v3 rubric, pilot it, then promote new checks to blocking.</td></tr>
+          <tr><td>How is behavior protected?</td><td>Primarily static gates and deterministic tests.</td><td>Golden-scenario contract tests for rewritten skills.</td><td><span class="verdict modify">MODIFY</span> Require behavioral contracts for stateful, artifact, routing, release, and machine-output skills; avoid ceremonial snapshots for open-ended reasoning.</td></tr>
+          <tr><td>Should the skill catalog shrink?</td><td>Mostly preserves the current surface.</td><td>Proposes broad consolidation of related thinking tools.</td><td><span class="verdict defer">DEFER</span> Merge or archive only after invocation and trigger-overlap evidence.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="architecture">
+      <h2>Recommended v3 Architecture</h2>
+
+      <h3>1. Source remains the installed artifact</h3>
+      <p>Do not create a compiled <code>dist/</code> tree in the first v3 program. Contributors, reviewers, and users should continue to inspect the same files the agent loads. This preserves debuggability and avoids dist drift, compiler failures, and release ambiguity.</p>
+      <p>Use lightweight generation only for clearly derived metadata, where the generated output cannot obscure executable behavior. Retain the inline non-interactive contract and its drift lint until a build system solves at least two otherwise-intractable problems and has an explicit source/dist verification contract.</p>
+
+      <h3>2. Skill bodies become thin behavioral interfaces</h3>
+      <p>Each <code>SKILL.md</code> should explain:</p>
+      <ul>
+        <li>the single job and trigger boundary;</li>
+        <li>the default user journey and legitimate modes;</li>
+        <li>the scripts, references, or shared contracts that own mechanics;</li>
+        <li>the safety and trust invariants that must remain visible to the model;</li>
+        <li>the evidence required before reporting success.</li>
+      </ul>
+      <p>There is no universal line cap. The budget is the context actually loaded for the normal path, including always-read references.</p>
+
+      <h3>3. Deterministic state belongs in deterministic code</h3>
+      <p>Routing tables, state transitions, ID allocation, parsing, arithmetic, schema validation, version manipulation, tag construction, and evidence aggregation must be scripts or tests. The model may choose among valid options and interpret evidence; it should not simulate a state machine embedded in prose.</p>
+
+      <h3>4. Platform instructions stay concrete</h3>
+      <p>Use the real primary-platform tool names in the path where reliable behavior depends on them. Put alternative-platform behavior in one concise adaptation section. Avoid generic verbs where they make tool invocation less predictable.</p>
+
+      <h3>5. One primary workflow entrypoint, thin aliases where useful</h3>
+      <p><code>/feature-sdlc</code> remains the main router. Existing aliases such as <code>/skill-sdlc</code> and <code>/prototype-sdlc</code> remain thin user-facing conveniences. The state machine and resume logic move behind the interface; new top-level workflows are added only when user behavior shows routing ambiguity that aliases cannot solve.</p>
+    </section>
+
+    <section id="rubric">
+      <h2>Transitional v3 Rubric</h2>
+      <div class="callout warn">
+        <p><strong>Do not replace the v2 rubric in a flag day.</strong> A new rubric must judge both unmigrated skills and v3 pilots without forcing either false failures or mass exemptions.</p>
+      </div>
+      <ol>
+        <li>Preserve universal rules: deterministic versus judgment gates, flag classification, stable phase anchors, citation resolution, one fact per canonical home, and explicit platform adaptation.</li>
+        <li>Add v3 measurements—description size, normal-path loaded context, prose-owned deterministic mechanics, and behavioral-contract coverage—as advisory reports.</li>
+        <li>Pilot the rules on a thin wrapper, an existing engine wrapper, and a prose-heavy orchestrator.</li>
+        <li>Calibrate thresholds from pilot evidence rather than choosing attractive round numbers.</li>
+        <li>Promote a check to blocking only when it detects an actual quality or reliability failure with a low false-positive rate.</li>
+      </ol>
+    </section>
+
+    <section id="testing">
+      <h2>Behavioral Safety Net</h2>
+      <p>Tests should match the stability of the contract. A universal “one golden scenario per skill” rule would create false confidence for open-ended conversational work.</p>
+      <table>
+        <thead><tr><th style="width:29%">Skill behavior</th><th style="width:22%">Required protection</th><th>Examples of assertions</th></tr></thead>
+        <tbody>
+          <tr><td>Stateful mutation and persistence</td><td>Hard behavioral contract</td><td>Fixture state in; asserted state transition, schema, idempotency, and failure exit out.</td></tr>
+          <tr><td>Artifact generation</td><td>Golden scenario plus structural checks</td><td>Required sections, anchors, source membership, parseability, and renderer success—not full-text snapshots.</td></tr>
+          <tr><td>Routing and orchestration</td><td>Transition-table tests</td><td>Mode, state, and flags select the correct next action; resume and failure paths preserve state.</td></tr>
+          <tr><td>Release and destructive workflows</td><td>Hard dry-run contracts</td><td>Diff routing, version result, tag plan, remote plan, refusal conditions, and no mutation during dry run.</td></tr>
+          <tr><td>Machine-readable output</td><td>Schema and compatibility tests</td><td>JSON shape, exit codes, required fields, and backward compatibility.</td></tr>
+          <tr><td>Open-ended reasoning or interviewing</td><td>Targeted evaluator only when useful</td><td>Stopping condition, grounding, and prohibited behavior; avoid brittle prose snapshots.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="tiers">
+      <h2>Corrected Priority and Rewrite Tiers</h2>
+      <p>The original per-skill table remains a useful backlog, but the following disputed or high-impact skills should govern sequencing.</p>
+      <table>
+        <thead><tr><th style="width:18%">Skill</th><th style="width:13%">Tier</th><th style="width:19%">Change type</th><th>Recommendation</th></tr></thead>
+        <tbody>
+          <tr><td><code>complete-dev</code></td><td><span class="tag r3">R3</span></td><td>Mechanics extraction</td><td>First major target. Script preflight, diff routing, version and tag validation, push planning, and release evidence. Keep policy visible; remove simulated state-machine execution.</td></tr>
+          <tr><td><code>feature-sdlc</code></td><td><span class="tag r3">R3</span></td><td>Orchestrator redesign</td><td>Extract routing, state transitions, resume, and worktree mechanics. Retain one main entrypoint and existing thin aliases.</td></tr>
+          <tr><td><code>execute</code></td><td><span class="tag r3">R3</span></td><td>Contract and state redesign</td><td>Add explicit evidence-only, commit-per-task, squash-friendly, and no-commit modes backed by an execution ledger.</td></tr>
+          <tr><td><code>verify</code></td><td><span class="tag r3">R3</span></td><td>Verdict redesign</td><td>Produce structured evidence and <code>PASS</code>, <code>PASS-WITH-GAPS</code>, or <code>FAIL</code>. Keep deterministic failures hard and judgment gaps explicit.</td></tr>
+          <tr><td><code>comments</code></td><td><span class="tag r1">R1</span> + contract</td><td>Instruction diet</td><td>Preserve the resolver engine. Distinguish visible edits, author annotations, skipped work, and unresolved threads; never imply resolution without an honest terminal state.</td></tr>
+          <tr><td><code>mytasks</code></td><td><span class="tag r1">R1</span></td><td>Instruction diet</td><td>Reduce the wrapper around the existing product. Do not split goals without usage evidence.</td></tr>
+          <tr><td><code>backlog</code></td><td><span class="tag r1">R1</span></td><td>Instruction diet</td><td>Reduce to verbs, routing, safeguards, and engine pointers. Preserve mutation and locking code.</td></tr>
+          <tr><td>Thin aliases and game launchers</td><td><span class="tag r0">R0</span></td><td>House-style pilot</td><td>Use these to prove the compact v3 format before touching critical workflows.</td></tr>
+          <tr><td>Thinking-tool cluster</td><td><span class="tag r2">DEFER</span></td><td>Product research</td><td>Study invocation frequency, trigger confusion, and output overlap before merging or archiving.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="migration">
+      <h2>Recommended Migration Program</h2>
+
+      <div class="phase">
+        <h3>Phase 0 — Baseline and transitional rules</h3>
+        <ul>
+          <li>Record description bytes and normal-path loaded context by skill.</li>
+          <li>Add advisory v3 rubric checks without invalidating existing v2 skills.</li>
+          <li>Classify skills by behavioral-test risk.</li>
+          <li>Freeze new duplicated runtime prose during the migration.</li>
+        </ul>
+        <p><strong>Exit gate:</strong> existing gates remain green, and the v3 advisory report runs across all plugins.</p>
+      </div>
+
+      <div class="phase">
+        <h3>Phase 1 — Low-risk marketplace cleanup</h3>
+        <ul>
+          <li>Shorten frontmatter descriptions while preserving distinctive trigger phrases.</li>
+          <li>Fix dangling citations, stale paths, plugin identity drift, and incorrect catalog counts.</li>
+          <li>Rewrite thin aliases, game launchers, changelog, session-log, and similar wrappers in the candidate v3 style.</li>
+        </ul>
+        <p><strong>Exit gate:</strong> routing smoke tests show no material loss of triggering, and pilot wrappers satisfy the advisory rubric without hidden reference bloat.</p>
+      </div>
+
+      <div class="phase">
+        <h3>Phase 2 — Trust contracts</h3>
+        <ul>
+          <li>Implement honest <code>/comments</code> outcomes.</li>
+          <li>Implement structured <code>/verify</code> verdicts and evidence.</li>
+          <li>Define <code>/execute</code> completion and commit modes.</li>
+          <li>Demote judgment-only gaps from false hard failures.</li>
+        </ul>
+        <p><strong>Exit gate:</strong> contract tests cover terminal states, backward compatibility, and failure behavior.</p>
+      </div>
+
+      <div class="phase">
+        <h3>Phase 3 — Extract genuine prose state machines</h3>
+        <ol>
+          <li><code>complete-dev</code></li>
+          <li><code>feature-sdlc</code></li>
+          <li><code>execute</code></li>
+          <li><code>verify</code></li>
+          <li>other measured cases such as transcript discovery in <code>reflect</code></li>
+        </ol>
+        <p><strong>Exit gate:</strong> old and new fixtures produce compatible plans or artifacts; dry runs demonstrate that deterministic decisions no longer depend on prose execution.</p>
+      </div>
+
+      <div class="phase">
+        <h3>Phase 4 — Promote the v3 house style</h3>
+        <ul>
+          <li>Evaluate advisory checks against the completed pilots.</li>
+          <li>Remove checks that reward formatting without reliability.</li>
+          <li>Promote proven checks to blocking.</li>
+          <li>Migrate remaining R1/R2 skills in plugin-sized waves.</li>
+        </ul>
+        <p><strong>Exit gate:</strong> the rubric has a documented failure mode for every hard gate and a low false-positive record on migrated skills.</p>
+      </div>
+
+      <div class="phase">
+        <h3>Phase 5 — Reassess deferred architecture</h3>
+        <ul>
+          <li>Use invocation evidence to archive or merge confusing or unused skills.</li>
+          <li>Measure duplicated server, storage, render, and launcher code before creating a shared CLI.</li>
+          <li>Evaluate corpus separation based on repository size and independent release needs.</li>
+          <li>Reconsider <code>source/ → dist/</code> only if repeated required transformations justify compilation.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="build-step">
+      <h2>Build-Step Decision</h2>
+      <table>
+        <thead><tr><th style="width:50%">What compilation could eventually solve</th><th>Why it should be deferred now</th></tr></thead>
+        <tbody>
+          <tr><td>True includes, platform-specific emits, generated manifests and catalogs, and compile-time token budgets.</td><td>The installed artifact would diverge from reviewed source, introducing dist drift, contributor friction, compiler debugging, and a second release surface.</td></tr>
+        </tbody>
+      </table>
+      <div class="callout">
+        <p><strong>Decision: defer, with explicit reconsideration criteria.</strong> Adopt a build step only when at least two recurring transformations cannot be safely handled through source validation or narrowly scoped metadata generation, and when CI can prove that generated artifacts are current and behaviorally equivalent.</p>
+      </div>
+    </section>
+
+    <section id="definition-of-done">
+      <h2>Definition of Done for a v3 Skill</h2>
+      <ul>
+        <li>The skill has one clear job sentence and a trigger boundary distinguishable from adjacent skills.</li>
+        <li>The normal path fits a measured loaded-context budget; reference files are counted when always read.</li>
+        <li>Frontmatter is concise enough for discovery while retaining high-signal trigger phrases.</li>
+        <li>No deterministic mechanic lives only in prose.</li>
+        <li>Every deterministic promise is backed by a script, test, schema, or explicitly advisory status.</li>
+        <li>Platform-critical instructions use concrete tools, with alternatives isolated in one adaptation section.</li>
+        <li>Relative citations and shared-substrate references resolve automatically.</li>
+        <li>Machine-facing flags satisfy the existing four-test and have natural-language equivalents where appropriate.</li>
+        <li>Behavioral protection matches risk: hard contracts for mutation, routing, artifacts, release, and machine output; targeted evaluation for open-ended reasoning.</li>
+        <li>CI runs affected deterministic and behavioral tests when the skill or its shared substrate changes.</li>
+        <li>The migration preserves existing user-visible behavior unless an approved contract change explicitly says otherwise.</li>
+      </ul>
+    </section>
+
+    <section id="success">
+      <h2>Success Measures and Stop Conditions</h2>
+      <div class="grid3">
+        <div class="card"><strong>Context efficiency</strong><span class="small">Marketplace description bytes and normal-path loaded context fall without measurable trigger regression.</span></div>
+        <div class="card"><strong>Reliability</strong><span class="small">Fewer deterministic decisions are performed by the model; contract tests cover critical state and terminal outcomes.</span></div>
+        <div class="card"><strong>Trust</strong><span class="small">Users can distinguish success, success with gaps, annotation, skip, and failure without interpreting narrative caveats.</span></div>
+        <div class="card"><strong>Maintainability</strong><span class="small">Facts have one canonical home, references resolve, and critical workflows no longer require editing several prose copies.</span></div>
+        <div class="card"><strong>Discoverability</strong><span class="small">Description trimming does not materially reduce correct skill selection or increase ambiguous routing.</span></div>
+        <div class="card"><strong>Migration safety</strong><span class="small">Each wave is independently releasable and reversible; no phase requires a repository-wide flag day.</span></div>
+      </div>
+      <div class="callout critical">
+        <p><strong>Stop or revise the program if:</strong> concise descriptions reduce correct triggering; new rubric checks generate frequent judgment disputes; behavioral tests become prose snapshots; source and runtime artifacts diverge; or a migration requires widespread exemptions to remain releasable.</p>
+      </div>
+    </section>
+
+    <section id="decision">
+      <h2>Decision Summary</h2>
+      <p>Proceed with v3 as a source-compatible, evidence-led simplification program. Start with the transitional rubric and description diet, prove the house style on thin wrappers, correct trust contracts, then extract the genuine prose state machines beginning with <code>complete-dev</code>.</p>
+      <p>Do not rebuild <code>comments</code>, <code>mytasks</code>, or <code>backlog</code>. Do not multiply top-level workflow entrypoints. Do not weaken platform instructions in the name of abstraction. Do not compile the repository until repeated, measured problems justify a build system.</p>
+      <div class="callout good">
+        <p class="principle">The v3 program succeeds when the repository becomes easier for an agent to execute correctly—not merely shorter for a human to skim.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <p><strong>Related documents:</strong> <a href="index.html">Original PMOS Skills v3 Refactor Proposal</a> · <a href="revised-proposal.html">Revised Proposal (Critical Response)</a></p>
+      <p class="small">This document is intentionally standalone. The earlier proposals are linked for provenance and deeper per-skill detail, not required for evaluating this recommendation.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,45 @@
+{
+ "runDir": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor",
+ "plugin": "pmos-utilities",
+ "units": [
+  {
+   "id": "pmos-utilities__converter",
+   "type": "skill",
+   "skill": "converter",
+   "prefix": "converter",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-utilities__converter.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-utilities__converter.md"
+  },
+  {
+   "id": "pmos-utilities__mac-health",
+   "type": "skill",
+   "skill": "mac-health",
+   "prefix": "mac-health",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-utilities__mac-health.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-utilities__mac-health.md"
+  },
+  {
+   "id": "pmos-utilities__reflect",
+   "type": "skill",
+   "skill": "reflect",
+   "prefix": "reflect",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-utilities__reflect.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-utilities__reflect.md"
+  },
+  {
+   "id": "pmos-utilities__to-notion-doc",
+   "type": "skill",
+   "skill": "to-notion-doc",
+   "prefix": "to-notion-doc",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-utilities__to-notion-doc.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-utilities__to-notion-doc.md"
+  },
+  {
+   "id": "pmos-utilities__cross",
+   "type": "cross",
+   "prefix": "pmos-utilities-cross",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/_cross/pmos-utilities.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/_cross__pmos-utilities.md"
+  }
+ ]
+}

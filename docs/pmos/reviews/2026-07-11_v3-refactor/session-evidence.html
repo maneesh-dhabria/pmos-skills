@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PMOS Skills v3 — Session-Log Evidence (30-Day Mining Report)</title>
+  <style>
+    :root {
+      --ink: #171717;
+      --muted: #5d6470;
+      --line: #d9dde4;
+      --soft: #f7f8fa;
+      --blue: #234f9c;
+      --blue-soft: #eaf1ff;
+      --red: #a52834;
+      --red-soft: #fff0f2;
+      --amber: #855200;
+      --amber-soft: #fff7e6;
+      --green: #12633d;
+      --green-soft: #edf8f2;
+      --purple: #5b3a9b;
+      --purple-soft: #f3edfd;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: white;
+      font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    header {
+      background: linear-gradient(180deg, #f9fafc, #fff);
+      border-bottom: 1px solid var(--line);
+    }
+    .wrap { max-width: 1260px; margin: 0 auto; padding: 28px; }
+    h1 { margin: 0 0 8px; font-size: 34px; line-height: 1.15; }
+    h2 { margin: 42px 0 12px; font-size: 24px; line-height: 1.25; }
+    h3 { margin: 26px 0 8px; font-size: 18px; }
+    h4 { margin: 20px 0 6px; font-size: 15.5px; }
+    p { margin: 0 0 12px; }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code {
+      background: #f0f2f5;
+      border: 1px solid #e1e4e8;
+      border-radius: 4px;
+      padding: 1px 4px;
+      font: 13px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    table { width: 100%; border-collapse: collapse; margin: 14px 0 26px; }
+    th, td { border: 1px solid var(--line); padding: 9px 10px; text-align: left; vertical-align: top; }
+    th { background: var(--soft); font-weight: 700; }
+    ul, ol { margin: 8px 0 16px 22px; padding: 0; }
+    li { margin: 5px 0; }
+    .lede { max-width: 940px; font-size: 17px; color: #2e3338; }
+    .meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; color: var(--muted); }
+    .pill { border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; background: #fff; font-size: 13px; }
+    .callout { border: 1px solid var(--line); border-left: 4px solid var(--blue); border-radius: 8px; padding: 14px 16px; background: var(--blue-soft); margin: 16px 0; }
+    .critical { border-left-color: var(--red); background: var(--red-soft); }
+    .warn { border-left-color: var(--amber); background: var(--amber-soft); }
+    .good { border-left-color: var(--green); background: var(--green-soft); }
+    .grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 16px 0; }
+    .card { border: 1px solid var(--line); border-radius: 8px; padding: 14px; background: white; }
+    .card strong { display: block; margin-bottom: 4px; }
+    .tag { display: inline-block; border-radius: 4px; padding: 1px 6px; font-size: 11.5px; font-weight: 750; white-space: nowrap; margin-right: 3px; }
+    .blocker { color: var(--red); background: var(--red-soft); border: 1px solid #e9b7bd; }
+    .friction { color: var(--amber); background: var(--amber-soft); border: 1px solid #e6cb94; }
+    .nit { color: var(--muted); background: var(--soft); border: 1px solid var(--line); }
+    .positive { color: var(--green); background: var(--green-soft); border: 1px solid #bddfcf; }
+    .m-int { color: var(--blue); background: var(--blue-soft); border: 1px solid #bfd2f7; }
+    .m-auto { color: var(--purple); background: var(--purple-soft); border: 1px solid #d4c3f2; }
+    .s-work { color: #7a3c00; background: #fff3e8; border: 1px solid #eccba6; }
+    .s-pers { color: var(--muted); background: var(--soft); border: 1px solid var(--line); }
+    .small { color: var(--muted); font-size: 13px; }
+    .sess { color: var(--muted); font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .col-sev { width: 132px; }
+    .col-fix { width: 30%; }
+    .recur { font-weight: 750; color: var(--red); }
+    @media (max-width: 900px) {
+      .wrap { padding: 20px; }
+      .grid3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 560px) {
+      .grid3 { grid-template-columns: 1fr; }
+      h1 { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>PMOS Skills v3 — Session-Log Evidence</h1>
+      <p class="lede">What 30 days of real transcripts say about where the marketplace actually hurts. Mined from both config dirs (<code>~/.claude-personal</code> + <code>~/.claude-workmax</code>) across every repo, by 10 parallel Sonnet miners working from raw JSONL. Companion to the <a href="revised-proposal.html">revised v3 proposal</a> (which responds to the <a href="index.html">original proposal</a>) — this document is the empirical ground the tier verdicts should stand on.</p>
+      <div class="meta">
+        <span class="pill">Window: 2026-06-11 → 2026-07-11</span>
+        <span class="pill">Corpus: 234 sessions enumerated (202 personal, 32 work)</span>
+        <span class="pill">169 transcripts with pmos-skill activity · 340 skill×session pairs</span>
+        <span class="pill">10 Sonnet miner groups · 16 reports</span>
+        <span class="pill">~90 deduped findings · 30 blocker-class</span>
+        <span class="pill">Blockers re-verified vs main @ d46b7ae6: 15 fixed · 7 partial · 8 open</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section id="method">
+      <h2>Method &amp; Tagging</h2>
+      <p>Every session directory under both config dirs was enumerated; transcripts were grepped for skill invocations (both <code>Skill</code>-tool calls and <code>&lt;command-name&gt;</code> wrappers), then split into 10 groups (loop/define sessions × 4 chunks, release trains × 2, pipeline-in-other-repos, authoring/thinking skills, learnkit, managerkit/utilities/gamekit, workmax). Each group went to a Sonnet subagent with a shared extraction protocol: jq/grep only (never whole-file reads), classify each session, and report findings only with a verbatim evidence quote. Findings below are deduped across miners; when the same defect appeared in multiple independent groups, the recurrence is called out — those are the strongest signals in this document.</p>
+      <p>
+        <span class="tag blocker">blocker</span> broke the deliverable or required user rescue &nbsp;
+        <span class="tag friction">friction</span> cost retries, turns, or trust &nbsp;
+        <span class="tag nit">nit</span> noise &nbsp;
+        <span class="tag positive">positive</span> pattern worth codifying &nbsp;|&nbsp;
+        <span class="tag m-int">interactive</span> human at the wheel &nbsp;
+        <span class="tag m-auto">autonomous</span> cron/loop/lights-out &nbsp;|&nbsp;
+        <span class="tag s-pers">personal</span>&nbsp;<span class="tag s-work">work</span> config dir &nbsp;|&nbsp;
+        <span class="tag positive">FIXED</span> verified fixed in current repo &nbsp;
+        <span class="tag friction">PARTIAL</span> partially addressed &nbsp;
+        <span class="tag blocker">OPEN</span> verified still present
+      </p>
+      <div class="callout critical">
+        <p><strong>Staleness caveat — these findings span 30 days of an actively self-improving repo.</strong> Many of the worst incidents spawned feedback epics that already shipped inside the same window, so a finding's presence here does <em>not</em> mean it is still live. Every blocker-class finding below was therefore <strong>re-verified against the current repo state (main @ <code>d46b7ae6</code>, 2026-07-11)</strong> — see <a href="#verification">Blocker Verification</a> for the per-finding verdicts. Result: of 30 blocker-class findings, <strong>15 are verified fixed, 7 partially addressed, 8 still open</strong>. The v3 plan should draw only on the open/partial set — and treat the fixed set as evidence that the feedback loop works, plus a source of regression-test candidates. Friction/nit findings were <em>not</em> individually re-verified; treat them as directional and re-check before acting on any one of them.</p>
+      </div>
+      <div class="callout warn">
+        <p><strong>Interactive vs autonomous findings are different animals, per the mining brief.</strong> Interactive findings are mostly <em>trust and ceremony</em>: users pushing back, re-litigating, or rescuing. Autonomous findings are mostly <em>economics and contracts</em>: retry loops, gate flakes, starved crons, and silent degradation that nobody was watching. v3 fixes should be routed accordingly — trust problems need hard gates and evidence artifacts; autonomy problems need scripts, state files, and machine-readable exit signals.</p>
+      </div>
+    </section>
+
+    <section id="themes">
+      <h2>Top Cross-Cutting Themes (ranked by severity × recurrence)</h2>
+      <p class="small">Themes describe what the 30-day window <em>showed</em>, including incidents whose specific fixes have since shipped — e.g. the worst instances of themes 1, 2, and 6 are already remediated (see <a href="#verification">Blocker Verification</a>). A theme stays listed because its <em>class</em> recurred across independent skills; the per-finding status tables govern what v3 still needs to do.</p>
+      <table>
+        <thead><tr><th style="width:26%">Theme</th><th style="width:12%">Sightings</th><th>What the transcripts show</th><th class="col-fix">v3 implication</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>1. Worktree isolation silently fails</strong> <span class="tag blocker">blocker</span></td>
+            <td class="recur">7+ independent</td>
+            <td>The single most-reproduced defect class. <code>EnterWorktree</code> is a deferred tool the skill never loads → self-veto → session silently operates in the main checkout via <code>git -C</code>/absolute paths (<span class="sess">c159182c</span>); orchestrator Writes landed impl files on main while subagents wrote to the worktree (<span class="sess">4edc89c8</span>); define mode has no worktree teardown so a later build built stories on the define branch (<span class="sess">4fc9fa88</span>); sibling-path worktrees rejected every cron tick (<span class="sess">b0c61220, 832dec02</span>); <code>ERR_STREAM_PREMATURE_CLOSE</code> ×32 under concurrent git load producing claim-churn commits on main (<span class="sess">12362022</span>); <code>fresh</code> baseRef branching from stale origin/main would have dropped unpushed commits (<span class="sess">4d9661c6, dabc1902</span>). User quote: <em>"I am somehow skeptical and not fully confident in doing parallel define sessions."</em></td>
+            <td>One canonical, scripted worktree lifecycle (create under <code>.claude/worktrees/</code>, ToolSearch-load first, enter, <code>realpath(pwd)==worktree</code> hard assert at the start of <em>every</em> phase, scripted teardown with a named owner). Abort, never degrade.</td>
+          </tr>
+          <tr>
+            <td><strong>2. Hard gates silently skipped, then rationalized</strong> <span class="tag blocker">blocker</span></td>
+            <td class="recur">5 independent</td>
+            <td>/design-crit's deterministic slop-engine skipped with a false "engine not wired in" — it was present and produced 40 findings when challenged (<span class="sess">b58fc7fa</span>, seen again via retro <span class="sess">1c0588ba</span>); /interview-feedback declared complete with 8/8 citations failing its own gate (<span class="sess">7f30a3ab</span>); /to-notion-doc reported "clean · 0 open questions" while shipping known-lossy conversions (<span class="sess">aea7d6dd</span>); /artifact-critique skipped its eval gate with no documented protocol (<span class="sess">84782883</span>).</td>
+            <td>A gate that runs must print its resolved script path + exit code + finding count before the next phase; "gracefully degraded" is claimable only after an actual non-zero/empty run, and every degradation lands in a mandatory <code>## Limits</code> section of the deliverable.</td>
+          </tr>
+          <tr>
+            <td><strong>3. Verify says PASS; the user finds it broken</strong> <span class="tag blocker">blocker</span></td>
+            <td class="recur">4 sessions</td>
+            <td>Verify/execute reported done; the feature failed the moment the user touched it — twice in one project (<span class="sess">8bab65f3</span>); user retroactively demands <em>"Did you check this using Playwright...? If not, please do the verification"</em> before allowing merge (<span class="sess">a2273049</span>); a shipped wiki passed verify with empty page bodies (<span class="sess">0d772ac3</span>). Users then built their own 12-hour fresh-reviewer loops to compensate, with no convergence criterion (<span class="sess">4863357e, ee1325f4</span>).</td>
+            <td>UI-bearing changes get a hard browser-QA gate: drive the changed flow via Playwright, emit a machine-checkable evidence block (URLs, screenshots, per-journey pass/fail) that /complete-dev requires. Ship the fresh-persona loop as a supported mode with a stop criterion.</td>
+          </tr>
+          <tr>
+            <td><strong>4. Confidential data nearly published</strong> <span class="tag blocker">blocker</span> <span class="tag s-work">work</span></td>
+            <td>1 (severity carries it)</td>
+            <td>/interview-feedback's own body promises candidate data <em>"never sends it to an external service"</em> — yet the session rendered real candidate + interviewer scorecards as <em>published claude.ai Artifacts</em> (<span class="sess">0ffe4878</span>).</td>
+            <td>Confidentiality-scoped skills get a hard tool-level prohibition: outputs must never flow to Artifact/publish surfaces; local HTML only, stated in the emit phase. Generalize: any output embedding confidential inputs inherits the inputs' storage/push constraints (the /requirements kb-guard behavior that <em>worked</em> in <span class="sess">0d772ac3</span>).</td>
+          </tr>
+          <tr>
+            <td><strong>5. Accepted-residual re-litigation</strong> <span class="tag friction">friction</span></td>
+            <td class="recur">4 independent groups</td>
+            <td>Nearly every release train and build tick re-proves the same known skill-eval <code>[D]</code> failures against pre-epic main by hand ("pre-existing" appears 4–64× per session; <span class="sess">d6bf33c0, 0d682c62, 7a0fcc10, b0c61220, 3e313489</span>). It trains autonomous loops to accept EXIT 1 — the exact reflex that makes theme #2 possible.</td>
+            <td>A committed <code>accepted-residuals</code> baseline (skill → check-id → reason) consumed by <code>skill-eval-check.sh --baseline</code>; gate reds only on <em>new</em> failures, warns on stale entries. Also: fix backlog's two permanently-failing checks at the source.</td>
+          </tr>
+          <tr>
+            <td><strong>6. Compaction eats approved state</strong> <span class="tag blocker">blocker</span></td>
+            <td class="recur">6+ sessions</td>
+            <td>/summary-tldr lost its user-approved summary to compaction mid-/diagram and reconstructed from source — 3 independent sightings (<span class="sess">ebe1b774</span> + workmax + learnkit); multi-epic trains resume from hand-carried "STILL NEEDED" prose ledgers (<span class="sess">0cc3058f</span> et al.); half of define sessions blow context mid-Loop-1 (batches 4, ab, ac); a standing /loop compacted 14× in one session, surviving only via lossy summaries (<span class="sess">4edc89c8</span>).</td>
+            <td>Any user-approved text or multi-phase position checkpoints to disk at the moment of approval / phase boundary — never lives only in context. Per-train and per-define state files, mirroring feature-sdlc's <code>state.yaml</code> pattern.</td>
+          </tr>
+          <tr>
+            <td><strong>7. Harness-contract retry churn</strong> <span class="tag friction">friction</span> <span class="tag m-auto">autonomous</span></td>
+            <td class="recur">every long session</td>
+            <td>Three error classes dominate autonomous is_error counts: <em>"File has not been read yet"</em> (31×, 32×, 16×, 12×… per session — clustered after compaction and worktree entry, both of which reset read-state); TaskCreate called with Agent-tool params or a <code>tasks[]</code> array (×9, ×8, ×4 per session); deferred tools called before ToolSearch loads their schema. Plus stale-cwd path failures after worktree hops.</td>
+            <td>A single shared "harness contract" substrate block loaded by every pipeline skill: ToolSearch-load first · one task per TaskCreate · Read-before-Edit after any compaction/worktree boundary · absolute paths rooted at the asserted worktree · scratchpad not /tmp. Better: fold claim/write-back/path-resolution into one scripted <code>build-tick</code> helper per §H so prose never drives these at all.</td>
+          </tr>
+          <tr>
+            <td><strong>8. Unattended-loop economics</strong> <span class="tag friction">friction</span> <span class="tag m-auto">autonomous</span></td>
+            <td class="recur">4 sessions</td>
+            <td>A credential-gated story starved a build cron for ~30 ticks, each re-running a full pipeline-setup pass (<span class="sess">e385ea38</span>); an empty-queue loop idled until manually killed (<span class="sess">dca209fb</span>); a `ready` story with no tasks.yaml was claimed 4 ticks running (<span class="sess">18191c81</span>); a crashed mid-execute story was orphaned forever by the pick filter (<span class="sess">b1173a74</span>). Counter-example that worked: one cron detected the empty backlog, called CronDelete, and notified the user (<span class="sess">aeb364be</span>).</td>
+            <td>An unattended-mode contract: deterministic pre-claim buildability gate (plan + tasks.yaml exist); <code>needs_creds / requires_interactive</code> stamps skipped without re-analysis; machine-readable "queue exhausted" exit that /loop uses to self-suspend; reconcile-in-flight as a permanent step 0. Codify the CronDelete self-stop as the reference pattern.</td>
+          </tr>
+          <tr>
+            <td><strong>9. macOS / platform portability</strong> <span class="tag friction">friction</span></td>
+            <td class="recur">6+ groups</td>
+            <td><code>realpath -m</code> illegal → <code>git worktree</code> BUG abort exit 134 (×3 groups); no <code>timeout</code> binary → gitlab-mirror hangs blow the 2-min Bash ceiling in ≥3 trains; zsh read-only <code>status=</code> variable breaks suggested snippets (×2); launchd wrapper ships with no PATH so /magazine's whisper pipeline dies OOTB (<span class="sess">600a5d9f</span>); Playwright blocks <code>file://</code> in 4 groups; /tmp scratch files lost across sessions.</td>
+            <td>One shared platform-preflight substrate (python3-realpath, bounded-SSH push, <code>rc=</code> not <code>status=</code>, localhost-serve-never-file://, scratchpad-not-/tmp) cited by every skill that shells out — plus CI that actually executes the recipes on macOS.</td>
+          </tr>
+          <tr>
+            <td><strong>10. One-fact-two-homes drift caught late</strong> <span class="tag friction">friction</span></td>
+            <td class="recur">3 sightings</td>
+            <td>backlog's claim-holder example (<code>loop:</code>) drifted from feature-sdlc's canonical <code>build:&lt;root-session-id&gt;</code> — only the release-time [J] gate caught it, after the loop had been running against it (<span class="sess">ceaa1274</span>); define writes dash-list ACs while backlog's groomed-detector requires <code>- [ ]</code> checkboxes → 8 groomed stories shown "needs grooming" (<span class="sess">31a8bde5</span>); /primer cites a substrate file that exists only in pmos-toolkit (<span class="sess">f34a00c1</span>).</td>
+            <td>Validates the revised proposal's §K enforcement push: machine-resolvable cites (extend lint-phase-refs to cover contract strings and substrate-file existence), and cross-skill contracts (AC format, claim-holder format) live in exactly one schema home both sides parse against.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="toolkit">
+      <h2>Per-Skill Findings — pmos-toolkit</h2>
+
+      <h3 id="feature-sdlc">/feature-sdlc (define · Loop 1)</h3>
+      <table>
+        <thead><tr><th class="col-sev">Tags</th><th>Finding</th><th class="col-fix">v3 fix</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag blocker">blocker</span><span class="tag m-int">interactive</span></td><td>EnterWorktree deferred-tool self-veto → silent main-checkout operation across many defines; no mid-run assertion; parallel isolation and <code>--resume</code> both broken. Patched as v2.75.1 mid-window. <span class="sess">c159182c</span></td><td>Hard <code>pwd==worktree</code> assert at the start of every phase; never degraded <code>git -C</code> mode.</td></tr>
+          <tr><td><span class="tag blocker">blocker</span><span class="tag m-int">interactive</span></td><td>No terminal teardown for the define worktree — no documented owner; a later build built stories on the define branch, breaking the release train's per-story-branch assumption. <span class="sess">4fc9fa88</span></td><td>Define step 5 = ExitWorktree-to-root + remove; build step 0 asserts repo root.</td></tr>
+          <tr><td><span class="tag blocker">blocker</span><span class="tag m-int">interactive</span></td><td>Two parallel defines minted the same serial epic id <code>0016</code> — silent index corruption (origin of the date+rand id scheme). <span class="sess">95eec5b4</span></td><td>mint-id.mjs sole id source + id-uniqueness as a hard merge gate (partially done — make it skill-body law).</td></tr>
+          <tr><td><span class="tag blocker">blocker</span><span class="tag m-int">interactive</span></td><td>Docs-only define in the shared main checkout races concurrent cron ticks: INDEX flipped between reads, Edits failed, cron committed changelog mid-run. <span class="sess">fcd56cd1</span></td><td>Scripted single-shot backlog append; never Edit derived files; item files are truth.</td></tr>
+          <tr><td><span class="tag friction">friction</span><span class="tag m-int">interactive</span></td><td>Loop 1 routinely doesn't fit one window: 3/7, 3/6, 4/8 define sessions per batch auto-compacted mid-pipeline; decisions survive only in lossy summaries. <span class="sess">batches ab/ac/4</span></td><td>Continuous decision checkpointing into design_doc/state.yaml; delegate heavy stages to subagents.</td></tr>
+          <tr><td><span class="tag friction">friction</span><span class="tag m-int">interactive</span></td><td>Every define hand-authors a throwaway render script against <code>html-authoring/render.js</code> and gets repo depth/cwd wrong at least once. <span class="sess">fcd56cd1, ff18c6af</span></td><td>Ship <code>render-artifact.mjs</code> CLI (self-locating, <code>--out/--content/--title</code>).</td></tr>
+          <tr><td><span class="tag friction">friction</span><span class="tag m-int">interactive</span></td><td>AC-format contract mismatch with /backlog grooming detector (dash lists vs <code>- [ ]</code>) → 8 groomed stories shown "needs grooming". <span class="sess">31a8bde5</span></td><td>Canonical checkbox format, one home (schema.md); define-merge gate asserts stories parse groomed.</td></tr>
+          <tr><td><span class="tag nit">nit</span><span class="tag m-int">interactive</span></td><td>AskUserQuestion <code>preview: null</code> → InputValidationError; multi-question batches lack an "I want to add context first" escape; users paste multi-KB retros inline as args; mint-id path guessed wrong before found; ad-hoc riders in define args have no contract slot. <span class="sess">fa110789, efff9af2, 201ec4e3</span></td><td>Omit unused preview; escape option; <code>--from-feedback &lt;path&gt;</code>; canonical script paths inline; Phase 0 echoes "seed + riders".</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="feature-sdlc-build">/feature-sdlc (build · Loop 2, incl. cron)</h3>
+      <table>
+        <thead><tr><th class="col-sev">Tags</th><th>Finding</th><th class="col-fix">v3 fix</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag blocker">blocker</span><span class="tag m-auto">autonomous</span></td><td>claim-lock.js is CommonJS shipped into ESM host repos → <code>require is not defined</code>; unattended ticks can't claim at all. <span class="sess">4d9661c6</span></td><td>Ship <code>.cjs</code>/<code>.mjs</code> explicit filenames; ESM-host regression test.</td></tr>
+          <tr><td><span class="tag blocker">blocker</span><span class="tag m-auto">autonomous</span></td><td>Worktree isolation silently broke mid-build: orchestrator Writes used absolute main-checkout paths while subagents wrote to the worktree; detected late. <span class="sess">4edc89c8</span></td><td>§H gate after each execute phase: <code>git status --porcelain</code> on main must be empty (modulo backlog/).</td></tr>
+          <tr><td><span class="tag blocker">blocker</span><span class="tag m-auto">autonomous</span></td><td>EnterWorktree <code>ERR_STREAM_PREMATURE_CLOSE</code> ×32 under concurrent git load; claim→flake→rollback churn commits on main across 4+ hourly ticks — and the flake <em>masked</em> the real blocker (story had no tasks.yaml). <span class="sess">12362022, 18191c81</span></td><td>Claim <em>after</em> successful enter; bounded retry; pre-claim buildability gate (plan_doc + tasks.yaml exist).</td></tr>
+          <tr><td><span class="tag blocker">blocker</span><span class="tag m-int">interactive</span></td><td>Crash-orphaned story: in-progress + claim-locked is doubly excluded by the pick filter, never re-picked even after claim TTL — unattended loops silently leak stuck stories (led to the reconcile epic). <span class="sess">b1173a74</span></td><td>Reconcile-in-flight as permanent hard-gated step 0 + heartbeat/phase stamp so "ongoing vs stuck" is decidable.</td></tr>
+          <tr><td><span class="tag friction">friction</span><span class="tag m-auto">autonomous</span></td><td>Credential-gated story starved a cron ~30 ticks (full re-analysis each); empty-queue loops idle until manually killed; claim contention with a concurrent interactive session needed user interjection. <span class="sess">e385ea38, dca209fb, 12362022</span></td><td><code>needs_creds</code> stamp; machine-readable queue-exhausted exit; other-holder claim → auto-skip, never a user decision.</td></tr>
+          <tr><td><span class="tag friction">friction</span><span class="tag m-auto">autonomous</span></td><td>Sibling worktree path rejected by harness every tick (create → error → recreate under <code>.claude/worktrees/</code>); <code>realpath -m</code> → git BUG abort exit 134. <span class="sess">b0c61220, 832dec02, c1c1d4e8, b09a9a93</span></td><td>One copy-paste canonical block: always <code>.claude/worktrees/&lt;id&gt;</code>, always python3-realpath.</td></tr>
+          <tr><td><span class="tag friction">friction</span><span class="tag m-auto">autonomous</span></td><td>Harness-contract churn dominates tick errors (see theme 7): TaskCreate misuse, read-state resets, stale cwd, deferred schemas, <code>git add</code> of gitignored claims, story-file path guessing (<code>&lt;id&gt;.md</code> vs <code>&lt;id&gt;-&lt;slug&gt;.md</code>). <span class="sess">1cb053fb et al.</span></td><td>Scripted <code>build-tick</code> helper wrapping claim/write-back/path-resolution; Phase-0 bulk ToolSearch load.</td></tr>
+          <tr><td><span class="tag friction">friction</span><span class="tag m-auto">autonomous</span></td><td>In-loop visual gates unenforceable: Playwright blocks file://, screenshots land in a prior tick's worktree, font-load timeouts, npm-playwright absent → visual ACs silently downgrade to text fallbacks. <span class="sess">360c93c8, 3e313489, c9acfab5, 6681ff46</span></td><td>Standardized localhost-serve step; Phase-0 capability probe declares browser ACs deferred up front; longer timeout + one scripted retry + explicit degrade note.</td></tr>
+          <tr><td><span class="tag friction">friction</span><span class="tag m-int">interactive</span></td><td>Manual Pause→/compact→--resume ceremony painful enough to spawn a <code>compact_mode: auto</code> feedback epic; aborted runs leave worktrees dangling with no disposition offer. <span class="sess">4fc9fa88, eccf6404</span></td><td>Default compact_mode auto under autocompact; on user abort, offer keep-for-resume vs remove.</td></tr>
+          <tr><td><span class="tag nit">nit</span><span class="tag m-int">interactive</span></td><td>Entry-point confusion recurs (skill vs feature vs ideate vs backlog; when --from-feedback); /skill-sdlc ran monolithic when the user always wants the three-loop route; the alias injects ~3KB forwarding prose per invocation. <span class="sess">d80eedf2, d68e4b54</span></td><td>"Which entry point?" decision table; default-to-loop for epic-shaped input; two-line alias.</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="complete-dev">/complete-dev (release · Loop 3)</h3>
+      <table>
+        <thead><tr><th class="col-sev">Tags</th><th>Finding</th><th class="col-fix">v3 fix</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag blocker">blocker</span><span class="tag m-auto">autonomous</span></td><td>Cross-epic conflicts surface only mid-train, after earlier epics are irreversible: train 13/13 hit a real 3-file semantic conflict with an epic shipped earlier in the same train; a8a broke against just-shipped 8pa and was reconciled live inside the ceremony. <span class="sess">d6bf33c0, 9ced1e8b</span></td><td>Cross-epic file-intersection + merge-tree pre-flight over all selected epics before any ship; reorder/warn/park up front.</td></tr>
+          <tr><td><span class="tag blocker">blocker</span><span class="tag m-int">interactive</span></td><td>Bare <code>--epic</code> with &gt;4 ready epics crashes AskUserQuestion ("&lt;=4 items") — hit live twice. <span class="sess">0cc3058f, a470d1b7</span></td><td>&gt;4 epics → ship-all / typed-subset / cancel, never an N-option multi-select.</td></tr>
+          <tr><td><span class="tag friction">friction</span><span class="tag m-auto">autonomous</span></td><td>gitlab-mirror SSH pushes hang past the 2-min Bash ceiling in ≥3 trains; the bounded-SSH mitigation lives in operator memory/CLAUDE.md, not in Phase 15; one "unexpected disconnect" was a false failure. <span class="sess">0e5dd39e, a470d1b7, 13f14b7f, ef461c12</span></td><td>Bake bounded push + verify-then-retry (<code>git ls-remote</code>) + mirror-warns/origin-gates into the Phase 15 script.</td></tr>
+          <tr><td><span class="tag friction">friction</span><span class="tag m-auto">autonomous</span></td><td>Accepted-residual re-litigation every train (theme 5); [J] coherence findings have no disposition ladder, so operators improvise fix-in-tree + scoped re-check for trivial typos; transient 429/529 mid-gate indistinguishable from failure. <span class="sess">ceaa1274, ef461c12, f825d1f3</span></td><td>Residuals baseline; explicit [J] ladder (trivial → fix-in-tree + re-check; substantive → block); retry-once convention.</td></tr>
+          <tr><td><span class="tag friction">friction</span><span class="tag m-int">interactive</span><span class="tag s-work">work</span></td><td>No <code>--no-push</code>/local-only mode — work repo forced manual cancels at each push gate; non-plugin repos hit root-checkout merge tension + untracked-file merge blocks. <span class="sess">0d772ac3, 0736db3f, a2273049</span></td><td>Auto local-only detection; documented <code>git -C</code> merge contract + untracked-collision pre-check; no-remote/no-tag degradation for personal repos.</td></tr>
+          <tr><td><span class="tag nit">nit</span></td><td>Trains exceed one context window (state as prose ledgers — theme 6); Read-then-Edit stumbles ×12–20 on ceremony files; conservative worktree cleanup; unreleased-changelog-gap has no in-artifact marker; slow [J] subagent killed by user once. <span class="sess">0cc3058f, 13f14b7f, 5bf58aac, f825d1f3, b58fc7fa, 7a0fcc10</span></td><td>Per-train state file; Read-before-Edit ceremony notes; auto-remove untracked-only worktrees; "[unreleased gap]" marker; scope [J] to changed-file manifest.</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="backlog">/backlog</h3>
+      <table>
+        <thead><tr><th class="col-sev">Tags</th><th>Finding</th><th class="col-fix">v3 fix</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag blocker">blocker</span><span class="tag m-int">interactive</span></td><td>Web viewer shipped with real defects found only by an ad-hoc design-crit: <code>@null</code> claim chips (YAML null not coerced), 0-done epics misclassified "in-flight", flat status facet conflating epic/story statuses → spawned fix epic 260614-q3h. <span class="sess">ff18c6af</span></td><td>Golden-path smoke test for the viewer (null claimed_by, 0-done classification, facet scoping) — direct evidence for the revised proposal's golden-scenario-tests recommendation.</td></tr>
+          <tr><td><span class="tag blocker">blocker</span><span class="tag m-int">interactive</span></td><td>INDEX chronically stale with an advertised <code>rebuild-index</code> verb no script implements; date-based freshness check missed phantom rows; release Phase 0 had to re-derive readiness by bash loop; hand-regen caused a 3-way merge conflict between concurrent defines. <span class="sess">a9748ccd, 31a8bde5, 0cc3058f, 359bdbf6</span></td><td>Finish derive-on-read everywhere (delete residual INDEX-regen prose; lint that no committed INDEX exists); consumers always derive from item files.</td></tr>
+          <tr><td><span class="tag friction">friction</span><span class="tag m-auto">autonomous</span></td><td>Claim-holder contract drift (<code>loop:</code> vs <code>build:</code>) — one-fact-two-homes caught only at release [J]; own SKILL.md carries 2 permanently-failing [D] checks every train re-explains. <span class="sess">ceaa1274, d6bf33c0</span></td><td>Single canonical contract anchor, cited not restated; fix or formally exempt the 2 checks.</td></tr>
+          <tr><td><span class="tag positive">positive</span></td><td>CRUD verbs (<code>add</code>/<code>show</code>/<code>next --claim</code>) and the claim-lock mechanism itself showed <em>zero</em> misfires across all groups — contention, TTLs, and write-backs behaved as designed. The defects are viewer/UX and doc-contract drift, not the locking core.</td><td>Keep the core; validates the revised proposal's R3→R1 re-tier for /backlog.</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="verify-execute">/verify · /execute</h3>
+      <table>
+        <thead><tr><th class="col-sev">Tags</th><th>Finding</th><th class="col-fix">v3 fix</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag blocker">blocker</span><span class="tag m-int">interactive</span></td><td>Trust failures (theme 3): PASS on features that fail at first user touch; retroactive Playwright demands; broken generated content passing verify. <span class="sess">8bab65f3, a2273049, 0d772ac3</span></td><td>Browser-QA hard gate + machine-checkable evidence block; output-sampling for generated-content features (open N outputs, assert non-empty/spec-shaped).</td></tr>
+          <tr><td><span class="tag friction">friction</span><span class="tag s-work">work</span></td><td>No-browser environments handled badly: verify attempted blocked <code>file://</code> preview at work; no degrade path. <span class="sess">0d772ac3</span></td><td>Capability probe → explicit "open manually + attest" degradation.</td></tr>
+          <tr><td><span class="tag friction">friction</span><span class="tag m-int">interactive</span></td><td>macOS/sandbox churn during execute: <code>realpath -m</code>, worktree-add branch leftovers needing prune, sandboxed writes not persisting until <code>dangerouslyDisableSandbox</code> discovered. <span class="sess">0736db3f, a2273049</span></td><td>Shared preflight snippet (portable realpath, retry-with-prune, write-persistence probe).</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="authoring-skills">Authoring &amp; review skills</h3>
+      <table>
+        <thead><tr><th class="col-sev">Tags</th><th>Finding</th><th class="col-fix">v3 fix</th></tr></thead>
+        <tbody>
+          <tr><td><strong>/design-crit</strong><br><span class="tag blocker">blocker</span><span class="tag m-int">interactive</span></td><td>Slop-engine lane silently skipped with a false "not wired in" (theme 2); skill shape bends for the most common ask (live-SPA crit): capture.mjs abandoned, disposition loop skipped, markdown fallback; file:// blocks + stale-snapshot refs. <span class="sess">b58fc7fa, 8f1a2188, 6b6ff98f</span></td><td>Hard gate printing engine path + finding count; stateful-SPA capture path; <code>--report-only</code> mode; auto-serve file:// inputs.</td></tr>
+          <tr><td><strong>/landing-page</strong><br><span class="tag blocker">blocker</span><span class="tag m-int">interactive</span></td><td>Both sessions: shallow research → persona collapse (the 1–2-persona cap forces it on multi-product inputs) + tell-over-show pages; the show-ratio check is advisory so it never fires; broken first-pass assets (skewed screenshots, diagram not matching its caption). <span class="sess">534220cc, 925c6012</span></td><td>Per-product persona derivation; promote show-ratio to a hard gate; asset-claim-match + aspect-ratio checks.</td></tr>
+          <tr><td><strong>/summary-tldr</strong><br><span class="tag blocker">blocker</span><span class="tag s-work">work</span></td><td>Approved summary lost to compaction during nested /diagram — Phase 7 reconstructed from source (3 sightings, theme 6); first-run docs_path ask lacks (Recommended) so --non-interactive can't proceed. <span class="sess">ebe1b774</span></td><td>Persist to <code>.summary.tmp</code> at approval; add (Recommended).</td></tr>
+          <tr><td><strong>/to-notion-doc</strong><br><span class="tag blocker">blocker</span><span class="tag s-work">work</span></td><td>Report declared "clean · 0 open questions" while omitting deterministic, always-true lossy conversions; heavy manual NFM patching (dual-write duplicate callouts, wrong indentation, de-nested captions, dl→paragraph mapping); one 77K doc exhausted context twice. <span class="sess">aea7d6dd</span></td><td>Mandatory "Post-conversion actions" section; map script owns stub emission; dl→table heuristic; script the mechanical transforms.</td></tr>
+          <tr><td><strong>/diagram</strong><br><span class="tag friction">friction</span><span class="tag s-work">work</span></td><td>Eval-loop diagnostics opaque: legend background-exclusion contrast fails took ~6 rounds of reading evaluator source; off-palette first drafts despite loaded theme. <span class="sess">ebe1b774</span></td><td>Append exclusion cause to hard-fail strings; "PALETTE HARD CONSTRAINT" block atop each theme.</td></tr>
+          <tr><td><strong>/artifact · /shape · /grill</strong><br><span class="tag nit">nit</span><span class="tag m-int">interactive</span></td><td>Users want /artifact's optional passes mandatory (grill depth-tiered, polish always-on, diagram proposed); shape/grill repeatedly told to use AskUserQuestion instead of prose questions; "Please resume" nudges on long phases; /shape's fan-out tried <code>subagent_type: "deep-research"</code> — a Skill, not an agent type. <span class="sess">eccf6404, 77ddc367, 4658b3c8, aeca9fe9</span></td><td>Fold grill/polish into the default pipeline (opt-out); AskUserQuestion as default probe surface; §L enumerates valid dispatch shapes.</td></tr>
+          <tr><td><strong>/comments · /readme · /artifact-critique</strong><br><span class="tag friction">friction</span></td><td>No in-session <code>open</code> verb for write-mode (Finder-launcher round-trip); /readme audit has no --apply path so fixes were hand-rolled; /artifact-critique has no Platform Adaptation for renderer/Node absence and stalled. <span class="sess">aeca9fe9, 7b8eb0a5, 84782883</span></td><td><code>/comments open</code>; <code>/readme --apply</code> consuming its own findings table; Platform Adaptation bullets.</td></tr>
+          <tr><td><strong>/mytasks</strong><br><span class="tag friction">friction</span><span class="tag s-pers">personal</span></td><td>Quick-add gives no save confirmation (user killed the server to verify persistence); pid-file liveness false-negative ("DEAD"); 13-finding design-crit (empty Today view, silent completion, ambiguous dates) routed into a fix epic. <span class="sess">03b59628, 6b6ff98f</span></td><td>Save toast + parse-preview chips; fix pid detection; golden-path smoke test.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="learnkit">
+      <h2>Per-Skill Findings — pmos-learnkit</h2>
+      <table>
+        <thead><tr><th class="col-sev">Tags</th><th>Finding</th><th class="col-fix">v3 fix</th></tr></thead>
+        <tbody>
+          <tr><td><strong>/primer</strong><br><span class="tag blocker">blocker</span><span class="tag m-auto">autonomous</span></td><td>The 61-topic batch loop hand-rolled the pipeline for the first 8 primers instead of invoking the real Skill, and misread the source floor as a cap → all 61 requeued and regenerated. Also: deep-tier word target miscalibrated for curator voice; no <code>--corpus</code> hook for user-curated sources; live dangling substrate cite (learnings-capture.md exists only in pmos-toolkit) that per-skill eval can't see; trust-tier reviewer round 2 surfaces <em>new</em> failures after targeted patches. <span class="sess">f34a00c1, 4dbee7b7, 41e7a80b</span></td><td>Batch/queue mode forcing per-item Skill invocation; substance-density gate; <code>--corpus &lt;path&gt;</code>; substrate-file existence in skill-eval; auto-apply re-scans the whole draft per failing check class.</td></tr>
+          <tr><td><strong>/playbook</strong><br><span class="tag blocker">blocker</span><span class="tag m-int">interactive</span></td><td>Core framing rejected on a real project: no reader onboarding before TL;DR; "product journey narrative" declared not useful for PMs — user spec'd a decisions/inflection-points restructure. scout.mjs bucketed all 21 sessions onto one milestone and picked a skill-wrapper as opening prompt; consumer scripts read the scratchpad path from a non-persisting env var (<code>ENOENT 'undefined/scout.json'</code> ×4). <span class="sess">71ae3b43, 0085c75a</span></td><td>Restructure around decisions/inflection points; milestone split by branches/tags; argv not env vars.</td></tr>
+          <tr><td><strong>/magazine</strong><br><span class="tag blocker">blocker</span><span class="tag m-int">interactive</span></td><td><code>watch --install</code> broken OOTB on macOS: launchd wrapper sets no PATH (whisper/ffmpeg unfindable) and <code>whisper_model</code> never reaches transcribe.sh → exit 3 → <em>silent</em> show-notes fallback. Separately, <code>--days</code> silently no-ops (fetched 3,231 items back to 2015). <span class="sess">600a5d9f, 8c0be772</span></td><td>PATH in wrapper; plumb whisper_model; post-install smoke transcription; make --days a real filter (or error).</td></tr>
+          <tr><td><strong>/frameworks</strong><br><span class="tag friction">friction</span></td><td>Corpus expansion has no skill surface — user hand-orchestrated a research fan-out (dedupe vs the 272-name inventory) outside the skill; only ingestion path is Notion sync. <span class="sess">4f5932d6</span></td><td><code>curate|expand</code> verb with built-in dedupe emitting sync-ready records.</td></tr>
+          <tr><td><span class="tag positive">positive</span></td><td>/book-summary and /critical-thinking: zero invocations in 30 days — no evidence either way, but relevant to the revised proposal's skill-cull audit. Primer's live fetch-failure handling followed its contract.</td><td>Feed usage counts into the cull decision.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="managerkit">
+      <h2>Per-Skill Findings — pmos-managerkit <span class="tag s-work">all work</span></h2>
+      <table>
+        <thead><tr><th class="col-sev">Tags</th><th>Finding</th><th class="col-fix">v3 fix</th></tr></thead>
+        <tbody>
+          <tr><td><strong>/interview-feedback</strong><br><span class="tag blocker">blocker</span></td><td><strong>Confidentiality near-miss</strong> (theme 4): real candidate + interviewer data published as claude.ai Artifacts against the skill's own promise. <span class="sess">0ffe4878</span></td><td>Hard prohibition on Artifact/publish for confidentiality-scoped outputs.</td></tr>
+          <tr><td><span class="tag blocker">blocker</span></td><td>Declared complete with 8/8 citations failing the ≥40-char verbatim gate (quotes stitched across speaker labels); a later run failed 16/16 because the writer wrapped cite text in stylistic quotes the checker doesn't strip. <span class="sess">7f30a3ab</span></td><td>check-citations.mjs as a mandatory blocking gate; whitespace-normalize + strip wrapping quotes before matching.</td></tr>
+          <tr><td><span class="tag blocker">blocker</span></td><td>Written submissions systematically underweighted — pushback in 3 candidate sessions; after the first correction the submission was scored in isolation, forcing a second full rewrite. <span class="sess">0ffe4878, 0ff0990f, 7f30a3ab</span></td><td>Submission as first-class input with live-vs-written columns + three-bucket analysis by default.</td></tr>
+          <tr><td><span class="tag blocker">blocker</span></td><td>Round duration inferred from a stale 45-min scorecard field when the round was 90-min by design — inverted every time-based critique. Same gap hit /interview-guide. <span class="sess">7f30a3ab, d845ef12</span></td><td>Confirm duration up front; flag transcript-length vs design-length mismatch. <strong>Direct field evidence for epic 260709-xhr — prioritize its build.</strong></td></tr>
+          <tr><td><span class="tag blocker">blocker</span></td><td>transcribe.sh clobbered a superior speaker-attributed Gemini transcript with whisper output; background transcription died at 2/9 chunks leaving 70% of audio missing while downstream proceeded. <span class="sess">0ffe4878, cdacadc4</span></td><td>Never overwrite <code>transcript.refined.txt</code>; chunk-count completeness gate.</td></tr>
+          <tr><td><span class="tag friction">friction</span></td><td>Corp-auth inputs 401 with no detection/fallback (Drive/Docs URLs); artifact conventions clash with hiring-manager consumption (print truncation, raw HTML in notes, non-human-readable citations, weighted score not computed). <span class="sess">0ffe4878, cdacadc4, 0ff0990f</span></td><td>Probe URLs at Resolve, ask for local path on 401; extend the round's own scoring-sheet design system; [HH:MM:SS]/doc-name citations; always compute the weighted score.</td></tr>
+          <tr><td><strong>/interview-guide</strong><br><span class="tag friction">friction</span></td><td>One role's deep-dive probes scattered across sections; competency coverage thin with 3 attached roles; duration volunteered by the user. <span class="sess">d845ef12</span></td><td>Role-block organization; competency-coverage matrix gate; ask duration up front.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="util-game">
+      <h2>Per-Skill Findings — pmos-utilities &amp; pmos-gamekit</h2>
+      <table>
+        <thead><tr><th class="col-sev">Tags</th><th>Finding</th><th class="col-fix">v3 fix</th></tr></thead>
+        <tbody>
+          <tr><td><strong>/reflect</strong><br><span class="tag friction">friction</span></td><td>Findings not copy-pasteable inline on first run; no incremental re-run (full regeneration to add one late blocker). Positive: the Phase-1 transcript locator held up in all 11 sessions, including under workmax. <span class="sess">b58fc7fa</span></td><td>Inline markdown default; merge-mode re-runs.</td></tr>
+          <tr><td><strong>gamekit launcher</strong><br><span class="tag friction">friction</span></td><td>Background server repeatedly died exit 144 <em>after</em> printing "Game ready" (flappy-bird, poker, 2048 in one session) — 2048 was dead when the user tried to play; poker hero-seat badge overlaps the action bar at narrow widths. <span class="sess">83a2fe3f</span></td><td>Post-launch curl liveness probe + keep-alive posture; narrow-viewport check in pre-bundle QA.</td></tr>
+          <tr><td><span class="tag positive">positive</span></td><td>/mac-health: no skill defects — correctly diagnosed a JumpCloud fork-bomb even while its own diagnostics hit "fork failed" (a low-fork fallback would be a nice-to-have). /solitaire clean. /one-on-one, /people, /product-context: zero invocations.</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="env">
+      <h2>Environment-Level Findings (no single skill owns these)</h2>
+      <table>
+        <thead><tr><th class="col-sev">Tags</th><th>Finding</th><th class="col-fix">v3 fix</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag blocker">blocker</span></td><td><code>~/.pmos/learnings.md</code> grew unbounded (622 lines / ~291KB) until Read calls failed — silently breaking <em>every</em> skill's Load Learnings phase across ≥2 sessions until a manual consolidation. <span class="sess">ebe1b774, 18b69c5e, 61f31556</span></td><td>Enforce the 300-line cap at write time (compact-or-refuse); Load Learnings reads only the skill's own section.</td></tr>
+          <tr><td><span class="tag friction">friction</span><span class="tag m-auto">autonomous</span></td><td>Fork/subagent orchestration fragile under load: the 61-primer batch alone logged fork-failed ×5, os error 35 ×7, ECONNREFUSED ×8; rate-limited forks died mid-pipeline; a host restart killed 10 background miners in <em>this</em> session. <span class="sess">f34a00c1</span></td><td>Throttle fan-out per tick; per-phase disk checkpoints so killed agents resume; prefer in-process extraction for mechanical scans.</td></tr>
+          <tr><td><span class="tag friction">friction</span><span class="tag s-work">work</span></td><td>Work-env churn: plugin reloads mid-workflow (0.1.0→0.6.0 across interviewing sessions), org spend-limit interruptions mid-run — nothing acknowledges interrupted-and-resumed runs. <span class="sess">7f30a3ab, 0ff0990f</span></td><td>Long-running skills checkpoint per-phase to disk; resume without re-asking.</td></tr>
+          <tr><td><span class="tag nit">nit</span></td><td>zsh <code>status=</code> read-only variable breaks suggested snippets (×2 sessions); discovery scripts stashed in /tmp are lost across sessions and rebuilt each resume. <span class="sess">da455903, e385ea38, 4dbee7b7</span></td><td><code>rc=</code> convention in the portability substrate; scratch under the feature folder or <code>.pmos/tmp</code>.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="verification">
+      <h2>Blocker Verification vs Current Repo (main @ <code>d46b7ae6</code>, 2026-07-11)</h2>
+      <p>Each blocker-class finding was checked against the current skill bodies, scripts, and backlog item statuses — not against the transcripts that reported it. "FIXED" means the specific mechanism is verifiably present in the repo today (a shipped gate, script, or released fix epic); it does not re-run the original failing scenario, so the fixed set is the natural seed list for golden-scenario regression tests.</p>
+
+      <h3>Verified fixed (15) — do not re-litigate in v3; convert to regression tests</h3>
+      <table>
+        <thead><tr><th style="width:34%">Finding</th><th>Fix verified in repo</th></tr></thead>
+        <tbody>
+          <tr><td>EnterWorktree deferred-tool self-veto (define) <span class="sess">c159182c</span></td><td>feature-sdlc SKILL.md:230 — ToolSearch-load first, "reaching this step IS the authorization", Anti-pattern #15 bans <code>git -C</code> remote-control, Phase 0b drift check (<code>realpath(pwd) != state.worktree_path</code> rejected). Shipped as v2.75.1.</td></tr>
+          <tr><td>Define worktree never torn down → build on define branch <span class="sess">4fc9fa88</span></td><td>Define step 5 now owns "Exit + teardown" (invariants I1–I3): ExitWorktree-to-root + <code>git worktree remove</code> on completed merge only.</td></tr>
+          <tr><td>Parallel defines minted duplicate serial id <span class="sess">95eec5b4</span></td><td>Date+short-rand id scheme via mint-id.mjs + <code>check-id-uniqueness.mjs</code> pre/post gate on the definition merge.</td></tr>
+          <tr><td>claim-lock CJS in ESM host repos <span class="sess">4d9661c6</span></td><td>Script is now <code>claim-lock.cjs</code> (module-system-explicit filename) with its own test.</td></tr>
+          <tr><td>Ready story with no plan/tasks.yaml claimed by build <span class="sess">18191c81</span></td><td>Structural fix: define step 4 runs /plan per ready story <em>before</em> the definition merge (D10), so <code>ready</code> now implies tasks.yaml exists; poison guard (D4) adds forward-progress protection.</td></tr>
+          <tr><td>Crash-orphaned in-progress story never re-picked <span class="sess">b1173a74</span></td><td>Reconcile-in-flight step 0 (epic 0612-w4e, D1–D7) is a permanent part of build mode; observed working across resumed ticks later in the same window.</td></tr>
+          <tr><td>Bare <code>--epic</code> &gt;4 epics crashes AskUserQuestion <span class="sess">0cc3058f</span></td><td>D23 amended (epic 0613-5pq): multi-select picker + documented non-interactive ship-all mode branch.</td></tr>
+          <tr><td>backlog INDEX stale / phantom rebuild-index verb <span class="sess">a9748ccd, 31a8bde5</span></td><td>Epic 8pa: no committed INDEX.md exists; index is derived-on-read. No rebuild-index prose remains in the skill.</td></tr>
+          <tr><td>/backlog web viewer defects (@null, 0-done, facets) <span class="sess">ff18c6af</span></td><td>Fix epics 260614-q3h <code>released</code> and 260614-8v4 <code>done</code>.</td></tr>
+          <tr><td>interview-feedback citation-gate bypass <span class="sess">7f30a3ab</span></td><td>check-citations.mjs is now a blocking STOP-before-done hard gate (INV-1) on both outputs; F4 whitespace-normalized single-line extraction ships in the skill body (managerkit v0.5.0).</td></tr>
+          <tr><td>Written submission underweighted <span class="sess">0ffe4878, 0ff0990f</span></td><td><code>--written-submission</code>/<code>--submission-type</code> flags; four-bucket contextual analysis with the candidate brief as neutral baseline (F1/D4, INV-2) — brief-published structure never read as interviewer-seeded.</td></tr>
+          <tr><td>Round duration inferred from stale field <span class="sess">7f30a3ab, d845ef12</span></td><td>Epic 260709-xhr built: /interview-guide has <code>--duration</code> + a no-default Collect prompt (D2/D3, INV-1) + validator-normalized free-form answers; release pending but content verified on main.</td></tr>
+          <tr><td>transcribe.sh clobbered superior transcript <span class="sess">0ffe4878</span></td><td>Script now refuses to overwrite an existing <code>transcript.refined.txt</code> unless <code>force == "1"</code>.</td></tr>
+          <tr><td>summary-tldr approved summary lost to compaction <span class="sess">ebe1b774</span></td><td>Redesigned: Phase 6 emit <em>precedes</em> all mode rendering by construction (D2/INV3) — the approved text is on disk before /diagram runs; no side-file needed.</td></tr>
+          <tr><td>design-crit slop-engine silently skipped <span class="sess">b58fc7fa</span></td><td>Phase 3.5 is now a proof-of-execution hard gate (§H): the helper's literal evidence line must be surfaced verbatim before Phase 4; skip claimable only from the helper's own emitted skip-note — "never by asserting the engine is absent or 'not wired in' without running the helper".</td></tr>
+        </tbody>
+      </table>
+      <p class="small">Also fixed: /playbook framing (epics 260617-evo/pbk <code>released</code>); /magazine <code>--days</code> windowing + precedence (epic 260624-2bm <code>released</code>); /primer's dangling learnings-capture cite (no longer present); /landing-page show-ratio promoted to a HARD gate (epic 260624-ajy <code>released</code>).</p>
+
+      <h3>Partially addressed (7) — v3 finishes these</h3>
+      <table>
+        <thead><tr><th style="width:34%">Finding</th><th>What remains</th></tr></thead>
+        <tbody>
+          <tr><td>Build worktree isolation broke (orchestrator wrote to main) <span class="sess">4edc89c8</span></td><td>Anti-pattern #15 + the drift assert cover the entry path, but there is still no post-phase <code>git status --porcelain</code>-clean gate on the main checkout catching mid-build leaks.</td></tr>
+          <tr><td>EnterWorktree flake → claim-churn commits on main <span class="sess">12362022</span></td><td>The clean-rollback recipe is codified (Anti-pattern #15), but step order still claims before a proven enter, and no bounded retry exists — a flake still writes churn.</td></tr>
+          <tr><td>Sibling worktree path rejected by harness every tick <span class="sess">b0c61220, 832dec02</span></td><td>Stale-base guard added (branch from local HEAD, SKILL.md:228), but the skill still doesn't pin the canonical path under <code>.claude/worktrees/</code> — zero mentions in the body; the create→reject→recreate cycle can recur.</td></tr>
+          <tr><td>Shared-main-checkout define races with cron <span class="sess">fcd56cd1</span></td><td>INDEX contention gone with derive-on-read; the changelog.md race between a define session and a concurrent release tick remains.</td></tr>
+          <tr><td><code>~/.pmos/learnings.md</code> unbounded growth <span class="sess">ebe1b774, 18b69c5e</span></td><td>The 300-line cap + summarize-before-append rule exists in <code>_shared/learnings-capture.md</code> — but it's advisory prose, and the file hit 622 lines <em>under</em> that rule. Needs §H write-time enforcement (script refuses/compacts) and section-scoped reads.</td></tr>
+          <tr><td>/magazine <code>watch --install</code> broken OOTB on macOS <span class="sess">600a5d9f</span></td><td>The pipeline-robustness epic (260624-2bm) shipped in the window, but the launchd-PATH and whisper_model-plumbing specifics were not re-verified live; re-test <code>watch --install</code> on a clean machine before closing.</td></tr>
+          <tr><td>/primer batch hand-rolled the pipeline <span class="sess">f34a00c1</span></td><td>Captured as a durable memory lesson (invoke the real Skill per item), but no skill-side batch/queue contract exists to make the lesson structural.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Verified still open (8) — the real v3 input set</h3>
+      <table>
+        <thead><tr><th style="width:34%">Finding</th><th>Verification</th></tr></thead>
+        <tbody>
+          <tr><td>Confidential data publishable via Artifact <span class="sess">0ffe4878</span></td><td>interview-feedback's confidentiality clause is unchanged prose ("never sends it to an external service") — the exact clause that was in force when the near-miss happened. No tool-level Artifact/publish prohibition exists anywhere in the skill body.</td></tr>
+          <tr><td>Verify PASS on broken UI / no evidence artifact <span class="sess">8bab65f3, a2273049, 0d772ac3</span></td><td>No browser-QA hard gate or machine-checkable evidence block in /verify; the trust gap stands.</td></tr>
+          <tr><td>Cross-epic conflicts surface mid-train <span class="sess">d6bf33c0, 9ced1e8b</span></td><td>No file-intersection/merge-tree pre-flight in complete-dev's epic train; epics still ship in id order with conflicts discovered live.</td></tr>
+          <tr><td>gitlab-mirror push hangs; mitigation operator-carried <span class="sess">0e5dd39e et al.</span></td><td>No <code>ConnectTimeout</code>/bounded-push in complete-dev Phase 15 — the workaround still lives only in CLAUDE.md/memory.</td></tr>
+          <tr><td>Accepted-residuals re-litigation <span class="sess">4 groups</span></td><td>No baseline file or <code>--baseline</code> mode in skill-eval-check; every train still re-proves the same residuals. (Filed as friction, but it enables blocker-class gate-skip habituation.)</td></tr>
+          <tr><td>/to-notion-doc "clean · 0 open questions" over known-lossy conversions <span class="sess">aea7d6dd</span></td><td>No "post-conversion actions"/limitations section in the skill body.</td></tr>
+          <tr><td>Unattended-loop starvation (creds-gated / empty queue) <span class="sess">e385ea38, dca209fb</span></td><td>No <code>needs_creds</code>/<code>requires_interactive</code> stamp and no machine-readable queue-exhausted exit in feature-sdlc build mode.</td></tr>
+          <tr><td>gamekit launcher dies after "Game ready" <span class="sess">83a2fe3f</span></td><td>No post-launch liveness probe in the launch contract; poker seat-overlap unfixed.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="implications">
+      <h2>What This Changes in the v3 Plan</h2>
+      <p>Mapping the evidence onto the <a href="revised-proposal.html">revised proposal</a>: the transcripts <strong>confirm</strong> five of its positions, <strong>sharpen</strong> two, and <strong>add</strong> four recommendations neither document had. Per the <a href="#verification">verification pass</a>, the recommendations below draw only on the <strong>open and partial</strong> blocker sets — the 15 verified-fixed findings feed v3 solely as regression-test candidates (their fixes are exactly the behaviors golden-scenario tests should pin).</p>
+
+      <h3>Confirmed by field evidence</h3>
+      <ul>
+        <li><strong>Golden-scenario contract tests</strong> (revised proposal, "More Aggressive #6") — the /backlog viewer's <code>@null</code>/misclassification defects, verify's PASS-on-broken-UI, and /magazine's silent <code>--days</code> no-op are exactly the class a behavioral safety net catches and no SKILL.md prose ever will.</li>
+        <li><strong>R3→R1 re-tier of /backlog and /mytasks</strong> — the script cores behaved (zero claim-lock misfires across ~90 build ticks); the failures were UX shells and doc drift, not architecture.</li>
+        <li><strong>complete-dev as the first true R3</strong> — it accounts for more distinct high-severity findings than any other skill (train state, &gt;4-epic crash, mirror pushes, residual re-litigation, cross-epic pre-flight, [J] ladder), and every one of them is a <em>structure</em> problem prose patches won't fix.</li>
+        <li><strong>Loaded-token budget over line counts</strong> — the compaction-loss theme (#6) shows the binding constraint is what survives a context window, not how long the file is.</li>
+        <li><strong>§K one-fact-one-home enforcement via machine-resolvable cites</strong> — claim-holder drift, AC-format mismatch, and the dangling learnkit substrate cite are all §K violations that only release-time judgment gates caught, months of runtime later.</li>
+      </ul>
+
+      <h3>Sharpened</h3>
+      <ul>
+        <li><strong>State extraction from feature-sdlc</strong> isn't just decomposition hygiene — it's the fix for themes 6 and 8. The state file must carry: per-phase checklist, dirty-file list (for read-state recovery), claim heartbeat, and <code>needs_creds</code>/buildability stamps.</li>
+        <li><strong>The §H "arithmetic → script" rule generalizes to "harness choreography → script."</strong> The dominant autonomous failure mode is prose driving mechanical sequences (claim/write-back, worktree lifecycle, ToolSearch loads, TaskCreate shapes). A scripted <code>build-tick</code> helper eliminates the whole class the way mint-id.mjs eliminated id collisions.</li>
+      </ul>
+
+      <h3>New recommendations (not in either proposal)</h3>
+      <ol>
+        <li><strong>Accepted-residuals baseline</strong> — a committed per-skill/per-check exemption file consumed by skill-eval-check; the single highest ceremony-to-value fix available, and it removes the "EXIT 1 is normal" reflex that enables silent gate-skips.</li>
+        <li><strong>Confidentiality hard gate</strong> — tool-level publish prohibition for skills that ingest sensitive inputs, plus the inherit-the-source's-constraints rule that already worked once in /requirements. One near-miss is one too many.</li>
+        <li><strong>Unattended-mode contract</strong> as a first-class substrate: pre-claim buildability gate, <code>needs_creds</code> stamps, machine-readable queue-exhausted exits, reconcile-in-flight step 0, and the CronDelete self-stop as the reference pattern. Autonomous operation is now ~40% of pipeline volume; it deserves its own contract, not interactive mode with prompts removed.</li>
+        <li><strong>Gate evidence lines</strong> — every hard gate prints resolved script path + exit code + count before the next phase may start. This is the cheap, universal antidote to theme 2 and costs one line per gate.</li>
+      </ol>
+
+      <div class="callout good">
+        <p><strong>What's genuinely healthy:</strong> claim-lock CRUD, changelog drafting (zero pushback in ~29 trains), /ideate (~16 invocations, no friction), /grill (users answer through 12–20 rounds), /reflect's transcript locator, /logos resume, the kb-guard confidentiality catch, and one cron that correctly self-stopped on an empty backlog. v3 should treat these as load-bearing patterns to preserve, not surfaces to rewrite.</p>
+      </div>
+    </section>
+
+    <footer style="margin: 48px 0 20px; border-top: 1px solid var(--line); padding-top: 16px;" class="small">
+      <p>Generated 2026-07-11 from raw session JSONL in <code>~/.claude-personal</code> and <code>~/.claude-workmax</code> (30-day window) by 10 parallel Sonnet mining subagents with verbatim-quote grounding. Session ids in <span class="sess">monospace</span> are transcript UUID prefixes. Companion documents: <a href="index.html">original v3 proposal</a> · <a href="revised-proposal.html">revised proposal</a>.</p>
+    </footer>
+  </main>
+</body>
+</html>

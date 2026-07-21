@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PMOS Skills v3 — Adopted Plan (Third Revision)</title>
+  <style>
+    :root {
+      --ink: #171717;
+      --muted: #5d6470;
+      --line: #d9dde4;
+      --soft: #f7f8fa;
+      --blue: #234f9c;
+      --blue-soft: #eaf1ff;
+      --red: #a52834;
+      --red-soft: #fff0f2;
+      --amber: #855200;
+      --amber-soft: #fff7e6;
+      --green: #12633d;
+      --green-soft: #edf8f2;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: white;
+      font: 15px/1.58 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    header {
+      background: linear-gradient(180deg, #f7f9fc, #fff);
+      border-bottom: 1px solid var(--line);
+    }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 30px; }
+    h1 { margin: 0 0 10px; font-size: 36px; line-height: 1.12; letter-spacing: -.02em; }
+    h2 { margin: 44px 0 13px; font-size: 25px; line-height: 1.25; }
+    h3 { margin: 27px 0 8px; font-size: 18px; }
+    p { margin: 0 0 13px; }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code {
+      background: #f0f2f5;
+      border: 1px solid #e1e4e8;
+      border-radius: 4px;
+      padding: 1px 4px;
+      font: 13px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    table { width: 100%; border-collapse: collapse; margin: 15px 0 28px; table-layout: fixed; }
+    th, td { border: 1px solid var(--line); padding: 10px 11px; text-align: left; vertical-align: top; }
+    th { background: var(--soft); font-weight: 700; }
+    ul, ol { margin: 8px 0 17px 22px; padding: 0; }
+    li { margin: 6px 0; }
+    .lede { max-width: 950px; font-size: 17px; color: #2e3338; }
+    .meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; color: var(--muted); }
+    .pill { border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; background: #fff; font-size: 13px; }
+    .callout { border: 1px solid var(--line); border-left: 4px solid var(--blue); border-radius: 8px; padding: 15px 17px; background: var(--blue-soft); margin: 17px 0; }
+    .critical { border-left-color: var(--red); background: var(--red-soft); }
+    .warn { border-left-color: var(--amber); background: var(--amber-soft); }
+    .good { border-left-color: var(--green); background: var(--green-soft); }
+    .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 17px 0; }
+    .grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 17px 0; }
+    .card { border: 1px solid var(--line); border-radius: 8px; padding: 14px; background: white; }
+    .card strong { display: block; margin-bottom: 5px; }
+    .tag, .verdict { display: inline-block; border-radius: 4px; padding: 1px 7px; font-size: 12px; font-weight: 750; white-space: nowrap; }
+    .keep, .adopt { color: var(--green); background: var(--green-soft); border: 1px solid #bddfcf; }
+    .changed, .modify { color: var(--blue); background: var(--blue-soft); border: 1px solid #bfd2f7; }
+    .defer { color: var(--amber); background: var(--amber-soft); border: 1px solid #e6cb94; }
+    .drop, .reject { color: var(--red); background: var(--red-soft); border: 1px solid #e9b7bd; }
+    .small { color: var(--muted); font-size: 13px; }
+    .principle { font-size: 19px; line-height: 1.45; font-weight: 650; }
+    .phase { border-left: 3px solid var(--line); padding-left: 16px; margin: 19px 0; }
+    footer { margin-top: 48px; border-top: 1px solid var(--line); color: var(--muted); }
+    @media (max-width: 900px) {
+      .wrap { padding: 22px; }
+      .grid, .grid3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      table { table-layout: auto; }
+    }
+    @media (max-width: 600px) {
+      .grid, .grid3 { grid-template-columns: 1fr; }
+      h1 { font-size: 29px; }
+      th, td { padding: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>PMOS Skills v3 — Adopted Plan (Third Revision)</h1>
+      <p class="lede">The adopted direction for v3, superseding the <a href="revised_proposal_v2.html">second-revision synthesis</a>. Produced by a deep adversarial grill of that document (14 decisions, 2026-07-11; report at <code>.pmos/grills/2026-07-11_revised-proposal-v2.html</code>). The central change: v3 is no longer an in-place refactor of this repository. It is a <strong>new repository, built from scratch around a v3 rubric, that ports the proven engines and rewrites all instruction prose</strong>, cutting over one plugin at a time.</p>
+      <div class="meta">
+        <span class="pill">Date: 2026-07-12</span>
+        <span class="pill">Status: adopted direction</span>
+        <span class="pill">Supersedes: revised_proposal_v2.html</span>
+        <span class="pill">Scope: 65 user-facing skills across 5 plugins (43 toolkit · 8 learnkit · 7 gamekit · 4 utilities · 3 managerkit)</span>
+        <span class="pill">Posture: greenfield repo, per-plugin cutover, sole-user window</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section id="executive-verdict">
+      <h2>Executive Verdict</h2>
+      <div class="callout good">
+        <p class="principle">Build v3 as a new repository: port the engines, rewrite every instruction file from scratch against a v3-first rubric, and cut over plugin by plugin — gamekit first, pmos-toolkit last.</p>
+        <p>The second revision correctly identified what to preserve (script-backed engines, earned safeguards, concrete platform instructions) and what to remove (duplicated narration, model-executed mechanics, line-count theater). It was wrong about <em>where</em> the work happens. An in-place migration forces every v3 skill through gates that encode the v2 house style, entangles the rewrite with a live release train, and makes each "wave" pay a compatibility tax that a sole-user product does not owe. A greenfield repo dissolves all three problems and flips the cost of the previously deferred architecture: a shared CLI and corpus separation are nearly free on day 0 and expensive later.</p>
+      </div>
+      <div class="grid">
+        <div class="card"><strong><span class="verdict keep">CARRIED FORWARD</span></strong><span class="small">Job-card skill bodies, script-owned mechanics, concrete tool names, engines preserved, trust contracts (/comments, /verify, /execute), no line-count compliance, description diet.</span></div>
+        <div class="card"><strong><span class="verdict changed">CHANGED</span></strong><span class="small">In-place migration → new repo with per-plugin cutover; transitional rubric → rubric-first (structure blocking, thresholds advisory); cull deferred → cull at port time; Phase 0–5 program → substrate epic + plugin waves.</span></div>
+        <div class="card"><strong><span class="verdict adopt">PROMOTED TO DAY 0</span></strong><span class="small">Shared <code>pmos</code> CLI; corpus separation; scripted release engine (the v3 complete-dev core, built greenfield); declared-reads context budget; session-evidence trust contracts.</span></div>
+        <div class="card"><strong><span class="verdict defer">STILL DEFERRED</span></strong><span class="small">source/ → dist/ build step (explicit triggers below); thinking-tools merge shape (designed at port time); any multi-user compatibility machinery.</span></div>
+      </div>
+    </section>
+
+    <section id="principle">
+      <h2>Governing Principle</h2>
+      <div class="callout">
+        <p class="principle">Port what is proven, rewrite what is prose, and make the new repository's own gates enforce the v3 contract from the first merge.</p>
+      </div>
+      <ul>
+        <li><strong>Engines port.</strong> Scripts, tests, corpora, and the HTML/render substrate move largely verbatim (refactored onto the shared CLI where they duplicate, and freely improved where clearly better). The evidence base is unambiguous: scripted cores are the reliable part — zero claim-lock misfires across ~90 autonomous build ticks, zero ID collisions since <code>mint-id</code>.</li>
+        <li><strong>Prose is rewritten from scratch.</strong> Every SKILL.md, the rubric, and all shared protocol text is authored fresh in the v3 house style. No v2 instruction text is carried forward by copy-paste.</li>
+        <li><strong>Data outlives both repos.</strong> Ported engines must keep reading the existing <code>~/.pmos</code> stores (tasks, people, learnings, interview records) unchanged. Schema compatibility is a hard requirement of the engine port, not a nice-to-have.</li>
+        <li><strong>Sole-user window.</strong> There is currently one user. No backward-compatibility shims, no dual-landing of fixes, no staged deprecations. This is a temporary license, not a permanent posture — it expires the day a second user installs.</li>
+      </ul>
+    </section>
+
+    <section id="what-changed">
+      <h2>What the Grill Changed (Decision Record)</h2>
+      <p>Fourteen decisions, in the order they were pressure-tested. Each row supersedes the corresponding position in the second revision.</p>
+      <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:22%">Question</th><th>Adopted resolution</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Evidence base</td><td>Fold <a href="session-evidence.html">session-evidence.html</a> into scope. Its four recommendations — gate-evidence lines, unattended-mode contract, accepted-residuals baseline, confidentiality hard gate — join the trust contracts. Autonomous runs are ~40% of pipeline volume; the Definition of Done covers unattended behavior.</td></tr>
+          <tr><td>2</td><td>Rubric transition</td><td><strong>Rubric-first.</strong> The v3 rubric is written before any skill migrates. The second revision's advisory-transitional plan never resolved what happens to the 47 blocking v2 checks that would fail every v3-format skill; in a new repo the question disappears — there are no v2 gates to appease.</td></tr>
+          <tr><td>3</td><td>Repo strategy</td><td><strong>New repo, per-plugin cutover.</strong> The marketplace installs a plugin from exactly one source, so the migration unit is the plugin. Order: gamekit → utilities → managerkit → learnkit → toolkit. Precedent: the pmos-toolkit → pmos-skills cutover.</td></tr>
+          <tr><td>4</td><td>Deferred architecture</td><td><strong>Shared <code>pmos</code> CLI and corpus separation move to day 0.</strong> Greenfield flips the retrofit-cost argument that justified deferring them. The build step stays deferred.</td></tr>
+          <tr><td>5</td><td>Dual-repo window</td><td><strong>Old repo effectively frozen.</strong> Sole user; trust fixes are not dual-landed — they are built fresh in the new repo as part of the rewrite.</td></tr>
+          <tr><td>6</td><td>From-scratch boundary</td><td><strong>Port engines, rewrite prose</strong>; refactor engines where something can clearly be done better, but never rebuild for purity.</td></tr>
+          <tr><td>7</td><td>Cull timing</td><td><strong>Cull at port time.</strong> The port/don't-port decision on each of the 65 skills IS the consolidation pass, informed by 30 days of mined transcripts plus the user's own judgment. Overlapping clusters (shape / ideate / grill / wayrttd / creativity / ripple-effects; msf-req / msf-wf) merge as part of their fresh rewrite.</td></tr>
+          <tr><td>8</td><td>Bootstrap order</td><td><strong>Day-0 substrate epic before any skill.</strong> v3 rubric + checker, shared CLI skeleton, test harness, and the scripted release engine — the v3 <code>complete-dev</code> core built greenfield rather than extracted from 778 lines of prose. The old pipeline is never pointed across repos.</td></tr>
+          <tr><td>9</td><td>Behavioral-test runner</td><td><strong>Scripts hard, model smoke.</strong> Deterministic CI tests target scripts/CLI directly; a small model-in-the-loop headless smoke suite runs before each plugin flips, asserting outcomes (scripts invoked, artifact shape, terminal state), never prose.</td></tr>
+          <tr><td>10</td><td>Rubric calibration</td><td><strong>Structure blocks, thresholds advisory.</strong> Binary/structural checks block from day 0; numeric thresholds run advisory until gamekit + utilities have migrated (~11 skills), then are set from the observed distribution and promoted.</td></tr>
+          <tr><td>11</td><td>Context metric</td><td><strong>Static declared-reads.</strong> Each skill declares its always-read files in its manifest; the budget is the token sum over declared files; a lint cross-checks that every unconditional "read X" in the body is declared. Conditional reads are listed, not counted.</td></tr>
+          <tr><td>12</td><td>Codex mirror</td><td><strong>Ports.</strong> The dual-manifest lockstep continues in the new repo (user decision, taken with the tax acknowledged). If it becomes painful, manifest generation is the natural first trigger for the build step.</td></tr>
+          <tr><td>13</td><td>PASS-WITH-GAPS consumer</td><td><strong>Releasable with recorded acknowledgement.</strong> Blocks unattended release paths outright; an interactive release proceeds only when the user explicitly acknowledges the enumerated gaps, and the ack + gap list is written into the release record (the accepted-residuals baseline — the same gap cannot silently re-ship).</td></tr>
+          <tr><td>14</td><td>Old-world endgame</td><td><strong>Freeze, triage, archive.</strong> No new feature epics in the old repo; cron automation stops at migration start; one backlog triage re-mints still-wanted items as v3-native work; the repo is archived per-plugin as each flips and fully at the end.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="architecture">
+      <h2>v3 Architecture</h2>
+
+      <h3>1. A new repository, seeded by a substrate epic</h3>
+      <p>The first unit of work is not a skill. It is the foundation the first skill needs in order to merge honestly:</p>
+      <ul>
+        <li><strong>The v3 rubric and its checker.</strong> Written fresh; carries forward the universal v2 rules that need no recalibration (deterministic-vs-judgment gates, flag four-test, stable phase anchors, citation resolution, one fact one home, explicit platform adaptation) and adds the v3 measurements (declared-reads budget, description size, prose-owned mechanics, behavioral coverage).</li>
+        <li><strong>The shared <code>pmos</code> CLI.</strong> One tool owning serve, render, anchor, store, and mint — replacing the four-plus duplicated localhost servers, launcher trios, and repeated render/storage code scattered across today's 125 scripts. Every ported engine re-points at it during its port.</li>
+        <li><strong>The test harness.</strong> Deterministic script/CLI tests wired into CI from the first commit, plus the headless model-smoke runner used at plugin-flip time.</li>
+        <li><strong>The scripted release engine.</strong> Diff routing, version bump, tag construction and validation, push planning, dry-run contract, and release evidence — built as scripts from day one. This <em>is</em> the v3 <code>complete-dev</code> core; the second revision's #1 extraction target is satisfied by construction rather than surgery.</li>
+      </ul>
+
+      <h3>2. Skill bodies are thin behavioral interfaces (unchanged)</h3>
+      <p>Each SKILL.md states the single job and trigger boundary, the default journey and legitimate modes, the scripts and shared contracts that own mechanics, the safety and trust invariants, and the evidence required before reporting success. No universal line cap; the budget is <strong>declared-reads tokens</strong>, measured and linted.</p>
+
+      <h3>3. Deterministic state belongs in deterministic code (unchanged, strengthened)</h3>
+      <p>Routing tables, state transitions, ID allocation, parsing, arithmetic, schema validation, version manipulation, tag construction, and evidence aggregation are scripts or tests. The evidence report extends this: <em>harness choreography</em> (claim → build → write-back ticks) is also script territory. And every hard gate must emit evidence — the resolved script path, exit code, and finding count — so a skipped gate is visible rather than narratable.</p>
+
+      <h3>4. Platform instructions stay concrete; the Codex mirror rides along</h3>
+      <p>Primary-platform tool names appear in the path where reliable behavior depends on them; alternative-platform behavior lives in one adaptation section. The dual <code>.claude-plugin</code>/<code>.codex-plugin</code> manifests port to the new repo with the same lockstep-version rule.</p>
+
+      <h3>5. Corpora are versioned data artifacts</h3>
+      <p>The bundled corpora (665 case studies, 346 frameworks, 61 primers with 1,306 sources, the archetype corpus) move as data artifacts with their own schemas and validation gates, referenced by skill releases rather than embedded in them. Separation happens at port time, when each corpus is being touched anyway.</p>
+
+      <h3>6. Unattended operation is a first-class contract</h3>
+      <p>Roughly 40% of pipeline volume runs autonomously. Every skill's rewrite states its unattended posture explicitly: what it does without a human (proceed, degrade, or refuse), what it defers, and what evidence it leaves behind. The non-interactive contract is redesigned as part of the substrate epic — as a real contract with a linted single home, not a 27-line block re-pasted into 65 files.</p>
+    </section>
+
+    <section id="rubric">
+      <h2>The v3 Rubric</h2>
+      <div class="callout warn">
+        <p><strong>Structure blocks from day 0; numbers earn their teeth.</strong> Structural checks are binary and carry over from hard-won v2 policy — they block immediately. Numeric thresholds (declared-reads budget, description size, phase count) run advisory through the gamekit and utilities waves, then are set from the observed distribution of real v3 skills and promoted to blocking before managerkit migrates. A threshold is promoted only with a documented failure mode and a low false-positive record — never because the number looks attractive.</p>
+      </div>
+      <ol>
+        <li><strong>Blocking from day 0:</strong> no deterministic mechanic lives only in prose; every citation resolves; flags pass the four-test; one fact, one home; platform adaptation is explicit; hard gates emit evidence lines; unattended posture is declared.</li>
+        <li><strong>Advisory until calibrated:</strong> declared-reads token budget; frontmatter description size; phase-count and structure-shape guidance.</li>
+        <li><strong>Never checks:</strong> line counts, prose style compliance, or anything a reasonable rewrite would satisfy by formatting rather than by improving reliability.</li>
+      </ol>
+    </section>
+
+    <section id="testing">
+      <h2>Behavioral Safety Net</h2>
+      <p>Two runners, matched to what each can honestly verify:</p>
+      <table>
+        <thead><tr><th style="width:26%">Layer</th><th style="width:30%">Runner</th><th>What it asserts</th></tr></thead>
+        <tbody>
+          <tr><td>Engine behavior (hard, per-commit)</td><td>Deterministic CI tests against scripts/CLI</td><td>State transitions, schemas, idempotency, dry-run contracts, refusal conditions, exit codes, machine-output compatibility. The risk table from the second revision (stateful mutation, artifacts, routing, release, machine output) maps entirely onto this layer.</td></tr>
+          <tr><td>Skill behavior (smoke, per plugin flip)</td><td>Headless model-in-the-loop runs against fixtures</td><td>Outcomes only: the right scripts were invoked, the artifact has the required shape and anchors, the run reached an honest terminal state. Nondeterminism is tolerated by never asserting on prose. Failures here block the plugin's cutover, not individual commits.</td></tr>
+        </tbody>
+      </table>
+      <p class="small">Open-ended reasoning skills (interviewing, critique, shaping) get targeted evaluators only where a stopping condition, grounding rule, or prohibited behavior is checkable — no ceremonial snapshots.</p>
+    </section>
+
+    <section id="trust">
+      <h2>Trust Contracts</h2>
+      <p>Carried from the second revision and extended with the session-evidence findings. All are built into the fresh rewrites, not patched into the old repo:</p>
+      <ul>
+        <li><strong>/comments honest outcomes:</strong> visible edits, author annotations, skipped work, and unresolved threads are distinct terminal states; resolution is never implied without one.</li>
+        <li><strong>/verify structured verdicts:</strong> <code>PASS</code>, <code>PASS-WITH-GAPS</code>, <code>FAIL</code> with machine-readable evidence. Deterministic failures stay hard; judgment gaps are explicit.</li>
+        <li><strong>PASS-WITH-GAPS consumption:</strong> blocks unattended release; interactive release requires explicit user acknowledgement, recorded with the gap list in the release record (accepted-residuals baseline).</li>
+        <li><strong>/execute modes:</strong> evidence-only, commit-per-task, squash-friendly, and no-commit, backed by an execution ledger.</li>
+        <li><strong>Gate-evidence lines:</strong> every hard gate prints the resolved script path, exit code, and finding count — the antidote to the "gate silently skipped, then rationalized" failure mode observed five independent times.</li>
+        <li><strong>Unattended-mode contract:</strong> every skill declares proceed/degrade/refuse behavior for autonomous invocation.</li>
+        <li><strong>Confidentiality hard gate:</strong> skills handling sensitive material (interview records, people data) enforce redaction/scoping as a gated check, not guidance.</li>
+      </ul>
+    </section>
+
+    <section id="migration">
+      <h2>Migration Program</h2>
+      <p>Replaces the second revision's Phases 0–5 entirely. Each wave ends with a plugin flip: the plugin becomes installable from the new repo and is archived in the old one.</p>
+
+      <div class="phase">
+        <h3>Wave 0 — Substrate epic (new repo, before any skill)</h3>
+        <ul>
+          <li>Scaffold the repository, marketplace entry, and CI.</li>
+          <li>Build the v3 rubric + checker (structure blocking, thresholds advisory), the <code>pmos</code> CLI skeleton, the test harness, and the scripted release engine.</li>
+          <li>Redesign the non-interactive/unattended contract as substrate.</li>
+          <li>Freeze the old repo: no new feature epics; stop cron automation; run the one-time backlog triage (re-mint keepers as v3-native items).</li>
+        </ul>
+        <p><strong>Exit gate:</strong> the new repo can gate, test, version, tag, and release a trivial skill end-to-end using only its own machinery.</p>
+      </div>
+
+      <div class="phase">
+        <h3>Wave 1 — pmos-gamekit (7 skills; the house-style pilot)</h3>
+        <ul>
+          <li>Rewrite the seven launchers as minimal job cards over the shared launcher engine.</li>
+          <li>First real pass of the rubric, CLI, and release engine; collect threshold observations.</li>
+        </ul>
+        <p><strong>Exit gate:</strong> model-smoke suite green; plugin flips; gamekit archived in the old repo.</p>
+      </div>
+
+      <div class="phase">
+        <h3>Wave 2 — pmos-utilities (4 skills) + threshold calibration</h3>
+        <ul>
+          <li>Port engines (converter, mac-health snapshot, reflect extractors, Notion mapper) onto the CLI where they duplicate; rewrite bodies.</li>
+          <li>After this wave: set numeric rubric thresholds from the ~11 migrated skills and promote them to blocking.</li>
+        </ul>
+      </div>
+
+      <div class="phase">
+        <h3>Wave 3 — pmos-managerkit (3 skills)</h3>
+        <ul>
+          <li>Confidentiality hard gate ships here first (interview records, people data).</li>
+          <li><code>~/.pmos</code> record-store compatibility proven by test: existing interview and 1:1 data reads unchanged.</li>
+        </ul>
+      </div>
+
+      <div class="phase">
+        <h3>Wave 4 — pmos-learnkit (8 skills) + corpus separation</h3>
+        <ul>
+          <li>Corpora (case studies, frameworks, primers) move to versioned data artifacts with schema gates; skills reference corpus versions.</li>
+          <li>Shared library-viewer substrate consolidates the duplicated browse/list machinery.</li>
+        </ul>
+      </div>
+
+      <div class="phase">
+        <h3>Wave 5 — pmos-toolkit (43 skills, ported in dependency order) + cull</h3>
+        <ul>
+          <li>Substrate consumers first (pipeline skills over the render/comments engines), then the pipeline itself (requirements → spec → plan → execute → verify), then <code>feature-sdlc</code> as a thin router over script-owned state, with <code>complete-dev</code>'s body landing as a wrapper over the Wave-0 release engine.</li>
+          <li><strong>Cull at port:</strong> each skill faces a port/merge/don't-port decision using transcript evidence + user judgment. The thinking-tools cluster (shape, ideate, grill, wayrttd, creativity, ripple-effects) and the msf pair get their merge design here, as part of their rewrite.</li>
+          <li>Trust contracts (/comments outcomes, /verify verdicts, /execute modes) are built into these rewrites.</li>
+        </ul>
+        <p><strong>Exit gate:</strong> toolkit flips; old repo fully archived (read-only), exactly like the previous cutover.</p>
+      </div>
+    </section>
+
+    <section id="build-step">
+      <h2>Build-Step Decision (unchanged: deferred, with sharper triggers)</h2>
+      <div class="callout">
+        <p><strong>Still deferred.</strong> The new repo ships as plain source — the installed artifact is the reviewed file. Reconsider when at least two of these triggers fire: (1) the Codex manifest lockstep becomes a recurring source of drift (now the most likely first trigger, since the mirror ports); (2) generated counts/catalogs ("N bundled") drift despite the one-fact-one-home rule; (3) the shared-contract single-home policy proves unenforceable without compilation. Adoption additionally requires CI proof that generated artifacts are current and behaviorally equivalent to source.</p>
+      </div>
+    </section>
+
+    <section id="definition-of-done">
+      <h2>Definition of Done for a v3 Skill</h2>
+      <ul>
+        <li>One clear job sentence and a trigger boundary distinguishable from adjacent skills.</li>
+        <li>Declared-reads manifest present; token sum within the calibrated budget; lint confirms every unconditional read is declared.</li>
+        <li>Frontmatter description is concise (~2 sentences + trigger phrases) while retaining distinctive triggers.</li>
+        <li>No deterministic mechanic lives only in prose; every deterministic promise is backed by a script, test, or schema, or is explicitly advisory.</li>
+        <li>Hard gates emit evidence lines (script path, exit code, finding count).</li>
+        <li>Unattended posture declared: proceed / degrade / refuse, with evidence left behind.</li>
+        <li>Platform-critical instructions use concrete tool names; alternatives isolated in one adaptation section; Codex manifest in lockstep.</li>
+        <li>Citations and shared-substrate references resolve under lint.</li>
+        <li>Flags pass the four-test and have natural-language equivalents where appropriate.</li>
+        <li>Deterministic CI tests exist for its engine surface; the skill passes the model-smoke fixture before its plugin flips.</li>
+        <li>If ported: reads existing <code>~/.pmos</code> data unchanged. If culled or merged: the decision and its evidence are recorded.</li>
+      </ul>
+    </section>
+
+    <section id="success">
+      <h2>Success Measures and Stop Conditions</h2>
+      <div class="grid3">
+        <div class="card"><strong>Context efficiency</strong><span class="small">Total description bytes and per-skill declared-reads fall versus the v2 baseline (40,586 description bytes; measured per-skill loads) without loss of correct triggering in daily use.</span></div>
+        <div class="card"><strong>Reliability</strong><span class="small">Deterministic decisions execute in scripts with evidence lines; the "gate skipped and rationalized" failure mode stops appearing in transcripts.</span></div>
+        <div class="card"><strong>Trust</strong><span class="small">Every run ends in an honest terminal state; gaps ship only with recorded acknowledgement; unattended runs refuse rather than improvise.</span></div>
+        <div class="card"><strong>Maintainability</strong><span class="small">One CLI where there were four servers; one canonical home per fact; corpora versioned separately from code.</span></div>
+        <div class="card"><strong>Migration safety</strong><span class="small">Each wave flips a whole plugin behind green smoke tests; the old repo remains installable per-plugin until its flip; nothing requires a cross-repo flag day.</span></div>
+        <div class="card"><strong>Product focus</strong><span class="small">The ported catalog is smaller than 65; every surviving skill has invocation evidence or an explicit keep rationale.</span></div>
+      </div>
+      <div class="callout critical">
+        <p><strong>Stop or revise the program if:</strong> the substrate epic (Wave 0) doesn't converge on a releasable foundation quickly — that signals the greenfield scope is wrong, not that gates should be skipped; ported engines start failing against existing <code>~/.pmos</code> data; the advisory thresholds, once calibrated, generate frequent judgment disputes; model-smoke tests become prose snapshots; or a second user arrives mid-migration, which immediately revokes the sole-user license and reinstates compatibility duties on whatever remains unflipped.</p>
+      </div>
+    </section>
+
+    <section id="open-questions">
+      <h2>Open Questions</h2>
+      <ul>
+        <li><strong>New repo identity:</strong> name, marketplace entry, and remote topology (retain the GitLab mirror?) are undecided.</li>
+        <li><strong>Thinking-tools merge shape:</strong> which 2–3 skills with which modes — a design pass owed at Wave 5, informed by invocation evidence.</li>
+        <li><strong>Rubric authorship loop:</strong> the Wave-0 rubric gates skills, but what reviews the rubric itself? Proposal: the grill + the calibration checkpoint after Wave 2 serve as its review, recorded in the repo.</li>
+      </ul>
+    </section>
+
+    <section id="decision">
+      <h2>Decision Summary</h2>
+      <p>Stand up the new repository with the Wave-0 substrate epic: v3 rubric + checker, shared <code>pmos</code> CLI, test harness, scripted release engine, and the redesigned unattended contract. Freeze the old repo and triage its backlog once. Then migrate plugin by plugin — gamekit, utilities (calibrate thresholds), managerkit, learnkit (separate corpora), toolkit (cull and merge as part of the port) — porting engines, rewriting all prose, and flipping each plugin only behind green deterministic tests and model smoke.</p>
+      <p>Do not rebuild the engines. Do not carry v2 instruction text forward. Do not point the old pipeline at the new repo. Do not compile the repository until the named triggers fire.</p>
+      <div class="callout good">
+        <p class="principle">v3 succeeds when the new repository's own gates make dishonest completion harder than honest completion — and the old repository can be archived without anything of proven value left behind.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <p><strong>Lineage:</strong> <a href="index.html">Original v3 Proposal</a> · <a href="revised-proposal.html">Revised Proposal (Critical Response)</a> · <a href="session-evidence.html">30-Day Session Evidence</a> · <a href="revised_proposal_v2.html">Second Revision (superseded)</a> · Grill report: <code>.pmos/grills/2026-07-11_revised-proposal-v2.html</code></p>
+      <p class="small">This document is standalone. The lineage links are provenance; evaluating this plan does not require reading them.</p>
+    </div>
+  </footer>
+</body>
+</html>

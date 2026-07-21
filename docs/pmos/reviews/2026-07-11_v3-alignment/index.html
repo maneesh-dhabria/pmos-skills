@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PMOS Skills v3 Alignment Proposal</title>
+  <style>
+    :root {
+      --ink: #171717;
+      --muted: #5d6470;
+      --line: #d9dde4;
+      --soft: #f7f8fa;
+      --blue: #244f9e;
+      --blue-soft: #eaf1ff;
+      --red: #a52834;
+      --red-soft: #fff0f2;
+      --amber: #815400;
+      --amber-soft: #fff7e6;
+      --green: #12633d;
+      --green-soft: #edf8f2;
+      --purple: #5b3a91;
+      --purple-soft: #f3efff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: #fff;
+      font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    header {
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, #fafbfc, #fff);
+    }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 28px; }
+    h1 { margin: 0 0 8px; font-size: 34px; line-height: 1.15; }
+    h2 { margin: 42px 0 12px; font-size: 24px; line-height: 1.25; }
+    h3 { margin: 28px 0 8px; font-size: 18px; }
+    h4 { margin: 20px 0 8px; font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+    p { margin: 0 0 12px; }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code {
+      background: #f0f2f5;
+      border: 1px solid #e1e4e8;
+      border-radius: 4px;
+      padding: 1px 4px;
+      font: 13px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    pre {
+      background: #f4f6f8;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      overflow: auto;
+      font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    table { width: 100%; border-collapse: collapse; margin: 14px 0 26px; table-layout: fixed; }
+    th, td { border: 1px solid var(--line); padding: 9px 10px; text-align: left; vertical-align: top; }
+    th { background: var(--soft); font-weight: 700; }
+    ul, ol { margin: 8px 0 16px 22px; padding: 0; }
+    li { margin: 5px 0; }
+    .lede { max-width: 960px; font-size: 17px; color: #2f353b; }
+    .meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; color: var(--muted); }
+    .pill {
+      display: inline-block;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 4px 10px;
+      background: #fff;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .callout {
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--blue);
+      border-radius: 8px;
+      padding: 14px 16px;
+      background: var(--blue-soft);
+      margin: 16px 0;
+    }
+    .critical { border-left-color: var(--red); background: var(--red-soft); }
+    .warn { border-left-color: var(--amber); background: var(--amber-soft); }
+    .good { border-left-color: var(--green); background: var(--green-soft); }
+    .purple { border-left-color: var(--purple); background: var(--purple-soft); }
+    .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 16px 0; }
+    .card { border: 1px solid var(--line); border-radius: 8px; padding: 14px; background: #fff; }
+    .card strong { display: block; margin-bottom: 4px; }
+    .tag {
+      display: inline-block;
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 12px;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+    .keep { color: var(--green); background: var(--green-soft); border: 1px solid #bddfcf; }
+    .layer2 { color: var(--blue); background: var(--blue-soft); border: 1px solid #bfd2f7; }
+    .alias { color: var(--purple); background: var(--purple-soft); border: 1px solid #d5c8f3; }
+    .archive { color: var(--amber); background: var(--amber-soft); border: 1px solid #e6cb94; }
+    .rename { color: var(--red); background: var(--red-soft); border: 1px solid #e9b7bd; }
+    .small { color: var(--muted); font-size: 13px; }
+    .decision { font-weight: 700; }
+    .nowrap { white-space: nowrap; }
+    .toc {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 16px;
+      margin: 18px 0;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft);
+    }
+    @media (max-width: 900px) {
+      .wrap { padding: 20px; }
+      .grid, .toc { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      table { table-layout: auto; }
+    }
+    @media (max-width: 560px) {
+      .grid, .toc { grid-template-columns: 1fr; }
+      h1 { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>PMOS Skills v3 Alignment Proposal</h1>
+      <p class="lede">A decision artifact for evaluating a large v3 refactor before implementation. It captures the proposed product architecture, skill disposition, naming, tiering, Layer 2 shared engines, migration strategy, and open decisions.</p>
+      <div class="meta">
+        <span class="pill">Date: 2026-07-11</span>
+        <span class="pill">Scope: all five pmos plugins</span>
+        <span class="pill">Status: proposal for alignment, not implementation</span>
+        <span class="pill">Compatibility: not required; clean v3 names allowed</span>
+        <span class="pill">Companion artifacts: repo audit + v3 refactor draft</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <nav class="toc">
+      <a href="#thesis">1. Thesis</a>
+      <a href="#principles">2. v3 Principles</a>
+      <a href="#layers">3. Three-Layer Architecture</a>
+      <a href="#naming">4. Naming</a>
+      <a href="#feature">5. Feature Orchestrator</a>
+      <a href="#tiering">6. Tiering</a>
+      <a href="#disposition">7. Skill Disposition</a>
+      <a href="#layer2">8. Layer 2 Design</a>
+      <a href="#workflows">9. v3 Workflows</a>
+      <a href="#new-skills">10. Missing Skills</a>
+      <a href="#migration">11. Migration Plan</a>
+      <a href="#decisions">12. Decisions to Align</a>
+    </nav>
+
+    <section id="thesis">
+      <h2>1. Thesis</h2>
+      <div class="callout critical">
+        <p><strong>v3 should be a product architecture refactor, not a cleanup pass.</strong> The current repo has strong substrates and serious accumulated value, but too much of the operating model lives as copied prose inside SKILL.md files. The v3 goal is to preserve intent while separating user-facing skills from shared engines and deterministic mechanics.</p>
+      </div>
+      <div class="callout warn">
+        <p><strong>Updated premise:</strong> this skill marketplace is currently for one maintainer. Backwards compatibility and old muscle memory are not requirements. v3 should prefer clean names and a smaller command surface over aliases that preserve legacy process language.</p>
+      </div>
+      <p>The main product problem is not that the skills are long. The problem is that many skills are simultaneously doing four jobs:</p>
+      <ul>
+        <li>They are user-facing commands.</li>
+        <li>They are operational runbooks for the agent.</li>
+        <li>They are implementation specs for scripts and artifacts.</li>
+        <li>They are policy documents for portability, release, security, and review gates.</li>
+      </ul>
+      <p>v3 should make the command surface simpler while making the internals more modular and testable.</p>
+    </section>
+
+    <section id="principles">
+      <h2>2. v3 Principles</h2>
+      <div class="grid">
+        <div class="card"><strong>Small front doors</strong><span class="small">Most user-facing SKILL.md files target 60-120 lines.</span></div>
+        <div class="card"><strong>Shared engines</strong><span class="small">Repeated mechanics move to Layer 2 with scripts/tests/templates.</span></div>
+        <div class="card"><strong>One default path</strong><span class="small">Every skill has a clear normal run and explicit escapes.</span></div>
+        <div class="card"><strong>Evidence over ceremony</strong><span class="small">Hard gates are deterministic or script-backed.</span></div>
+      </div>
+      <h3>Design Rules</h3>
+      <ol>
+        <li><strong>SKILL.md is a job card.</strong> It should tell the agent what the skill is for, when to use it, what to load, what phases to run, and what must never happen.</li>
+        <li><strong>Scripts own state, parsing, arithmetic, schemas, and deterministic verification.</strong> If a skill describes a state machine in prose, that is a refactor candidate.</li>
+        <li><strong>References own reusable policy.</strong> Source trust, runtime portability, artifact authoring, reviewer protocol, UX scoring, and release rules should not be restated per skill.</li>
+        <li><strong>Judgment stays judgment.</strong> Reviewer opinions, dogfood satisfaction, PM taste, and UX critique can block a clean PASS, but should usually surface as PASS-WITH-GAPS rather than pretending to be deterministic failures.</li>
+        <li><strong>User-facing names reflect the user's intent.</strong> Internal SDLC nouns can remain behind the scenes; the command should match what the user thinks they are doing.</li>
+      </ol>
+    </section>
+
+    <section id="layers">
+      <h2>3. Three-Layer Architecture</h2>
+      <table>
+        <thead>
+          <tr><th style="width: 18%">Layer</th><th>Purpose</th><th style="width: 28%">Examples</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Layer 1: User-facing skills</strong></td>
+            <td>Memorable commands users invoke directly. They should feel like products or workflows, not implementation modules.</td>
+            <td><code>/feature</code>, <code>/backlog</code>, <code>/verify</code>, <code>/primer</code>, <code>/interview-feedback</code>, <code>/converter</code></td>
+          </tr>
+          <tr>
+            <td><strong>Layer 2: Shared engines</strong></td>
+            <td>Reusable mechanics, policy, schemas, scripts, templates, and evaluators loaded by Layer 1 skills.</td>
+            <td>source trust, artifact authoring, review protocol, UX evaluation, thinking lenses, tracker engine, browser verification</td>
+          </tr>
+          <tr>
+            <td><strong>Layer 3: Plugin infrastructure</strong></td>
+            <td>Marketplace packaging, runtime portability, CI, release/versioning, plugin metadata, and install/dependency contracts.</td>
+            <td>manifest sync, plugin CI matrix, marketplace metadata, runtime contract expansion, skill linting</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="callout good">
+        <p><strong>Important:</strong> moving a current skill to Layer 2 does not mean deleting its value. It means its behavior becomes a reusable engine rather than a command the user has to remember.</p>
+      </div>
+    </section>
+
+    <section id="naming">
+      <h2>4. Naming</h2>
+      <h3>Recommendation</h3>
+      <p>Use simple, intent-based names for Layer 1. Because backwards compatibility is not required, old process-heavy names should be retired instead of preserved as public aliases. The finished v3 marketplace should expose only the clean names; any temporary redirects are implementation scaffolding, not product surface.</p>
+      <table>
+        <thead><tr><th style="width: 20%">Current</th><th style="width: 22%">Recommended public name</th><th>Rationale</th></tr></thead>
+        <tbody>
+          <tr><td><code>feature-sdlc</code></td><td><code>feature</code></td><td>"Feature" is what the user is building; "SDLC" is process jargon. Retire the old public name once the new skill works.</td></tr>
+          <tr><td><code>complete-dev</code></td><td><code>release</code></td><td>The user intent is finishing and publishing the work. Prefer <code>release</code> over <code>ship</code> because it maps cleanly to versioning, changelog, tag, push, and deploy.</td></tr>
+          <tr><td><code>comments</code></td><td><code>artifact-comments</code></td><td>Disambiguates from code review comments, chat comments, and issue comments while naming the object it operates on.</td></tr>
+          <tr><td><code>execute</code></td><td><code>build</code></td><td>"Build" is more natural for product builders. Retire <code>execute</code> as a public skill name; keep it only as an internal engine name if useful.</td></tr>
+          <tr><td><code>learn-list</code></td><td><code>learning-path</code></td><td>Names the artifact produced.</td></tr>
+          <tr><td><code>frameworks</code></td><td><code>framework-finder</code></td><td>Names the action: find the right framework for a situation.</td></tr>
+          <tr><td><code>book-summary</code></td><td><code>book-brief</code> or <code>book-takeaways</code></td><td>The current skill is not a generic summary; it distills verified PM takeaways.</td></tr>
+          <tr><td><code>reflect</code></td><td><code>skill-retro</code></td><td>"Reflect" is vague; the product is a transcript-grounded retrospective on skill behavior.</td></tr>
+        </tbody>
+      </table>
+      <h3>Command Naming Policy</h3>
+      <ul>
+        <li>Prefer a noun for durable product surfaces: <code>feature</code>, <code>backlog</code>, <code>wiki</code>, <code>primer</code>.</li>
+        <li>Prefer a verb for utilities: <code>convert</code>, <code>verify</code>, <code>release</code>, <code>polish</code>.</li>
+        <li>Avoid abbreviations in primary names. Keep abbreviations like SDLC and MSF as internal concepts, not public commands.</li>
+        <li>Use plugin namespace to disambiguate categories instead of bloating skill names.</li>
+      </ul>
+      <h3>Proposed v3 Command Surface</h3>
+      <table>
+        <thead><tr><th style="width: 20%">Cluster</th><th style="width: 32%">Primary commands</th><th>Moved behind the surface or retired</th></tr></thead>
+        <tbody>
+          <tr><td>Core delivery</td><td><code>/feature</code>, <code>/backlog</code>, <code>/build</code>, <code>/verify</code>, <code>/release</code>, <code>/artifact-comments</code></td><td><code>requirements</code>, <code>spec</code>, and <code>plan</code> become engines by default; <code>feature-sdlc</code>, <code>execute</code>, <code>complete-dev</code>, and <code>comments</code> names retire.</td></tr>
+          <tr><td>Thinking and product strategy</td><td><code>/shape</code>, <code>/ideate</code>, <code>/stress-test</code>, <code>/research</code>, <code>/artifact</code>, <code>/artifact-critique</code>, <code>/polish</code></td><td><code>grill</code>, <code>simulate-spec</code>, <code>ripple-effects</code>, and <code>creativity</code> become thinking-lens engines unless one direct command remains useful. Roadmaps, strategy docs, opportunity trees, launch plans, and similar PM documents should start as <code>/artifact</code> templates, not standalone skills.</td></tr>
+          <tr><td>Design and builder utilities</td><td><code>/prototype</code>, <code>/wireframes</code>, <code>/design-crit</code>, <code>/diagram</code>, <code>/logo</code>, <code>/landing-page</code></td><td>Browser capture, visual QA, design heuristics, and artifact templates move to Layer 2.</td></tr>
+          <tr><td>Learning</td><td><code>/primer</code>, <code>/book-brief</code>, <code>/learning-path</code>, <code>/framework-finder</code>, <code>/critical-thinking</code>, <code>/magazine</code></td><td>Source trust, reader modeling, extraction ledgers, and quiz/card generation become shared learning modules.</td></tr>
+          <tr><td>Manager work</td><td><code>/interview-guide</code>, <code>/interview-feedback</code>, <code>/one-on-one</code></td><td>People store, rubric schema, scorecard mechanics, and coaching-note generation move to Layer 2.</td></tr>
+          <tr><td>Utilities</td><td><code>/converter</code>, <code>/mac-health</code>, <code>/skill-retro</code>, <code>/to-notion-doc</code></td><td><code>reflect</code> retires in favor of <code>skill-retro</code>; transcript parsing, deterministic conversion, and Notion export helpers become shared engines.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="feature">
+      <h2>5. Feature Orchestrator</h2>
+      <div class="callout purple">
+        <p><strong>Decision proposal:</strong> keep one user-facing front door for product-building and make it <code>/feature</code>. Do not preserve <code>/feature-sdlc</code> as a public command after v3 lands.</p>
+      </div>
+      <p>The current define/build separation is directionally right. v3 should preserve that mental model under the cleaner <code>/feature</code> command. The split should happen behind the scenes, not by forcing users to remember many implementation commands.</p>
+      <h3>Proposed Public Surface</h3>
+      <pre>/feature define &lt;idea|backlog-id&gt; [--tier 1|2|3]
+/feature build [--next|&lt;epic-or-story-id&gt;] [--tier 1|2|3]
+/feature status
+/feature resume
+/feature release-ready</pre>
+      <h3>Internal Modules</h3>
+      <table>
+        <thead><tr><th style="width: 22%">Internal module</th><th>What it owns</th><th style="width: 26%">Current skills involved</th></tr></thead>
+        <tbody>
+          <tr><td>Definition engine</td><td>Problem shaping, requirements, optional ideation, stakeholder/user clarity, backlog epic/story creation.</td><td><code>shape</code>, <code>ideate</code>, <code>requirements</code>, <code>backlog</code></td></tr>
+          <tr><td>Design/spec engine</td><td>Technical spec, architecture decisions, interface contracts, risks, optional spec simulation.</td><td><code>spec</code>, <code>architecture</code>, <code>simulate-spec</code></td></tr>
+          <tr><td>Planning engine</td><td>Executable task graph, sequencing, test strategy, risk controls, owner boundaries.</td><td><code>plan</code>, <code>backlog</code></td></tr>
+          <tr><td>Build engine</td><td>Implementation loop, task evidence, resume state, commit cadence, verification handoff.</td><td><code>build</code>, <code>verify</code></td></tr>
+          <tr><td>Release handoff</td><td>Release readiness, changelog, version bump, tag/push, cleanup.</td><td><code>release</code>, <code>changelog</code></td></tr>
+          <tr><td>Skill-building engine</td><td>Specialized variant for authoring/updating skills.</td><td><code>skill</code> or <code>skill-build</code>; do not route through <code>feature</code> unless the mental model remains clearly separate.</td></tr>
+        </tbody>
+      </table>
+      <p><span class="decision">Recommendation:</span> do not expose <code>/define-feature</code>, <code>/design-feature</code>, <code>/plan-feature</code> as required user commands. They can exist as internal engines, but the daily command should be <code>/feature define</code>, <code>/feature build</code>, <code>/feature status</code>, or <code>/feature resume</code>.</p>
+    </section>
+
+    <section id="tiering">
+      <h2>6. Tiering</h2>
+      <p>The tier system should stay. It is one of the strongest abstractions in the repo because it scales rigor without multiplying commands.</p>
+      <table>
+        <thead><tr><th style="width: 14%">Tier</th><th style="width: 26%">Meaning</th><th>Behavior</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Tier 1</strong></td><td>Lightweight, low-risk, local</td><td>Minimal ceremony, fewer reviewers, local tests/checks, no broad folded phases unless obviously relevant.</td></tr>
+          <tr><td><strong>Tier 2</strong></td><td>Standard product-quality work</td><td>Normal requirements/spec/plan depth, targeted reviewer passes, standard verification, backlog/state updates.</td></tr>
+          <tr><td><strong>Tier 3</strong></td><td>High-risk or release-grade work</td><td>Deep verification, broader review, architecture/spec simulation, integration/browser checks, stricter release readiness.</td></tr>
+        </tbody>
+      </table>
+      <h3>Tiering Should Control Depth, Not Identity</h3>
+      <p>The user should not need to know a different skill name for deep work. They should call the same command with a tier or natural language rigor hint.</p>
+      <pre>/feature define "idea..." --tier 2
+/feature build --next --tier 1
+/feature build 0012 with deep verification</pre>
+      <h3>v3 Tier Contract</h3>
+      <ul>
+        <li>Tier determines reviewer count, folded evaluators, verification breadth, artifact depth, and release gates.</li>
+        <li>Tier does not change the user's next command.</li>
+        <li>Tier defaults should be conservative: Tier 2 for normal feature work, Tier 1 for explicitly lightweight work, Tier 3 for security/data/release/high-blast-radius work.</li>
+        <li>Every skill that honors tiering should cite one shared tier matrix instead of restating tier semantics.</li>
+      </ul>
+    </section>
+
+    <section id="disposition">
+      <h2>7. Skill Disposition</h2>
+      <p>This is the proposed high-level disposition under the updated premise that backwards compatibility is not required. Archive decisions still deserve a deliberate review, but there is no need to keep legacy public aliases solely to protect old invocations.</p>
+
+      <h3>pmos-toolkit</h3>
+      <table>
+        <thead><tr><th style="width: 18%">Skill</th><th style="width: 16%">Disposition</th><th>Rationale</th></tr></thead>
+        <tbody>
+          <tr><td><code>feature-sdlc</code></td><td><span class="tag rename">Rename</span></td><td>Replace with <code>/feature</code>. Retire old public name after the new command lands.</td></tr>
+          <tr><td><code>backlog</code></td><td><span class="tag keep">Keep</span></td><td>Persistent product/work tracker. Central to define/build separation.</td></tr>
+          <tr><td><code>requirements</code>, <code>spec</code>, <code>plan</code></td><td><span class="tag layer2">Layer 2 + direct advanced</span></td><td>Core engines in <code>/feature</code>. Can remain direct for advanced use, but not primary user burden.</td></tr>
+          <tr><td><code>execute</code>, <code>verify</code></td><td><span class="tag rename">Rename/keep</span></td><td>Rename <code>execute</code> to <code>build</code>; keep <code>verify</code> direct and orchestrated.</td></tr>
+          <tr><td><code>complete-dev</code></td><td><span class="tag rename">Rename</span></td><td>Replace with <code>release</code>. Retire the old public name.</td></tr>
+          <tr><td><code>comments</code></td><td><span class="tag rename">Rename/fix</span></td><td>Replace with <code>artifact-comments</code> and fix apply-vs-annotate truthfulness.</td></tr>
+          <tr><td><code>artifact</code>, <code>artifact-critique</code>, <code>polish</code>, <code>research</code>, <code>summary-tldr</code></td><td><span class="tag keep">Keep</span></td><td>Useful general authoring/review utilities outside the feature pipeline.</td></tr>
+          <tr><td><code>diagram</code>, <code>wireframes</code>, <code>prototype</code>, <code>landing-page</code>, <code>logo</code></td><td><span class="tag keep">Keep</span></td><td>Distinct builder utilities. Should share browser/visual verification engines.</td></tr>
+          <tr><td><code>readme</code>, <code>architecture</code>, <code>design-crit</code></td><td><span class="tag keep">Keep</span></td><td>Standalone review skills with real utility.</td></tr>
+          <tr><td><code>survey-design</code>, <code>survey-analyse</code></td><td><span class="tag keep">Keep</span></td><td>Strong PM/research utilities. Share source/stat/report engines.</td></tr>
+          <tr><td><code>wiki</code>, <code>mytasks</code></td><td><span class="tag keep">Keep/productize</span></td><td>Large products. Could later move plugins, but not archive.</td></tr>
+          <tr><td><code>people</code>, <code>product-context</code></td><td><span class="tag layer2">Layer 2</span></td><td>Mostly shared data substrates. Keep direct access if user uses them, but treat as infrastructure.</td></tr>
+          <tr><td><code>msf-req</code>, <code>msf-wf</code>, <code>creativity</code>, <code>ripple-effects</code>, <code>simulate-spec</code></td><td><span class="tag layer2">Layer 2 evaluators/lenses</span></td><td>Valuable methods, but better invoked by definition/design/review skills than remembered as primary commands.</td></tr>
+          <tr><td><code>grill</code></td><td><span class="tag layer2">Layer 2 or rename</span></td><td>Fold into a shared <code>stress-test</code> engine unless you want one direct command for adversarial questioning.</td></tr>
+          <tr><td><code>ideate</code>, <code>shape</code>, <code>wayrttd</code></td><td><span class="tag keep">Keep</span></td><td>Good lightweight thinking front doors.</td></tr>
+          <tr><td><code>session-log</code></td><td><span class="tag archive">Archive</span></td><td>Absorb into <code>skill-retro</code> and shared learnings capture.</td></tr>
+          <tr><td><code>changelog</code></td><td><span class="tag layer2">Layer 2 + direct utility</span></td><td>Mostly release engine support, but useful direct command.</td></tr>
+          <tr><td><code>morning-brief</code></td><td><span class="tag keep">Keep if connector-backed</span></td><td>High-value product if connectors exist. Otherwise postpone.</td></tr>
+          <tr><td><code>explainer-video</code></td><td><span class="tag keep">Keep</span></td><td>Distinct output modality.</td></tr>
+          <tr><td><code>skill-sdlc</code></td><td><span class="tag rename">Rename/keep</span></td><td>Skill creation deserves a memorable entrypoint, but use a cleaner name such as <code>skill</code> or <code>skill-build</code>.</td></tr>
+          <tr><td><code>prototype-sdlc</code></td><td><span class="tag archive">Archive</span></td><td>Redundant if <code>/feature</code> supports prototype route cleanly.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Other Plugins</h3>
+      <table>
+        <thead><tr><th style="width: 18%">Plugin</th><th>Disposition</th></tr></thead>
+        <tbody>
+          <tr><td><code>pmos-learnkit</code></td><td>Keep <code>primer</code>, <code>book-summary</code>/<code>book-brief</code>, <code>learning-path</code>, <code>framework-finder</code>, <code>critical-thinking</code>. Productize <code>magazine</code> or pause it. Keep <code>playbook</code> only if distinct from primer/readme-style docs.</td></tr>
+          <tr><td><code>pmos-managerkit</code></td><td>Keep all three: <code>interview-feedback</code>, <code>interview-guide</code>, <code>one-on-one</code>. They form a coherent manager-work cluster.</td></tr>
+          <tr><td><code>pmos-utilities</code></td><td>Keep <code>converter</code>, <code>mac-health</code>, and <code>to-notion-doc</code>. Rename <code>reflect</code> to <code>skill-retro</code>. Consider moving connector-heavy utilities to a future connector plugin.</td></tr>
+          <tr><td><code>pmos-gamekit</code></td><td>Keep all games if gamekit remains a plugin. Make each skill a thin wrapper over shared launcher; move quality to shared game tests and browser smoke.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="layer2">
+      <h2>8. Layer 2 Design</h2>
+      <p>Layer 2 should be a deliberate shared-engine layer, not a loose collection of copied markdown files. Each module should have a human contract, scripts, tests, schemas/templates where relevant, and a clear reference pattern.</p>
+      <pre>plugins/&lt;plugin&gt;/skills/_shared/
+  runtime/
+  artifact-authoring/
+  source-trust/
+  review/
+  research/
+  ux-evaluation/
+  thinking-lenses/
+  tracker/
+  browser-verification/
+  connector/
+  release/</pre>
+
+      <table>
+        <thead><tr><th style="width: 20%">Layer 2 module</th><th>Owns</th><th style="width: 28%">Used by</th></tr></thead>
+        <tbody>
+          <tr><td><code>runtime</code></td><td>Non-interactive behavior, prompt adapter, dispatch adapter, progress tracking, plugin-aware status lines, transcript location.</td><td>All skills.</td></tr>
+          <tr><td><code>artifact-authoring</code></td><td>HTML template, sections JSON, comments overlay, asset copy, atomic writes, apply-edit contract.</td><td>Requirements, spec, plan, primer, research, surveys, critiques, wireframes.</td></tr>
+          <tr><td><code>source-trust</code></td><td>Source tiers, fetched-this-run rule, citation ledger, quote grounding, thin-source degradation.</td><td>Research, primer, book-summary, summary-tldr, magazine, artifact-critique.</td></tr>
+          <tr><td><code>review</code></td><td>Reviewer protocol, finding severities, PASS/PASS-WITH-GAPS/FAIL, quote validation, advisory vs hard gates.</td><td>Verify, artifact-critique, readme, polish, architecture, survey-design.</td></tr>
+          <tr><td><code>ux-evaluation</code></td><td>MSF, PSYCH, persona/journey alignment, friction scoring.</td><td>Design-crit, wireframes, prototype, requirements, landing-page.</td></tr>
+          <tr><td><code>thinking-lenses</code></td><td>Grill, creativity, ripple effects, spec simulation, premortem, assumption mapping.</td><td>Feature define, spec, strategy, ideate, review skills.</td></tr>
+          <tr><td><code>tracker</code></td><td>IDs, CRUD, locks, status transitions, archive rules, web UI patterns.</td><td>Backlog, mytasks, people, one-on-one.</td></tr>
+          <tr><td><code>browser-verification</code></td><td>Localhost harness, screenshots, console errors, nonblank checks, responsive checks.</td><td>Prototype, landing-page, wireframes, gamekit, converter, wiki.</td></tr>
+          <tr><td><code>connector</code></td><td>Connector discovery, tool availability, auth/degradation paths, external-write confirmation.</td><td>Notion, future Gmail/Drive/Slack/Calendar skills, wiki, morning-brief.</td></tr>
+          <tr><td><code>release</code></td><td>Manifest versioning, changelog, tag convention, marketplace checks, remote push policy.</td><td>Release/ship, plugin release workflows.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>How Skills Reference Layer 2</h3>
+      <p>A v3 skill cites the shared contract and states only skill-specific deltas.</p>
+      <pre>Use `_shared/source-trust/README.md` for source admission, citation ledger,
+and thin-source degradation. Do not restate those rules here.
+
+Delta for /book-brief:
+- source identity must match the resolved book title + author
+- social-only takeaways must be flagged or dropped</pre>
+      <p>This avoids the current failure mode where every skill carries a slightly different copy of the same policy.</p>
+    </section>
+
+    <section id="workflows">
+      <h2>9. High-Level v3 Workflows</h2>
+      <table>
+        <thead><tr><th style="width: 18%">Workflow type</th><th>v3 shape</th><th style="width: 26%">Examples</th></tr></thead>
+        <tbody>
+          <tr><td>Product-building</td><td>Intake → route → apply tier → run module → update backlog/state → tell user next action.</td><td><code>/feature</code></td></tr>
+          <tr><td>Definition/thinking</td><td>Clarify goal → identify user/problem/outcome → explore alternatives → pressure-test → emit artifact/backlog item.</td><td><code>shape</code>, <code>ideate</code>, requirements engine.</td></tr>
+          <tr><td>Build artifact</td><td>Resolve input/target → choose design/plan → build → deterministic verify → visual/manual review → emit.</td><td>Prototype, wireframes, landing-page, diagram, logo.</td></tr>
+          <tr><td>Review/critique</td><td>Resolve target → gather context → deterministic checks → judgment review → hard/advisory split → fix list or approved edits.</td><td>Verify, architecture, readme, design-crit, polish.</td></tr>
+          <tr><td>Research/learning</td><td>Resolve topic/source → discover/ingest → verify source trust → extract claims → synthesize for audience → emit with ledger.</td><td>Research, primer, book-brief, summary-tldr.</td></tr>
+          <tr><td>Manager work</td><td>Resolve person/role/context → load private store/corpus → generate prep/scorecard/notes → validate → write local record.</td><td>Interview feedback, interview guide, one-on-one.</td></tr>
+          <tr><td>Utility</td><td>Resolve input/environment → run deterministic script/UI → confirm external or destructive write → verify output.</td><td>Converter, mac-health, to-notion-doc.</td></tr>
+          <tr><td>Game</td><td>Check Node → launch game HTML via shared server → print URL → no prompts, no generation, no persistence.</td><td>All gamekit skills.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="new-skills">
+      <h2>10. Missing Skills and Opportunities</h2>
+      <p>The earlier instinct to add many product-management skills is too broad. v3 should reduce the command surface. Most product-leader outputs are artifact types, not skills. The default should be: add a template to <code>/artifact</code> first; extract a Layer 2 reasoning module when multiple templates need the same method; create a standalone skill only when the workflow has distinct intake, state, integrations, validation, or repeated operating cadence.</p>
+      <h3>Decision Rule</h3>
+      <table>
+        <thead><tr><th style="width: 22%">If the difference is...</th><th style="width: 24%">Put it in...</th><th>Examples</th></tr></thead>
+        <tbody>
+          <tr><td>Mostly output structure</td><td><code>/artifact</code> template</td><td>Roadmap, strategy doc, opportunity-solution tree, exec brief, launch plan, experiment design, metric tree, pricing/packaging brief.</td></tr>
+          <tr><td>A reusable reasoning method</td><td>Layer 2 module</td><td>Prioritization model, opportunity mapping, metric decomposition, decision framing, evidence ledger, experiment-readiness checks.</td></tr>
+          <tr><td>A distinct operational workflow</td><td>Standalone skill</td><td>Messy-source ingestion, multi-session capture, backlog updates, contact/person context, connector-heavy workflows, deterministic import/export, or recurring maintenance.</td></tr>
+        </tbody>
+      </table>
+      <h3>Recommended Additions</h3>
+      <table>
+        <thead><tr><th style="width: 22%">Candidate</th><th style="width: 18%">Form</th><th>Rationale</th></tr></thead>
+        <tbody>
+          <tr><td><code>artifact</code> template pack</td><td>Template expansion</td><td>Add templates for roadmap, strategy doc, opportunity-solution tree, exec brief, launch plan, experiment design, metric tree, market map, pricing/packaging, portfolio review, and decision log. These should not be separate commands unless later evidence proves they need unique workflow machinery.</td></tr>
+          <tr><td><code>product-thinking</code></td><td>Layer 2 module</td><td>Shared methods for prioritization, opportunity mapping, metric decomposition, decision framing, assumption/risk mapping, and strategy tradeoff analysis. Used by <code>/artifact</code>, <code>/feature define</code>, <code>/artifact-critique</code>, and <code>/research</code>.</td></tr>
+          <tr><td><code>customer-interview</code></td><td>Maybe standalone</td><td>Worth considering only if it manages a real workflow: interview guide generation, note ingestion, synthesis across sessions, person/product-context links, and backlog opportunity updates. Otherwise start as an <code>/artifact</code> template.</td></tr>
+          <tr><td><code>feedback-synthesis</code></td><td>Maybe standalone</td><td>More likely to justify a skill because it ingests messy sources, clusters evidence, tracks confidence, and updates backlog/product-context. Still start narrowly and extract only if repeated use proves the need.</td></tr>
+          <tr><td><code>skill-inventory</code></td><td>Standalone maintainer skill</td><td>Classify skills as primary, renamed, Layer 2, or archive candidate; prerequisite for a large v3 migration. This is a workflow over the marketplace, not a document template.</td></tr>
+          <tr><td><code>skill-template-v3</code></td><td>Standalone or creator mode</td><td>Scaffold a v3-compliant skill with runtime, Layer 2 references, tests, and metadata. This may be a mode of the skill-authoring workflow rather than a public command.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="migration">
+      <h2>11. Migration Plan</h2>
+      <h3>Phase 0: Align on Product Architecture</h3>
+      <ul>
+        <li>Agree on Layer 1 / Layer 2 / Layer 3 boundaries.</li>
+        <li>Agree on clean v3 command names and which legacy public names to retire.</li>
+        <li>Agree on tier semantics and default tier behavior.</li>
+        <li>Classify every skill as primary, Layer 2, renamed, or archived.</li>
+      </ul>
+      <h3>Phase 1: Build v3 Infrastructure</h3>
+      <ul>
+        <li>Create plugin-aware runtime contract.</li>
+        <li>Add relative citation resolver lint.</li>
+        <li>Create Layer 2 module skeletons and reference pattern.</li>
+        <li>Add plugin-level CI matrix for existing tests.</li>
+      </ul>
+      <h3>Phase 2: Fix Trust and Drift</h3>
+      <ul>
+        <li>Fix current <code>/comments</code> apply-vs-annotate semantics while renaming the public workflow to <code>/artifact-comments</code>.</li>
+        <li>Fix non-toolkit <code>pmos-toolkit:</code> status lines.</li>
+        <li>Fix stale managerkit paths and dangling shared citations.</li>
+        <li>Script <code>/reflect</code> transcript parsing and <code>/book-summary</code> source ledger checks.</li>
+      </ul>
+      <h3>Phase 3: Prove v3 on Small Skills</h3>
+      <ul>
+        <li>Rewrite gamekit launchers, <code>changelog</code>, <code>wayrttd</code>, and the first set of renamed thin commands.</li>
+        <li>Use these as v3 exemplars before rewriting core pipeline skills.</li>
+      </ul>
+      <h3>Phase 4: Rewrite Core Workflow</h3>
+      <ul>
+        <li>Introduce <code>/feature</code> as the new front door.</li>
+        <li>Refactor definition, planning, build, verify, and release modules behind it.</li>
+        <li>Retire <code>/feature-sdlc</code> after <code>/feature define</code> and <code>/feature build</code> cover the workflow.</li>
+      </ul>
+      <h3>Phase 5: Productize Remaining Skills</h3>
+      <ul>
+        <li>Learning/research skills.</li>
+        <li>Visual/product-builder skills.</li>
+        <li>Managerkit skills.</li>
+        <li>Connector-backed utilities.</li>
+      </ul>
+    </section>
+
+    <section id="decisions">
+      <h2>12. Decisions to Align Before Implementation</h2>
+      <table>
+        <thead><tr><th style="width: 32%">Decision</th><th>Recommended answer</th><th style="width: 28%">Reason</th></tr></thead>
+        <tbody>
+          <tr><td>Should <code>/feature-sdlc</code> be renamed?</td><td><span class="decision">Yes: replace with <code>/feature</code>.</span></td><td>Backwards compatibility is not required; remove process jargon cleanly.</td></tr>
+          <tr><td>Should define/build remain the main verbs?</td><td><span class="decision">Yes.</span></td><td>Your current split is good and maps cleanly to backlog.</td></tr>
+          <tr><td>Should requirements/spec/plan remain user-invocable?</td><td><span class="decision">Yes, but advanced/direct.</span></td><td>Useful for power users, but not the main path users must remember.</td></tr>
+          <tr><td>Should tiering stay?</td><td><span class="decision">Yes.</span></td><td>It is the right rigor dial. It should control depth, not command identity.</td></tr>
+          <tr><td>Should Layer 2 live per-plugin or as shared core?</td><td><span class="decision">Short term per-plugin shared folders; long term <code>pmos-core</code>.</span></td><td>Per-plugin is easier now; shared core reduces drift later.</td></tr>
+          <tr><td>Should archive candidates be deleted now?</td><td><span class="decision">Not blindly, but yes after classification.</span></td><td>Because this is personal-use only, stale aliases and redundant public commands should not be preserved once replacement paths are clear.</td></tr>
+          <tr><td>Should new PM/product-leader skills be added during v3?</td><td><span class="decision">After infrastructure and core workflow.</span></td><td>New skills should be built on v3 substrate, not current patterns.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>External Pattern Notes</h2>
+      <p>The direction above is consistent with recent public analysis of agent skills as engineered artifacts: skills work best when they use progressive disclosure, separate skill instructions from reusable tools/resources, and manage trust/lifecycle explicitly. Maintenance studies also show that reused skills tend to accumulate additive inline local knowledge, which is exactly the drift v3 should avoid.</p>
+      <ul>
+        <li><a href="https://arxiv.org/abs/2602.12430">Agent Skills for Large Language Models: Architecture, Acquisition, Security, and the Path Forward</a></li>
+        <li><a href="https://arxiv.org/abs/2607.00911">From Registry to Repository: How AI Agent Skills Are Written, Adapted, and Maintained</a></li>
+        <li><a href="https://arxiv.org/abs/2602.08004">Agent Skills: A Data-Driven Analysis of Claude Skills for Extending Large Language Model Functionality</a></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Bottom Line</h2>
+      <p>The v3 refactor should preserve the workflow you already use: backlog-backed definition and build, tiered rigor, and one clear front door. The change is both naming and internal architecture: make <code>/feature</code> the product-builder command, retire legacy process-heavy names, move repeated methods into Layer 2, keep deterministic work script-backed, and make direct engine commands optional rather than required memory.</p>
+      <p>The first implementation milestone should not rewrite a big skill. It should establish the runtime/Layer 2 standard and prove it on small skills. Then use that standard to refactor the core product-building workflow.</p>
+    </section>
+  </main>
+</body>
+</html>

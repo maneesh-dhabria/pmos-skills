@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PMOS Skills Repo Audit - 2026-07-11</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #171717;
+      --muted: #5a5f66;
+      --line: #d9dde3;
+      --soft: #f6f7f9;
+      --warn: #8a4b00;
+      --bad: #a71d2a;
+      --good: #146c43;
+      --accent: #2454a6;
+      --accent-soft: #eaf1ff;
+      --bad-soft: #fff0f1;
+      --warn-soft: #fff7e8;
+      --good-soft: #edf8f2;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: white;
+    }
+    header {
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, #f9fafc 0%, #fff 100%);
+    }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 28px; }
+    h1 { margin: 0 0 8px; font-size: 34px; line-height: 1.15; letter-spacing: 0; }
+    h2 { margin: 42px 0 12px; font-size: 24px; line-height: 1.25; }
+    h3 { margin: 26px 0 8px; font-size: 18px; }
+    h4 { margin: 18px 0 8px; font-size: 15px; text-transform: uppercase; color: var(--muted); letter-spacing: .04em; }
+    p { margin: 0 0 12px; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code {
+      font: 13px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #f0f2f5;
+      border: 1px solid #e1e4e8;
+      border-radius: 4px;
+      padding: 1px 4px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 24px;
+      table-layout: fixed;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 9px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--soft); font-weight: 650; }
+    ul, ol { margin: 8px 0 16px 22px; padding: 0; }
+    li { margin: 5px 0; }
+    .lede {
+      max-width: 920px;
+      font-size: 17px;
+      color: #2e3338;
+    }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+      color: var(--muted);
+    }
+    .pill {
+      display: inline-block;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 4px 10px;
+      background: #fff;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin: 18px 0 10px;
+    }
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      background: #fff;
+    }
+    .stat strong { display: block; font-size: 24px; line-height: 1.1; }
+    .stat span { color: var(--muted); font-size: 13px; }
+    .callout {
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      padding: 14px 16px;
+      background: var(--accent-soft);
+      margin: 16px 0;
+    }
+    .critical { border-left-color: var(--bad); background: var(--bad-soft); }
+    .warn { border-left-color: var(--warn); background: var(--warn-soft); }
+    .good { border-left-color: var(--good); background: var(--good-soft); }
+    .tag {
+      display: inline-block;
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-right: 6px;
+    }
+    .p0 { background: var(--bad-soft); color: var(--bad); border: 1px solid #f2b7bd; }
+    .p1 { background: var(--warn-soft); color: var(--warn); border: 1px solid #f0cf94; }
+    .p2 { background: var(--accent-soft); color: var(--accent); border: 1px solid #bfd2f7; }
+    .pass { color: var(--good); font-weight: 650; }
+    .fail { color: var(--bad); font-weight: 650; }
+    .grade { font-weight: 750; }
+    .small { font-size: 13px; color: var(--muted); }
+    .evidence { color: var(--muted); font-size: 13px; }
+    @media (max-width: 860px) {
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .wrap { padding: 20px; }
+      table { table-layout: auto; }
+    }
+    @media (max-width: 560px) {
+      .grid { grid-template-columns: 1fr; }
+      h1 { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>PMOS Skills Repo Audit</h1>
+      <p class="lede">A dispassionate review of the five-plugin skills marketplace: how the skills are engineered, where the architecture is holding, and where generated instruction accretion is now creating correctness, portability, and maintenance risk.</p>
+      <div class="meta">
+        <span class="pill">Date: 2026-07-11</span>
+        <span class="pill">Scope: 64 user-facing skills across 5 plugins</span>
+        <span class="pill">Method: repo-audit frame + local checks + parallel review passes</span>
+        <span class="pill">Output: recommendations only; no source fixes applied</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section>
+      <h2>Verdict</h2>
+      <div class="callout critical">
+        <p><strong>The repo is much healthier than the June audit mechanically, but the marketplace is still overfit to the history of how it was generated.</strong> The deterministic hygiene layer is now strong: flag docs and phase refs pass repo-wide, non-interactive blocks are byte-stable where supported, core manager/game/converter tests mostly pass, and the plugin manifests are coherent. The weak layer is the human-facing skill contract: too much toolkit-specific boilerplate leaked into other plugins; several skills encode parsing, aggregation, or trust gates in prose instead of scripts; and at least one high-risk contract says comments are "applied" when many shims only insert annotation comments.</p>
+      </div>
+      <p>The biggest architectural mistake is no longer simple verbosity. It is <strong>contract drift at boundaries</strong>: prose claims, copied runtime blocks, shared-substrate citations, and generated feature-design language have spread faster than the checks that make those claims true.</p>
+
+      <div class="grid">
+        <div class="stat"><strong>64</strong><span>user-facing skills scanned by hygiene lints</span></div>
+        <div class="stat"><strong>16.6k</strong><span>SKILL.md lines excluding fixtures/system skills</span></div>
+        <div class="stat"><strong>5</strong><span>plugins registered in both marketplaces</span></div>
+        <div class="stat"><strong>0</strong><span>repo source files edited by this audit</span></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>What Is Working</h2>
+      <ul>
+        <li><strong>The post-June hygiene campaign paid off.</strong> `lint-flags-vs-hints.sh` and `lint-phase-refs.sh` passed across 64 skills. The old class of dead flags and ghost phase references is much less visible.</li>
+        <li><strong>Several substrates are genuinely good engineering.</strong> Gamekit's pure engine globals and Node selftests, toolkit's HTML authoring/comments contracts, learnkit's topic-research substrate, managerkit's scorecard validators, and utilities' converter parsers are the right direction.</li>
+        <li><strong>The plugin split mostly makes product sense.</strong> Toolkit = feature delivery, learnkit = learning artifacts, gamekit = browser games, managerkit = manager work, utilities = environment/document utilities. The charters are understandable.</li>
+        <li><strong>Tests are strong where they exist.</strong> Seven game engine selftests passed. Managerkit `interview-feedback` and `one-on-one` suites passed. Converter's pure conversion suites passed. Comments coverage passed.</li>
+        <li><strong>The repo is better at deterministic gates than most skill collections.</strong> The best skills use scripts for arithmetic, schema checks, citations, and parsing, then leave judgment to the model.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Top Findings</h2>
+
+      <h3><span class="tag p0">P0</span>1. `/comments resolve` can mark annotation-only shims as successful applied edits</h3>
+      <p>`/comments` tells the operator that Accept "applies the edit to disk" and marks the thread resolved. Many per-skill `apply-edit-at-anchor.js` shims return `success: true` with an `applied_artifact`, but the artifact mutation is only an HTML annotation comment inserted before the anchor, not the requested content edit.</p>
+      <p class="evidence">Evidence: `comments/SKILL.md` Phase 3/4 lines 103-119; annotation-only shims in `requirements`, `plan`, `artifact`, `spec`, `polish`, `shape`, `wireframes`, `diagram`, `prototype`, `survey-design`, `survey-analyse`, `architecture`, `readme`, `ideate`, `wayrttd`.</p>
+      <p><strong>Why it matters:</strong> this is a trust bug. A reviewer can believe a stakeholder comment was resolved while the only actual artifact change is a hidden implementation note. That is worse than a visible failure.</p>
+      <p><strong>Recommendation:</strong> either make shims perform real text/HTML edits, or change the contract and UI language from "applied/resolved" to "annotated/deferred" until real edits exist. Add a test that fails when `success: true` only adds `<!-- comment-resolver: ... -->` without modifying visible content.</p>
+
+      <h3><span class="tag p0">P0</span>2. Non-toolkit plugins inherit a hard-coded `pmos-toolkit:` runtime identity</h3>
+      <p>The canonical non-interactive block prints `pmos-toolkit: /&lt;skill&gt; finished...` inside learnkit, managerkit, utilities, and gamekit skills. The lint enforces byte identity, so the wrong identity is mechanically preserved.</p>
+      <p class="evidence">Evidence: `book-summary/SKILL.md:77`, `to-notion-doc/SKILL.md:66`, `interview-feedback/SKILL.md:84`, `snake/SKILL.md:71`, and similar matches across non-toolkit plugins.</p>
+      <p><strong>Recommendation:</strong> make the canonical block parameterized (`{{plugin_name}}`) or define the line as `pmos: /&lt;plugin&gt;:&lt;skill&gt; finished...`. Then update the lint to compare the invariant body while allowing the plugin token.</p>
+
+      <h3><span class="tag p0">P0</span>3. Some skills cite shared files or authoring guides that do not exist at that relative path</h3>
+      <p>Managerkit's `interview-feedback` and `interview-guide` cite `../feature-sdlc/reference/skill-patterns.md`, which would resolve inside managerkit and does not exist. Gamekit, managerkit, and utilities cite `_shared/non-interactive.md` through the copied block, but those plugins do not ship that local file.</p>
+      <p class="evidence">Evidence: `interview-feedback/SKILL.md:19`, `interview-guide/SKILL.md:20`; correct contrast in `one-on-one/SKILL.md:23`; dangling `_shared/non-interactive.md` citations in non-toolkit plugins.</p>
+      <p><strong>Recommendation:</strong> add a `lint-shared-citations.sh` that resolves every relative markdown/code citation in SKILL.md bodies. Fix the managerkit paths immediately. Either ship local `non-interactive.md` copies in every plugin that cites it, or change the citation to an explicit canonical toolkit path.</p>
+
+      <h3><span class="tag p1">P1</span>4. `/reflect` is a prose state machine with no script/test backing</h3>
+      <p>`/reflect` defines transcript discovery, multi-session selectors, candidate caps, subagent concurrency, timeout behavior, aggregation hashes, and output shaping entirely in SKILL.md prose. Its folder contains only `SKILL.md`.</p>
+      <p class="evidence">Evidence: `reflect/SKILL.md` lines 29-50, 82-122, 159-194; no scripts/tests under `plugins/pmos-utilities/skills/reflect/`.</p>
+      <p><strong>Recommendation:</strong> extract transcript discovery, selection, and aggregation into zero-dependency scripts with fixtures for Claude personal/work homes and Codex homes. Keep the skill body focused on interpretation and recommendations.</p>
+
+      <h3><span class="tag p1">P1</span>5. `/book-summary` has trust-critical gates but no local scripts or tests</h3>
+      <p>The skill requires book identity resolution, fetched-this-run source verification, source ledger integrity, reviewer quote validation, and atomic trio writes. Unlike `primer`, `frameworks`, and `magazine`, it has no local scripts/tests; only reference docs.</p>
+      <p class="evidence">Evidence: `book-summary/SKILL.md` lines 80-128; folder contains `SKILL.md` and `reference/*` only.</p>
+      <p><strong>Recommendation:</strong> add structure tests and deterministic checks for source-ledger membership, citation-to-ledger consistency, `sections.json` parity, and "no emitted source unless fetched/verified". Mirror the stronger learnkit substrate skills.</p>
+
+      <h3><span class="tag p1">P1</span>6. CI does not cover all plugin-specific test assets</h3>
+      <p>Repo hygiene CI is broad, but gamekit engine tests, converter tests, managerkit tests, and many learnkit substrate tests are not obviously wired into plugin-level CI. `audit-recommended.yml` only triggers on toolkit paths, even though the script now scans supported skills across plugins.</p>
+      <p class="evidence">Evidence: `.github/workflows/audit-recommended.yml` paths only include `plugins/pmos-toolkit/...`; `.github/workflows/skill-hygiene.yml` is broader but does not run plugin functional suites.</p>
+      <p><strong>Recommendation:</strong> add one workflow per plugin, or a matrix workflow keyed by plugin. Include localhost tests in a clearly named job so sandbox failures are not confused with code failures.</p>
+
+      <h3><span class="tag p1">P1</span>7. Marketplace packaging is healthy, but repo instructions still mention stale `.Codex-plugin` paths</h3>
+      <p>The current repo has `.claude-plugin` and `.codex-plugin` marketplace directories, not `.Codex-plugin`. The provided repo instructions still describe `.Codex-plugin` as canonical. That mismatch creates false audit findings and can mislead future release work.</p>
+      <p class="evidence">Evidence: filesystem inventory shows `./.claude-plugin` and `./.codex-plugin`; no `./.Codex-plugin` directory.</p>
+      <p><strong>Recommendation:</strong> update repo invariants to current casing and naming. If backwards compatibility with `.Codex-plugin` is intentionally retired, say that explicitly.</p>
+
+      <h3><span class="tag p2">P2</span>8. Some toolkit orchestrators remain too broad for a single skill body</h3>
+      <p>`feature-sdlc`, `complete-dev`, `verify`, `plan`, `execute`, `artifact`, and `mytasks` still dominate the line-count table. This is partly earned complexity, but `feature-sdlc` in particular now carries classic feature delivery, skill creation, prototype mode, define/build backlog loops, worktree lifecycle, skill-eval, and release handoff.</p>
+      <p><strong>Recommendation:</strong> do not split just to shrink. Split where the user mental model is already separate: skill authoring, prototype discovery, and backlog define/build should become thin entrypoints or reference-backed modules under a smaller orchestrator.</p>
+
+      <h3><span class="tag p2">P2</span>9. Gamekit has strong engine tests but an incomplete product-level contract</h3>
+      <p>The engine tests passed, and the shared launcher passed once localhost binding was allowed. But two game bundles include outbound GitHub links despite "offline/no network" positioning, browser rendering is not smoke-tested, and gamekit tests are not wired into CI.</p>
+      <p><strong>Recommendation:</strong> add a static scan for outbound `href/src/action` URLs and active network APIs. Add browser smoke tests that load each game, assert no console errors, and check a visible primary UI. Keep the current engine tests.</p>
+    </section>
+
+    <section>
+      <h2>Per-Plugin Assessment</h2>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 16%">Plugin</th>
+            <th style="width: 12%">Grade</th>
+            <th>Assessment</th>
+            <th>Most important next fix</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>pmos-toolkit</code></td>
+            <td class="grade">B-</td>
+            <td>Mechanically much healthier than before. Still the center of complexity and the source of most cross-skill contracts. The comments resolver contract is the standout correctness issue.</td>
+            <td>Fix annotation-only comment shims or downgrade the resolver semantics.</td>
+          </tr>
+          <tr>
+            <td><code>pmos-learnkit</code></td>
+            <td class="grade">B</td>
+            <td>Good substrate direction and strong tests in several skills. Newer skills are clearer. `book-summary` is under-instrumented relative to its trust claims.</td>
+            <td>Add deterministic ledger/citation tests for `book-summary`.</td>
+          </tr>
+          <tr>
+            <td><code>pmos-managerkit</code></td>
+            <td class="grade">B</td>
+            <td>Small, coherent plugin with useful tests. It has simple path drift in two skills and copied toolkit identity in the non-interactive block.</td>
+            <td>Fix stale `skill-patterns.md` paths; add citation lint coverage.</td>
+          </tr>
+          <tr>
+            <td><code>pmos-utilities</code></td>
+            <td class="grade">C+</td>
+            <td>Converter is well tested. `reflect` is too much prose machinery without scripts. `to-notion-doc` has good deterministic parsing but an underspecified live connector seam.</td>
+            <td>Script/test `reflect`; clarify Notion connector discovery.</td>
+          </tr>
+          <tr>
+            <td><code>pmos-gamekit</code></td>
+            <td class="grade">B</td>
+            <td>Surprisingly strong engine-level engineering. Needs CI wiring, browser smoke, and a stricter offline/no-network contract.</td>
+            <td>Add plugin CI and static/browser smoke checks.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Verification Evidence</h2>
+      <table>
+        <thead>
+          <tr><th>Check</th><th>Result</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>bash tools/lint-flags-vs-hints.sh</code></td><td class="pass">PASS</td><td>64 skills scanned; argument hints and body flag docs in sync.</td></tr>
+          <tr><td><code>bash tools/lint-phase-refs.sh</code></td><td class="pass">PASS</td><td>64 skills scanned; phase references resolve.</td></tr>
+          <tr><td><code>bash plugins/pmos-toolkit/tools/lint-non-interactive-inline.sh</code></td><td class="pass">PASS</td><td>60 supported skills match canonical. This does not catch the wrong plugin identity string.</td></tr>
+          <tr><td><code>bash plugins/pmos-toolkit/tools/audit-recommended.sh</code></td><td class="pass">PASS</td><td>43 prompt-bearing toolkit skills marked. CI trigger is too narrow for all plugins.</td></tr>
+          <tr><td><code>bash scripts/check-comments-coverage.sh</code></td><td class="pass">PASS</td><td>14 contract tests, 15 emit references, resolver integration, anchor calibration present.</td></tr>
+          <tr><td>Gamekit seven engine selftests</td><td class="pass">PASS</td><td>2048, Flappy Bird, Poker, Snake, Solitaire, Sudoku, Tetris all passed.</td></tr>
+          <tr><td>Game launcher localhost selftest</td><td class="pass">PASS with loopback permission</td><td>Failed in sandbox with `EPERM`; passed 5/5 when allowed to bind localhost.</td></tr>
+          <tr><td>Converter full test runner</td><td class="pass">PASS with loopback permission</td><td>13/14 suites passed in sandbox; server test failed due localhost bind. Server test passed 8/8 with loopback permission.</td></tr>
+          <tr><td>Managerkit targeted suites</td><td class="pass">PASS</td><td>`interview-feedback` and `one-on-one` suites passed. `interview-guide` has a validator script but no wrapper suite in the run.</td></tr>
+          <tr><td>Learnkit topic-research agnostic check</td><td class="pass">PASS</td><td>Shared topic substrate has no primer/learn-list tokens.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Fix Program</h2>
+      <h3>P0 - Correctness and trust</h3>
+      <ol>
+        <li>Resolve the `/comments` apply-vs-annotate contract. This is the highest leverage fix because it affects every HTML artifact review loop.</li>
+        <li>Parameterize or replace the `pmos-toolkit:` non-interactive summary line across plugins, then update the lint.</li>
+        <li>Fix managerkit stale `skill-patterns.md` paths and add a relative-citation resolver lint.</li>
+        <li>Decide how non-toolkit plugins should cite `non-interactive.md`: local copy, canonical toolkit path, or parameterized shared package.</li>
+      </ol>
+
+      <h3>P1 - Mechanical coverage</h3>
+      <ol>
+        <li>Add plugin CI matrix jobs for gamekit, managerkit, learnkit, utilities, and toolkit functional suites.</li>
+        <li>Widen `audit-recommended.yml` path triggers to all plugin skill files and shared non-interactive surfaces.</li>
+        <li>Add browser smoke checks for gamekit and server-backed UI tools.</li>
+        <li>Add `/book-summary` deterministic tests for ledger, citations, sections, and source verification claims.</li>
+        <li>Extract `/reflect` transcript parsing and aggregation into scripts with fixtures.</li>
+      </ol>
+
+      <h3>P2 - Design and product polish</h3>
+      <ol>
+        <li>Split or thin the broadest orchestrators only where the user-facing product boundary is real: skill authoring, prototype discovery, backlog define/build.</li>
+        <li>Move remaining judgment-heavy "must" gates into PASS-WITH-GAPS where deterministic failure is not present.</li>
+        <li>Make shared substrates plugin-aware instead of maintaining intentionally divergent copies, especially HTML authoring renderer defaults.</li>
+        <li>Clarify connector seams for Notion, future Drive/Slack/Gmail-style integrations, and Codex transcript access.</li>
+        <li>Remove outbound links from game bundles or explicitly loosen the "offline/no network" claim.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>Bottom Line</h2>
+      <p>The repo is not a throwaway pile of generated skills. It has a real architecture, and the deterministic substrate work is paying off. But the marketplace is now large enough that copied prose is a liability. The next maturity step is to stop treating SKILL.md as the place where every contract lives. Put parseable state, identity, citation, test, and routing contracts in scripts or resolvable shared files; leave SKILL.md for intent, branching logic, and the few invariants the model must carry in working memory.</p>
+      <p>In practical order: fix comments resolver truthfulness, fix copied plugin identity/path drift, wire plugin tests into CI, then thin the large orchestrators.</p>
+    </section>
+  </main>
+</body>
+</html>

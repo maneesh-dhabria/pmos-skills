@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PMOS Skills v3 Refactor Proposal</title>
+  <style>
+    :root {
+      --ink: #171717;
+      --muted: #5d6470;
+      --line: #d9dde4;
+      --soft: #f7f8fa;
+      --blue: #234f9c;
+      --blue-soft: #eaf1ff;
+      --red: #a52834;
+      --red-soft: #fff0f2;
+      --amber: #855200;
+      --amber-soft: #fff7e6;
+      --green: #12633d;
+      --green-soft: #edf8f2;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: white;
+      font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    header {
+      background: linear-gradient(180deg, #f9fafc, #fff);
+      border-bottom: 1px solid var(--line);
+    }
+    .wrap { max-width: 1260px; margin: 0 auto; padding: 28px; }
+    h1 { margin: 0 0 8px; font-size: 34px; line-height: 1.15; }
+    h2 { margin: 42px 0 12px; font-size: 24px; line-height: 1.25; }
+    h3 { margin: 26px 0 8px; font-size: 18px; }
+    p { margin: 0 0 12px; }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code {
+      background: #f0f2f5;
+      border: 1px solid #e1e4e8;
+      border-radius: 4px;
+      padding: 1px 4px;
+      font: 13px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    table { width: 100%; border-collapse: collapse; margin: 14px 0 26px; table-layout: fixed; }
+    th, td { border: 1px solid var(--line); padding: 9px 10px; text-align: left; vertical-align: top; }
+    th { background: var(--soft); font-weight: 700; }
+    ul, ol { margin: 8px 0 16px 22px; padding: 0; }
+    li { margin: 5px 0; }
+    .lede { max-width: 940px; font-size: 17px; color: #2e3338; }
+    .meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; color: var(--muted); }
+    .pill { border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; background: #fff; font-size: 13px; }
+    .callout { border: 1px solid var(--line); border-left: 4px solid var(--blue); border-radius: 8px; padding: 14px 16px; background: var(--blue-soft); margin: 16px 0; }
+    .critical { border-left-color: var(--red); background: var(--red-soft); }
+    .warn { border-left-color: var(--amber); background: var(--amber-soft); }
+    .good { border-left-color: var(--green); background: var(--green-soft); }
+    .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 16px 0; }
+    .card { border: 1px solid var(--line); border-radius: 8px; padding: 14px; background: white; }
+    .card strong { display: block; margin-bottom: 4px; }
+    .tag { display: inline-block; border-radius: 4px; padding: 1px 6px; font-size: 12px; font-weight: 750; white-space: nowrap; }
+    .r0 { color: var(--green); background: var(--green-soft); border: 1px solid #bddfcf; }
+    .r1 { color: var(--blue); background: var(--blue-soft); border: 1px solid #bfd2f7; }
+    .r2 { color: var(--amber); background: var(--amber-soft); border: 1px solid #e6cb94; }
+    .r3 { color: var(--red); background: var(--red-soft); border: 1px solid #e9b7bd; }
+    .small { color: var(--muted); font-size: 13px; }
+    .nowrap { white-space: nowrap; }
+    @media (max-width: 900px) {
+      .wrap { padding: 20px; }
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      table { table-layout: auto; }
+    }
+    @media (max-width: 560px) {
+      .grid { grid-template-columns: 1fr; }
+      h1 { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>PMOS Skills v3 Refactor Proposal</h1>
+      <p class="lede">A skill-by-skill proposal for rewriting the marketplace from intent outward: less generated ceremony, smaller SKILL.md files, more script-owned mechanics, clearer product boundaries, and a portable runtime contract across Claude/Codex-style agents.</p>
+      <div class="meta">
+        <span class="pill">Date: 2026-07-11</span>
+        <span class="pill">Scope: 64 user-facing skills</span>
+        <span class="pill">Posture: rewrite allowed; preserve main intent</span>
+        <span class="pill">Companion audit: <code>docs/pmos/reviews/2026-07-11_repo-audit/</code></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section>
+      <h2>Executive Recommendation</h2>
+      <div class="callout critical">
+        <p><strong>Do not do a line-by-line cleanup as v3.</strong> Treat v3 as a product reset. Keep the strong substrates and hard-earned gates, but rewrite the user-facing skills around a much smaller operating contract: one job, one default path, explicit escape hatches, scripts for deterministic work, and plugin-aware shared runtime text.</p>
+      </div>
+      <p>The v2 repo is capable but heavy. Its core failure mode is that the SKILL.md file often tries to be a requirements doc, runbook, policy manual, CI contract, and agent prompt at once. v3 should make SKILL.md a <strong>job card</strong>: what this skill is for, what to read, what phases to run, what must never happen, and what script/shared contract owns the mechanics.</p>
+
+      <div class="grid">
+        <div class="card"><strong>Most skills</strong><span class="small">Target 60-120 SKILL.md lines, not 200-700.</span></div>
+        <div class="card"><strong>Complex workflows</strong><span class="small">Keep orchestration small; move state and validation into scripts.</span></div>
+        <div class="card"><strong>Flags</strong><span class="small">Only machine-coupled, destructive, typed, or headless flags stay visible.</span></div>
+        <div class="card"><strong>Gates</strong><span class="small">Deterministic = hard; judgment = advisory; arithmetic/parsing = script.</span></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>The v3 House Style</h2>
+      <ol>
+        <li><strong>Start with a one-sentence job.</strong> If the sentence needs "and" three times, split the skill or hide sub-modes behind reference files.</li>
+        <li><strong>Use 3-6 phases by default.</strong> Setup, gather/ingest, generate/analyze, verify, emit, learn. Nested phase numbers are a smell.</li>
+        <li><strong>Remove copied non-interactive prose from skill bodies.</strong> Replace the frozen 27-line block with a plugin-aware runtime include plus a linter that resolves the include. If the platform requires inline text, generate it at packaging time.</li>
+        <li><strong>Use a shared adapter layer for platform concepts.</strong> Agent prompts should say "ask", "dispatch", "track progress", "stage", not `AskUserQuestion`, `Task`, `TodoWrite`, or Claude-specific transcript homes unless the adapter says so.</li>
+        <li><strong>Keep SKILL.md declarative.</strong> The body should name scripts and contracts, not restate script internals, JSON schemas, or exact shell command sequences except where the command is the product.</li>
+        <li><strong>Make every claim testable or obviously advisory.</strong> A skill saying "never drops citations" needs a script/test. A skill saying "be concise" is guidance, not a gate.</li>
+        <li><strong>Separate product quality from release ceremony.</strong> The release pipeline should verify artifacts; it should not make every authoring skill narrate release-history FR/D/T lineage.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>Core Workflow Refactor</h2>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 18%">Area</th>
+            <th>v3 proposal</th>
+            <th style="width: 28%">Why</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Feature pipeline</td>
+            <td>Make `/feature-sdlc` a router and progress ledger, not the owner of feature, skill, prototype, define, build, worktree, and release logic. Extract v3 entrypoints: `/define-feature`, `/build-feature`, `/skill-sdlc`, `/prototype-sdlc` as real first-class workflows with shared state schema.</td>
+            <td>Today it is coherent but over-compressed. Users experience it as one giant switchboard.</td>
+          </tr>
+          <tr>
+            <td>Execute/verify</td>
+            <td>Introduce explicit completion modes: `evidence-only`, `commit-per-task`, `squash-friendly`, `no-commit`. `/verify` emits `PASS`, `PASS-WITH-GAPS`, or `FAIL` with machine-readable evidence, not a long narrative gate.</td>
+            <td>Current inline execution assumes commit cadence and hard gates that do not fit every repo.</td>
+          </tr>
+          <tr>
+            <td>Comments</td>
+            <td>Redefine `/comments resolve` around two honest result types: `applied-visible-edit` and `annotated-for-author`. Do not mark resolved unless visible content changed or the operator explicitly accepts annotation-only resolution.</td>
+            <td>This is the most important trust fix in the system.</td>
+          </tr>
+          <tr>
+            <td>Runtime portability</td>
+            <td>Create a shared `runtime-contract.md` with plugin parameterization and platform adapters for prompt, dispatch, transcript, browser, filesystem, staging, and task tracking.</td>
+            <td>The current skills still smell like Claude Code-era generated prompts.</td>
+          </tr>
+          <tr>
+            <td>Testing/CI</td>
+            <td>Move to plugin-level CI matrices: hygiene, substrate selftests, skill-specific deterministic tests, browser smoke where UI exists, localhost tests in a named loopback job.</td>
+            <td>Many good tests exist but are not consistently release-blocking.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Rewrite Tiers</h2>
+      <table>
+        <thead><tr><th style="width: 12%">Tier</th><th style="width: 22%">Meaning</th><th>Use when</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag r0">R0</span></td><td>Keep intent; light v3 trim</td><td>The skill is already small and mostly clear. Remove boilerplate, fix plugin runtime text, keep structure.</td></tr>
+          <tr><td><span class="tag r1">R1</span></td><td>Rewrite SKILL.md only</td><td>The substrate is sound, but the instruction body is too ceremonial or over-detailed.</td></tr>
+          <tr><td><span class="tag r2">R2</span></td><td>Rewrite skill + extract mechanics</td><td>The skill has deterministic parsing/state/gates in prose, missing tests, or too many flags/phases.</td></tr>
+          <tr><td><span class="tag r3">R3</span></td><td>Product-level redesign</td><td>The skill boundary itself is wrong, overloaded, or needs a new workflow contract.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Per-Skill v3 Proposal</h2>
+      <p class="small">Target lines are for SKILL.md only. Reference files, scripts, tests, and templates can remain substantial when they carry real mechanics.</p>
+
+      <h3>pmos-toolkit</h3>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 15%">Skill</th>
+            <th style="width: 8%">Tier</th>
+            <th style="width: 17%">v3 job</th>
+            <th>Rewrite proposal</th>
+            <th style="width: 18%">Move to scripts/shared</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>architecture</code></td><td><span class="tag r2">R2</span></td><td>Architecture risk audit</td><td>Rewrite as a short dispatcher around tiered rules. Keep repo-specific override idea, but remove rule narration from the body. Make the skill ask one question: "what architectural risks matter for this repo?"</td><td>Rule discovery, score aggregation, L1/L2/L3 counting, report skeleton.</td></tr>
+          <tr><td><code>artifact</code></td><td><span class="tag r2">R2</span></td><td>Structured artifact authoring/refinement</td><td>Split authoring from template/preset management. v3 body should be "choose artifact type, gather source, draft, evaluate, write". Template CRUD can be a subcommand script.</td><td>Preset registry, artifact templates, eval checks, comment resolver real edit.</td></tr>
+          <tr><td><code>artifact-critique</code></td><td><span class="tag r1">R1</span></td><td>Product-leader critique</td><td>Good product boundary. Trim to the 10-axis rubric, quote-grounding rule, and output shape. Make the voice principle prominent: take a side, cite the document, name the weakest claim.</td><td>Axis schema, HTML emit, evaluator.</td></tr>
+          <tr><td><code>backlog</code></td><td><span class="tag r3">R3</span></td><td>Persistent lightweight work tracker</td><td>Redesign as a CLI-backed tracker skill. SKILL.md should describe verbs and safety rules; all CRUD, ID allocation, claim locks, release views, and web UI live behind scripts.</td><td>All data mutation, web server, release queries, field validation.</td></tr>
+          <tr><td><code>changelog</code></td><td><span class="tag r0">R0</span></td><td>User-facing shipped-change note</td><td>Already close to v3. Reduce phase ceremony and keep only scope, draft, confirm/write, rules. Make it an internal helper for `/complete-dev` and a standalone utility.</td><td>Optional changelog insertion parser.</td></tr>
+          <tr><td><code>comments</code></td><td><span class="tag r3">R3</span></td><td>Resolve inline artifact comments</td><td>Redesign the product contract around visible edits vs annotation-only deferrals. The v3 skill should be under 120 lines and point to a resolver engine that owns modes, wave planning, persistence, and staging.</td><td>Resolver modes, apply/edit contracts, status taxonomy, idempotency, staging.</td></tr>
+          <tr><td><code>complete-dev</code></td><td><span class="tag r3">R3</span></td><td>Release finalizer</td><td>Keep as a release orchestrator, but split classic branch release and epic release train into separate engines. Collapse 18 phases into: preflight, verify, release notes/version, commit/tag, push/deploy, cleanup.</td><td>Diff routing, lastrun defaults, version bump, tag validation, remote push plan.</td></tr>
+          <tr><td><code>creativity</code></td><td><span class="tag r1">R1</span></td><td>Generate non-obvious solution ideas</td><td>Rewrite as a lens pack: input, select creativity lenses, generate divergent ideas, cluster, recommend. Avoid SDLC ceremony unless invoked from requirements.</td><td>Lens catalog and output template.</td></tr>
+          <tr><td><code>design-crit</code></td><td><span class="tag r2">R2</span></td><td>UX critique of app/prototype</td><td>Keep the core but make journeys first. v3 flow: capture screens, map primary journeys, score friction, recommend fixes. Move screenshot/browser machinery out of prose.</td><td>Playwright capture, PSYCH/MSF scoring, report renderer.</td></tr>
+          <tr><td><code>diagram</code></td><td><span class="tag r2">R2</span></td><td>Generate one clear SVG diagram</td><td>Keep strong deterministic metrics. Rewrite around "choose framing, draft SVG, metric review, visual review, emit". Remove detailed rubric narration from SKILL.md.</td><td>All SVG metrics, themes, sidecar schema, browser/raster checks.</td></tr>
+          <tr><td><code>execute</code></td><td><span class="tag r3">R3</span></td><td>Implement a plan with evidence</td><td>Redesign around execution modes and evidence ledger. Do not force commit-per-task by default. Make subagent-driven vs inline a scheduling choice, not a philosophical split.</td><td>Resume state, task ledger, commit cadence, verification handoff.</td></tr>
+          <tr><td><code>explainer-video</code></td><td><span class="tag r2">R2</span></td><td>Turn source into narrated video</td><td>Strong product shape. Reduce SKILL.md to ingest, storyboard, render slides, narrate, assemble/check. Scripts own dependency detection and media pipeline.</td><td>Deck schema, TTS selection, ffmpeg/ffprobe checks, frame capture.</td></tr>
+          <tr><td><code>feature-sdlc</code></td><td><span class="tag r3">R3</span></td><td>Route and track feature delivery</td><td>Make this a router plus state dashboard. Extract skill creation, prototype discovery, define/build backlog flow, and worktree creation into first-class workflows. Keep one state schema.</td><td>Mode dispatch, state machine, worktree setup, route validation.</td></tr>
+          <tr><td><code>grill</code></td><td><span class="tag r1">R1</span></td><td>Adversarial interview on an artifact/plan</td><td>Rewrite as "find weak assumptions by asking one sharp question at a time or producing a saved interrogation". Keep concise; no pipeline ceremony unless called folded.</td><td>Question taxonomy, saved artifact rendering.</td></tr>
+          <tr><td><code>ideate</code></td><td><span class="tag r1">R1</span></td><td>Pressure-test early idea</td><td>Good core. v3 should be a light loop: frame, expand, pressure-test, decide capture. Make amplify/refine optional references, not body weight.</td><td>Artifact emit, pressure-test battery, backlog capture helper.</td></tr>
+          <tr><td><code>landing-page</code></td><td><span class="tag r3">R3</span></td><td>Build a real product landing page</td><td>Redesign to fit current frontend/site guidance. Use assets and browser verification as product requirements. Split research brief, visual exploration, and build/verify into script-backed phases.</td><td>Hero option generator, style gallery, browser checks, asset capture.</td></tr>
+          <tr><td><code>logo</code></td><td><span class="tag r2">R2</span></td><td>Generate SVG logo candidates</td><td>Keep brief decomposition and renderer checks. Reduce body to brand input, concept set, generate, validate, present. Move renderer/cache/selftest into scripts.</td><td>Theme registry, SVG validation, renderer selection, cache.</td></tr>
+          <tr><td><code>morning-brief</code></td><td><span class="tag r3">R3</span></td><td>Rank inbound work signals</td><td>Redesign around connectors. Current skill should become a framework plus adapters for email/calendar/docs/comments/chat. Without installed connectors, degrade to local sources.</td><td>Source adapters, ranking rules, digest renderer, credential checks.</td></tr>
+          <tr><td><code>msf-req</code></td><td><span class="tag r1">R1</span></td><td>User-perspective requirements critique</td><td>Already conceptually small. Make it a lean evaluator: resolve requirements, align persona/journey, MSF findings, save summary. No source edits.</td><td>Shared MSF heuristics and report render.</td></tr>
+          <tr><td><code>msf-wf</code></td><td><span class="tag r1">R1</span></td><td>Wireframe UX critique</td><td>Parallel to `msf-req`; keep apply-edits conditional but make it a typed bridge to wireframe artifacts, not inline edit logic.</td><td>PSYCH scoring, apply-edit bridge, report render.</td></tr>
+          <tr><td><code>mytasks</code></td><td><span class="tag r3">R3</span></td><td>Personal task/goal system</td><td>Too much product in SKILL.md. Rebuild as a script/webapp product with a 70-line skill wrapper. Consider splitting goals into `mygoals` if they remain large.</td><td>All CRUD, recurrence, web UI, goal/milestone schema, import parser.</td></tr>
+          <tr><td><code>people</code></td><td><span class="tag r2">R2</span></td><td>Shared people/contact directory</td><td>Make this a pure data service skill: add/list/find/refine. Keep privacy rules, but scripts own normalization and storage.</td><td>Handle generation, schema validation, search/refine logic.</td></tr>
+          <tr><td><code>plan</code></td><td><span class="tag r3">R3</span></td><td>Turn spec into executable task graph</td><td>Rewrite around a task graph IR. Dogfood and risk checks stay, but pid locks, hashes, and timing rules should be script-owned or deleted.</td><td>Task graph schema, risk matrix, resume hooks, plan renderer.</td></tr>
+          <tr><td><code>polish</code></td><td><span class="tag r1">R1</span></td><td>Improve a document without changing meaning</td><td>Good candidate for v3 style. Body: ingest, infer/pick preset, edit, verify meaning, write diff. Keep anti-slop principles but not long metric prose.</td><td>Metric checks, HTML/MD roundtrip, preset registry.</td></tr>
+          <tr><td><code>product-context</code></td><td><span class="tag r2">R2</span></td><td>Persistent workstream context</td><td>Rewrite as a small context manager with three verbs. The skill body should explain privacy and precedence; scripts own storage/linking.</td><td>Context schema, repo linking, document ingestion summaries.</td></tr>
+          <tr><td><code>prototype</code></td><td><span class="tag r3">R3</span></td><td>Build high-fidelity prototype</td><td>Make it a frontend product builder with browser verification as first-class. Split requirements consumption, design system, build, test, and handoff. Remove old HTML-only assumptions if Sites/app frameworks are now available.</td><td>Component generation contracts, screenshot checks, design slop checks, handoff state.</td></tr>
+          <tr><td><code>prototype-sdlc</code></td><td><span class="tag r0">R0</span></td><td>Thin alias/router</td><td>Keep as thin entrypoint, but make route target explicit under v3 (`/define-prototype` or `/prototype-discovery`).</td><td>None beyond router tests.</td></tr>
+          <tr><td><code>readme</code></td><td><span class="tag r2">R2</span></td><td>Audit/scaffold README quality</td><td>Keep script-backed reviewers. Rewrite body as: detect packages, audit or scaffold, simulate reader, update. Avoid nested option taxonomy in prose.</td><td>Reviewer stubs, package detection, update hook, persona simulation.</td></tr>
+          <tr><td><code>requirements</code></td><td><span class="tag r2">R2</span></td><td>Shape feature requirements</td><td>Reduce from pipeline ceremony to problem, users, journeys, constraints, acceptance bar. Folded MSF/creativity become optional enhancer references, not body flow.</td><td>Artifact render, journey schema, folded-phase dispatch.</td></tr>
+          <tr><td><code>research</code></td><td><span class="tag r2">R2</span></td><td>Decision-framed research report</td><td>Clarify difference from learnkit. v3 should be "research to decide", not general knowledge. Scripts own source ledger and citation audit.</td><td>Source ledger, citation verifier, report renderer.</td></tr>
+          <tr><td><code>ripple-effects</code></td><td><span class="tag r1">R1</span></td><td>Simulate downstream effects</td><td>Lean rewrite around futures wheel: proposal, first/second/third-order ripples, intervention points. Keep as a thinking skill, not a formal artifact engine.</td><td>Optional HTML render.</td></tr>
+          <tr><td><code>session-log</code></td><td><span class="tag r0">R0</span></td><td>Capture session learnings</td><td>Already small. Remove boilerplate and keep concrete output shape. Consider merging with shared learnings capture if it is only a wrapper.</td><td>Learning file append helper.</td></tr>
+          <tr><td><code>shape</code></td><td><span class="tag r1">R1</span></td><td>Clarify fuzzy problem</td><td>Good human skill. Keep one-question-at-a-time principle and artifact emit. Strip comment resolver boilerplate into shared contract.</td><td>Artifact emit, apply-edit bridge.</td></tr>
+          <tr><td><code>simulate-spec</code></td><td><span class="tag r1">R1</span></td><td>Pressure-test spec before build</td><td>Lean rewrite: scenario trace, interface stress, hidden assumptions, recommendations. Use shared heuristics by citation only.</td><td>Scenario bucket catalog, HTML render.</td></tr>
+          <tr><td><code>skill-sdlc</code></td><td><span class="tag r0">R0</span></td><td>Skill-building alias</td><td>Keep thin, but in v3 make it a real top-level product name that routes to the extracted skill workflow, not overloaded `/feature-sdlc` prose.</td><td>Router contract only.</td></tr>
+          <tr><td><code>spec</code></td><td><span class="tag r2">R2</span></td><td>Technical spec from requirements</td><td>Rewrite as architecture decisions + contracts + risks. Folded simulation/architecture become typed post-processors. Keep one artifact schema.</td><td>Spec schema, folded-phase dispatch, artifact render.</td></tr>
+          <tr><td><code>summary-tldr</code></td><td><span class="tag r3">R3</span></td><td>Grounded summary of one source</td><td>Split output modes. Core summary should be one skill; mindmap/video/shorts should call diagram/explainer-video/card renderer after the grounded summary exists.</td><td>Source extraction, claim ledger, mode renderers.</td></tr>
+          <tr><td><code>survey-analyse</code></td><td><span class="tag r1">R1</span></td><td>Analyze survey responses</td><td>Keep strong script substrate. Rewrite SKILL.md as an analyst wrapper around deterministic stats and judgment sections. Avoid method lectures in the body.</td><td>All stats, cleaning, significance, charting, report render.</td></tr>
+          <tr><td><code>survey-design</code></td><td><span class="tag r2">R2</span></td><td>Design a defensible survey</td><td>Make the v3 body about research goal, population, constructs, question draft, validation, export. Move platform export detail and reviewer checks to scripts/reference.</td><td>Survey JSON schema, export mappers, validation gates.</td></tr>
+          <tr><td><code>verify</code></td><td><span class="tag r3">R3</span></td><td>Evidence-based completion gate</td><td>Rewrite as a verification harness: context, run checks, inspect UI/integration, compare spec, harden tests, verdict. Demote judgment-heavy gates to PASS-WITH-GAPS.</td><td>Evidence ledger, check discovery, verdict schema, report render.</td></tr>
+          <tr><td><code>wayrttd</code></td><td><span class="tag r0">R0</span></td><td>Gut-check assumed solution</td><td>Keep tiny. It should be a conversational reflex with one loop and a clear stopping condition. Remove all artifact/comment overhead unless saving is explicitly requested.</td><td>Optional save renderer only.</td></tr>
+          <tr><td><code>wiki</code></td><td><span class="tag r3">R3</span></td><td>Living team wiki from sources</td><td>Redesign around connector adapters and local mirror schema. SKILL.md should define verbs and privacy. Scripts own sync, ask, enrich, viewer.</td><td>MCP protocol, mirror schema, search/ask engine, viewer.</td></tr>
+          <tr><td><code>wireframes</code></td><td><span class="tag r2">R2</span></td><td>Generate mid-fi wireframes</td><td>Keep as artifact generator but simplify: screens, states, responsive constraints, review, emit. Folded MSF becomes a typed optional evaluator.</td><td>Screen schema, HTML emit, screenshot validation, apply-edit bridge.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>pmos-learnkit</h3>
+      <table>
+        <thead><tr><th style="width: 15%">Skill</th><th style="width: 8%">Tier</th><th style="width: 17%">v3 job</th><th>Rewrite proposal</th><th style="width: 18%">Move to scripts/shared</th></tr></thead>
+        <tbody>
+          <tr><td><code>book-summary</code></td><td><span class="tag r2">R2</span></td><td>Verified PM takeaways from a book</td><td>Keep intent, but add tests before expanding. v3 should use the same topic-research/ledger discipline as primer, with a short body and hard "no verified sources, no summary" rule.</td><td>Book identity resolver, source ledger verifier, citation membership, section parity tests.</td></tr>
+          <tr><td><code>critical-thinking</code></td><td><span class="tag r0">R0</span></td><td>Interactive PM reasoning practice</td><td>Already close to v3. Preserve live-session refusal. Trim Track Progress and platform text; keep exercise selection, grading moves, scorecard update.</td><td>Scorecard helper only.</td></tr>
+          <tr><td><code>frameworks</code></td><td><span class="tag r1">R1</span></td><td>Find/use PM frameworks for a situation</td><td>Clarify whether this is lookup, recommendation, or library builder. v3 should default to "recommend the right framework for this situation", with browse/list as script-backed verbs.</td><td>Framework corpus, matcher, library build, JSON contract.</td></tr>
+          <tr><td><code>learn-list</code></td><td><span class="tag r2">R2</span></td><td>Curated learning path</td><td>Reduce overlap with primer/book-summary. v3 should produce a sequenced path with source confidence, not a mini-primer. Browse/list moves to shared library viewer.</td><td>Path schema, source tiering, library renderer.</td></tr>
+          <tr><td><code>magazine</code></td><td><span class="tag r3">R3</span></td><td>Personal PM magazine from feeds</td><td>This is a product, not just a skill. Rebuild around feed management, prep stage, summarization stage, issue renderer, and watch automation. SKILL.md should be a command wrapper.</td><td>Feed registry, crawler, transcriber, issue builder, watch scheduler.</td></tr>
+          <tr><td><code>playbook</code></td><td><span class="tag r2">R2</span></td><td>Turn repo/skill into an operating playbook</td><td>Clarify audience: learner-facing "how to operate this" artifact. Move repo scanning and headless inclusion logic out of prose.</td><td>Resolver, scout, render surface, structure tests.</td></tr>
+          <tr><td><code>primer</code></td><td><span class="tag r2">R2</span></td><td>Verified-source topic primer</td><td>Strong core. v3 should merge duplicate browse/list/enrich machinery into shared library substrate and keep the skill focused on one primer generation path.</td><td>Topic research, corpus enrichment, library viewer, citation verifier.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>pmos-managerkit</h3>
+      <table>
+        <thead><tr><th style="width: 15%">Skill</th><th style="width: 8%">Tier</th><th style="width: 17%">v3 job</th><th>Rewrite proposal</th><th style="width: 18%">Move to scripts/shared</th></tr></thead>
+        <tbody>
+          <tr><td><code>interview-feedback</code></td><td><span class="tag r2">R2</span></td><td>Grounded candidate scorecard</td><td>Keep the product. v3 should separate setup/list/score into clear verbs, with confidentiality and citation grounding as the only prominent invariants.</td><td>Transcription, citation checker, scorecard fill, storage, questionnaire.</td></tr>
+          <tr><td><code>interview-guide</code></td><td><span class="tag r2">R2</span></td><td>Prepare interviewer kit</td><td>Make this the pre-round companion to interview-feedback. Fix stale guide path. Shorten to: collect role/round, ground in archetype, author reference/sheet/case, validate anchors.</td><td>Archetype corpus, scorecard validator, case templates.</td></tr>
+          <tr><td><code>one-on-one</code></td><td><span class="tag r2">R2</span></td><td>Manager 1:1 memory and prep</td><td>Good product boundary. v3 body should be verb map + confidentiality + coaching principles. Scripts already own most mutation; keep moving in that direction.</td><td>Record store, plan/log/career generators, deterministic flags.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>pmos-utilities</h3>
+      <table>
+        <thead><tr><th style="width: 15%">Skill</th><th style="width: 8%">Tier</th><th style="width: 17%">v3 job</th><th>Rewrite proposal</th><th style="width: 18%">Move to scripts/shared</th></tr></thead>
+        <tbody>
+          <tr><td><code>converter</code></td><td><span class="tag r1">R1</span></td><td>Browser file/data converter</td><td>Good tested substrate. Keep SKILL.md launch-only like gamekit, but with conversion registry note and privacy/no-upload promise.</td><td>Conversion registry, server, parsers/writers, browser smoke.</td></tr>
+          <tr><td><code>mac-health</code></td><td><span class="tag r1">R1</span></td><td>Mac diagnostics and cleanup advice</td><td>Make platform scope explicit: macOS only; non-mac refuses. Keep read-only diagnosis default and destructive cleanup confirmation.</td><td>Snapshot script, finding classifier, cleanup command builder.</td></tr>
+          <tr><td><code>reflect</code></td><td><span class="tag r3">R3</span></td><td>Transcript-grounded skill retrospective</td><td>Rebuild with scripts first. The skill should ask for scope, run transcript extractor, synthesize findings, emit paste-back blocks. Remove hardcoded Claude personal/work transcript assumptions.</td><td>Transcript locators for Claude/Codex, invocation parser, aggregation, timeout handling.</td></tr>
+          <tr><td><code>to-notion-doc</code></td><td><span class="tag r3">R3</span></td><td>Faithful local doc to Notion</td><td>Keep parser investment, but redesign connector seam. v3 should discover Notion capabilities through the connector/tool registry, then run parse-map-write-verify.</td><td>Connector discovery, block mapper, chunk writer, verifier, image ladder.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>pmos-gamekit</h3>
+      <table>
+        <thead><tr><th style="width: 15%">Skill</th><th style="width: 8%">Tier</th><th style="width: 17%">v3 job</th><th>Rewrite proposal</th><th style="width: 18%">Move to scripts/shared</th></tr></thead>
+        <tbody>
+          <tr><td><code>2048</code></td><td><span class="tag r0">R0</span></td><td>Launch 2048</td><td>Make every game skill a 25-line launcher wrapper: title, game file, controls summary, launcher call, no persistence. Remove copied non-interactive block from visible body.</td><td>Shared launcher, no-network scan, browser smoke.</td></tr>
+          <tr><td><code>flappy-bird</code></td><td><span class="tag r0">R0</span></td><td>Launch Flappy Bird</td><td>Same launcher wrapper. Remove outbound links or loosen offline claim. Keep engine tests.</td><td>Shared launcher, outbound-link scan, browser smoke.</td></tr>
+          <tr><td><code>poker</code></td><td><span class="tag r1">R1</span></td><td>Launch single-player poker</td><td>Game is more complex; keep skill wrapper small but strengthen no-live-coaching/no-network promises. Remove outbound links or make them inert.</td><td>Engine tests, static no-network scan, browser smoke.</td></tr>
+          <tr><td><code>snake</code></td><td><span class="tag r0">R0</span></td><td>Launch Snake</td><td>Same launcher wrapper. Keep controls in argument hint or one short line.</td><td>Shared launcher and engine tests.</td></tr>
+          <tr><td><code>solitaire</code></td><td><span class="tag r0">R0</span></td><td>Launch Solitaire</td><td>Same launcher wrapper. Keep draw mode/autoplay controls in the game, not the skill.</td><td>Shared launcher and engine tests.</td></tr>
+          <tr><td><code>sudoku</code></td><td><span class="tag r0">R0</span></td><td>Launch Sudoku</td><td>Same launcher wrapper. Keep generator/solver tests as the real quality gate.</td><td>Shared launcher and engine tests.</td></tr>
+          <tr><td><code>tetris</code></td><td><span class="tag r0">R0</span></td><td>Launch Tetris</td><td>Same launcher wrapper. Keep start level/hold/rotate as in-game controls only.</td><td>Shared launcher and engine tests.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Suggested Migration Order</h2>
+      <ol>
+        <li><strong>v3 runtime substrate first.</strong> Parameterized non-interactive contract, citation resolver lint, plugin-aware shared file policy, platform adapter vocabulary.</li>
+        <li><strong>Fix trust bugs.</strong> `/comments`, managerkit path drift, plugin identity line, dangling shared citations.</li>
+        <li><strong>Script the prose state machines.</strong> `/reflect`, `/book-summary`, `/complete-dev`, `/execute`, `/verify` evidence ledger.</li>
+        <li><strong>Rewrite thin wrappers.</strong> Gamekit, `skill-sdlc`, `prototype-sdlc`, `changelog`, `session-log`, `wayrttd` to prove the v3 style.</li>
+        <li><strong>Rewrite core workflow skills.</strong> `feature-sdlc`, `requirements`, `spec`, `plan`, `execute`, `verify`, `complete-dev` as a coherent v3 pipeline.</li>
+        <li><strong>Then polish authoring products.</strong> Landing page, prototype, diagram, logo, summary/video, wiki, magazine, Notion.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>Definition of Done for a v3 Skill</h2>
+      <ul>
+        <li>SKILL.md has a single job sentence and a target line count justified by complexity.</li>
+        <li>Every deterministic promise has a script/test or is explicitly advisory.</li>
+        <li>Every relative citation resolves under a linter.</li>
+        <li>No hardcoded plugin identity appears in shared boilerplate.</li>
+        <li>All platform-specific tool names live in a Platform Adaptation or shared runtime adapter, not scattered through phases.</li>
+        <li>Flags in `argument-hint` pass the four-test: machine coupling, destructive opt-in, typed value, or headless determinism.</li>
+        <li>CI runs the skill's deterministic tests when that skill or its shared substrate changes.</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

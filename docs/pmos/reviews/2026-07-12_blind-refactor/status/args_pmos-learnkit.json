@@ -1,0 +1,84 @@
+{
+ "runDir": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor",
+ "plugin": "pmos-learnkit",
+ "units": [
+  {
+   "id": "pmos-learnkit__book-summary",
+   "type": "skill",
+   "skill": "book-summary",
+   "prefix": "book-summary",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-learnkit__book-summary.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-learnkit__book-summary.md"
+  },
+  {
+   "id": "pmos-learnkit__case-studies",
+   "type": "skill",
+   "skill": "case-studies",
+   "prefix": "case-studies",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-learnkit__case-studies.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-learnkit__case-studies.md"
+  },
+  {
+   "id": "pmos-learnkit__critical-thinking",
+   "type": "skill",
+   "skill": "critical-thinking",
+   "prefix": "critical-thinking",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-learnkit__critical-thinking.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-learnkit__critical-thinking.md"
+  },
+  {
+   "id": "pmos-learnkit__frameworks",
+   "type": "skill",
+   "skill": "frameworks",
+   "prefix": "frameworks",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-learnkit__frameworks.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-learnkit__frameworks.md"
+  },
+  {
+   "id": "pmos-learnkit__learn-list",
+   "type": "skill",
+   "skill": "learn-list",
+   "prefix": "learn-list",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-learnkit__learn-list.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-learnkit__learn-list.md"
+  },
+  {
+   "id": "pmos-learnkit__magazine",
+   "type": "skill",
+   "skill": "magazine",
+   "prefix": "magazine",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-learnkit__magazine.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-learnkit__magazine.md"
+  },
+  {
+   "id": "pmos-learnkit__playbook",
+   "type": "skill",
+   "skill": "playbook",
+   "prefix": "playbook",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-learnkit__playbook.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-learnkit__playbook.md"
+  },
+  {
+   "id": "pmos-learnkit__primer",
+   "type": "skill",
+   "skill": "primer",
+   "prefix": "primer",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-learnkit__primer.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-learnkit__primer.md"
+  },
+  {
+   "id": "pmos-learnkit__shared",
+   "type": "shared",
+   "prefix": "pmos-learnkit-shared",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/_shared.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/_shared__pmos-learnkit.md"
+  },
+  {
+   "id": "pmos-learnkit__cross",
+   "type": "cross",
+   "prefix": "pmos-learnkit-cross",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/_cross/pmos-learnkit.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/_cross__pmos-learnkit.md"
+  }
+ ]
+}

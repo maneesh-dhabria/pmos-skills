@@ -1,0 +1,364 @@
+{
+ "runDir": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor",
+ "plugin": "pmos-toolkit",
+ "units": [
+  {
+   "id": "pmos-toolkit__architecture",
+   "type": "skill",
+   "skill": "architecture",
+   "prefix": "architecture",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__architecture.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__architecture.md"
+  },
+  {
+   "id": "pmos-toolkit__artifact",
+   "type": "skill",
+   "skill": "artifact",
+   "prefix": "artifact",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__artifact.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__artifact.md"
+  },
+  {
+   "id": "pmos-toolkit__artifact-critique",
+   "type": "skill",
+   "skill": "artifact-critique",
+   "prefix": "artifact-critique",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__artifact-critique.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__artifact-critique.md"
+  },
+  {
+   "id": "pmos-toolkit__backlog",
+   "type": "skill",
+   "skill": "backlog",
+   "prefix": "backlog",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__backlog.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__backlog.md"
+  },
+  {
+   "id": "pmos-toolkit__changelog",
+   "type": "skill",
+   "skill": "changelog",
+   "prefix": "changelog",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__changelog.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__changelog.md"
+  },
+  {
+   "id": "pmos-toolkit__comments",
+   "type": "skill",
+   "skill": "comments",
+   "prefix": "comments",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__comments.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__comments.md"
+  },
+  {
+   "id": "pmos-toolkit__complete-dev",
+   "type": "skill",
+   "skill": "complete-dev",
+   "prefix": "complete-dev",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__complete-dev.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__complete-dev.md"
+  },
+  {
+   "id": "pmos-toolkit__creativity",
+   "type": "skill",
+   "skill": "creativity",
+   "prefix": "creativity",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__creativity.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__creativity.md"
+  },
+  {
+   "id": "pmos-toolkit__design-crit",
+   "type": "skill",
+   "skill": "design-crit",
+   "prefix": "design-crit",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__design-crit.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__design-crit.md"
+  },
+  {
+   "id": "pmos-toolkit__diagram",
+   "type": "skill",
+   "skill": "diagram",
+   "prefix": "diagram",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__diagram.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__diagram.md"
+  },
+  {
+   "id": "pmos-toolkit__execute",
+   "type": "skill",
+   "skill": "execute",
+   "prefix": "execute",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__execute.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__execute.md"
+  },
+  {
+   "id": "pmos-toolkit__explainer-video",
+   "type": "skill",
+   "skill": "explainer-video",
+   "prefix": "explainer-video",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__explainer-video.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__explainer-video.md"
+  },
+  {
+   "id": "pmos-toolkit__feature-sdlc",
+   "type": "skill",
+   "skill": "feature-sdlc",
+   "prefix": "feature-sdlc",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__feature-sdlc.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__feature-sdlc.md"
+  },
+  {
+   "id": "pmos-toolkit__grill",
+   "type": "skill",
+   "skill": "grill",
+   "prefix": "grill",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__grill.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__grill.md"
+  },
+  {
+   "id": "pmos-toolkit__ideate",
+   "type": "skill",
+   "skill": "ideate",
+   "prefix": "ideate",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__ideate.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__ideate.md"
+  },
+  {
+   "id": "pmos-toolkit__landing-page",
+   "type": "skill",
+   "skill": "landing-page",
+   "prefix": "landing-page",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__landing-page.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__landing-page.md"
+  },
+  {
+   "id": "pmos-toolkit__logo",
+   "type": "skill",
+   "skill": "logo",
+   "prefix": "logo",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__logo.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__logo.md"
+  },
+  {
+   "id": "pmos-toolkit__morning-brief",
+   "type": "skill",
+   "skill": "morning-brief",
+   "prefix": "morning-brief",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__morning-brief.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__morning-brief.md"
+  },
+  {
+   "id": "pmos-toolkit__msf-req",
+   "type": "skill",
+   "skill": "msf-req",
+   "prefix": "msf-req",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__msf-req.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__msf-req.md"
+  },
+  {
+   "id": "pmos-toolkit__msf-wf",
+   "type": "skill",
+   "skill": "msf-wf",
+   "prefix": "msf-wf",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__msf-wf.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__msf-wf.md"
+  },
+  {
+   "id": "pmos-toolkit__mytasks",
+   "type": "skill",
+   "skill": "mytasks",
+   "prefix": "mytasks",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__mytasks.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__mytasks.md"
+  },
+  {
+   "id": "pmos-toolkit__people",
+   "type": "skill",
+   "skill": "people",
+   "prefix": "people",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__people.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__people.md"
+  },
+  {
+   "id": "pmos-toolkit__plan",
+   "type": "skill",
+   "skill": "plan",
+   "prefix": "plan",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__plan.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__plan.md"
+  },
+  {
+   "id": "pmos-toolkit__polish",
+   "type": "skill",
+   "skill": "polish",
+   "prefix": "polish",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__polish.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__polish.md"
+  },
+  {
+   "id": "pmos-toolkit__product-context",
+   "type": "skill",
+   "skill": "product-context",
+   "prefix": "product-context",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__product-context.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__product-context.md"
+  },
+  {
+   "id": "pmos-toolkit__prototype",
+   "type": "skill",
+   "skill": "prototype",
+   "prefix": "prototype",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__prototype.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__prototype.md"
+  },
+  {
+   "id": "pmos-toolkit__prototype-sdlc",
+   "type": "skill",
+   "skill": "prototype-sdlc",
+   "prefix": "prototype-sdlc",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__prototype-sdlc.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__prototype-sdlc.md"
+  },
+  {
+   "id": "pmos-toolkit__readme",
+   "type": "skill",
+   "skill": "readme",
+   "prefix": "readme",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__readme.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__readme.md"
+  },
+  {
+   "id": "pmos-toolkit__requirements",
+   "type": "skill",
+   "skill": "requirements",
+   "prefix": "requirements",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__requirements.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__requirements.md"
+  },
+  {
+   "id": "pmos-toolkit__research",
+   "type": "skill",
+   "skill": "research",
+   "prefix": "research",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__research.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__research.md"
+  },
+  {
+   "id": "pmos-toolkit__ripple-effects",
+   "type": "skill",
+   "skill": "ripple-effects",
+   "prefix": "ripple-effects",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__ripple-effects.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__ripple-effects.md"
+  },
+  {
+   "id": "pmos-toolkit__session-log",
+   "type": "skill",
+   "skill": "session-log",
+   "prefix": "session-log",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__session-log.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__session-log.md"
+  },
+  {
+   "id": "pmos-toolkit__shape",
+   "type": "skill",
+   "skill": "shape",
+   "prefix": "shape",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__shape.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__shape.md"
+  },
+  {
+   "id": "pmos-toolkit__simulate-spec",
+   "type": "skill",
+   "skill": "simulate-spec",
+   "prefix": "simulate-spec",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__simulate-spec.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__simulate-spec.md"
+  },
+  {
+   "id": "pmos-toolkit__skill-sdlc",
+   "type": "skill",
+   "skill": "skill-sdlc",
+   "prefix": "skill-sdlc",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__skill-sdlc.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__skill-sdlc.md"
+  },
+  {
+   "id": "pmos-toolkit__spec",
+   "type": "skill",
+   "skill": "spec",
+   "prefix": "spec",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__spec.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__spec.md"
+  },
+  {
+   "id": "pmos-toolkit__summary-tldr",
+   "type": "skill",
+   "skill": "summary-tldr",
+   "prefix": "summary-tldr",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__summary-tldr.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__summary-tldr.md"
+  },
+  {
+   "id": "pmos-toolkit__survey-analyse",
+   "type": "skill",
+   "skill": "survey-analyse",
+   "prefix": "survey-analyse",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__survey-analyse.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__survey-analyse.md"
+  },
+  {
+   "id": "pmos-toolkit__survey-design",
+   "type": "skill",
+   "skill": "survey-design",
+   "prefix": "survey-design",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__survey-design.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__survey-design.md"
+  },
+  {
+   "id": "pmos-toolkit__verify",
+   "type": "skill",
+   "skill": "verify",
+   "prefix": "verify",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__verify.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__verify.md"
+  },
+  {
+   "id": "pmos-toolkit__wayrttd",
+   "type": "skill",
+   "skill": "wayrttd",
+   "prefix": "wayrttd",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__wayrttd.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__wayrttd.md"
+  },
+  {
+   "id": "pmos-toolkit__wiki",
+   "type": "skill",
+   "skill": "wiki",
+   "prefix": "wiki",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__wiki.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__wiki.md"
+  },
+  {
+   "id": "pmos-toolkit__wireframes",
+   "type": "skill",
+   "skill": "wireframes",
+   "prefix": "wireframes",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/pmos-toolkit__wireframes.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/pmos-toolkit__wireframes.md"
+  },
+  {
+   "id": "pmos-toolkit__shared",
+   "type": "shared",
+   "prefix": "pmos-toolkit-shared",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/_shared.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/_shared__pmos-toolkit.md"
+  },
+  {
+   "id": "pmos-toolkit__cross",
+   "type": "cross",
+   "prefix": "pmos-toolkit-cross",
+   "scratch": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/scratchpad/_cross/pmos-toolkit.md",
+   "proposal": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/docs/pmos/reviews/2026-07-12_blind-refactor/proposal/_cross__pmos-toolkit.md"
+  }
+ ]
+}

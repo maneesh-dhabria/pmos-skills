@@ -1,0 +1,32 @@
+[
+  {
+    "id": "grill-summary",
+    "level": 2,
+    "title": "Grill Summary",
+    "parent_id": null
+  },
+  {
+    "id": "resolved",
+    "level": 2,
+    "title": "Resolved Decisions",
+    "parent_id": null
+  },
+  {
+    "id": "gaps",
+    "level": 2,
+    "title": "Gaps Surfaced",
+    "parent_id": null
+  },
+  {
+    "id": "open",
+    "level": 2,
+    "title": "Open / Deferred",
+    "parent_id": null
+  },
+  {
+    "id": "next-step",
+    "level": 2,
+    "title": "Recommended Next Step",
+    "parent_id": null
+  }
+]

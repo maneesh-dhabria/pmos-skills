@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PMOS Skills v3 — Revised Proposal (Critical Response)</title>
+  <style>
+    :root {
+      --ink: #171717;
+      --muted: #5d6470;
+      --line: #d9dde4;
+      --soft: #f7f8fa;
+      --blue: #234f9c;
+      --blue-soft: #eaf1ff;
+      --red: #a52834;
+      --red-soft: #fff0f2;
+      --amber: #855200;
+      --amber-soft: #fff7e6;
+      --green: #12633d;
+      --green-soft: #edf8f2;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: white;
+      font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    header {
+      background: linear-gradient(180deg, #f9fafc, #fff);
+      border-bottom: 1px solid var(--line);
+    }
+    .wrap { max-width: 1260px; margin: 0 auto; padding: 28px; }
+    h1 { margin: 0 0 8px; font-size: 34px; line-height: 1.15; }
+    h2 { margin: 42px 0 12px; font-size: 24px; line-height: 1.25; }
+    h3 { margin: 26px 0 8px; font-size: 18px; }
+    p { margin: 0 0 12px; }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code {
+      background: #f0f2f5;
+      border: 1px solid #e1e4e8;
+      border-radius: 4px;
+      padding: 1px 4px;
+      font: 13px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    table { width: 100%; border-collapse: collapse; margin: 14px 0 26px; table-layout: fixed; }
+    th, td { border: 1px solid var(--line); padding: 9px 10px; text-align: left; vertical-align: top; }
+    th { background: var(--soft); font-weight: 700; }
+    ul, ol { margin: 8px 0 16px 22px; padding: 0; }
+    li { margin: 5px 0; }
+    .lede { max-width: 940px; font-size: 17px; color: #2e3338; }
+    .meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; color: var(--muted); }
+    .pill { border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; background: #fff; font-size: 13px; }
+    .callout { border: 1px solid var(--line); border-left: 4px solid var(--blue); border-radius: 8px; padding: 14px 16px; background: var(--blue-soft); margin: 16px 0; }
+    .critical { border-left-color: var(--red); background: var(--red-soft); }
+    .warn { border-left-color: var(--amber); background: var(--amber-soft); }
+    .good { border-left-color: var(--green); background: var(--green-soft); }
+    .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 16px 0; }
+    .grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 16px 0; }
+    .card { border: 1px solid var(--line); border-radius: 8px; padding: 14px; background: white; }
+    .card strong { display: block; margin-bottom: 4px; }
+    .tag { display: inline-block; border-radius: 4px; padding: 1px 6px; font-size: 12px; font-weight: 750; white-space: nowrap; }
+    .r0 { color: var(--green); background: var(--green-soft); border: 1px solid #bddfcf; }
+    .r1 { color: var(--blue); background: var(--blue-soft); border: 1px solid #bfd2f7; }
+    .r2 { color: var(--amber); background: var(--amber-soft); border: 1px solid #e6cb94; }
+    .r3 { color: var(--red); background: var(--red-soft); border: 1px solid #e9b7bd; }
+    .verdict { display: inline-block; border-radius: 4px; padding: 1px 8px; font-size: 12px; font-weight: 750; white-space: nowrap; }
+    .adopt { color: var(--green); background: var(--green-soft); border: 1px solid #bddfcf; }
+    .rework { color: var(--amber); background: var(--amber-soft); border: 1px solid #e6cb94; }
+    .reject { color: var(--red); background: var(--red-soft); border: 1px solid #e9b7bd; }
+    .add { color: var(--blue); background: var(--blue-soft); border: 1px solid #bfd2f7; }
+    .small { color: var(--muted); font-size: 13px; }
+    .nowrap { white-space: nowrap; }
+    del { color: var(--muted); }
+    @media (max-width: 900px) {
+      .wrap { padding: 20px; }
+      .grid, .grid3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      table { table-layout: auto; }
+    }
+    @media (max-width: 560px) {
+      .grid, .grid3 { grid-template-columns: 1fr; }
+      h1 { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>PMOS Skills v3 — Revised Proposal</h1>
+      <p class="lede">A critical response to the <a href="index.html">original v3 refactor proposal</a>, grounded in measurements of the actual repo rather than the proposal's own framing. Endorses ~70% of the original, rebuts specific verdicts with evidence, adds the steps the original missed, and proposes a more aggressive architecture direction the original dances around. Now paired with <a href="session-evidence.html">30 days of session-log evidence</a>, which confirms the re-tiers and adds four recommendations of its own.</p>
+      <div class="meta">
+        <span class="pill">Date: 2026-07-11</span>
+        <span class="pill">Responds to: <code>index.html</code> (original v3 proposal)</span>
+        <span class="pill">Evidence: <a href="session-evidence.html">session-evidence.html</a> (30-day transcript mining)</span>
+        <span class="pill">Method: line/script/description measurements on the live repo</span>
+        <span class="pill">Scope: 64 user-facing skills, 5 plugins, 125 skill scripts</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section>
+      <h2>Executive Summary</h2>
+      <div class="callout critical">
+        <p><strong>The original proposal's direction is right, but it was written from reading SKILL.md files — not the directories around them.</strong> Three structural defects: (1) several R3 verdicts are wrong on the facts — the skills it wants "rebuilt around scripts" already are script-backed engines; (2) the migration order misses step 0 — this repo's own gate system (<code>skill-eval.md</code> mirrors <code>skill-patterns.md</code> 1:1, 53 checks, 4 lints) enforces the v2 house style, so every v3 rewrite run through the pipeline will be rejected by the repo's own gates unless the rubric ships first; (3) it optimizes the wrong token budget — the always-loaded cost of this marketplace is ~40KB (~10k tokens) of frontmatter descriptions in <em>every session</em>, which the original never mentions.</p>
+      </div>
+      <div class="grid">
+        <div class="card"><strong><span class="verdict adopt">ADOPT</span></strong><span class="small">/comments trust contract; /verify verdicts; /execute modes; complete-dev + feature-sdlc decomposition; gamekit wrappers; "job card" posture.</span></div>
+        <div class="card"><strong><span class="verdict rework">REWORK</span></strong><span class="small">feature-sdlc split (extract state, keep one entrypoint); line-count DoD → loaded-token budget; migration order (insert step 0).</span></div>
+        <div class="card"><strong><span class="verdict reject">REJECT</span></strong><span class="small">Include-without-a-build-step; "say ask, not AskUserQuestion" adapter vocabulary; R3 labels on mytasks / backlog / comments.</span></div>
+        <div class="card"><strong><span class="verdict add">ADD</span></strong><span class="small">Description-token diet; golden-scenario contract tests; build-step decision; pmos CLI; skill cull; data/code separation.</span></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>What the Repo Actually Looks Like (Measurements)</h2>
+      <p>The original proposal's premise — "SKILL.md tries to be a requirements doc, runbook, policy manual, CI contract, and agent prompt at once" — is true for some skills and demonstrably false for others. The measurements that matter:</p>
+      <table>
+        <thead><tr><th style="width: 16%">Skill</th><th style="width: 14%">SKILL.md lines</th><th style="width: 18%">Script/code lines</th><th>What this means</th></tr></thead>
+        <tbody>
+          <tr><td><code>complete-dev</code></td><td>778</td><td><strong>36</strong></td><td>Worst prose-to-script ratio in the repo. A giant prose state machine doing diff routing, version arithmetic, tag validation, and push planning in instructions. The original's R3 is <strong>fully deserved</strong>.</td></tr>
+          <tr><td><code>feature-sdlc</code></td><td>715 (+2,532 reference md)</td><td>979</td><td>Genuinely a switchboard. R3 deserved — but the surgery differs (see Rebuttal 6).</td></tr>
+          <tr><td><code>comments</code></td><td>166</td><td><strong>5,093</strong></td><td>Already a thin wrapper over a resolver/anchor/wave-planner engine with 13 test files. The original's own target ("under 120 lines, point to a resolver engine") is nearly met <em>today</em>.</td></tr>
+          <tr><td><code>mytasks</code></td><td>493</td><td><strong>3,809</strong></td><td>Already "a script/webapp product" — full CRUD, recurrence, web UI in scripts. The body needs a diet, not a rebuild.</td></tr>
+          <tr><td><code>backlog</code></td><td>282</td><td><strong>1,003</strong></td><td>Claim locks, ID minting, and web server already live in scripts. Already the "CLI-backed tracker" the original asks for.</td></tr>
+        </tbody>
+      </table>
+      <div class="callout warn">
+        <p><strong>The hidden number: ~40KB of always-loaded descriptions.</strong> Frontmatter descriptions load into every session whether or not a skill fires. Eight skills exceed 950 characters each (<code>playbook</code> 1,041; <code>logo</code> 1,033; <code>summary-tldr</code> 1,031; <code>magazine</code> 1,006; <code>learn-list</code> 1,004; <code>primer</code> 999; <code>feature-sdlc</code> 998; <code>ideate</code> 989). Trimming these is the highest-leverage, lowest-risk fix in the whole repo — it pays in every session, not just per-invocation — and the original proposal never mentions it.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Rebuttals to the Original</h2>
+
+      <h3>Rebuttal 1 — Several R3 verdicts don't survive contact with the repo</h3>
+      <p><code>mytasks</code>, <code>backlog</code>, and <code>comments</code> are tagged R3 ("product-level redesign") on the theory that their mechanics live in prose. The measurements above show the opposite: their mechanics already live in substantial, tested script engines. These are <strong>R1 body-trims</strong> — plus, for <code>comments</code>, the product-contract fix, which is real but is a contract change, not a rebuild. Mislabeling them R3 inflates the migration by months and risks breaking working, well-tested engines for cosmetic gain.</p>
+
+      <h3>Rebuttal 2 — The non-interactive include contradicts a documented decision, and half-does the real move</h3>
+      <p>The original's house-style rule #3 says: replace the frozen inline non-interactive block with "a plugin-aware runtime include," and "if the platform requires inline text, generate it at packaging time." Two problems:</p>
+      <ul>
+        <li>CLAUDE.md records <em>why</em> the block is hand-maintained inline (W14 posture): skills platforms have <strong>no include mechanism</strong> at load time, and the repo deliberately rejected an auto-propagating body-rewriter as riskier than the re-paste tax. The lint detects drift; fixes are manual by design.</li>
+        <li>"Generate at packaging time" assumes a packaging step <strong>that doesn't exist</strong>. Claude Code installs plugins straight from the repo — the source <em>is</em> the artifact.</li>
+      </ul>
+      <p>So this recommendation is either (a) already settled — keep inline + lint — or (b) an argument for a real build step, which is a much bigger and more interesting decision the original should have made explicitly. See "The Build-Step Decision" below. <strong>Do not adopt as written.</strong></p>
+
+      <h3>Rebuttal 3 — "Say 'ask', not AskUserQuestion" will degrade behavior on the platform that matters</h3>
+      <p>Concrete tool names are load-bearing. Told to use <code>AskUserQuestion</code>, the model reliably calls it; told to "ask the user," it drifts into free-text questions that violate the very non-interactive contract this repo works so hard to enforce. The repo's existing pattern — Claude-native body plus a Platform Adaptation section with per-platform degradations — is the better trade. Portability abstraction belongs in a build step (emit per-platform variants from one source), not in vaguer prompts.</p>
+
+      <h3>Rebuttal 4 — Line-count targets are the wrong metric</h3>
+      <p>"60–120 SKILL.md lines" as a Definition-of-Done bullet will produce compliance theater: prose pushed into reference files that get loaded anyway. The right rules are (a) the one the repo already half-has — <em>no deterministic mechanic may live in prose</em> (§H) — and (b) a <strong>loaded-token budget per invocation</strong> (SKILL.md + always-read references combined). Measure what the model actually ingests, not what one file's <code>wc -l</code> says.</p>
+
+      <h3>Rebuttal 5 — The migration order has a missing step 0</h3>
+      <p>This repo is self-referentially gated: <code>/skill-sdlc</code> scores every skill against <code>skill-eval.md</code> (53 checks: 24 [D] + 23 [J] gated, 6 advisory), which mirrors <code>skill-patterns.md</code> 1:1, plus four hygiene lints. Those artifacts encode the <strong>v2</strong> house style. Any v3 rewrite run through the repo's own pipeline will be rejected by its own gates — and bypassing the gates for 64 skills defeats the point of having them. <strong>Step 0 must be: rewrite <code>skill-patterns.md</code> + <code>skill-eval.md</code> + the lints to the v3 house style, ship that as its own release, then migrate skills through the updated pipeline.</strong> The original's "v3 runtime substrate first" gestures at this but names only the non-interactive contract and adapters, not the rubric.</p>
+
+      <h3>Rebuttal 6 — Splitting /feature-sdlc into four top-level entrypoints has a hidden cost</h3>
+      <p>Every new user-facing skill adds an always-loaded description (see the 40KB problem). The routing UX isn't the problem — <code>/skill-sdlc</code> and <code>/prototype-sdlc</code> aliases already exist at 22–25 lines each. The problem is the 715-line body. <strong>Different surgery:</strong> extract the state machine and mode dispatch into scripts, keep one entrypoint plus the existing thin aliases. Half-agree on decomposition, disagree on multiplying the top-level surface.</p>
+
+      <h3>Rebuttal 7 — No behavioral safety net for the rewrite itself</h3>
+      <p>All the repo's gates are static (lints, rubric checks, structure tests). The original green-lights rewriting 64 skills with no mechanism to prove behavior was preserved. Before any R2/R3 lands, build <strong>golden-scenario contract tests</strong>: headless runs of each skill against fixture inputs, asserting on the artifacts / JSON / exit codes produced. The repo has already proved this works locally — <code>comments</code> has resolver-mode tests; <code>frameworks</code> has a <code>--json</code> contract test. Rewrite confidence should come from "same fixtures, same outputs," not from re-reading prose.</p>
+    </section>
+
+    <section>
+      <h2>Revised Tier Deltas</h2>
+      <p class="small">Only rows where this response changes the original's verdict. All other per-skill rows in the original are endorsed as written (with the DoD metric swapped per Rebuttal 4).</p>
+      <table>
+        <thead><tr><th style="width: 15%">Skill</th><th style="width: 12%">Original</th><th style="width: 12%">Revised</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td><code>comments</code></td><td><span class="tag r3">R3</span></td><td><span class="tag r1">R1</span> + contract fix</td><td>5,093-line engine already exists; 166-line body. Adopt the applied-visible-edit vs annotated-for-author contract as a product change to the existing resolver, not a rebuild.</td></tr>
+          <tr><td><code>mytasks</code></td><td><span class="tag r3">R3</span></td><td><span class="tag r1">R1</span></td><td>Already a script/webapp product (3,809 code lines). Trim the 493-line body; do not touch the engine. Defer the <code>mygoals</code> split until usage data supports it.</td></tr>
+          <tr><td><code>backlog</code></td><td><span class="tag r3">R3</span></td><td><span class="tag r1">R1</span></td><td>Claim locks, mint-id, serve-web already script-owned. Body rewrite to verbs + safety rules only.</td></tr>
+          <tr><td><code>feature-sdlc</code></td><td><span class="tag r3">R3</span> (split into 4 entrypoints)</td><td><span class="tag r3">R3</span> (keep 1 entrypoint)</td><td>Extract state machine + dispatch into scripts; keep single entrypoint + existing thin aliases. No new top-level skills (description-token cost).</td></tr>
+          <tr><td><code>complete-dev</code></td><td><span class="tag r3">R3</span></td><td><span class="tag r3">R3</span> — <strong>first in line</strong></td><td>Fully endorsed and promoted: 778 prose lines over 36 script lines is the repo's worst ratio. Script the diff router, version bump, tag validation, push plan before touching anything else.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>The Build-Step Decision (the question hiding inside the original)</h2>
+      <div class="callout">
+        <p><strong>Commit to a build step (<code>source/</code> → <code>dist/</code>), or explicitly refuse it — but decide.</strong> The original's include proposal, adapter vocabulary, per-platform text, and half its Definition-of-Done all quietly presuppose one. Make it a first-class decision.</p>
+      </div>
+      <table>
+        <thead><tr><th style="width: 50%">A build step buys</th><th>It costs</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>
+              <ul>
+                <li><strong>Real includes</strong> — the non-interactive block and shared protocol text compiled in, killing the <code>sync-shared.sh</code> intersection-only bootstrap bug documented in CLAUDE.md.</li>
+                <li><strong>Per-platform emits</strong> — claude/codex variants from one source, replacing the dual-manifest duplication.</li>
+                <li><strong>Generated counts and catalogs</strong> — README rows, marketplace entries, "N bundled" claims become generated; the "7 bundled vs 8" class of [J]-gate bug becomes <em>impossible</em> rather than caught-at-release.</li>
+                <li><strong>Enforced token budgets</strong> at compile time.</li>
+              </ul>
+            </td>
+            <td>
+              <ul>
+                <li>Dist drift and a second artifact to trust.</li>
+                <li>Contributor friction (edit source, build, verify dist).</li>
+                <li>"The installed plugin is not the source" — debugging indirection.</li>
+              </ul>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p><strong>Recommendation: take the build step.</strong> At 5 plugins × 64 skills and growing, the generated-consistency wins subsume the original's proposals #3 and #4 and half its DoD list. If refused, then keep the inline block + lint exactly as-is and drop those items from v3 scope.</p>
+    </section>
+
+    <section>
+      <h2>More Aggressive Changes (beyond the original)</h2>
+      <div class="grid3">
+        <div class="card"><strong>1. Description-token diet</strong><span class="small">Cap every frontmatter description at ~2 sentences + trigger phrases; move the rest into the body. ~10k tokens refunded in every session. One day of work; do it before anything else.</span></div>
+        <div class="card"><strong>2. One <code>pmos</code> CLI</strong><span class="small">At least four independent localhost servers (comments, mytasks, backlog, converter/gamekit launchers), multiple .command/.sh/.bat trios, repeated anchor/render/storage code across 125 scripts. A shared <code>tools/pmos-cli</code> (serve, render, anchor, store, mint) cuts more maintenance surface than any SKILL.md diet.</span></div>
+        <div class="card"><strong>3. Cull and merge skills</strong><span class="small">64 skills is a product problem. The thinking-tools cluster (shape, ideate, grill, wayrttd, creativity, ripple-effects) is six skills for one job family — collapse to 2–3 with modes. msf-req/msf-wf are one evaluator with two target types. Use /reflect + transcript history to archive zero-invocation skills (the archive/skills/ pattern already exists). Every cut is a permanent description-token refund and one less thing the [J] gate must keep coherent.</span></div>
+        <div class="card"><strong>4. Separate data from code</strong><span class="small">Corpora (665 case studies @ 1.47MB, 346 frameworks, 61 primers × 1,306 sources, archetype corpus) ship inside skill releases. Version corpora as their own artifacts with schema + validation gates (the case-studies corpus story already built exactly this shape); skill releases reference a corpus version.</span></div>
+        <div class="card"><strong>5. Machine-readable skill manifests</strong><span class="small">A small skill.json per skill (flags + four-test class, phases + slugs, scripts, tests, non-interactive posture: inline/refused/delegated) turns four bespoke bash lints into one schema validation, and makes catalogs, README rows, and argument-hints generated rather than hand-synced.</span></div>
+        <div class="card"><strong>6. Golden-scenario contract tests</strong><span class="small">Headless fixture-in → artifact/JSON/exit-code-out assertions per skill, run in plugin-level CI when the skill or its substrate changes. This is the enabler that makes an aggressive rewrite safe at all.</span></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Revised Migration Order</h2>
+      <ol>
+        <li><strong>Step 0 — rewrite the rubric first.</strong> <code>skill-patterns.md</code> + <code>skill-eval.md</code> + the four hygiene lints updated to the v3 house style (loaded-token budget replaces line counts; §H/§I/§J/§K carried forward). Ship as its own release. Nothing else can merge through the pipeline until this lands.</li>
+        <li><strong>Description-token diet</strong> across all 64 skills. Highest leverage, lowest risk, zero behavior change.</li>
+        <li><strong>Make the build-step decision.</strong> If yes: scaffold <code>source/</code>→<code>dist/</code>, move the non-interactive block and shared protocols to includes, generate manifests/counts. If no: strike the include and adapter-vocabulary items from scope permanently.</li>
+        <li><strong>Golden-scenario contract tests</strong> for every skill slated R2/R3, before its rewrite starts.</li>
+        <li><strong>Fix trust bugs</strong> (unchanged from original): /comments contract, managerkit path drift, plugin identity line, dangling shared citations.</li>
+        <li><strong>Script the prose state machines</strong>, starting with <code>complete-dev</code> (778:36 ratio), then /execute, /verify evidence ledger, /reflect, /book-summary.</li>
+        <li><strong>Rewrite thin wrappers</strong> (gamekit, changelog, session-log, wayrttd, aliases) to prove the v3 style — unchanged from original.</li>
+        <li><strong>Rewrite core workflow skills</strong> as a coherent v3 pipeline — unchanged from original, but feature-sdlc keeps one entrypoint per Rebuttal 6.</li>
+        <li><strong>Cull/merge pass + polish authoring products.</strong> Thinking-tools consolidation, msf merge, corpus extraction, then landing-page / prototype / diagram / logo / summary / wiki / magazine / Notion.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>Revised Definition of Done for a v3 Skill</h2>
+      <ul>
+        <li>SKILL.md has a single job sentence. <del>Target line count justified by complexity</del> → <strong>a loaded-token budget</strong> (SKILL.md + always-read references) enforced by lint or build step.</li>
+        <li>No deterministic mechanic lives in prose (§H); every deterministic promise has a script/test or is explicitly advisory.</li>
+        <li>A golden-scenario contract test exists and passes: fixture in → asserted artifact/JSON/exit code out.</li>
+        <li>Frontmatter description ≤ ~2 sentences + trigger phrases.</li>
+        <li>Every relative citation resolves under a linter (unchanged from original).</li>
+        <li>Platform-specific tool names stay <strong>concrete</strong> and live in the body's primary flow for the primary platform, with degradations in one Platform Adaptation section — not abstracted to vague verbs.</li>
+        <li>Flags in <code>argument-hint</code> pass the four-test (unchanged — this is existing §I policy, not new).</li>
+        <li>CI runs the skill's deterministic tests when the skill or its shared substrate changes (unchanged from original).</li>
+      </ul>
+      <div class="callout good">
+        <p><strong>Bottom line.</strong> Adopt the original's product fixes (/comments contract, /verify verdicts, /execute modes, complete-dev/feature-sdlc decomposition, gamekit wrappers, job-card posture). Reject its include-without-a-build-step, adapter vocabulary, line-count DoD, and the R3 labels on mytasks/backlog/comments. Add rubric-first migration, the description diet, contract tests — and make the build-step decision consciously, because it is the actual architecture question hiding inside the original proposal.</p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
