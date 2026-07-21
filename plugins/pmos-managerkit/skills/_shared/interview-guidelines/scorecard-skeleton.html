@@ -11,7 +11,9 @@
     - data-dim="<id>"                         one per scored dimension (kebab id, stable).
     - data-weight="<n>"                       integer weight; the weights across dims should sum to 100.
     - data-scale="1-4"                        the scale container for that dimension.
-        - each option carries data-v="<n>"    selectable score; data-selected on the chosen one.
+        - each option carries data-v="<n>"    selectable score; data-selected on the chosen one. An option
+                                              MAY also carry data-level="<descriptor>" — see "Optional
+                                              level-descriptor anchors" below for its rules.
     - data-input="notes:<dim>"                the qualitative/citation slot for that dimension.
     - data-flags="green" / data-flags="red"   the per-dimension flag containers (0+ <li> each).
     - data-input="reco"                       the single overall hire/no-hire control.
@@ -49,6 +51,32 @@
                                               scripts/validate-scorecard-anchors.mjs, never by the model.
                                               Emit BOTH anchors or NEITHER (a data-budget without a
                                               data-duration to sit under is refused — INV-2).
+
+  Optional level-descriptor anchors (additive — /interview-guide emits these on the sheets it authors; a
+  sheet that omits them validates exactly as before, so every bundled scorecard is unaffected until the
+  corpus is backfilled). THIS COMMENT IS THE SINGLE HOME OF THE data-level CONTRACT — /interview-guide's
+  SKILL.md, its validator's error text, and reference/output-shapes.md cite these rules, none restate them:
+    - data-level="<descriptor>"               on a <span data-v="n"> scale option; carries THAT level's
+                                              at-bar wording for THAT dimension. The bar is PER-DIMENSION,
+                                              not a shared global ladder — one dimension's level 3 and
+                                              another's describe different behaviour.
+      ALL-OR-NONE PER DIMENSION               a dimension either describes EVERY option of its scale or
+                                              NONE of them. A partially-described scale is exactly the
+                                              ambiguity that invites borrowing the top level's standard
+                                              down to the pass line. A dimension with no data-level at all
+                                              is legal (the un-backfilled state).
+      NON-EMPTY                               a descriptor that is present carries real text; an empty or
+                                              whitespace-only data-level is refused.
+      BEHAVIOURAL                             descriptors say what the candidate DID, observable in a
+                                              transcript — never a trait judgement ("is strategic",
+                                              "seems senior").
+      UNPROMPTED LANGUAGE IS TOP-LEVEL ONLY   "unprompted" / "up front" / "led with it" / "without being
+                                              asked" belong to the TOP level of the scale. The pass line
+                                              PERMITS prompting — a candidate who gets there after a probe
+                                              is AT the bar, not below it.
+                                              All-or-none and non-empty are enforced by
+                                              scripts/validate-scorecard-anchors.mjs (/interview-guide),
+                                              never by the model.
 
   Filling discipline (design §9, §12, §16.4): every filled note that makes a subjective claim
   carries a <cite data-cite-tier="transcript|notes|recalled" data-source="…">…</cite>; transcript
@@ -127,8 +155,10 @@
       <span class="dim-name">Example dimension one</span>
       <span class="weight">weight 50</span>
     </div>
+    <!-- Illustrative data-level descriptors (see the contract comment above). Note that level 3 — the pass
+         line — permits prompting, and only level 4 carries the "unprompted" language. -->
     <div class="scale" data-scale="1-4">
-      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+      <span data-v="1" data-level="Did not get there even when asked directly.">1</span><span data-v="2" data-level="Got there only after repeated prompting, and stayed general.">2</span><span data-v="3" data-level="Got there after a probe, with a concrete example and named specifics.">3</span><span data-v="4" data-level="Raised it unprompted and worked the tradeoff through without being asked.">4</span>
     </div>
     <div class="notes" data-input="notes:example-dimension-one"></div>
     <div class="flags">
@@ -142,6 +172,7 @@
       <span class="dim-name">Example dimension two</span>
       <span class="weight">weight 50</span>
     </div>
+    <!-- This dimension carries NO data-level — the legal all-none state (all-or-none is per dimension). -->
     <div class="scale" data-scale="1-4">
       <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
     </div>
