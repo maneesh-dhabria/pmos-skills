@@ -1,0 +1,173 @@
+schema_version: 1
+story: 260721-1a4
+epic: 260721-k1x
+route: skill
+plugin: pmos-managerkit
+spec: ../../02_design.html
+execution_mode: inline
+skill_dir: plugins/pmos-managerkit/skills/_shared/interview-guidelines
+# Backfills data-level descriptors into the 8 bundled archetype scorecards so the epic's calibration fix actually
+#   fires on default runs. Measured today: 8 archetypes / 47 dimensions / 0 descriptors. Consumption in 260721-jb6
+#   is presence-guarded, so without this story there is NOTHING to quote on any default path (D6).
+# Surface (8 files, one shape):
+#   plugins/pmos-managerkit/skills/_shared/interview-guidelines/guidelines/<archetype>/scorecard.html
+#   analytical 5 · behavioral 5 · case-presentation 5 · case-study 5 · product-sense 5 · recruiter-screen 5 ·
+#   technical 5 · work-history 12   ->  47 dims, 188 descriptors at the flat baseline
+# Content authoring ONLY — no skill body, no script, no contract change. The contract + validator come from
+#   260721-sak (dep); this story is the corpus that satisfies them.
+# !! T0 IS A MAINTAINER DECISION AND BLOCKS ALL AUTHORING. level-ladder.md already varies WEIGHTS across
+#    apm/pm/senior-pm/group-pm/director/vp. If descriptors must vary by seniority too, this story goes from 188 to
+#    ~1,128 and must be RE-SPLIT, not silently absorbed. Record the decision + rationale in 03_plan.html (AC7).
+# THE ONE DEFECT THAT MUST NOT SHIP: authoring the ceiling into the pass line. "unprompted" / "up front" /
+#   "led with it" / "without being asked" belong to the TOP data-v of each dimension ONLY. Baking that language
+#   into a level-3 descriptor would freeze the epic's own bug into the corpus permanently. T6 greps for it.
+# Reference: ../../02_design.html (D6, FR-3, INV-4, INV-6) + scorecard-skeleton.html's data-level contract comment
+#   (normative, authored by sak) + each archetype's own strong/weak markers + level-ladder.md (READ-ONLY).
+# BYTE-FROZEN this story: every non-data-level attribute in the 8 files (data-weight, data-budget, data-scale,
+#   data-v values, dimension ids, structure), level-ladder.md, scorecard-skeleton.html, all skill bodies, all
+#   scripts. git diff must show data-level attribute insertions and NOTHING else.
+# NO release-prereq tasks (version bump, changelog, README, manifest sync) — /complete-dev owns those (§G).
+tasks:
+  - id: T0
+    title: "MAINTAINER DECISION — do level descriptors vary by seniority? (188 vs ~1,128; blocks all authoring)"
+    ac: [AC7]
+    deps: []
+    parallel: false
+    detail: >
+      Put the seniority-variance question to the maintainer BEFORE authoring a single descriptor. Read
+      level-ladder.md first so the question is concrete: it already varies competency WEIGHTS across
+      apm / pm / senior-pm / group-pm / director / vp, and "solid, some prompting OK" plainly means something
+      different for an APM than for a Director.
+      Present the three shapes from 03_plan.html#t0:
+        (a) FLAT (188) — one descriptor set per dimension; seniority stays expressed through weights and archetype
+            selection. Cheapest; consistent with how the corpus works today.
+        (b) PARAMETERIZED (188 + a rider) — one descriptor set plus a short seniority-sensitive clause in the
+            skeleton contract stating how the bar shifts with level. One fact in one home rather than 940
+            duplicated ones. (Note: a rider edits scorecard-skeleton.html, which is otherwise frozen here —
+            if (b) wins, that single edit is in scope and must be called out in the diff.)
+        (c) PER-SENIORITY (~1,128) — full variants. Correct in principle but a DIFFERENT-SIZED STORY: re-split,
+            do not absorb.
+      Record the decision AND its rationale in stories/260721-1a4/03_plan.html. If the answer is not (a), restate
+      AC1's count in the backlog item before proceeding. If the answer is (c), STOP and re-split the story.
+    verify: >
+      A decision is recorded in 03_plan.html with rationale; AC1's count matches the chosen shape; if (c) was
+      chosen, the story is re-split and this one is re-scoped rather than continuing.
+
+  - id: T1
+    title: "Study: the data-level contract + all 8 archetype folders; build the per-dimension source table"
+    ac: [AC1, AC3, AC4, AC6]
+    deps: [T0]
+    parallel: false
+    detail: >
+      Read scorecard-skeleton.html's data-level contract comment (authored by 260721-sak) — it is normative and
+      this story does not re-decide any of it: per-dimension, all-or-none, non-empty, behavioural/observable,
+      ceiling-language-top-level-only.
+      Read all 8 guidelines/<archetype>/ folders in full — not just scorecard.html but the archetype's probes and
+      strong/weak markers, since every descriptor must TRACE to them (AC4: derived, not invented).
+      Build a per-dimension source table: archetype, dimension id, weight, scale, and the existing strong-marker /
+      weak-marker text that grounds each level. This table is the single vocabulary T2–T5 author against — it is
+      what keeps four authoring tasks reading as one calibrated voice.
+      Confirm the dimension counts per file (5/5/5/5/5/5/5/12 = 47) and confirm work-history's 12 dims including
+      its role-evidence and trajectory-synthesis families.
+      Produce NO edits.
+    verify: >
+      Source table covers all 47 dimensions with per-level grounding drawn from existing markers; counts confirmed
+      against 5/5/5/5/5/5/5/12; the contract's five rules restated nowhere (cited only); no file modified.
+
+  - id: T2
+    title: "FR-3 — author + apply descriptors: analytical, behavioral (10 dims)"
+    ac: [AC1, AC3, AC4, AC5]
+    deps: [T1]
+    parallel: false
+    detail: >
+      For each of the 10 dimensions, author one descriptor per data-v option and insert it as
+      data-level="<descriptor>" on that option. Apply the authoring rules from 03_plan.html#rules:
+        - BEHAVIOURAL and observable in a transcript — what the candidate DID ("named the tradeoff and picked a
+          side"), never a trait ("strategic thinker").
+        - THE PASS LINE PERMITS PROMPTING. "unprompted" / "up front" / "led with it" / "without being asked" go on
+          the TOP option only.
+        - DERIVED from that archetype's own strong/weak markers and probe intent — a re-expression of the corpus's
+          existing standard at four resolutions, not a new standard.
+        - ADJACENT LEVELS DISTINGUISHABLE by observable behaviour; if a reader cannot tell 2 from 3, rewrite.
+      Purely additive: touch nothing but the data-level attributes.
+    verify: >
+      Both files: every dimension has a non-empty descriptor on every data-v option; ceiling language appears only
+      on the top option; each descriptor traceable to a marker in the source table; git diff for these two files
+      shows data-level insertions only.
+
+  - id: T3
+    title: "FR-3 — author + apply descriptors: case-presentation, case-study, product-sense (15 dims)"
+    ac: [AC1, AC3, AC4, AC5]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Same rules and same shape as T2, for the 15 dimensions across the three case/sense archetypes. Author
+      against the running vocabulary T2 established so the corpus reads as one calibrated voice — reuse T2's
+      phrasing patterns for equivalent behaviours rather than inventing parallel wording.
+      Watch the overlap: case-presentation, case-study and product-sense share adjacent competencies. Where two
+      archetypes measure the same behaviour, the descriptors should be recognisably consistent without being
+      copy-pasted (the probe intent differs).
+    verify: >
+      All three files: non-empty descriptor on every option of all 15 dimensions; ceiling language top-option only;
+      wording consistent with T2's register; git diff shows data-level insertions only.
+
+  - id: T4
+    title: "FR-3 — author + apply descriptors: recruiter-screen, technical (10 dims)"
+    ac: [AC1, AC3, AC4, AC5]
+    deps: [T3]
+    parallel: false
+    detail: >
+      Same rules and same shape, for the 10 dimensions across recruiter-screen and technical.
+      Note the bar differs in kind for these two: recruiter-screen is a lower-depth screen (its level-3 should not
+      demand case-interview depth), and technical dimensions are more often objectively checkable. Keep the
+      descriptors proportionate to what each round can actually observe — a screen cannot evidence what it never
+      probes, and over-strict descriptors here would push the D7 untested/below-bar boundary in exactly the wrong
+      direction.
+    verify: >
+      Both files: non-empty descriptor on every option of all 10 dimensions; ceiling language top-option only;
+      descriptors proportionate to each round's actual observation depth; git diff shows data-level insertions only.
+
+  - id: T5
+    title: "FR-3 — author + apply descriptors: work-history (12 dims, all families)"
+    ac: [AC1, AC3, AC4, AC5, AC6]
+    deps: [T4]
+    parallel: false
+    detail: >
+      The largest and most structurally distinct sheet: 12 dimensions spanning the competency pass plus the
+      role-evidence and trajectory-synthesis families. Cover ALL of them on the same terms as the other seven
+      archetypes — no family is exempt, and no archetype may be left partially done (AC6).
+      The role-evidence and trajectory-synthesis dimensions measure the shape of a career rather than in-round
+      behaviour; their descriptors must still be observable in the interview record (what the candidate said /
+      evidenced about their history), not a judgement about the history itself.
+    verify: >
+      All 12 dimensions across all families carry a non-empty descriptor on every data-v option; ceiling language
+      top-option only; role-evidence / trajectory-synthesis descriptors phrased as observable-in-record; git diff
+      shows data-level insertions only.
+
+  - id: T6
+    title: "Conformance: validator green on all 8, ceiling-language grep, additive-only diff, 4 lints"
+    ac: [AC2, AC3, AC5, AC7]
+    deps: [T5]
+    parallel: false
+    detail: >
+      (1) Run validate-scorecard-anchors.mjs over all 8 guidelines/*/scorecard.html — every one exits 0, including
+          the all-or-none-per-dimension and non-empty-descriptor checks from 260721-sak.
+      (2) COUNT dimensions per file against 5/5/5/5/5/5/5/12 = 47 and count descriptors per dimension against its
+          scale. The validator's all-or-none rule is PER DIMENSION, so a half-finished archetype can pass it
+          dimension-by-dimension while leaving the file incomplete — the count is the real AC1 check, not the exit
+          code.
+      (3) CEILING-LANGUAGE GREP across all 8 files for "unprompted", "up front", "up-front", "led with it",
+          "without being asked" (and any equivalent introduced during authoring). Every hit must be on the HIGHEST
+          data-v of its dimension. A hit anywhere else is a BLOCKING failure — it is the epic's own defect frozen
+          into the corpus.
+      (4) ADDITIVE-ONLY DIFF: `git diff` for the 8 files shows data-level attribute insertions and nothing else —
+          data-weight, data-budget, data-scale, data-v values, dimension ids and structure byte-identical. Assert
+          `git diff` is EMPTY for level-ladder.md, scorecard-skeleton.html (unless T0 chose shape (b), in which
+          case the single rider edit is expected and called out), all skill bodies, and all scripts.
+      (5) Run the four repo hygiene lints per host CLAUDE.md.
+      (6) Confirm the T0 decision + rationale is recorded in 03_plan.html and the authored descriptors are
+          consistent with it.
+    verify: >
+      All 8 exit 0; dimension/descriptor counts match 47 dims and their scales; ceiling-language grep hits only
+      top-level options; git diff additive-only and empty for the frozen paths; four lints green; T0 decision
+      recorded and honoured.

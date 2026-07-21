@@ -1,0 +1,261 @@
+schema_version: 1
+story: 260721-jb6
+epic: 260721-k1x
+route: skill
+plugin: pmos-managerkit
+spec: ../../02_design.html
+execution_mode: inline
+skill_dir: plugins/pmos-managerkit/skills/interview-feedback
+# The calibration core. Phase Score's entire method today is ONE SENTENCE — "Score each dimension on its own scale
+#   with grounded notes + flags, then set the overall reco." That sentence permits both retro defects: scoring
+#   linearly while reading (time-bias) and scoring against a stricter bar than the sheet's own (bar-inflation).
+# Surface (4 files) in plugins/pmos-managerkit/skills/interview-feedback/:
+#   SKILL.md                              (Phase Score #score, Phase Coach #coach)
+#   scripts/check-scoring-calibration.mjs (NEW — the second blocking gate)
+#   scripts/fill-scorecard.mjs            (emit the new anchors)
+#   reference/                            (scorecard shape docs)
+# DEPENDS ON 260721-sak for the data-level anchor contract. NOT on 260721-1a4 — FR-4 is presence-guarded and
+#   correct against an un-backfilled sheet, so the two build in parallel.
+#
+# !! THE WEIGHTED-SCORE ROUTINE DOES NOT EXIST. fill-scorecard.mjs parses data-weight into {id, weight, scale, …}
+#    and NEVER COMPUTES ANYTHING WITH IT. There is no weighted- or modal-score routine anywhere in the skill. The
+#    retro's "2.10 -> 3.00" was arithmetic the MODEL did in its head, which §H forbids. T5 is a NEW CAPABILITY
+#    CLOSING AN EXISTING BUG, not a re-homing. Estimate and test it as such.
+#
+# §H SHAPE (INV-2), read before writing any gate: every hard condition is PRESENCE, ORDERING, or an INTEGER
+#   COMPARISON THE SCRIPT PERFORMS. Where judgement is required the model records a MACHINE-COMPARABLE VALUE, never
+#   a self-graded verdict — "stamp `consistent` per dimension" is satisfiable without reading a word, which is why
+#   D10 replaced it. Both disagreement gates use the same escape: mismatch -> a REQUIRED NON-EMPTY RATIONALE, never
+#   a hard fail, so there is no incentive to rewrite the note to match the number.
+#
+# ANCHOR SET introduced here:
+#   <details data-card="evidence-sweep">  per dimension, COLLAPSED, timestamped instances          (D9)
+#   data-rebuttal                         on every below-bar dimension                             (D3)
+#   data-note-matches-level="<n>"         the level the PROSE describes; script compares           (D10)
+#   data-score-rationale                  required when note-matches-level != data-selected        (D10)
+#   data-reco-rationale                   required on reco-vs-modal disagreement AND at >=30% untested (D3, D7)
+#   data-rubric-provenance                authored | synthesized-agreed | synthesized-auto         (D8)
+#
+# Reference: ../../02_design.html (D2, D3, D7, D8, D9, D10, D11; FR-4..FR-8; INV-1..INV-7) +
+#   scorecard-skeleton.html's data-level contract (authored by sak — CITE, never restate) +
+#   feature-sdlc/reference/skill-patterns.md §A–§L + host CLAUDE.md. Cite refs, never restate.
+# BYTE-FROZEN this story: scripts/check-citations.mjs (its --stamp is 260721-z5n; INV-3 — the grounding half held
+#   and must not regress), all of skills/interview-guide/, all of _shared/interview-guidelines/, argument-hint,
+#   user-invocable, the frozen NI block, reference/interviewer-notes-skeleton.html (D11 — method only, no anchors).
+# NO release-prereq tasks (version bump, changelog, README, manifest sync) — /complete-dev owns those (§G).
+tasks:
+  - id: T1
+    title: "Study: Phase Score's current method + citation-gate wiring, fill-scorecard.mjs, check-citations.mjs conventions, the data-level contract, output (b)'s anchor set"
+    ac: [AC1, AC2, AC3, AC4, AC5, AC6, AC7, AC8]
+    deps: []
+    parallel: false
+    detail: >
+      Read interview-feedback/SKILL.md in full. Pin: (a) Phase Score (#score) — the literal one-sentence scoring
+      instruction T3 replaces, and where in the phase it sits relative to note-writing and reco-setting;
+      (b) the citation-gate wiring — how check-citations.mjs is invoked as a blocking STOP-before-done gate, its
+      exact STOP language and failure behaviour. That wiring is BOTH the pattern T6 copies AND the thing INV-3
+      forbids disturbing; (c) Phase Coach (#coach) — where the below-bar claims about interviewers are made (T8);
+      (d) the duration-confirm at ~line 154-167 tagged `<!-- defer-only: free-form -->` — the precedent shape for
+      a mid-phase confirm, relevant to T7's agreement gate (which does NOT use it — T7 AUTO-PICKs per D8).
+      Read scripts/fill-scorecard.mjs in full — the parse path ({id, weight, scale, …}) and the emit path, and
+      CONFIRM the header-comment claim that nothing computes with data-weight (this grounds T5's sizing).
+      Read scripts/check-citations.mjs — exit-code convention, message format, --selftest harness style. T4/T5's
+      new script should match these conventions. Do NOT modify it.
+      Read scorecard-skeleton.html's data-level contract (from sak) — normative; cite it, never restate it.
+      Read reference/interviewer-notes-skeleton.html and CONFIRM it has no data-dim / data-v / data-selected —
+      this is the factual grounding for D11 (method yes, gate no).
+      Produce NO edits.
+    verify: >
+      All insertion points pinned; the citation-gate wiring understood as both template and frozen region; the
+      absence of any weighted/modal computation CONFIRMED in code (not assumed); output (b)'s lack of scoring
+      anchors confirmed; the data-level contract read.
+
+  - id: T2
+    title: "FR-6 (D9) — fill-scorecard.mjs emits the anchor set incl. the collapsed evidence-sweep details block"
+    ac: [AC6]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Extend fill-scorecard.mjs's emit path so a filled scorecard carries, per dimension:
+        - <details data-card="evidence-sweep"> ... </details> — COLLAPSED BY DEFAULT (no `open` attribute),
+          placed UNDER that dimension's notes, holding the timestamped instances collected in T3's sweep.
+        - data-rebuttal, data-note-matches-level, data-score-rationale on the dimension.
+      And at the artifact root: data-reco-rationale and data-rubric-provenance.
+      The panel's DEFAULT reading experience — scores and notes — must be unchanged: same order, same visible
+      content, the sweep hidden until expanded. The artifact stays self-contained (no new external asset, no CDN).
+      Emit the attributes even when empty where the shape requires a slot, but do NOT pre-fill them with
+      placeholder prose (that would trip 260721-z5n's completeness scan).
+    verify: >
+      A filled scorecard carries all six anchors; every evidence-sweep block is collapsed and positioned under its
+      dimension's notes; rendering the artifact shows the same scores+notes view as before the change; no external
+      asset introduced; no placeholder prose emitted.
+
+  - id: T3
+    title: "FR-4, FR-5 (D2) — Phase Score method rewrite: sweep-then-score, quote-the-bar, floor/ceiling, untested"
+    ac: [AC1, AC2]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Replace Phase Score's single scoring sentence with the four-clause method:
+        (a) READING ORDER — sweep the WHOLE transcript per dimension and collect every instance (early/late,
+            prompted/unprompted, timestamped) into the evidence-sweep block BEFORE assigning any number. An
+            eventual insight cannot be credited if it has not been collected yet. This is the single biggest fix:
+            the retro's error was scoring linearly while reading.
+        (b) QUOTE THE BAR — read the dimension's own data-level descriptors from the resolved sheet and quote the
+            level under consideration verbatim; score against THAT wording. "unprompted / up front" language
+            belongs to the ceiling and MAY NOT be borrowed down to the pass line. Cite scorecard-skeleton.html's
+            contract for the attribute's rules; do not restate them.
+        (c) FLOOR/CEILING SPLIT — "did they demonstrate it at all, at any point?" sets the FLOOR; "how much nudging
+            did it take?" caps the CEILING (heavy nudging -> 2, one pointed nudge -> 3, none -> 4). Prompting
+            adjusts the ceiling; it NEVER zeroes out a genuine demonstration.
+        (d) UNTESTED != FAILED — a competency never probed is TAGGED untested, not scored below bar.
+      Sheets with no descriptors route to T7's materialization, never to uncalibrated scoring (INV-1).
+      Record data-note-matches-level as part of note-writing: the level whose descriptor the prose actually
+      describes. State it as a judgement the model makes, and be explicit that the SCRIPT does the comparing.
+      No arithmetic instruction anywhere in this phase.
+    verify: >
+      Phase Score states all four clauses; the sweep is ordered strictly before scoring; the bar is quoted from
+      data-level; untested is a tag not a low score; data-note-matches-level is recorded during note-writing; no
+      instruction anywhere tells the model to compute, average, or weight anything.
+
+  - id: T4
+    title: "FR-6 (D3, D10) — check-scoring-calibration.mjs: sweep, adversarial below-bar, note-vs-score gates"
+    ac: [AC3]
+    deps: [T3]
+    parallel: false
+    detail: >
+      Create scripts/check-scoring-calibration.mjs following check-citations.mjs's conventions (exit codes,
+      message format, --selftest harness style). Implement three gates, all presence/ordering/comparison:
+        (1) SWEEP — every scored data-dim has a data-card="evidence-sweep" block containing >=1 timestamped
+            instance, and that block is present BEFORE a data-selected value exists on the dimension. Presence +
+            ordering, no judgement.
+        (2) ADVERSARIAL BELOW-BAR — every dimension whose data-selected is below its at-bar level carries a
+            non-empty data-rebuttal. Conditional presence. (At-bar level derives from the sheet's scale, not from
+            a hardcoded 3 — read it.)
+        (3) NOTE-VS-SCORE — parse data-note-matches-level as an INTEGER and compare to data-selected. Equal -> pass.
+            Unequal -> require a non-empty data-score-rationale; present -> pass, absent -> fail.
+            DO NOT hard-fail every mismatch: a mismatch is sometimes legitimate (a red flag drags the number below
+            what the prose alone implies), and hard-failing creates a direct incentive to rewrite the note to match
+            the number — destroying the exact signal this gate exists to read.
+      Every failure message names the dimension and what is missing. No arithmetic in this task (that is T5).
+    verify: >
+      Each of the three gates passes its intended-good case and fails its intended-bad case by hand-check; the
+      at-bar level is read from the sheet, not hardcoded; a mismatch WITH a rationale passes; a mismatch WITHOUT
+      one fails; messages name the dimension.
+
+  - id: T5
+    title: "FR-6 (D3, D7) — the arithmetic: modal + weighted score, untested exclusion/renormalization, 30% coverage constant, reco-vs-modal"
+    ac: [AC3, AC4]
+    deps: [T4]
+    parallel: false
+    detail: >
+      NEW CAPABILITY — there is no existing routine to re-home (see the header note). In
+      check-scoring-calibration.mjs implement:
+        - MODAL and WEIGHTED score across scored dimensions, using data-weight from the sheet.
+        - UNTESTED EXCLUSION — dimensions tagged untested leave the weighted-score DENOMINATOR entirely and the
+          remaining weights RENORMALIZE (they must sum to 100% of the scored set). Do NOT score untested neutral:
+          inventing a score for evidence that does not exist violates INV-4.
+        - UNTESTED-WEIGHT-% — report it as a first-class coverage figure in the output.
+        - THE 30% THRESHOLD as ONE NAMED CONSTANT at the top of the file (it is a proposal, not a calibration — no
+          real round has been measured against it, so it must be trivially tunable). At or above it, the reco must
+          either be "insufficient evidence" or carry a non-empty data-reco-rationale defending a call made on
+          partial coverage.
+        - RECO-VS-MODAL — compare the computed band against the stated reco; on disagreement require a non-empty
+          data-reco-rationale (same escape shape as gate 3).
+      ALL of this is the script's. The model reads these numbers; it never produces them (INV-2).
+    verify: >
+      Weighted score with an untested dimension renormalizes correctly (hand-check one worked example);
+      untested-weight-% is reported; the 30% value appears exactly once as a named constant; at 29.9% no reco
+      constraint fires and at 30.0% it does; reco-vs-modal disagreement without a rationale fails, with one passes.
+
+  - id: T6
+    title: "FR-6 — wire check-scoring-calibration.mjs into Phase Score as a SECOND blocking STOP-before-done gate"
+    ac: [AC3]
+    deps: [T5]
+    parallel: false
+    detail: >
+      In SKILL.md Phase Score, invoke the new gate alongside — NOT replacing — the citation gate, copying the
+      citation gate's blocking STOP-before-done shape and language. On non-zero exit: the scorecard is NOT
+      presented and the run does NOT declare done; the failure message is surfaced so the specific dimension can be
+      fixed and the gate re-run.
+      Order matters: this comes AFTER T5 deliberately — wiring a gate that cannot yet pass would block every run.
+      Both gates must be able to pass on a well-formed run before this task is complete.
+      Do NOT touch the citation gate's own invocation, semantics, or message (INV-3).
+    verify: >
+      Both gates run in Phase Score; a well-formed run passes both; a run with an unswept dimension is stopped
+      before the scorecard is presented; the citation gate's invocation and wording are byte-unchanged.
+
+  - id: T7
+    title: "FR-7 (D8) — rubric materialization for descriptor-less sheets: synthesize -> write inline -> agree -> score"
+    ac: [AC5]
+    deps: [T6]
+    parallel: false
+    detail: >
+      When the resolved sheet carries NO data-level descriptors, do not score uncalibrated (that path is
+      RETIRED — it was the bar-inflation hole itself, INV-1). Instead:
+        (1) DERIVE descriptors per dimension from the guide's own strong/weak markers, its .calib line, the
+            archetype corpus, and the seniority. Follow scorecard-skeleton.html's contract rules (behavioural,
+            all-or-none, ceiling language top-level only) — cite them, do not restate.
+        (2) WRITE them into the sheet as real data-level anchors. The sheet becomes self-describing and the NEXT
+            run inherits the same bar — this is what makes the fix persistent rather than per-run.
+        (3) PRESENT for agreement. BLOCKING: no dimension is scored against an unagreed bar.
+        (4) STAMP data-rubric-provenance UNCONDITIONALLY, on every path including failures:
+            "authored" (descriptors came from the sheet), "synthesized-agreed" (derived + human-agreed),
+            "synthesized-auto" (derived + AUTO-PICKed headless).
+      UNDER --non-interactive: AUTO-PICK the synthesized rubric. This is an explicit MAINTAINER OVERRIDE of the
+      recommended DEFER+provisional shape — it trades a guarantee for unattended throughput, and the residual risk
+      (a run scoring against a bar no human saw) is accepted and named in 02_design.html#risks. The provenance
+      stamp is the ONLY mitigation, so it must never be skipped.
+      Per D8 this is an AUTO-PICK, not a DEFER — do NOT tag the agreement prompt `<!-- defer-only: … -->`; give it
+      a (Recommended) option so the non-interactive classifier auto-picks it.
+    verify: >
+      A descriptor-less sheet triggers derive -> write -> agree -> score and blocks scoring until agreement;
+      the written anchors validate under sak's all-or-none rule; a second run against the same sheet finds
+      descriptors present and takes the "authored" path; provenance is stamped in all three cases; headless
+      AUTO-PICKs and stamps synthesized-auto.
+
+  - id: T8
+    title: "FR-8 (D11) — Phase Coach gets the METHOD, not the gate; no new anchors on output (b)"
+    ac: [AC7]
+    deps: [T7]
+    parallel: false
+    detail: >
+      interviewer-notes-skeleton.html has NO scoring anchors — no data-dim, no data-v, no data-selected — so
+      check-scoring-calibration.mjs structurally cannot run against it (confirmed in T1). But output (b) makes
+      below-bar claims about interviewers from the same transcript with the same reading-order risk.
+      In Phase Coach, apply as METHOD: (a) sweep-then-conclude — collect every relevant instance across the whole
+      transcript before writing any below-bar conclusion about an interviewer; (b) the adversarial pass — for each
+      below-bar claim, ask "what is the strongest case this was actually fine?" before writing it.
+      ADD NO GATE and ADD NO ANCHORS to output (b). Giving (b) its own scoring surface is explicitly DEFERRED.
+      Fix the bias everywhere; add machinery only where there is something to check.
+    verify: >
+      Phase Coach states both method clauses; git diff for reference/interviewer-notes-skeleton.html is EMPTY;
+      check-scoring-calibration.mjs is not invoked against output (b) anywhere.
+
+  - id: T9
+    title: "AC8 conformance: --selftest per gate, citation gate untouched, no new flag, skill-eval + 4 lints"
+    ac: [AC8]
+    deps: [T8]
+    parallel: false
+    detail: >
+      (1) check-scoring-calibration.mjs --selftest: pass AND fail fixture for each of the four gates, plus untested
+          renormalization (a worked example with a known expected weighted score) and the 30% boundary (29.9 vs
+          30.0). Fixtures minimal and self-contained — do not couple them to 260721-1a4's authored content.
+      (2) ANTI-RITUAL RE-READ: for each gate ask "can a model pass this without doing the work?" A yes means the
+          gate is a presence costume (the D10 failure mode) and must be re-shaped before this task closes.
+      (3) NO MODEL ARITHMETIC: grep SKILL.md for any instruction to compute / average / weight / total. Every
+          number must come from the script (INV-2).
+      (4) INV-3: `git diff` EMPTY for scripts/check-citations.mjs; its existing tests still pass; its semantics,
+          tier model, >=40-char verbatim rule and STOP behaviour unchanged.
+      (5) INV-7: argument-hint and user-invocable unchanged (--stamp and the gate are SCRIPT arguments, not skill
+          CLI surface); frozen non-interactive block byte-identical to skills/_shared/non-interactive.md.
+      (6) `git diff` EMPTY for all of skills/interview-guide/ and all of _shared/interview-guidelines/.
+      (7) skill-eval-check.sh on the skill DIR (target claude-code); residuals must be PROVEN pre-existing on
+          pre-story main via a throwaway `git worktree add --detach`, never accepted on assertion.
+      (8) All four repo hygiene lints per host CLAUDE.md (audit-recommended.sh takes the SKILL.md FILE; the others
+          take the DIR).
+    verify: >
+      --selftest green across all fixtures incl. renormalization and the 30% boundary; no gate passes without the
+      work; no arithmetic instruction in SKILL.md; check-citations.mjs and both frozen trees show empty diffs;
+      argument-hint / user-invocable / NI block unchanged; skill-eval clean or residuals proven pre-existing;
+      four lints green.

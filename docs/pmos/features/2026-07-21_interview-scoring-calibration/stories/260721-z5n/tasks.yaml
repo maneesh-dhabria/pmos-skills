@@ -1,0 +1,166 @@
+schema_version: 1
+story: 260721-z5n
+epic: 260721-k1x
+route: skill
+plugin: pmos-managerkit
+spec: ../../02_design.html
+execution_mode: inline
+skill_dir: plugins/pmos-managerkit/skills/interview-feedback
+# The retro's FRICTION and NIT findings — two artifact-hygiene defects with ZERO dependency on the calibration
+#   work. Split out of 260721-jb6 in the grill so one skill-eval does not have to span a new gate script AND two
+#   unrelated fixes. Buildable immediately, in parallel with every other story in the epic.
+# F2 [friction] — the "Observer's independent read" block shipped with an unfilled
+#   `[ … your observations go here ]` placeholder while the run reported COMPLETE, across all three passes, after
+#   the observer had explicitly asked to share their observations. An empty promised section reads as "nothing to
+#   say", which is the opposite of the truth.
+# F3 [nit] — the proof-of-pass comment
+#   `<!-- citations verified: <N> transcript-tier, <M> notes-tier[, <K> submission-tier], <YYYY-MM-DD> -->`
+#   is written by the MODEL today, so it went stale on every correction and was hand-patched 19 -> 22 -> 24. The
+#   gate ALREADY COMPUTES these numbers (byTier) — it just prints them instead of writing them. §K: the count
+#   cannot drift if no human ever types it.
+# Surface: skills/interview-feedback/SKILL.md (Phase Score #score, Phase Coach #coach),
+#   scripts/check-citations.mjs (--stamp), reference/interviewer-notes-skeleton.html + the scorecard skeleton
+#   (placeholder/slot conventions the scan reads — READ, not modified unless a convention must be pinned).
+# §H: both gates are deterministic (presence / exit-code-conditional write) -> HARD. No arithmetic.
+# §I: --stamp is a SCRIPT argument, NOT skill CLI surface. argument-hint UNCHANGED.
+# Reference: ../../02_design.html (D4, D5, FR-9, FR-10, INV-3, INV-4, INV-7) +
+#   feature-sdlc/reference/skill-patterns.md §A–§L + host CLAUDE.md. Cite refs, never restate.
+# BYTE-FROZEN this story: check-citations.mjs's VERIFICATION semantics (tier model, >=40-char verbatim rule, STOP
+#   behaviour, the counts themselves — only WHO WRITES the comment moves, INV-3); scripts/fill-scorecard.mjs and
+#   scripts/check-scoring-calibration.mjs (260721-jb6's surface); all of skills/interview-guide/ and
+#   _shared/interview-guidelines/; argument-hint; user-invocable; the frozen NI block.
+# NO release-prereq tasks (version bump, changelog, README, manifest sync) — /complete-dev owns those (§G).
+tasks:
+  - id: T1
+    title: "Study: placeholder/slot conventions in both skeletons; check-citations.mjs counting + printing path and --selftest harness; the SKILL.md hand-write instruction"
+    ac: [AC1, AC4, AC5, AC6, AC7, AC8]
+    deps: []
+    parallel: false
+    detail: >
+      Read reference/interviewer-notes-skeleton.html and the scorecard skeleton — pin the ACTUAL placeholder and
+      empty-slot conventions: bracketed placeholder prose (the literal `[ … your observations go here ]` shape and
+      any siblings), data-input slots and what "empty" means for each, and any un-substituted {{…}} tokens. T4's
+      detection keys on THESE conventions, not on a loose bracket regex — bracketed text appears in normal writing
+      and a false positive would stamp a complete artifact "draft".
+      Read scripts/check-citations.mjs in full — pin the byTier counting path, the line it currently PRINTS
+      (`✓ citations: ${byTier.transcript} transcript, ${byTier.notes} notes`), the exit-code convention, the
+      --selftest harness style, and confirm it currently NEVER writes to the target HTML.
+      Read interview-feedback/SKILL.md — pin the lines (~210-216) instructing the MODEL to hand-write the
+      `<!-- citations verified: … -->` comment, and both invocation sites (Phase Score, Phase Coach). Pin the
+      artifact-write path --stamp will use, and where "declared done" happens in each phase (T4's scan runs before
+      it).
+      Produce NO edits.
+    verify: >
+      Placeholder conventions pinned from the skeletons themselves; byTier counting + printing path and the
+      selftest harness understood; both gate invocation sites and the hand-write instruction located; the
+      "declared done" points identified in both phases; confirmed the script currently never writes to the target.
+
+  - id: T2
+    title: "FR-10 (D5) — check-citations.mjs --stamp: idempotent write/replace of the proof comment, ONLY on exit 0"
+    ac: [AC4, AC5]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Add a --stamp flag to check-citations.mjs. When passed AND the gate exits 0, write the comment
+      `<!-- citations verified: <N> transcript-tier, <M> notes-tier[, <K> submission-tier], <YYYY-MM-DD> -->`
+      into the target HTML using the counts the script already computes (byTier).
+      IDEMPOTENT REPLACE: if a `citations verified:` comment already exists, replace it IN PLACE — never append a
+      second one. A second run over unchanged input must produce a BYTE-IDENTICAL file (the date is the only
+      moving part; if the date changes the file changes, which is correct — assert byte-identity for a same-day
+      re-run).
+      ONLY ON EXIT 0: a failing gate leaves the file completely untouched. A proof-of-pass comment written when the
+      gate did not pass is worse than no comment — it is affirmatively misleading. This is the single most
+      important behaviour in the task.
+      Do NOT change the verification semantics: tier model, >=40-char verbatim rule, counting logic, exit codes and
+      STOP behaviour are all unchanged (INV-3). Only who writes the comment moves.
+      Without --stamp, behaviour is exactly as today (print only).
+    verify: >
+      --stamp on a passing gate inserts the comment with the script's own counts; a second same-day run replaces
+      in place and yields a byte-identical file; --stamp on a FAILING gate leaves the file untouched; without
+      --stamp the script behaves exactly as before; verification semantics and exit codes unchanged.
+
+  - id: T3
+    title: "FR-10 — SKILL.md invokes the gate with --stamp in both phases; delete the model's hand-write instruction"
+    ac: [AC6]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Update both invocation sites (Phase Score #score, Phase Coach #coach) to pass --stamp, and DELETE the ~210-216
+      instruction telling the model to author the `<!-- citations verified: … -->` comment.
+      ORDER MATTERS: this comes after T2 deliberately — removing the model's instruction before the script writes
+      the comment would leave a window where a run produces no proof comment at all.
+      After this task the counts have exactly ONE home (§K): the script computes them and the script writes them; no
+      human and no model ever types them.
+      --stamp is a SCRIPT argument, not skill CLI surface — do NOT add it to argument-hint (§I / INV-7).
+    verify: >
+      Both phases invoke the gate with --stamp; the hand-write instruction is gone; no instruction anywhere tells
+      the model to produce or transcribe a citation count; argument-hint unchanged.
+
+  - id: T4
+    title: "FR-9 (D4) — the completeness scan: detect unfilled promised content across both artifacts before done"
+    ac: [AC1]
+    deps: [T3]
+    parallel: false
+    detail: >
+      Before either artifact is declared complete (both phases), scan for unfilled promised content using the
+      conventions pinned in T1:
+        - bracketed placeholder prose (e.g. `[ … your observations go here ]`) still present,
+        - empty data-input slots,
+        - un-substituted {{…}} tokens.
+      Key the detection on the skeletons' ACTUAL conventions — a loose bracket regex would false-positive on
+      legitimate prose and stamp a complete artifact "draft", which is its own credibility failure.
+      The motivating case must be caught: a run where the "Observer's independent read" block is left with its
+      placeholder CANNOT report complete.
+      Deterministic presence check -> hard gate (§H). No arithmetic, no judgement.
+    verify: >
+      A run with the observer placeholder intact is detected and cannot report complete; each of the three
+      unfilled shapes is detected; a fully-filled artifact produces zero detections (no false positive on ordinary
+      bracketed prose).
+
+  - id: T5
+    title: "FR-9 (D4) — disposition: interactive capture prompt; declined or headless -> `draft — pending <slot>` stamp"
+    ac: [AC2, AC3]
+    deps: [T4]
+    parallel: false
+    detail: >
+      On detection:
+        - INTERACTIVE: prompt to capture the missing content in the same run (the observer's independent read is
+          the motivating case). Give the prompt a (Recommended) option so the non-interactive classifier resolves
+          it deterministically.
+        - DECLINED, or under --non-interactive: stamp the artifact `draft — pending <slot>`, naming the SPECIFIC
+          unfilled slot (not a generic "draft").
+      NEVER FABRICATE the missing content — there is no "generate it for them" path (INV-4). The gate captures or
+      stamps; it does not write the observer's read for them.
+      NEVER SILENTLY PASS an artifact with a hole in it.
+      A fully-filled artifact is completely unaffected: no stamp, no prompt, byte-identical to today.
+    verify: >
+      Interactive declines and headless runs both stamp `draft — pending <slot>` with the specific slot named;
+      capturing in-run clears the detection; no path fabricates content; a fully-filled artifact is byte-identical
+      to pre-change output.
+
+  - id: T6
+    title: "Conformance: --selftest (stamp-insert / stamp-replace / no-stamp-on-failure), INV-3 semantics, no new flag, skill-eval + 4 lints"
+    ac: [AC7, AC8]
+    deps: [T5]
+    parallel: false
+    detail: >
+      (1) Extend check-citations.mjs --selftest with three fixtures: stamp-insert (no prior comment),
+          stamp-replace (prior comment present -> replaced in place, exactly one comment after, byte-identical on
+          same-day re-run), and no-stamp-on-failure (gate fails -> target file untouched). Confirm every
+          pre-existing assertion still passes.
+      (2) INV-3: verification semantics, tier model, >=40-char verbatim rule, counting logic, exit codes and STOP
+          behaviour byte-unchanged. Diff-review check-citations.mjs and confirm the only additions are the --stamp
+          flag and its write path.
+      (3) INV-7 / §I: argument-hint and user-invocable unchanged; --stamp appears nowhere in the skill's CLI
+          surface; frozen non-interactive block byte-identical to skills/_shared/non-interactive.md.
+      (4) `git diff` EMPTY for scripts/fill-scorecard.mjs, scripts/check-scoring-calibration.mjs (jb6's surface),
+          all of skills/interview-guide/, and all of _shared/interview-guidelines/.
+      (5) skill-eval-check.sh on the skill DIR (target claude-code); residuals must be PROVEN pre-existing on
+          pre-story main via a throwaway `git worktree add --detach`, never accepted on assertion.
+      (6) All four repo hygiene lints per host CLAUDE.md (audit-recommended.sh takes the SKILL.md FILE; the others
+          take the DIR). T5's prompt must carry a (Recommended) option or an adjacent defer-only tag, or
+          audit-recommended.sh will flag it.
+    verify: >
+      --selftest green incl. the three new fixtures and every pre-existing one; check-citations.mjs diff limited to
+      --stamp + its write path; argument-hint / user-invocable / NI block unchanged; the four frozen paths show
+      empty diffs; skill-eval clean or residuals proven pre-existing; four lints green.

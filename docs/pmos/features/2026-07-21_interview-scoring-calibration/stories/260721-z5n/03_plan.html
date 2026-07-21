@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Plan — 260721-z5n · /interview-feedback artifact hygiene</title>
+<style>
+  :root { --ink:#1a1a1a; --mut:#666; --line:#e2e2e2; --accent:#2b6cb0; --code:#f5f5f5; }
+  body { font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; color:var(--ink); max-width:860px; margin:0 auto; padding:2.5rem 1.25rem 6rem; }
+  h1 { font-size:1.6rem; margin:0 0 .25rem; } h2 { font-size:1.2rem; margin:2.2rem 0 .5rem; border-bottom:2px solid var(--line); padding-bottom:.3rem; }
+  .sub { color:var(--mut); margin:.2rem 0 1.4rem; }
+  table { border-collapse:collapse; width:100%; margin:1rem 0; font-size:.92rem; }
+  th,td { border:1px solid var(--line); padding:.45rem .6rem; text-align:left; vertical-align:top; }
+  th { background:var(--code); } code { background:var(--code); padding:.1rem .3rem; border-radius:3px; font-size:.88em; }
+  pre { background:var(--code); padding:.7rem .9rem; border-radius:6px; overflow:auto; font-size:.85rem; }
+  ul { padding-left:1.3rem; } li { margin:.3rem 0; }
+</style>
+</head>
+<body>
+<h1>Plan — <code>/interview-feedback</code> artifact hygiene</h1>
+<p class="sub">Story <strong>260721-z5n</strong> · epic 260721-k1x · route: skill · plugin pmos-managerkit · execution_mode: inline · one <code>/execute</code> run · deps: none</p>
+
+<h2 id="surface">Surface &amp; reference</h2>
+<p>The retro's <strong>friction</strong> and <strong>nit</strong> findings — two artifact-hygiene defects with no
+dependency on the calibration work. Split out of <code>260721-jb6</code> in the grill so one
+<code>skill-eval</code> does not have to span a new gate script <em>and</em> two unrelated fixes. Buildable
+immediately, in parallel with every other story in the epic.</p>
+<p>Files: <code>skills/interview-feedback/SKILL.md</code> (Phase Score <code>#score</code>, Phase Coach
+<code>#coach</code>), <code>scripts/check-citations.mjs</code> (<code>--stamp</code>), and the two skeletons whose
+placeholder/slot conventions the completeness scan reads.</p>
+<p>Reference: <code>../../02_design.html</code> (D4, D5, FR-9, FR-10, INV-3, INV-4, INV-7) +
+<code>feature-sdlc/reference/skill-patterns.md §A–§L</code> (§H, §I no new flag, §K one-fact-one-home).</p>
+
+<h2 id="findings">The two findings</h2>
+<h3>F2 [friction] — a promised section shipped empty</h3>
+<p>The "Observer's independent read" block shipped with an unfilled <code>[ … your observations go here ]</code>
+placeholder while the run reported <em>complete</em>, across all three passes — and the observer had explicitly
+asked to share their observations. An empty promised section reads as <em>"nothing to say"</em>, which is the
+opposite of the truth.</p>
+<h3>F3 [nit] — a hand-maintained count drifted</h3>
+<p>The proof-of-pass comment is written by the <strong>model</strong> today, so it went stale on every correction
+and was hand-patched 19 → 22 → 24:</p>
+<pre>&lt;!-- citations verified: &lt;N&gt; transcript-tier, &lt;M&gt; notes-tier[, &lt;K&gt; submission-tier], &lt;YYYY-MM-DD&gt; --&gt;</pre>
+<p>§K one fact, one home: the count cannot drift if no human ever types it. The gate already computes these
+numbers — it just prints them instead of writing them.</p>
+
+<h2 id="waves">Task waves</h2>
+<table>
+  <tr><th>Task</th><th>FR / AC</th><th>What</th><th>Deps</th></tr>
+  <tr><td><strong>T1</strong></td><td>study</td><td>Pin the placeholder/slot conventions in both skeletons (bracketed prose, <code>data-input</code>, <code>{{…}}</code>); <code>check-citations.mjs</code>'s counting + printing path (<code>byTier</code>), exit convention, and <code>--selftest</code> harness; the <code>SKILL.md</code> lines instructing the model to author the comment; the artifact-write path <code>--stamp</code> must use.</td><td>—</td></tr>
+  <tr><td><strong>T2</strong></td><td>FR-10 / AC4, AC5</td><td><code>check-citations.mjs --stamp</code>: idempotent write/replace of the comment, <strong>only on exit 0</strong>.</td><td>T1</td></tr>
+  <tr><td><strong>T3</strong></td><td>FR-10 / AC6</td><td><code>SKILL.md</code>: invoke with <code>--stamp</code> in both phases; delete the hand-write instruction. One home for the counts.</td><td>T2</td></tr>
+  <tr><td><strong>T4</strong></td><td>FR-9 / AC1</td><td>The completeness scan — detect unfilled promised content across both artifacts before done.</td><td>T3</td></tr>
+  <tr><td><strong>T5</strong></td><td>FR-9 / AC2, AC3</td><td>Disposition: interactive capture prompt; declined or headless → <code>draft — pending &lt;slot&gt;</code> stamp. Never fabricate, never silently pass.</td><td>T4</td></tr>
+  <tr><td><strong>T6</strong></td><td>AC7, AC8</td><td>Conformance: <code>--selftest</code> (stamp-insert / stamp-replace / no-stamp-on-failure), citation semantics unchanged, no new flag, skill-eval + four lints.</td><td>T5</td></tr>
+</table>
+<p>T2 before T3 (do not remove the model's instruction until the script writes the comment — otherwise a run
+between the two produces no proof comment at all). T4 before T5 (detection before disposition).</p>
+
+<h2 id="risks">Risks &amp; mitigations</h2>
+<ul>
+  <li><strong>Stamping on a failing gate.</strong> The worst possible outcome: a proof-of-pass comment written when
+    the gate did <em>not</em> pass, which is worse than no comment because it is affirmatively misleading.
+    <code>--stamp</code> writes <strong>only</strong> on exit 0; T6's third fixture is exactly this case.</li>
+  <li><strong>Non-idempotent stamping.</strong> A naive append produces two comments after the second run and
+    resurrects the drift the fix exists to kill. T2 replaces in place; T6 asserts a byte-identical file on a second
+    run over unchanged input.</li>
+  <li><strong>Regressing the citation gate.</strong> The half of the contract that worked (INV-3). Only who
+    <em>writes</em> the comment moves — not the tier model, not the ≥40-char verbatim rule, not the STOP
+    behaviour, not the counts themselves. T6 asserts the existing tests still pass.</li>
+  <li><strong>The completeness scan fabricating content.</strong> INV-4. The gate captures or stamps; it never
+    writes the observer's read for them. T5 states this explicitly and offers no "generate it" path.</li>
+  <li><strong>False positives on legitimate prose.</strong> Bracketed text appears in normal writing. T4's
+    detection must key on the skeletons' actual placeholder conventions (pinned in T1), not on a loose
+    bracket regex — a false positive would stamp a complete artifact "draft".</li>
+  <li><strong>Flag creep.</strong> <code>--stamp</code> is a <em>script</em> argument, not skill CLI surface.
+    <code>argument-hint</code> stays unchanged (§I / INV-7).</li>
+</ul>
+
+<h2 id="final-verify">Final verification</h2>
+<ul>
+  <li>AC1–AC3: a run with the observer block empty cannot report complete; interactive prompts to capture;
+    declined/headless stamps <code>draft — pending &lt;slot&gt;</code> naming the slot; a fully-filled artifact is
+    byte-identical to today (no stamp, no prompt); no fabricated content on any path.</li>
+  <li>AC4–AC6: <code>--stamp</code> writes on exit 0, replaces in place, is byte-idempotent on re-run, and writes
+    nothing on failure; <code>SKILL.md</code> invokes it in both phases and no longer instructs the model to author
+    the comment.</li>
+  <li>AC7: citation verification semantics, tier model, ≥40-char rule, STOP behaviour and existing tests
+    unchanged; <code>--selftest</code> covers stamp-insert, stamp-replace, no-stamp-on-failure.</li>
+  <li>AC8: <code>skill-eval-check.sh</code> (target claude-code) clean or residuals proven pre-existing on main;
+    four repo lints green; <code>argument-hint</code> unchanged; NI block byte-identical.</li>
+  <li>Then <code>/skill-eval</code> (build Loop) re-scores <code>[D]</code>+<code>[J]</code> before <code>/verify</code>.</li>
+</ul>
+
+<!-- pmos-comments:start -->
+<script id="pmos-comments" type="application/json">{"version":1,"threads":[]}</script>
+<!-- pmos-comments:end -->
+</body>
+</html>
