@@ -13,12 +13,13 @@ status: done
 feature_folder: docs/pmos/features/2026-07-21_interview-scoring-calibration/
 plan_doc: docs/pmos/features/2026-07-21_interview-scoring-calibration/stories/260721-jb6/03_plan.html
 tasks: docs/pmos/features/2026-07-21_interview-scoring-calibration/stories/260721-jb6/tasks.yaml
-worktree: .claude/worktrees/feat-260721-jb6
+worktree:
 build_branch: feat/260721-jb6
 build_commit: d47b5a80
 labels: [pmos-managerkit, interview-feedback, scoring, calibration, gates, skill, from-feedback]
 created: 2026-07-21
 updated: 2026-07-21
+released: v0.8.0
 ---
 
 <!-- status: built at Loop 2 on 2026-07-21; branch feat/260721-jb6 @ d47b5a80, UNMERGED/UNPUSHED. /verify verdict PASS — report at docs/pmos/features/2026-07-21_interview-scoring-calibration/stories/260721-jb6/verify/2026-07-21-review.html. Releases with epic 260721-k1x once 1a4 + z5n are done. -->

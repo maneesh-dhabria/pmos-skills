@@ -4,12 +4,13 @@ id: 260721-k1x
 title: "/interview-feedback scoring calibration — level-descriptor anchors, sweep-then-score method, four calibration gates, rubric materialization, completeness + citation-stamp hygiene"
 type: enhancement
 kind: epic
-status: defined
+status: released
 route: skill
 priority: must
 labels: [pmos-managerkit, interview-feedback, interview-guide, scoring, calibration, skill, from-feedback]
 created: 2026-07-21
 updated: 2026-07-21
+released: v0.8.0
 source: "from-feedback (/reflect retro of one /interview-feedback run, 2026-07-21). The grounding half of the skill's contract held perfectly — inputs resolved, Gemini transcript treated tier-1, check-citations.mjs exited 0 every pass. The scoring half failed twice and only user pushback caught it: challenge 1 ('only initial probed answers, or did he eventually get there?') moved Dim 1 and flipped the reco off No-Hire; challenge 2 ('are you sure about the others — look at the entire transcript') moved Dim 2/3/4/6 and flipped it to Hire. Weighted score 2.10 -> 3.00; reco swung two full bands on identical evidence. 3 findings ([blocker] time-biased + bar-inflated scoring; [friction] unfilled observer placeholder shipped as complete; [nit] hardcoded citation count hand-patched 19->22->24) and 7 named safeguards. Maintainer decisions (define run): D1 new data-level anchors authored by /interview-guide; D3 four-gate set (sweep / adversarial below-bar / note-vs-score / reco-vs-modal); D4 completeness gate + draft stamp; D5 check-citations.mjs --stamp owns the proof comment. Grill (--depth deep, 9 branches) added D6 (backfill is its own story), D7 (untested dims excluded + renormalized + 30% coverage gate), D8 (rubric-less guide -> synthesize/write-inline/agree; headless AUTO-PICK per maintainer override), D9 (sweep renders as collapsed <details>), D10 (data-note-matches-level, script-compared, rationale-on-mismatch), D11 (output (b) gets the method, not the gate) — and split the epic 2 -> 4 stories."
 design_doc: docs/pmos/features/2026-07-21_interview-scoring-calibration/02_design.html
 parent:
