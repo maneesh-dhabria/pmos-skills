@@ -9,7 +9,7 @@ priority: must
 route: skill
 dependencies: [260721-sak]
 plugin: pmos-managerkit
-status: blocked
+status: planned
 feature_folder: docs/pmos/features/2026-07-21_interview-scoring-calibration/
 plan_doc: docs/pmos/features/2026-07-21_interview-scoring-calibration/stories/260721-1a4/03_plan.html
 tasks: docs/pmos/features/2026-07-21_interview-scoring-calibration/stories/260721-1a4/tasks.yaml
@@ -77,6 +77,9 @@ resolve this with the maintainer and record the choice before authoring starts. 
   covered on the same terms as the other seven; no archetype is partially done.
 - [ ] **AC7** The seniority-variance decision is recorded in the story's `03_plan.html` with its rationale, and the
   authored descriptors are consistent with it. All four repo hygiene lints green.
+  **RESOLVED 2026-07-21 — shape B (flat + rider)**, see `03_plan.html#t0-decision`. The recording half of AC7 is
+  already satisfied; what remains is consistency: descriptors written for each archetype's default level, plus the
+  one seniority clause added to `_shared/interview-guidelines/scorecard-skeleton.html`'s `data-level` contract.
 
 ## Notes
 
@@ -131,5 +134,19 @@ descriptors mis-fire at the APM and Director ends.
 - AC2's validator (`interview-guide/scripts/validate-scorecard-anchors.mjs`, from `260721-sak`) is present and
   shipped, so the rest of the story is unblocked the moment T0 lands.
 
-**To unblock:** record the A/B/C choice + rationale in `stories/260721-1a4/03_plan.html` (AC7), restate AC1's
-count if it changed, then `/backlog set 260721-1a4 status=planned` and the next `build --next` will pick it up.
+### 2026-07-21 — T0 RESOLVED, story unblocked
+
+Maintainer decision, taken in an interactive checkpoint: **shape B — flat + seniority rider.** 188 descriptors
+(AC1 unchanged), plus one seniority clause in `scorecard-skeleton.html`'s `data-level` contract stating that a
+descriptor is the bar for the archetype's default level and that a `level-ladder.md` weight row shifts that bar
+rather than the prose. Full rationale, the corpus measurement, and what it binds for T1–T5:
+`03_plan.html#t0-decision`.
+
+B keeps the flat `data-level` attribute, so neither `validate-scorecard-anchors.mjs` (`sak`) nor `jb6`'s
+calibration gate needs to change — a `data-level-<level>` family would have forced both.
+
+**Build posture:** full autopilot — all 8 archetypes in one unattended run, gated by AC2's validator, AC3's
+pass-line grep, AC5's additive-only diff, and `skill-eval`; no per-archetype review checkpoint.
+**Scheduled for the loop tick after `260721-z5n`.**
+
+Status returned to `planned`.

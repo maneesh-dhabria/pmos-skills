@@ -42,9 +42,10 @@ contract comment (the normative rules, authored by <code>sak</code>) + each arch
 <div class="warn">
 <strong>⚠ T0 is a maintainer decision, not an authoring task, and it gates everything after it.</strong>
 <code>level-ladder.md</code> already varies competency <em>weights</em> across
-<code>apm · pm · senior-pm · group-pm · director · vp</code>. If descriptors must vary by seniority too, this story
-goes from <strong>188 to ~1,128 descriptors</strong> and must be re-scoped or re-split. Resolve it before authoring
-a single descriptor; record the choice and its rationale in this plan (AC7).
+<code>apm · pm · senior-pm · group-pm · director · vp</code>. <strong>RESOLVED 2026-07-21 — see <a href="#t0-decision">T0 decision</a>.</strong> Shape <strong>B
+(flat + rider)</strong>: 188 descriptors, unchanged, plus one seniority clause in the skeleton contract. The
+<code>~1,128</code> figure below was wrong — it assumed all 8 archetypes carry a seniority axis; only
+<code>work-history</code> does. Authoring is unblocked.
 </div>
 
 <h2 id="t0">T0 — the seniority question</h2>
@@ -61,10 +62,66 @@ a single descriptor; record the choice and its rationale in this plan (AC7).
 </ul>
 <p>Whatever is chosen, AC1's count is restated to match before authoring begins.</p>
 
+<h2 id="t0-decision">T0 decision — shape B (flat + rider)</h2>
+<p><strong>Decided 2026-07-21 by the maintainer</strong>, in an interactive checkpoint raised by an unattended
+<code>build --next</code> that claimed this story, hit T0, and refused to auto-pick a scope decision the define
+loop had reserved for a human. The story was blocked, the decision put, and this record written before any
+descriptor was authored.</p>
+
+<h3 id="t0-measurement">The measurement that reframed the choice</h3>
+<p>The three candidate shapes above were costed against an assumption that was never tested: that the seniority
+axis applies to all 8 archetypes. It does not. Measured directly against the bundled corpus:</p>
+<table>
+  <tr><th>Archetype</th><th>dims</th><th><code>data-v</code> options</th><th>own seniority ladder?</th></tr>
+  <tr><td>analytical, behavioral, case-presentation, case-study, product-sense, technical</td><td>5 each</td><td>20 each</td><td><strong>no</strong></td></tr>
+  <tr><td>recruiter-screen</td><td>5</td><td>20</td><td><strong>no</strong> — its <code>seniority-signal</code> is a <em>dimension name</em>, not a level axis</td></tr>
+  <tr><td>work-history</td><td>12</td><td>48</td><td><strong>yes</strong> — <code>level-ladder.md</code>, 6 levels</td></tr>
+  <tr><td><strong>total</strong></td><td><strong>47</strong></td><td><strong>188</strong></td><td>1 of 8</td></tr>
+</table>
+<p>So the real cost of each shape is <strong>A = 188</strong>, <strong>B = 188 + 1 clause</strong>,
+<strong>C = 428</strong> (work-history 48×6 = 288, flat 140 elsewhere). The <code>~1,128</code> figure is
+shape <strong>C′</strong> — per-seniority everywhere — which would require <em>inventing</em> a seniority axis for
+six archetypes that have none. That is a new design, not a backfill, and was never a real option.</p>
+
+<h3 id="t0-rationale">Rationale for B</h3>
+<p><code>level-ladder.md</code> already varies competency <em>weights</em> across the six levels, so the bar
+already shifts with seniority — through the weighting, not through the prose. B names that explicitly in one
+place instead of duplicating ~240 near-identical work-history descriptors that would drift apart on the first
+edit (<code>skill-patterns.md §K</code>: one fact, one home). C stays available later as its own story if
+calibration data shows the flat descriptors mis-fire at the APM and Director ends of the ladder.</p>
+
+<h3 id="t0-authoring-consequences">What this binds for T1–T5</h3>
+<ul>
+  <li><strong>AC1 is unchanged at 188.</strong> No restatement needed — 47 dimensions × 4 scale points, confirmed
+    by direct count rather than inferred.</li>
+  <li><strong>One new authoring task:</strong> add the seniority rider to
+    <code>_shared/interview-guidelines/scorecard-skeleton.html</code>'s <code>data-level</code> contract comment —
+    stating that a descriptor is the bar <em>for the archetype’s default level</em>, and that where a
+    <code>level-ladder.md</code> exists the ladder’s weight row shifts that bar rather than the prose. One clause,
+    one home; scored under AC7.</li>
+  <li><strong>No new attribute family.</strong> B keeps the flat <code>data-level</code> attribute, so
+    <code>validate-scorecard-anchors.mjs</code> (from <code>260721-sak</code>) and <code>260721-jb6</code>’s
+    calibration gate need no change — a <code>data-level-&lt;level&gt;</code> family would have forced both.</li>
+  <li><strong>Descriptors are written for the archetype’s default level</strong> — <code>senior-pm</code> for
+    work-history per its ladder default; the shipped bar for the other seven.</li>
+</ul>
+
+<h3 id="t0-build-posture">Build posture (maintainer, same checkpoint)</h3>
+<p><strong>Full autopilot</strong> — all 8 archetypes authored in one unattended run, gated by AC2’s validator,
+AC3’s pass-line grep, AC5’s additive-only diff check, and <code>skill-eval</code>; no per-archetype review
+checkpoint. <strong>Scheduled for the loop tick after <code>260721-z5n</code></strong>, preserving the
+one-bounded-story-per-iteration contract.</p>
+
+<h3 id="t0-corrections">Corrections to this story’s definition</h3>
+<p>The story’s <strong>Surfaces</strong> section points at
+<code>_shared/interview-guidelines/level-ladder.md</code>. The file is actually at
+<code>_shared/interview-guidelines/guidelines/work-history/level-ladder.md</code> — it is work-history-scoped,
+which is itself the evidence for the table above. T1 reads it at the corrected path.</p>
+
 <h2 id="waves">Task waves</h2>
 <table>
   <tr><th>Task</th><th>FR / AC</th><th>What</th><th>Deps</th></tr>
-  <tr><td><strong>T0</strong></td><td>AC7</td><td>Resolve the seniority-variance question with the maintainer; record the decision + rationale in this plan; restate AC1's count if it changed. <strong>Blocks all authoring.</strong></td><td>—</td></tr>
+  <tr><td><strong>T0</strong></td><td>AC7</td><td><strong>DONE 2026-07-21.</strong> Seniority-variance question resolved with the maintainer: <strong>shape B (flat + rider)</strong>; decision + measurement + rationale recorded at <a href="#t0-decision">T0 decision</a>. AC1 unchanged at 188. Adds one authoring task: the seniority rider in <code>scorecard-skeleton.html</code>. <strong>No longer blocks.</strong></td><td>—</td></tr>
   <tr><td><strong>T1</strong></td><td>study</td><td>Read <code>scorecard-skeleton.html</code>'s <code>data-level</code> contract (from <code>sak</code>) and all 8 archetype folders — each dimension's id, weight, scale, probes and strong/weak markers. Build the per-dimension source table that T2–T5 author from. Confirm <code>work-history</code>'s 12 dims incl. its <code>role-evidence</code> / <code>trajectory-synthesis</code> families.</td><td>T0</td></tr>
   <tr><td><strong>T2</strong></td><td>FR-3 / AC1, AC3, AC4</td><td>Author + apply: <code>analytical</code>, <code>behavioral</code> (10 dims).</td><td>T1</td></tr>
   <tr><td><strong>T3</strong></td><td>FR-3 / AC1, AC3, AC4</td><td>Author + apply: <code>case-presentation</code>, <code>case-study</code>, <code>product-sense</code> (15 dims).</td><td>T2</td></tr>
