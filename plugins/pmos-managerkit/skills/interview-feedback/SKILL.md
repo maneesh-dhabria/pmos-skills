@@ -266,6 +266,8 @@ node scripts/check-scoring-calibration.mjs filled-scorecard.html
 
 It enforces the four gates on the anchors [the scoring method](#scoring-method) emits — evidence-sweep presence, below-bar rebuttal presence, the note-vs-score integer comparison, and the reco-vs-computed-band/coverage check — and it is the **sole source** of the modal score, the weighted score, the renormalized untested arithmetic, and the untested-weight-% (§H, INV-2).
 
+Ahead of those four it asserts the arithmetic's precondition: **every dimension resolves to exactly one of scored or `data-untested`** — never both, and never neither. A dimension left as neither is the *forgotten* one, and its weight would otherwise leave both totals at once, shrinking the denominator and inflating the result — the defect class the untested rule (clause **(d)**) exists to close.
+
 This gate has exactly the same status as the citation gate: **a hard STOP, not an assertion.** `filled-scorecard.html` is NOT presented as complete — and the run does NOT declare done — until it **exits 0**.
 
 - **Non-zero exit:** the message names the dimension and what is missing. Fix that dimension (complete its sweep, write the rebuttal, correct or defend the note-vs-score gap, defend the reco), then **re-run the gate**. Never present the artifact or move to Coach while either gate is non-zero, in any run mode.

@@ -401,10 +401,28 @@ function fillCalibrationDim(block, id, values) {
   return out;
 }
 
+// True when `index` falls inside an HTML comment. The skeleton opens with a long doc-comment
+// that DOCUMENTS the anchor contract by quoting the very tags we search for — matching the
+// first `<main data-card="scorecard">` in the file stamps the prose, not the element, and the
+// artifact silently ships without its root anchors. (Same trap the role-evidence pass hit.)
+function isInsideHtmlComment(html, index) {
+  const open = html.lastIndexOf('<!--', index);
+  if (open === -1) return false;
+  const close = html.indexOf('-->', open);
+  return close === -1 || close > index;
+}
+
 function fillCalibrationRoot(html, values) {
   if (values.recoRationale == null && values.rubricProvenance == null) return html;
-  const re = /<main\b[^>]*\bdata-card\s*=\s*"scorecard"[^>]*>/;
-  const m = html.match(re);
+  const re = /<main\b[^>]*\bdata-card\s*=\s*"scorecard"[^>]*>/g;
+  let m = null;
+  let hit;
+  while ((hit = re.exec(html)) !== null) {
+    if (!isInsideHtmlComment(html, hit.index)) {
+      m = hit;
+      break;
+    }
+  }
   if (!m) return html;
   let openTag = m[0];
   if (values.recoRationale != null) {
@@ -935,13 +953,22 @@ function selftest() {
     (calOne.match(/<li\b[^>]*data-t[^>]*>\s*<cite\b[^>]*data-cite-tier/g) || []).length === 2,
     'cal: every swept instance carries a citation (gate 1 of check-scoring-calibration)'
   );
+  // Assert against the ELEMENT, not the file: the skeleton's doc-comment quotes
+  // `<main data-card="scorecard">` in prose, so a whole-file regex passes while the real root
+  // carries nothing (caught in browser verification, not by the string assertion it replaced).
+  const calBody = cal.replace(/<!--[\s\S]*?-->/g, '');
+  const calComments = (cal.match(/<!--[\s\S]*?-->/g) || []).join('');
   assert(
-    /<main\b[^>]*data-reco-rationale\s*=\s*"[^"]+"/.test(cal),
-    'cal: root data-reco-rationale emitted'
+    /<main\b[^>]*data-reco-rationale\s*=\s*"[^"]+"/.test(calBody),
+    'cal: root data-reco-rationale emitted on the real <main>, not the doc-comment'
   );
   assert(
-    /<main\b[^>]*data-rubric-provenance\s*=\s*"[^"]+"/.test(cal),
-    'cal: root data-rubric-provenance emitted'
+    /<main\b[^>]*data-rubric-provenance\s*=\s*"[^"]+"/.test(calBody),
+    'cal: root data-rubric-provenance emitted on the real <main>, not the doc-comment'
+  );
+  assert(
+    !/data-reco-rationale|data-rubric-provenance/.test(calComments),
+    'cal: the skeleton doc-comment is never stamped (regression: comment-blind root match)'
   );
   // No placeholder prose, and the default reading experience is untouched: a fill with no
   // calibration values must be byte-identical to the pre-change output for the same values.

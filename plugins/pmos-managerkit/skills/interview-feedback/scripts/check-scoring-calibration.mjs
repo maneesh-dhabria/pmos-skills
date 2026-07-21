@@ -268,7 +268,12 @@ function recoBand(weighted, allOptions) {
 
 // --- the gates ---
 
-function checkCalibration(html) {
+function checkCalibration(rawHtml) {
+  // Strip HTML comments before parsing. The scorecard skeleton's contract comment DOCUMENTS
+  // the anchors by quoting the tags verbatim, and check-citations.mjs appends an audit comment
+  // — a comment-blind parse reads that prose as if it were the sheet. No scoring anchor ever
+  // legitimately lives inside a comment, so this can only remove phantoms.
+  const html = rawHtml.replace(/<!--[\s\S]*?-->/g, '');
   const failures = [];
   const dims = parseDimensions(html);
   const root = parseRoot(html);
@@ -289,6 +294,18 @@ function checkCalibration(html) {
     if (d.untested && d.selected != null) {
       failures.push(
         `dimension "${d.id}" is tagged data-untested but also carries a selected score (${d.selected}) — an untested competency is tagged, never scored`
+      );
+    }
+
+    // ...and it cannot be NEITHER. A dimension with no score and no data-untested tag is
+    // the forgotten dimension: it skips gates 1-3 (they only fire on a scored dim) and its
+    // weight leaves BOTH the scored and the untested totals, silently shrinking the
+    // denominator and inflating the weighted score — the exact defect class this gate
+    // exists to close (D7). Forgetting must be distinguishable from deliberately untested,
+    // so the arithmetic below never runs on a partial sheet.
+    if (!d.untested && d.selected == null) {
+      failures.push(
+        `dimension "${d.id}" is neither scored nor tagged data-untested — every dimension must resolve to one or the other before the weighted score means anything`
       );
     }
 
@@ -450,6 +467,29 @@ function selftest() {
     0,
     sheet(dim({ id: 'a', selected: 3, noteLevel: 3 }) + dim({ id: 'b', selected: 3, noteLevel: 3 })),
     '✓ calibration:'
+  );
+
+  // The skeleton's contract comment documents the anchors by quoting the tags verbatim; a
+  // comment-blind parse would read that prose as a real (and failing) dimension.
+  add(
+    'PASS-doc-comment-decoy-ignored',
+    0,
+    '<!--\n  data-dim contract: <section data-dim="decoy" data-weight="50">\n    <span data-v="1" data-selected></span>  and a root data-reco-rationale="prose"\n-->\n' +
+      sheet(
+        dim({ id: 'a', selected: 3, noteLevel: 3 }) + dim({ id: 'b', selected: 3, noteLevel: 3 })
+      ),
+    'check-scoring-calibration: 2 dimensions, 0 failed'
+  );
+
+  // The forgotten dimension: no score, no untested tag. Without this check it passes every
+  // gate (they fire only on a scored dim) while its weight vanishes from both totals.
+  add(
+    'FAIL-forgotten-dimension',
+    1,
+    sheet(
+      dim({ id: 'a', selected: 3, noteLevel: 3 }) + dim({ id: 'b', selected: null, sweep: 0 })
+    ),
+    'neither scored nor tagged data-untested'
   );
 
   // --- Gate 1: evidence sweep ---
