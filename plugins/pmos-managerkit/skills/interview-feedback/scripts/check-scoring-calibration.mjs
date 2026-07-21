@@ -99,11 +99,18 @@ const NOTES_ONLY_CITE_TIERS = new Set([...VERIFIED_CITE_TIERS, 'notes']);
 //                    names the file, and the operator fixes it in seconds.
 //   false NEGATIVE — a real transcript goes unseen and a fabricated sheet passes. Silent.
 //
-// So the veto is greedy: any `transcript*` file with a text-ish extension, matched
-// case-insensitively, in the scorecard's own directory OR its parent (a "I put the outputs
-// in a subfolder" layout is exactly where an exact-match-in-one-dir probe goes blind).
-const TRANSCRIPT_FILE_RE = /^transcript.*\.(txt|md|vtt|srt|json)$/i;
-const TRANSCRIPT_SEARCH_DEPTH = 2; // the scorecard's directory, then its parent
+// So the veto is greedy in all three directions an earlier revision was narrow in:
+//   NAME  — "transcript" anywhere in the filename, not just as a prefix. Real tools produce
+//           raw_transcript.txt and zoom-2024-06-01-transcript.vtt, neither of which starts
+//           with the word.
+//   DEPTH — three levels up, not one. The round folder nests under the role folder, which
+//           nests under the storage root (SKILL.md § Storage), so a transcript can sit
+//           legitimately above a scorecard written into a sub-folder of its round.
+//   CASE  — matched case-insensitively.
+// Each widening trades a cheap, loud false veto for a silent false negative. That is the
+// whole asymmetry argument above; take it as far as it goes.
+const TRANSCRIPT_FILE_RE = /transcript.*\.(txt|md|vtt|srt|json)$/i;
+const TRANSCRIPT_SEARCH_DEPTH = 3;
 
 // Every path where a transcript would veto a --no-transcript declaration, nearest first.
 function findTranscriptNear(scorecardPath) {
@@ -759,6 +766,12 @@ function selftest() {
     flag: true,
     nest: true,
   });
+  // The name need not START with "transcript" — real tools prefix it.
+  add('REFUSE-flag-vs-prefixed-transcript-name', 2, notesSheet, 'is in or above', {
+    noTranscriptFile: true,
+    flag: true,
+    extraFiles: { 'zoom-2026-06-01-transcript.vtt': 'WEBVTT\n' },
+  });
 
   // A written submission's existence is INDEPENDENT of whether the live round was transcribed,
   // so submission-tier grounding is legitimate under the flag — it is not a lie by construction
@@ -971,16 +984,21 @@ function selftest() {
 
   let pass = 0;
   for (const tc of cases) {
+    // Each case gets its own round folder nested inside its own case root, so the parent-walk
+    // (TRANSCRIPT_SEARCH_DEPTH levels) stays inside this selftest's mkdtemp and can never
+    // reach the shared system temp dir — where an unrelated *transcript*.txt would otherwise
+    // make these cases flaky.
     const caseDir = join(dir, tc.name.replace(/[^\w]+/g, '_'));
-    const sheetDir = tc.nest ? join(caseDir, 'outputs') : caseDir;
+    const roundDir = join(caseDir, 'round');
+    const sheetDir = tc.nest ? join(roundDir, 'outputs') : roundDir;
     mkdirSync(sheetDir, { recursive: true });
     const htmlPath = join(sheetDir, 'filled-scorecard.html');
     writeFileSync(htmlPath, tc.html, 'utf8');
     if (!tc.noTranscriptFile) {
-      writeFileSync(join(caseDir, 'transcript.refined.txt'), 'Interviewer: hello.\n', 'utf8');
+      writeFileSync(join(roundDir, 'transcript.refined.txt'), 'Interviewer: hello.\n', 'utf8');
     }
     for (const [name, body] of Object.entries(tc.extraFiles || {})) {
-      writeFileSync(join(caseDir, name), body, 'utf8');
+      writeFileSync(join(roundDir, name), body, 'utf8');
     }
     const argv = tc.flag ? [selfPath, htmlPath, '--no-transcript'] : [selfPath, htmlPath];
     const res = spawnSync(process.execPath, argv, { encoding: 'utf8' });
