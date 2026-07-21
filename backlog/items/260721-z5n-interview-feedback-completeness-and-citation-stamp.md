@@ -9,21 +9,21 @@ priority: should
 route: skill
 dependencies: []
 plugin: pmos-managerkit
-status: planned
+status: done
 feature_folder: docs/pmos/features/2026-07-21_interview-scoring-calibration/
 plan_doc: docs/pmos/features/2026-07-21_interview-scoring-calibration/stories/260721-z5n/03_plan.html
 tasks: docs/pmos/features/2026-07-21_interview-scoring-calibration/stories/260721-z5n/tasks.yaml
-worktree:
+worktree: .claude/worktrees/feat-260721-z5n
 claimed_by:
 driver_holder:
-build_branch:
-build_commit:
+build_branch: feat/260721-z5n
+build_commit: 0c131f71
 labels: [pmos-managerkit, interview-feedback, hygiene, gates, skill, from-feedback]
 created: 2026-07-21
 updated: 2026-07-21
 ---
 
-<!-- status: planned at define (Loop 1); tasks.yaml authored, route:skill. Build via /skill-sdlc build --story 260721-z5n -->
+<!-- status: built at Loop 2 on 2026-07-21; branch feat/260721-z5n @ 0c131f71, UNMERGED/UNPUSHED. /verify verdict PASS — report at docs/pmos/features/2026-07-21_interview-scoring-calibration/stories/260721-z5n/verify/2026-07-21-review.html. Releases with epic 260721-k1x once 1a4 is done. -->
 
 ## Context
 
@@ -77,3 +77,15 @@ Decisions D4 and D5, and FR-9/FR-10, live in the `design_doc:` (`../../02_design
   (INV-3). `--selftest` covers stamp-insert, stamp-replace (idempotence), and no-stamp-on-failure.
 - [ ] **AC8** `skill-eval` passes; all four repo hygiene lints green; the frozen non-interactive block
   byte-identical.
+
+## Notes
+
+**Built + verified 2026-07-21 (Loop 2).** Verdict PASS, 8/8 ACs. Branch `feat/260721-z5n` @ `0c131f71`,
+UNMERGED/UNPUSHED — releases with epic `260721-k1x`.
+
+Follow-up raised against the epic, deliberately **not** folded into this story: the completeness gate
+inspects `data-input` elements, but a dimension's score lives in `<div class="scale"><span data-v="1">…`,
+which carries no `data-input`. A scorecard with every slot filled and no dimension scored passes this gate.
+AC1 enumerates three shapes and scoring is `260721-jb6`'s surface, so widening z5n would have crossed a
+sibling story. Worth checking whether jb6's sweep gate catches a *never-scored* dimension — its rules are
+written in terms of "every scored `data-dim`". See `verify/2026-07-21-review.html#followups`.
