@@ -143,6 +143,60 @@ function validate(html) {
     failures.push(`found ${budgets.length} data-budget value(s) but no data-duration on the root card (emit both anchors or neither — INV-2)`);
   }
 
+  // 8. Level-descriptor anchors — OPTIONAL + additive. The rules live in scorecard-skeleton.html's
+  //    contract comment (the single home); this is their enforcement, per dimension:
+  //      - a dimension with NO data-level is legal (the un-backfilled state — all-or-none, not all-or-fail);
+  //      - a dimension with data-level on some but not all of its data-v options is refused;
+  //      - a present-but-empty (or whitespace-only) descriptor is refused, with a distinct message.
+  //    Presence-and-completeness only — no arithmetic (§H).
+  failures.push(...validateLevelDescriptors(html));
+
+  return failures;
+}
+
+// ── Level descriptors ────────────────────────────────────────────────────────
+// Extract each <section … data-dim="…">…</section> block. Dimension sections are flat (no nested
+// <section>), so a non-greedy match to the first </section> is exact — the same assumption
+// extractSections() makes for the work-history card families.
+function extractDimSections(html) {
+  const re = /<section\b[^>]*\bdata-dim\s*=\s*"([^"]+)"[^>]*>[\s\S]*?<\/section>/g;
+  const out = [];
+  let m;
+  while ((m = re.exec(html)) !== null) out.push({ id: m[1], block: m[0] });
+  return out;
+}
+
+// Enforce the data-level contract per dimension. Returns an array of failure strings.
+function validateLevelDescriptors(html) {
+  const failures = [];
+
+  for (const { id, block } of extractDimSections(html)) {
+    // Each scale option is a tag carrying data-v="<n>"; the descriptor, when present, is an attribute
+    // on that same tag.
+    const optRe = /<[a-zA-Z][^>]*\bdata-v\s*=\s*"(\d+)"[^>]*>/g;
+    const options = [];
+    let m;
+    while ((m = optRe.exec(block)) !== null) {
+      const lvl = m[0].match(/\bdata-level\s*=\s*"([^"]*)"/);
+      options.push({ v: m[1], has: lvl !== null, text: lvl ? lvl[1] : null });
+    }
+    if (options.length === 0) continue;
+
+    const described = options.filter((o) => o.has);
+    if (described.length > 0 && described.length !== options.length) {
+      const missing = options.filter((o) => !o.has).map((o) => o.v).join(', ');
+      failures.push(
+        `dimension "${id}" has data-level on ${described.length} of ${options.length} scale options — missing on level(s) ${missing} ` +
+        `(all-or-none per dimension; see scorecard-skeleton.html's data-level contract)`,
+      );
+    }
+    for (const o of described) {
+      if (o.text.trim() === '') {
+        failures.push(`dimension "${id}" has an empty data-level on level ${o.v} (a present descriptor must carry real text)`);
+      }
+    }
+  }
+
   return failures;
 }
 
@@ -354,6 +408,43 @@ const DUR_OVERRUN_FIXTURE = DUR_GOOD_FIXTURE.replace('data-budget="20"', 'data-b
 // Broken: data-duration is not a positive integer.
 const DUR_BADINT_FIXTURE = DUR_GOOD_FIXTURE.replace('data-duration="60"', 'data-duration="1h"');
 
+// ── Level-descriptor fixtures ────────────────────────────────────────────────
+// Minimal and self-contained on purpose — they must not couple these assertions to the bundled corpus
+// content. Both dimensions describe every option of their scale; the pass line (3) permits prompting and
+// only the top level (4) carries the unprompted language.
+const LEVEL_GOOD_FIXTURE = `<!DOCTYPE html><html><body>
+<main data-card="scorecard" data-archetype="product-sense">
+  <section class="dim" data-dim="user-empathy" data-weight="60">
+    <div class="scale" data-scale="1-4"><span data-v="1" data-level="ue-1: never reached the user, even when asked directly.">1</span><span data-v="2" data-level="ue-2: reached the user only after repeated prompting, and stayed generic.">2</span><span data-v="3" data-level="ue-3: named a concrete user and their need after a probe.">3</span><span data-v="4" data-level="ue-4: led with the user unprompted and segmented them.">4</span></div>
+    <div class="notes" data-input="notes:user-empathy"></div>
+    <ul data-flags="green"></ul><ul data-flags="red"></ul>
+  </section>
+  <section class="dim" data-dim="prioritization" data-weight="40">
+    <div class="scale" data-scale="1-4"><span data-v="1" data-level="pr-1: offered no ordering at all.">1</span><span data-v="2" data-level="pr-2: ordered by gut with no criterion named.">2</span><span data-v="3" data-level="pr-3: named a criterion and applied it when asked to.">3</span><span data-v="4" data-level="pr-4: proposed the tradeoff unprompted and defended what was cut.">4</span></div>
+    <div class="notes" data-input="notes:prioritization"></div>
+    <ul data-flags="green"></ul><ul data-flags="red"></ul>
+  </section>
+  <section class="reco"><div class="reco-opts" data-input="reco">
+    <span data-reco="strong-no">Strong no</span><span data-reco="no">No</span>
+    <span data-reco="yes">Hire</span><span data-reco="strong-yes">Strong hire</span>
+  </div><div data-input="notes:reco"></div></section>
+</main></body></html>`;
+
+// Undescribed: no data-level anywhere. The legal all-none state every bundled scorecard is in — it must
+// validate exactly as it did before the contract existed.
+const LEVEL_NONE_FIXTURE = GOOD_FIXTURE;
+
+// Partially described: user-empathy describes 2 of its 4 options (levels 2 and 4 lose their descriptor).
+const LEVEL_PARTIAL_FIXTURE = LEVEL_GOOD_FIXTURE
+  .replace(' data-level="ue-2: reached the user only after repeated prompting, and stayed generic."', '')
+  .replace(' data-level="ue-4: led with the user unprompted and segmented them."', '');
+
+// Empty descriptors: one truly empty, one whitespace-only — both present, so all-or-none is satisfied and
+// only the distinct non-empty failure fires.
+const LEVEL_EMPTY_FIXTURE = LEVEL_GOOD_FIXTURE
+  .replace('data-level="ue-3: named a concrete user and their need after a probe."', 'data-level=""')
+  .replace('data-level="pr-2: ordered by gut with no criterion named."', 'data-level="   "');
+
 function selftest() {
   let ok = true;
 
@@ -456,6 +547,48 @@ function selftest() {
     console.error('  reported: ' + JSON.stringify(durBadInt, null, 2));
   } else {
     console.log('selftest: non-integer duration fixture ✓ (caught the bad integer)');
+  }
+
+  // Level-descriptor gate: a fully-described sheet and an undescribed sheet both pass; a
+  // partially-described dimension and an empty descriptor are each refused, with distinct messages.
+  const lvlGood = validate(LEVEL_GOOD_FIXTURE);
+  if (lvlGood.length !== 0) {
+    ok = false;
+    console.error('SELFTEST FAIL: level-descriptor good fixture reported failures:');
+    for (const f of lvlGood) console.error('  - ' + f);
+  } else {
+    console.log('selftest: level-descriptor good fixture ✓ (0 failures)');
+  }
+
+  const lvlNone = validate(LEVEL_NONE_FIXTURE);
+  if (lvlNone.length !== 0) {
+    ok = false;
+    console.error('SELFTEST FAIL: undescribed fixture reported failures (all-or-none must accept zero descriptors):');
+    for (const f of lvlNone) console.error('  - ' + f);
+  } else {
+    console.log('selftest: undescribed fixture ✓ (0 failures — the legal all-none state)');
+  }
+
+  const lvlPartial = validate(LEVEL_PARTIAL_FIXTURE);
+  if (!lvlPartial.some((f) => /dimension "user-empathy" has data-level on 2 of 4 scale options — missing on level\(s\) 2, 4/.test(f))) {
+    ok = false;
+    console.error('SELFTEST FAIL: partially-described fixture did not name the dimension and its missing levels.');
+    console.error('  reported: ' + JSON.stringify(lvlPartial, null, 2));
+  } else {
+    console.log('selftest: partially-described fixture ✓ (caught the incomplete scale)');
+  }
+
+  const lvlEmpty = validate(LEVEL_EMPTY_FIXTURE);
+  const lvlEmptyExpect = [
+    /dimension "user-empathy" has an empty data-level on level 3/,
+    /dimension "prioritization" has an empty data-level on level 2/,
+  ];
+  if (lvlEmptyExpect.some((re) => !lvlEmpty.some((f) => re.test(f))) || lvlEmpty.some((f) => /all-or-none/.test(f))) {
+    ok = false;
+    console.error('SELFTEST FAIL: empty-descriptor fixture did not report both empties with the distinct message.');
+    console.error('  reported: ' + JSON.stringify(lvlEmpty, null, 2));
+  } else {
+    console.log('selftest: empty-descriptor fixture ✓ (caught both empties, distinct from all-or-none)');
   }
 
   // --check-duration free-form parser (§H). Parseable shapes resolve to a positive integer of minutes;
